@@ -1,7 +1,8 @@
 # Supabase Setup Instructions
 
-## Step 1: Run the SQL Setup Script
+## Step 1: Run the SQL Setup Scripts
 
+### Part A: Main Setup
 1. Go to your Supabase project dashboard: https://froxodstewdswllgokmu.supabase.co
 2. Navigate to **SQL Editor** in the left sidebar
 3. Click **New Query**
@@ -9,7 +10,15 @@
 5. Paste it into the SQL Editor
 6. Click **Run** to execute the script
 
-This will create all tables with the `Couples_` prefix and set up all Row Level Security (RLS) policies.
+This will create all tables with the `Couples_` prefix and set up basic Row Level Security (RLS) policies.
+
+### Part B: Couple Join Fix (Required for pairing)
+1. In the same **SQL Editor**, click **New Query** again
+2. Copy the entire contents of `supabase-couple-join-fix.sql`
+3. Paste it into the SQL Editor
+4. Click **Run** to execute the migration
+
+This adds the `join_code` column and updates RLS policies so partners can find and join each other securely.
 
 ## Step 2: Verify Table Creation
 

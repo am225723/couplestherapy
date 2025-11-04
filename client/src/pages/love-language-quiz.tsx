@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'wouter';
+import { useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -14,7 +14,7 @@ export default function LoveLanguageQuiz() {
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState<LoveLanguageType[]>([]);
   const [saving, setSaving] = useState(false);
-  const navigate = useNavigate();
+  const [, navigate] = useLocation();
   const { user } = useAuth();
   const { toast } = useToast();
 

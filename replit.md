@@ -29,6 +29,7 @@ A comprehensive, multi-tenant couples therapy platform with separate client and 
 
 2. **Couples_couples** - The hub linking two partners and their therapist
    - partner1_id, partner2_id, therapist_id
+   - join_code: 8-character code for partner pairing (first 8 chars of UUID)
 
 3. **Couples_love_languages** - 30-question quiz results
    - primary_language, secondary_language, scores (JSONB)
@@ -122,14 +123,15 @@ WHERE id IN ('PARTNER1_ID', 'PARTNER2_ID');
 
 ### Client Journey
 1. Sign up → Create profile (role='client')
-2. Take Love Language Quiz → Results saved
-3. Dashboard shows activities
-4. Complete Weekly Check-In → Private, partner can't see
-5. Add Gratitude Log posts → Partner can see
-6. Create/drag Shared Goals
-7. Build Rituals for each category
-8. Start Hold Me Tight conversation → Partner completes
-9. Receive therapist comments in real-time
+2. **Couple Setup**: Create couple OR join partner using 8-char code
+3. Take Love Language Quiz → Results saved
+4. Dashboard shows activities
+5. Complete Weekly Check-In → Private, partner can't see
+6. Add Gratitude Log posts → Partner can see
+7. Create/drag Shared Goals
+8. Build Rituals for each category
+9. Start Hold Me Tight conversation → Partner completes
+10. Receive therapist comments in real-time
 
 ### Therapist Journey
 1. Sign up → Profile set to role='therapist'
