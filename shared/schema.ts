@@ -1,18 +1,189 @@
-import { sql } from "drizzle-orm";
-import { pgTable, text, varchar } from "drizzle-orm/pg-core";
+import { pgTable, text, uuid, timestamp, integer, jsonb, boolean } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-export const users = pgTable("users", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  username: text("username").notNull().unique(),
-  password: text("password").notNull(),
+// Note: These schemas match the Supabase tables with Couples_ prefix
+// The actual tables are created directly in Supabase via SQL
+
+// 1. PROFILES TABLE
+export const couplesProfiles = pgTable("Couples_profiles", {
+  id: uuid("id").primaryKey(),
+  full_name: text("full_name"),
+  role: text("role").notNull(), // 'therapist' or 'client'
+  couple_id: uuid("couple_id"),
 });
 
-export const insertUserSchema = createInsertSchema(users).pick({
-  username: true,
-  password: true,
+export const insertProfileSchema = createInsertSchema(couplesProfiles).omit({ id: true });
+export type InsertProfile = z.infer<typeof insertProfileSchema>;
+export type Profile = typeof couplesProfiles.$inferSelect;
+
+// 2. COUPLES TABLE
+export const couplesCouples = pgTable("Couples_couples", {
+  id: uuid("id").primaryKey(),
+  partner1_id: uuid("partner1_id"),
+  partner2_id: uuid("partner2_id"),
+  therapist_id: uuid("therapist_id"),
 });
 
-export type InsertUser = z.infer<typeof insertUserSchema>;
-export type User = typeof users.$inferSelect;
+export type Couple = typeof couplesCouples.$inferSelect;
+
+// 3. LOVE LANGUAGES TABLE
+export const couplesLoveLanguages = pgTable("Couples_love_languages", {
+  id: uuid("id").primaryKey(),
+  user_id: uuid("user_id").notNull(),
+  primary_language: text("primary_language"),
+  secondary_language: text("secondary_language"),
+  scores: jsonb("scores"), // { words_of_affirmation: 8, quality_time: 6, ... }
+});
+
+export const insertLoveLanguageSchema = createInsertSchema(couplesLoveLanguages).omit({ id: true }).extend({
+  scores: z.record(z.number()),
+});
+export type InsertLoveLanguage = z.infer<typeof insertLoveLanguageSchema>;
+export type LoveLanguage = typeof couplesLoveLanguages.$inferSelect;
+
+// 4. GRATITUDE LOGS
+export const couplesGratitudeLogs = pgTable("Couples_gratitude_logs", {
+  id: uuid("id").primaryKey(),
+  couple_id: uuid("couple_id").notNull(),
+  user_id: uuid("user_id").notNull(),
+  created_at: timestamp("created_at").defaultNow(),
+  text_content: text("text_content"),
+  image_url: text("image_url"),
+});
+
+export const insertGratitudeLogSchema = createInsertSchema(couplesGratitudeLogs).omit({
+  id: true,
+  created_at: true,
+});
+export type InsertGratitudeLog = z.infer<typeof insertGratitudeLogSchema>;
+export type GratitudeLog = typeof couplesGratitudeLogs.$inferSelect;
+
+// 5. WEEKLY CHECK-INS
+export const couplesWeeklyCheckins = pgTable("Couples_weekly_checkins", {
+  id: uuid("id").primaryKey(),
+  couple_id: uuid("couple_id").notNull(),
+  user_id: uuid("user_id").notNull(),
+  created_at: timestamp("created_at").defaultNow(),
+  week_number: integer("week_number"),
+  q_connectedness: integer("q_connectedness"), // 1-10
+  q_conflict: integer("q_conflict"), // 1-10
+  q_appreciation: text("q_appreciation"),
+  q_regrettable_incident: text("q_regrettable_incident"),
+  q_my_need: text("q_my_need"),
+});
+
+export const insertWeeklyCheckinSchema = createInsertSchema(couplesWeeklyCheckins).omit({
+  id: true,
+  created_at: true,
+}).extend({
+  q_connectedness: z.number().min(1).max(10),
+  q_conflict: z.number().min(1).max(10),
+  q_appreciation: z.string().min(1, "Please share what you appreciated"),
+  q_regrettable_incident: z.string().min(1, "Please share the regrettable incident"),
+  q_my_need: z.string().min(1, "Please share what you need"),
+});
+export type InsertWeeklyCheckin = z.infer<typeof insertWeeklyCheckinSchema>;
+export type WeeklyCheckin = typeof couplesWeeklyCheckins.$inferSelect;
+
+// 6. SHARED GOALS
+export const couplesSharedGoals = pgTable("Couples_shared_goals", {
+  id: uuid("id").primaryKey(),
+  couple_id: uuid("couple_id").notNull(),
+  created_by: uuid("created_by").notNull(),
+  created_at: timestamp("created_at").defaultNow(),
+  title: text("title").notNull(),
+  status: text("status").default("backlog"), // 'backlog', 'doing', 'done'
+  assigned_to: uuid("assigned_to"),
+});
+
+export const insertSharedGoalSchema = createInsertSchema(couplesSharedGoals).omit({
+  id: true,
+  created_at: true,
+}).extend({
+  title: z.string().min(1, "Goal title is required"),
+});
+export type InsertSharedGoal = z.infer<typeof insertSharedGoalSchema>;
+export type SharedGoal = typeof couplesSharedGoals.$inferSelect;
+
+// 7. THERAPIST COMMENTS
+export const couplesTherapistComments = pgTable("Couples_therapist_comments", {
+  id: uuid("id").primaryKey(),
+  couple_id: uuid("couple_id").notNull(),
+  therapist_id: uuid("therapist_id").notNull(),
+  created_at: timestamp("created_at").defaultNow(),
+  comment_text: text("comment_text").notNull(),
+  is_private_note: boolean("is_private_note").default(false),
+  related_activity_type: text("related_activity_type"),
+  related_activity_id: uuid("related_activity_id"),
+});
+
+export const insertTherapistCommentSchema = createInsertSchema(couplesTherapistComments).omit({
+  id: true,
+  created_at: true,
+}).extend({
+  comment_text: z.string().min(1, "Comment is required"),
+});
+export type InsertTherapistComment = z.infer<typeof insertTherapistCommentSchema>;
+export type TherapistComment = typeof couplesTherapistComments.$inferSelect;
+
+// 8. CONVERSATIONS (Hold Me Tight)
+export const couplesConversations = pgTable("Couples_conversations", {
+  id: uuid("id").primaryKey(),
+  couple_id: uuid("couple_id").notNull(),
+  created_at: timestamp("created_at").defaultNow(),
+  initiator_id: uuid("initiator_id"),
+  initiator_statement_feel: text("initiator_statement_feel"),
+  initiator_statement_need: text("initiator_statement_need"),
+  partner_reflection: text("partner_reflection"),
+  partner_response: text("partner_response"),
+});
+
+export const insertConversationSchema = createInsertSchema(couplesConversations).omit({
+  id: true,
+  created_at: true,
+});
+export type InsertConversation = z.infer<typeof insertConversationSchema>;
+export type Conversation = typeof couplesConversations.$inferSelect;
+
+// 9. RITUALS OF CONNECTION
+export const couplesRituals = pgTable("Couples_rituals", {
+  id: uuid("id").primaryKey(),
+  couple_id: uuid("couple_id").notNull(),
+  category: text("category").notNull(), // 'Mornings', 'Reuniting', 'Mealtimes', 'Going to Sleep'
+  description: text("description").notNull(),
+  created_by: uuid("created_by"),
+});
+
+export const insertRitualSchema = createInsertSchema(couplesRituals).omit({ id: true }).extend({
+  description: z.string().min(1, "Ritual description is required"),
+});
+export type InsertRitual = z.infer<typeof insertRitualSchema>;
+export type Ritual = typeof couplesRituals.$inferSelect;
+
+// Love Language Quiz Types
+export const LOVE_LANGUAGES = [
+  "Words of Affirmation",
+  "Quality Time",
+  "Receiving Gifts",
+  "Acts of Service",
+  "Physical Touch",
+] as const;
+
+export type LoveLanguageType = typeof LOVE_LANGUAGES[number];
+
+export interface QuizQuestion {
+  id: number;
+  optionA: { text: string; language: LoveLanguageType };
+  optionB: { text: string; language: LoveLanguageType };
+}
+
+// Ritual Categories
+export const RITUAL_CATEGORIES = [
+  "Mornings",
+  "Reuniting",
+  "Mealtimes",
+  "Going to Sleep",
+] as const;
+
+export type RitualCategory = typeof RITUAL_CATEGORIES[number];
