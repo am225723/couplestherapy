@@ -1,0 +1,356 @@
+Here is the complete, detailed prompt designed to be copied and pasted directly into an AI App Builder.
+---
+### **PROJECT BRIEF: THERAPIST-ASSISTED COUPLES APP**
+---
+
+**Objective:**
+Build a comprehensive, multi-tenant "Therapist-Assisted Digital Intervention" (TADI) platform. The system will consist of two primary applications:
+1.  **A `client-app`** for couples (e.g., "Matthew & Carly") to complete exercises, log interactions, and receive guidance.
+2.  **An `admin-app`** for the therapist to monitor progress, review private check-ins, and provide contextual, in-app feedback.
+
+**Core Tech Stack:**
+* **Backend:** Supabase (PostgreSQL, Auth, Realtime, Edge Functions)
+* **Frontend (Both Apps):** Vite + React
+* **Deployment:** Vercel or Replit
+* **AI:** Google's Gemini (gemini-2.5-flash-preview-09-2025) via Supabase Edge Functions
+
+---
+### **1. SUPABASE BACKEND SPECIFICATIONS**
+---
+
+#### **A. Database Schema (SQL)**
+Initialize the Supabase project and run the following SQL to create the complete database schema. This structure is critical.
+
+```sql
+-- Enable the UUID extension
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp" WITH SCHEMA "extensions";
+
+-- 1. PROFILES TABLE
+-- This links every user to a role and a couple.
+-- It's connected to auth.users via a foreign key.
+CREATE TABLE public.profiles (
+  id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  full_name TEXT,
+  -- 'therapist' or 'client'
+  role TEXT NOT NULL, 
+  -- Foreign key to the couples table, can be null for therapists
+  couple_id UUID REFERENCES public.couples(id) ON DELETE SET NULL
+);
+
+-- 2. COUPLES TABLE
+-- This is the "hub" that links two partners and their therapist.
+CREATE TABLE public.couples (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  -- These columns will be populated after profiles are created
+  partner1_id UUID REFERENCES public.profiles(id),
+  partner2_id UUID REFERENCES public.profiles(id),
+  therapist_id UUID REFERENCES public.profiles(id)
+);
+
+-- 3. LOVE LANGUAGES TABLE
+CREATE TABLE public.love_languages (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  primary_language TEXT,
+  secondary_language TEXT,
+  -- Store all 5 scores
+  scores JSONB 
+);
+
+-- 4. SHARED GRATITUDE LOG
+-- Publicly viewable by the couple and therapist
+CREATE TABLE public.gratitude_logs (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  couple_id UUID NOT NULL REFERENCES public.couples(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  text_content TEXT,
+  -- Connects to Supabase Storage
+  image_url TEXT 
+);
+
+-- 5. PRIVATE WEEKLY CHECK-INS
+-- The most locked-down table.
+CREATE TABLE public.weekly_checkins (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  couple_id UUID NOT NULL REFERENCES public.couples(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  week_number INT,
+  q_connectedness INT, -- scale 1-10
+  q_conflict INT, -- scale 1-10
+  q_appreciation TEXT,
+  q_regrettable_incident TEXT,
+  q_my_need TEXT
+);
+
+-- 6. SHARED GOALS (Trello-style)
+CREATE TABLE public.shared_goals (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  couple_id UUID NOT NULL REFERENCES public.couples(id) ON DELETE CASCADE,
+  created_by UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  title TEXT NOT NULL,
+  -- 'backlog', 'doing', 'done'
+  status TEXT DEFAULT 'backlog',
+  assigned_to UUID REFERENCES public.profiles(id)
+);
+
+-- 7. THERAPIST COMMENTS (The "Speak to Them" feature)
+CREATE TABLE public.therapist_comments (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  couple_id UUID NOT NULL REFERENCES public.couples(id) ON DELETE CASCADE,
+  -- This is YOU, the therapist
+  therapist_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  comment_text TEXT NOT NULL,
+  -- If true, only you can see this. If false, couple can see it.
+  is_private_note BOOLEAN DEFAULT false,
+  -- This links the comment to a specific activity
+  related_activity_type TEXT, -- e.g., 'gratitude_logs' or 'shared_goals'
+  related_activity_id UUID -- The ID of the log or goal
+);
+
+-- 8. HOLD ME TIGHT CONVERSATIONS LOG
+CREATE TABLE public.conversations (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  couple_id UUID NOT NULL REFERENCES public.couples(id) ON DELETE CASCADE,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  -- The user who initiated by sharing their "raw spot"
+  initiator_id UUID REFERENCES public.profiles(id),
+  initiator_statement_feel TEXT,
+  initiator_statement_need TEXT,
+  partner_reflection TEXT,
+  partner_response TEXT
+);
+
+-- 9. RITUALS OF CONNECTION
+CREATE TABLE public.rituals (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  couple_id UUID NOT NULL REFERENCES public.couples(id) ON DELETE CASCADE,
+  -- e.g., 'Mornings', 'Reuniting', 'Mealtimes', 'Going to Sleep'
+  category TEXT NOT NULL,
+  description TEXT NOT NULL,
+  created_by UUID REFERENCES public.profiles(id)
+);
+
+B. Row Level Security (RLS) Policies (CRITICAL)
+This is the most important part of the backend. The privacy of the clients depends on it. You must enable RLS on all tables and apply the following policies.
+---
+--- HELPER FUNCTIONS (Run these first)
+---
+
+-- Helper function to get the user's role
+CREATE OR REPLACE FUNCTION get_my_role()
+RETURNS TEXT
+LANGUAGE sql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT role FROM public.profiles WHERE id = auth.uid();
+$$;
+
+-- Helper function to get the user's couple_id
+CREATE OR REPLACE FUNCTION get_my_couple_id()
+RETURNS UUID
+LANGUAGE sql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT couple_id FROM public.profiles WHERE id = auth.uid();
+$$;
+
+---
+-- RLS Policy: PROFILES
+---
+ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.profiles FORCE ROW LEVEL SECURITY;
+
+-- Users can see their own profile
+CREATE POLICY "Users can see own profile"
+ON public.profiles FOR SELECT
+USING ( auth.uid() = id );
+
+-- A couple can see each other's profile
+CREATE POLICY "Partners can see each other's profile"
+ON public.profiles FOR SELECT
+USING (
+  couple_id = get_my_couple_id()
+);
+
+-- The therapist can see their clients' profiles
+CREATE POLICY "Therapist can see their clients' profiles"
+ON public.profiles FOR SELECT
+USING (
+  get_my_role() = 'therapist'
+  AND
+  id IN (
+    SELECT partner1_id FROM public.couples WHERE therapist_id = auth.uid()
+    UNION
+    SELECT partner2_id FROM public.couples WHERE therapist_id = auth.uid()
+  )
+);
+
+-- Users can update their own profile
+CREATE POLICY "Users can update own profile"
+ON public.profiles FOR UPDATE
+USING ( auth.uid() = id ) WITH CHECK ( auth.uid() = id );
+
+
+---
+-- RLS Policy: WEEKLY CHECK-INS (The most private data)
+---
+ALTER TABLE public.weekly_checkins ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.weekly_checkins FORCE ROW LEVEL SECURITY;
+
+-- 1. Clients can see their *OWN* check-ins.
+-- 2. The couple's *THERAPIST* can see *ALL* check-ins for that couple.
+CREATE POLICY "Enable access for own check-ins or for therapist"
+ON public.weekly_checkins
+FOR SELECT
+USING (
+  -- Rule 1: I am the author
+  auth.uid() = user_id 
+  OR
+  -- Rule 2: I am a 'therapist' AND I am this couple's therapist
+  (
+    get_my_role() = 'therapist'
+    AND
+    EXISTS (
+      SELECT 1 FROM public.couples
+      WHERE id = weekly_checkins.couple_id AND therapist_id = auth.uid()
+    )
+  )
+);
+
+-- Clients can only insert for themselves.
+CREATE POLICY "Enable insert for own check-ins"
+ON public.weekly_checkins
+FOR INSERT
+WITH CHECK ( auth.uid() = user_id AND couple_id = get_my_couple_id() );
+
+
+---
+-- RLS Policy: GRATITUDE LOGS (Shared data)
+---
+ALTER TABLE public.gratitude_logs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.gratitude_logs FORCE ROW LEVEL SECURITY;
+
+-- 1. A couple can see all logs for their couple_id
+-- 2. Their therapist can see all logs for their couple_id
+CREATE POLICY "Couple and Therapist can see shared logs"
+ON public.gratitude_logs
+FOR SELECT
+USING (
+  -- Rule 1: I am part of this couple
+  couple_id = get_my_couple_id()
+  OR
+  -- Rule 2: I am their therapist
+  (
+    get_my_role() = 'therapist'
+    AND
+    EXISTS (
+      SELECT 1 FROM public.couples
+      WHERE id = gratitude_logs.couple_id AND therapist_id = auth.uid()
+    )
+  )
+);
+
+-- A client can only create logs for their own couple_id
+CREATE POLICY "Clients can create their own logs"
+ON public.gratitude_logs
+FOR INSERT
+WITH CHECK ( auth.uid() = user_id AND couple_id = get_my_couple_id() );
+
+---
+--- NOTE: You must apply this same logic to all other tables
+--- (shared_goals, conversations, rituals, therapist_comments, love_languages, etc.)
+--- `SELECT` policy: User's couple_id = table's couple_id OR user is the assigned therapist.
+--- `INSERT`/`UPDATE` policy: User's couple_id = table's couple_id AND user_id = auth.uid()
+---
+
+2. client-app (Vite + React) FEATURES
+This is the application for Matthew and Carly.
+ * Onboarding & Profile:
+   * User signs up (Supabase Auth).
+   * User is assigned a role of "client" and a couple_id.
+   * Love Language Quiz: Implement the 30-question, forced-choice "5 Love Languages" quiz.
+   * On completion, save the results (primary language, secondary language, all scores) to the love_languages table.
+   * The app dashboard must show both partners' primary Love Languages side-by-side.
+ * Private Weekly Check-in (CRITICAL):
+   * A weekly form with the following questions:
+     * q_connectedness (Slider 1-10): "How connected did you feel to your partner this week?"
+     * q_conflict (Slider 1-10): "How well did we handle disagreements this week?"
+     * q_appreciation (Text): "What is one thing your partner did this week that you truly appreciated?"
+     * q_regrettable_incident (Text): "What was one moment of disconnection or a 'regrettable incident' this week?"
+     * q_my_need (Text): "What is one specific thing you need from your partner next week?"
+   * Crucial Rule: Results are saved to weekly_checkins. Due to RLS, partners cannot see each other's submissions.
+ * Shared Gratitude Log:
+   * A shared feed (like a private Instagram) that shows all posts from the gratitude_logs table for their couple_id.
+   * Users can add new posts (text or image).
+ * Shared Goals Board (Trello-Style):
+   * A simple Kanban board (columns: "Backlog," "Doing," "Done").
+   * Renders cards from the shared_goals table.
+   * Users can add new cards, assign a partner, and drag/drop them between columns.
+ * Rituals of Connection Builder (Gottman):
+   * A builder based on categories: "Mornings," "Reuniting (After Work)," "Mealtimes," "Going to Sleep."
+   * Users can add their own text-based rituals to each category.
+   * Saves to the rituals table.
+ * "Hold Me Tight" Conversation (EFT Wizard):
+   * A multi-step, guided wizard that one partner initiates.
+   * Step 1: Initiator shares a "raw spot" ("When [X] happens... I feel [Y]... and I need [Z]").
+   * Step 2: Partner's screen prompts them to reflect: "What I'm hearing you say is..."
+   * Step 3: Partner's screen prompts them to share their side: "When that happens, I'm feeling..."
+   * The results are saved to the conversations table.
+ * Therapist Feedback Loop:
+   * The app must use Supabase Realtime to subscribe to the therapist_comments table for their couple_id.
+   * When a new comment is added (and is_private_note is false), it must appear contextually under the related activity in the UI (e.g., under the specific Gratitude Log post).
+3. admin-app (Vite + React) FEATURES
+This is the application for you, the Therapist.
+ * Secure Login: Only users with role = "therapist" can access this app.
+ * Client Roster: A dashboard showing a list of all assigned couples (from the couples table where therapist_id = auth.uid()).
+ * Couple Dashboard: Clicking a couple shows their dedicated dashboard:
+   * Weekly Check-in View (Critical): A side-by-side comparison of both partners' private weekly_checkins for the current week. This is your primary tool for spotting discrepancies.
+   * Shared Activity Feed: A chronological feed of all data from gratitude_logs, shared_goals, rituals, and conversations.
+   * Love Language Profiles: Both partners' love_languages profiles, shown side-by-side.
+ * Contextual Commenting:
+   * On the "Shared Activity Feed," every single item must have a text input for you to add a comment.
+   * Submitting the comment adds a new row to the therapist_comments table, linking it via related_activity_type and related_activity_id.
+   * Must include a checkbox for is_private_note. If checked, the comment is only visible in the admin app. If unchecked, it's pushed via Realtime to the client app.
+ * Private Notes: A simple, large text field linked to the couples table for your own session notes.
+4. AI (Gemini) INTEGRATION (Supabase Edge Functions)
+You must create two Supabase Edge Functions.
+A. AI Feature 1: gentle-rephraser (Client-Facing)
+ * Purpose: A button in the client-app next to text inputs that helps a user rephrase a "harsh start-up" into a "gentle start-up."
+ * Function: Create a Supabase Edge Function named gentle-rephraser.
+ * Input: { text: "You never help!", userLang: "Words of Affirmation", partnerLang: "Acts of Service" }
+ * System Prompt:
+   > "You are an expert couples therapist trained in the Gottman Method and Love Languages. Rephrase the user's 'harsh start-up' into a 'gentle start-up'. A gentle start-up MUST use 'I feel...' statements, describe the situation without blame, and state a positive need.
+   > CONTEXT:
+   > 
+   >  * The user's primary Love Language is: [userLang]
+   >  * Their partner's primary Love Language is: [partnerLang]
+   > 
+   > Use this context. For example, if the partner's language is 'Acts of Service', frame the positive need as a collaborative action. If it's 'Words of Affirmation', frame the need as a desire for appreciation. Be concise and empathetic."
+   > 
+ * Output: { "rephrased": "I'm feeling really overwhelmed. I would feel so supported if we could tackle this as a team." }
+B. AI Feature 2: weekly-summary (Therapist-Facing)
+ * Purpose: A button in your admin-app that gives you an instant, data-driven summary of the couple's week.
+ * Function: Create a Supabase Edge Function named weekly-summary.
+ * Logic:
+   * Called from the admin-app (only a therapist can call this).
+   * The function uses the Supabase service role to query the database for all activity for a given couple_id from the last 7 days (all check-ins, logs, goals, etc.).
+   * It bundles this data into a large JSON object.
+   * It sends this JSON to the Gemini API with the following system prompt.
+ * System Prompt:
+   > "You are an expert clinical assistant for a couples therapist. I am the therapist. You will receive a JSON object of one couple's app activity for the past 7 days, including their private check-ins. Your job is to analyze this data and provide me with a concise clinical summary.
+   > Your summary must include:
+   > 
+   >  * Key Discrepancy: The most significant difference in their weeklyCheckin reports.
+   >  * Observed 'Win': A clear example of one partner successfully using the other's Love Language.
+   >  * Potential 'Red Flag': A 'regrettable incident' mentioned by one partner but not the other, or a total lack of gratitude posts.
+   >  * Suggested Focus: A 1-sentence suggestion for what I should focus on in our next session."
+   > 
+ * Output: Returns the structured text summary to your admin dashboard.
+<!-- end list -->
+
