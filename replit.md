@@ -77,6 +77,22 @@ A comprehensive, multi-tenant couples therapy platform with separate client and 
    - **Features**: Month/week/day views using react-big-calendar, real-time updates
    - **Privacy**: Partners have full CRUD access; therapists have read-only access
 
+13. **Couples_love_map_questions** - Question bank for Love Map Quiz
+   - question_text, category, is_active
+   - 20 seeded questions across 10 categories
+
+14. **Couples_love_map_sessions** - Quiz sessions tracking
+   - couple_id, partner1_score, partner2_score, completion timestamps
+   - Tracks quiz progress and results
+
+15. **Couples_love_map_truths** - Self-answers (the "truth")
+   - session_id, question_id, author_id, answer_text
+   - Partners' actual answers about themselves
+
+16. **Couples_love_map_guesses** - Partner guesses
+   - session_id, question_id, guesser_id, target_partner_id, guess_text, is_correct
+   - Partners' guesses about each other with correctness calculated server-side
+
 ## Row Level Security (RLS)
 
 **Critical Privacy Features:**
@@ -88,6 +104,7 @@ A comprehensive, multi-tenant couples therapy platform with separate client and 
 - Voice memos: Partners can listen to each other's recordings; therapists see metadata only
 - Messages: No UPDATE access via RLS to prevent tampering; mark-as-read handled server-side only
 - Calendar events: Partners can create/edit/delete their couple's events; therapists have read-only view
+- Love Map Quiz: Partners can CRUD their couple's quiz data; therapists have read-only access to results
 
 ## Application Features
 
@@ -103,7 +120,8 @@ A comprehensive, multi-tenant couples therapy platform with separate client and 
 9. **Connection Concierge** - AI-powered date night generator using Perplexity (asks preferences, generates 3 personalized date ideas with connection tips)
 10. **Messages** - Chat-style secure messaging with therapist (real-time updates via Supabase Realtime)
 11. **Calendar** - Shared calendar for planning events and dates with month/week/day views (integrates with Connection Concierge)
-12. **Realtime Therapist Comments** - Contextual feedback appears under activities
+12. **Love Map Quiz** - Gottman-based assessment where partners answer questions about each other (3-phase: self-answers → partner guesses → reveal with scores)
+13. **Realtime Therapist Comments** - Contextual feedback appears under activities
 
 ### Admin App (for Therapists)
 1. **Secure Login** - Only users with role='therapist' can access
@@ -116,7 +134,8 @@ A comprehensive, multi-tenant couples therapy platform with separate client and 
 5. **Contextual Commenting** - Add comments to any activity with private/public toggle
 6. **Messages** - Chat-style secure messaging with assigned couples (real-time updates)
 7. **Calendar** - Read-only view of assigned couples' calendar events
-8. **Analytics** - Perplexity AI-powered insights and progress tracking
+8. **Love Map Quiz Results** - View both partners' scores and side-by-side answer comparison
+9. **Analytics** - Perplexity AI-powered insights and progress tracking
 
 ## How to Run
 
@@ -128,6 +147,7 @@ A comprehensive, multi-tenant couples therapy platform with separate client and 
    - `supabase-voice-memos.sql` (voice memo feature)
    - `supabase-messages-migration.sql` (secure messaging feature)
    - `supabase-calendar-migration.sql` (calendar feature with RLS policies)
+   - `supabase-lovemap-migration.sql` (Love Map Quiz with 4 tables and 20 seeded questions)
 3. Verify all tables with `Couples_` prefix are created
 4. Set up Supabase Storage:
    - Create bucket: `voice-memos` (private)
@@ -175,7 +195,8 @@ WHERE id IN ('PARTNER1_ID', 'PARTNER2_ID');
 11. Use Connection Concierge to plan AI-generated date nights with connection tips
 12. Send and receive messages with therapist in real-time chat
 13. Plan events and dates together using shared calendar
-14. Receive therapist comments in real-time
+14. Take Love Map Quiz to demonstrate knowledge of partner (3 phases with score reveal)
+15. Receive therapist comments in real-time
 
 ### Therapist Journey
 1. Sign up → Profile set to role='therapist'
@@ -188,7 +209,8 @@ WHERE id IN ('PARTNER1_ID', 'PARTNER2_ID');
 8. Public comments appear in client app via Realtime
 9. Send and receive messages with couples in real-time chat
 10. View assigned couples' calendar events (read-only)
-11. Use Analytics dashboard for AI-powered insights
+11. Review Love Map Quiz results with side-by-side comparison
+12. Use Analytics dashboard for AI-powered insights
 
 ## Design System
 
@@ -229,6 +251,7 @@ SUPABASE_SERVICE_ROLE_KEY=[Stored in Replit Secrets]
 - ✅ Implemented Connection Concierge: AI-powered date night generator that asks preferences and creates personalized date ideas with connection tips
 - ✅ Implemented secure messaging system: Chat-style UI with real-time updates, RLS policies for security (SELECT/INSERT only, no UPDATE to prevent tampering)
 - ✅ Implemented calendar feature: react-big-calendar with month/week/day views, real-time updates, Connection Concierge integration to prefill events, therapist read-only view
+- ✅ Implemented Love Map Quiz: Gottman-based 3-phase assessment (self-answers → partner guesses → reveal), 20 questions across 10 categories, server-side scoring, therapist results view
 
 ## Future Enhancements
 
