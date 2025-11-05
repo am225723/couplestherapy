@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useRoute, Link } from 'wouter';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
@@ -12,7 +13,7 @@ import { useAuth } from '@/lib/auth-context';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/hooks/use-toast';
 import { Users, Loader2, Heart, Send, MessageSquare } from 'lucide-react';
-import { Couple, Profile, WeeklyCheckin, LoveLanguage, GratitudeLog, SharedGoal, Ritual, Conversation, Message, CalendarEvent } from '@shared/schema';
+import { Couple, Profile, WeeklyCheckin, LoveLanguage, GratitudeLog, SharedGoal, Ritual, Conversation, Message, CalendarEvent, EchoSession, EchoTurn, IfsExercise, IfsPart, PauseEvent } from '@shared/schema';
 import { formatDistanceToNow, format, parse, startOfWeek, getDay } from 'date-fns';
 import enUS from 'date-fns/locale/en-US';
 import { Calendar, dateFnsLocalizer } from 'react-big-calendar';
@@ -280,10 +281,13 @@ export default function AdminDashboard() {
         </div>
 
         <Tabs defaultValue="checkins">
-          <TabsList className="grid w-full grid-cols-6 gap-2">
+          <TabsList className="grid w-full grid-cols-9 gap-2">
             <TabsTrigger value="checkins">Weekly Check-ins</TabsTrigger>
             <TabsTrigger value="languages">Love Languages</TabsTrigger>
             <TabsTrigger value="lovemap">Love Map Quiz</TabsTrigger>
+            <TabsTrigger value="echo">Echo & Empathy</TabsTrigger>
+            <TabsTrigger value="ifs">IFS Exercises</TabsTrigger>
+            <TabsTrigger value="pause">Pause History</TabsTrigger>
             <TabsTrigger value="activity">Activity Feed</TabsTrigger>
             <TabsTrigger value="messages">Messages</TabsTrigger>
             <TabsTrigger value="calendar">Calendar</TabsTrigger>
@@ -473,6 +477,18 @@ export default function AdminDashboard() {
 
           <TabsContent value="lovemap" className="space-y-4">
             <LoveMapTab coupleId={selectedCouple.id} />
+          </TabsContent>
+
+          <TabsContent value="echo" className="space-y-4">
+            <EchoEmpathyTab coupleId={selectedCouple.id} />
+          </TabsContent>
+
+          <TabsContent value="ifs" className="space-y-4">
+            <IfsTab coupleId={selectedCouple.id} partnerId1={selectedCouple.partner1_id} partnerId2={selectedCouple.partner2_id} partner1Name={selectedCouple.partner1?.full_name} partner2Name={selectedCouple.partner2?.full_name} />
+          </TabsContent>
+
+          <TabsContent value="pause" className="space-y-4">
+            <PauseHistoryTab coupleId={selectedCouple.id} partnerId1={selectedCouple.partner1_id} partnerId2={selectedCouple.partner2_id} partner1Name={selectedCouple.partner1?.full_name} partner2Name={selectedCouple.partner2?.full_name} />
           </TabsContent>
         </Tabs>
       </div>
@@ -927,6 +943,298 @@ function LoveMapTab({ coupleId }: { coupleId: string }) {
             Love Maps represent the cognitive space where partners store detailed knowledge about each other's inner world. 
             Research by Dr. Gottman shows that couples with detailed Love Maps are better equipped to handle stress and conflict. 
             Low scores may indicate areas where partners could benefit from more curiosity and active listening about each other's experiences, dreams, and preferences.
+          </p>
+        </AlertDescription>
+      </Alert>
+    </div>
+  );
+}
+
+function EchoEmpathyTab({ coupleId }: { coupleId: string }) {
+  const [echoSessions, setEchoSessions] = useState<(EchoSession & { turns: EchoTurn[] })[]>([]);
+
+  useEffect(() => {
+    fetchEchoSessions();
+  }, [coupleId]);
+
+  const fetchEchoSessions = async () => {
+    try {
+      const { data: sessions, error: sessionsError } = await supabase
+        .from('Couples_echo_sessions')
+        .select('*')
+        .eq('couple_id', coupleId)
+        .order('created_at', { ascending: false });
+
+      if (sessionsError) throw sessionsError;
+
+      const sessionIds = sessions?.map(s => s.id) || [];
+      const { data: turns, error: turnsError } = await supabase
+        .from('Couples_echo_turns')
+        .select('*')
+        .in('session_id', sessionIds)
+        .order('created_at', { ascending: true });
+
+      if (turnsError) throw turnsError;
+
+      const sessionsWithTurns = sessions?.map(session => ({
+        ...session,
+        turns: turns?.filter(t => t.session_id === session.id) || [],
+      })) || [];
+
+      setEchoSessions(sessionsWithTurns);
+    } catch (error: any) {
+      console.error('Error fetching echo sessions:', error);
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Echo & Empathy Sessions</CardTitle>
+          <CardDescription>
+            Active listening exercises where partners practice reflecting back what they heard
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {echoSessions.length > 0 ? (
+            <div className="space-y-4">
+              {echoSessions.map((session) => {
+                const step1Turn = session.turns.find(t => t.step === 1);
+                const step2Turn = session.turns.find(t => t.step === 2);
+                const step3Turn = session.turns.find(t => t.step === 3);
+
+                return (
+                  <Card key={session.id}>
+                    <CardHeader>
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="text-base">
+                          Session {formatDistanceToNow(new Date(session.created_at), { addSuffix: true })}
+                        </CardTitle>
+                        <Badge variant={session.status === 'completed' ? 'default' : 'secondary'}>
+                          {session.status}
+                        </Badge>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {step1Turn && (
+                        <div>
+                          <p className="text-sm font-semibold mb-1">Step 1: Speaker's Concern</p>
+                          <p className="text-sm text-muted-foreground">{step1Turn.content}</p>
+                        </div>
+                      )}
+                      {step2Turn && (
+                        <div>
+                          <p className="text-sm font-semibold mb-1">Step 2: Listener's Reflection</p>
+                          <p className="text-sm text-muted-foreground">{step2Turn.content}</p>
+                        </div>
+                      )}
+                      {step3Turn && (
+                        <div>
+                          <p className="text-sm font-semibold mb-1">Step 3: Speaker's Confirmation</p>
+                          <p className="text-sm text-muted-foreground">{step3Turn.content}</p>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          ) : (
+            <p className="text-center text-muted-foreground py-8">No Echo & Empathy sessions yet</p>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+function IfsTab({ coupleId, partnerId1, partnerId2, partner1Name, partner2Name }: { 
+  coupleId: string; 
+  partnerId1: string; 
+  partnerId2: string;
+  partner1Name?: string;
+  partner2Name?: string;
+}) {
+  const [partner1Parts, setPartner1Parts] = useState<IfsPart[]>([]);
+  const [partner2Parts, setPartner2Parts] = useState<IfsPart[]>([]);
+
+  useEffect(() => {
+    fetchIfsParts();
+  }, [coupleId]);
+
+  const fetchIfsParts = async () => {
+    try {
+      const { data: parts, error } = await supabase
+        .from('Couples_ifs_parts')
+        .select('*')
+        .in('user_id', [partnerId1, partnerId2])
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      setPartner1Parts(parts?.filter(p => p.user_id === partnerId1) || []);
+      setPartner2Parts(parts?.filter(p => p.user_id === partnerId2) || []);
+    } catch (error: any) {
+      console.error('Error fetching IFS parts:', error);
+    }
+  };
+
+  const renderParts = (parts: IfsPart[], partnerName?: string) => (
+    <Card>
+      <CardHeader>
+        <CardTitle>{partnerName}'s Protective Parts</CardTitle>
+        <CardDescription>Inner Family Systems protective parts identified</CardDescription>
+      </CardHeader>
+      <CardContent>
+        {parts.length > 0 ? (
+          <div className="space-y-4">
+            {parts.map((part) => (
+              <Card key={part.id}>
+                <CardHeader>
+                  <CardTitle className="text-base">{part.part_name}</CardTitle>
+                  <CardDescription>
+                    Identified {formatDistanceToNow(new Date(part.created_at), { addSuffix: true })}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <p className="text-sm font-semibold mb-1">When This Part Shows Up:</p>
+                    <p className="text-sm text-muted-foreground">{part.when_appears}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold mb-1">Letter to This Part:</p>
+                    <div className="bg-muted p-4 rounded-md">
+                      <p className="text-sm whitespace-pre-wrap">{part.letter_content}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : (
+          <p className="text-center text-muted-foreground py-8">No protective parts identified yet</p>
+        )}
+      </CardContent>
+    </Card>
+  );
+
+  return (
+    <div className="space-y-6">
+      <Alert className="border-primary/20 bg-primary/5">
+        <Heart className="h-4 w-4 text-primary" />
+        <AlertDescription>
+          <p className="font-semibold mb-2">Clinical Note: Privacy</p>
+          <p className="text-sm">
+            IFS letters are private. Partners cannot see each other's letters - only you (the therapist) can view them. 
+            This creates a safe space for self-reflection without fear of judgment.
+          </p>
+        </AlertDescription>
+      </Alert>
+
+      {renderParts(partner1Parts, partner1Name)}
+      {renderParts(partner2Parts, partner2Name)}
+    </div>
+  );
+}
+
+function PauseHistoryTab({ coupleId, partnerId1, partnerId2, partner1Name, partner2Name }: { 
+  coupleId: string;
+  partnerId1: string;
+  partnerId2: string;
+  partner1Name?: string;
+  partner2Name?: string;
+}) {
+  const [pauseEvents, setPauseEvents] = useState<PauseEvent[]>([]);
+
+  useEffect(() => {
+    fetchPauseHistory();
+  }, [coupleId]);
+
+  const fetchPauseHistory = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('Couples_pause_events')
+        .select('*')
+        .eq('couple_id', coupleId)
+        .order('started_at', { ascending: false });
+
+      if (error) throw error;
+      setPauseEvents(data || []);
+    } catch (error: any) {
+      console.error('Error fetching pause history:', error);
+    }
+  };
+
+  const getInitiatorName = (pause: PauseEvent) => {
+    if (pause.initiated_by === partnerId1) return partner1Name || 'Partner 1';
+    if (pause.initiated_by === partnerId2) return partner2Name || 'Partner 2';
+    return 'Unknown';
+  };
+
+  return (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Pause Button History</CardTitle>
+          <CardDescription>
+            20-minute de-escalation pauses activated during conflicts
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {pauseEvents.length > 0 ? (
+            <div className="space-y-4">
+              {pauseEvents.map((pause) => {
+                const duration = pause.duration_minutes || (pause.ended_at ? 
+                  Math.round((new Date(pause.ended_at).getTime() - new Date(pause.started_at).getTime()) / 60000) : 
+                  null
+                );
+
+                return (
+                  <Card key={pause.id}>
+                    <CardHeader>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <CardTitle className="text-base">
+                            Initiated by {getInitiatorName(pause)}
+                          </CardTitle>
+                          <CardDescription>
+                            {format(new Date(pause.started_at), 'PPp')}
+                          </CardDescription>
+                        </div>
+                        <div className="text-right">
+                          <Badge variant={pause.ended_at ? 'default' : 'secondary'}>
+                            {pause.ended_at ? 'Completed' : 'Active'}
+                          </Badge>
+                          {duration !== null && (
+                            <p className="text-sm text-muted-foreground mt-1">{duration} minutes</p>
+                          )}
+                        </div>
+                      </div>
+                    </CardHeader>
+                    {pause.reflection && (
+                      <CardContent>
+                        <p className="text-sm font-semibold mb-1">Reflection:</p>
+                        <p className="text-sm text-muted-foreground">{pause.reflection}</p>
+                      </CardContent>
+                    )}
+                  </Card>
+                );
+              })}
+            </div>
+          ) : (
+            <p className="text-center text-muted-foreground py-8">No pause events yet</p>
+          )}
+        </CardContent>
+      </Card>
+
+      <Alert className="border-primary/20 bg-primary/5">
+        <Heart className="h-4 w-4 text-primary" />
+        <AlertDescription>
+          <p className="font-semibold mb-2">Clinical Insight: Pause Patterns</p>
+          <p className="text-sm">
+            Frequent use of the pause button may indicate the couple is actively working to manage conflict, which is positive. 
+            However, if pauses become too frequent or if one partner always initiates them, it could signal avoidance patterns worth exploring in therapy.
           </p>
         </AlertDescription>
       </Alert>

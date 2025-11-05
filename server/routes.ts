@@ -2494,6 +2494,608 @@ Be warm, creative, and encouraging. Emphasize connection, fun, and breaking rout
     }
   });
 
+  // ==============================================
+  // ECHO & EMPATHY FEATURE - Active Listening Communication Skill Builder
+  // ==============================================
+
+  // Validation schemas
+  const insertEchoSessionSchema = z.object({
+    couple_id: z.string().uuid(),
+    speaker_id: z.string().uuid(),
+    listener_id: z.string().uuid(),
+    current_step: z.number().min(1).max(3).default(1),
+    status: z.enum(["in_progress", "completed"]).default("in_progress"),
+  });
+
+  const insertEchoTurnSchema = z.object({
+    session_id: z.string().uuid(),
+    step: z.number().min(1).max(3),
+    author_id: z.string().uuid(),
+    content: z.string().min(1),
+  });
+
+  // POST /api/echo/session - Start new Echo & Empathy session
+  app.post("/api/echo/session", async (req, res) => {
+    try {
+      const userAuth = await verifyUserSession(req);
+      if (!userAuth.success) {
+        return res.status(userAuth.status).json({ error: userAuth.error });
+      }
+
+      const validatedData = insertEchoSessionSchema.parse(req.body);
+
+      // Verify session belongs to user's couple
+      if (validatedData.couple_id !== userAuth.coupleId) {
+        return res.status(403).json({ error: 'Cannot create session for different couple' });
+      }
+
+      const { data, error } = await supabaseAdmin
+        .from('Couples_echo_sessions')
+        .insert(validatedData)
+        .select()
+        .single();
+
+      if (error) throw error;
+      res.json(data);
+    } catch (error: any) {
+      console.error('Error creating echo session:', error);
+      res.status(500).json({ error: error.message || 'Failed to create session' });
+    }
+  });
+
+  // POST /api/echo/turn - Submit turn content
+  app.post("/api/echo/turn", async (req, res) => {
+    try {
+      const userAuth = await verifyUserSession(req);
+      if (!userAuth.success) {
+        return res.status(userAuth.status).json({ error: userAuth.error });
+      }
+
+      const validatedData = insertEchoTurnSchema.parse(req.body);
+
+      // Verify turn belongs to user's couple's session
+      const { data: session, error: sessionError } = await supabaseAdmin
+        .from('Couples_echo_sessions')
+        .select('couple_id, current_step')
+        .eq('id', validatedData.session_id)
+        .single();
+
+      if (sessionError || !session) {
+        return res.status(404).json({ error: 'Session not found' });
+      }
+
+      if (session.couple_id !== userAuth.coupleId) {
+        return res.status(403).json({ error: 'Cannot add turn to different couple session' });
+      }
+
+      // Validate step sequence
+      if (validatedData.step !== session.current_step) {
+        return res.status(400).json({ error: `Invalid step. Current step is ${session.current_step}` });
+      }
+
+      // Insert turn
+      const { data: turn, error: turnError } = await supabaseAdmin
+        .from('Couples_echo_turns')
+        .insert(validatedData)
+        .select()
+        .single();
+
+      if (turnError) throw turnError;
+
+      // Update session's current_step if not on last step
+      if (validatedData.step < 3) {
+        const { error: updateError } = await supabaseAdmin
+          .from('Couples_echo_sessions')
+          .update({ current_step: validatedData.step + 1 })
+          .eq('id', validatedData.session_id);
+
+        if (updateError) throw updateError;
+      }
+
+      res.json(turn);
+    } catch (error: any) {
+      console.error('Error creating echo turn:', error);
+      res.status(500).json({ error: error.message || 'Failed to create turn' });
+    }
+  });
+
+  // PATCH /api/echo/session/:id/complete - Mark session complete
+  app.patch("/api/echo/session/:id/complete", async (req, res) => {
+    try {
+      const userAuth = await verifyUserSession(req);
+      if (!userAuth.success) {
+        return res.status(userAuth.status).json({ error: userAuth.error });
+      }
+
+      const { id } = req.params;
+
+      // Verify session belongs to user's couple
+      const { data: session, error: sessionError } = await supabaseAdmin
+        .from('Couples_echo_sessions')
+        .select('couple_id')
+        .eq('id', id)
+        .single();
+
+      if (sessionError || !session) {
+        return res.status(404).json({ error: 'Session not found' });
+      }
+
+      if (session.couple_id !== userAuth.coupleId) {
+        return res.status(403).json({ error: 'Cannot complete different couple session' });
+      }
+
+      const { data, error } = await supabaseAdmin
+        .from('Couples_echo_sessions')
+        .update({ status: 'completed', completed_at: new Date().toISOString() })
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      res.json(data);
+    } catch (error: any) {
+      console.error('Error completing echo session:', error);
+      res.status(500).json({ error: error.message || 'Failed to complete session' });
+    }
+  });
+
+  // GET /api/echo/sessions/:couple_id - Get session history
+  app.get("/api/echo/sessions/:couple_id", async (req, res) => {
+    try {
+      const userAuth = await verifyUserSession(req);
+      if (!userAuth.success) {
+        return res.status(userAuth.status).json({ error: userAuth.error });
+      }
+
+      const { couple_id } = req.params;
+
+      // Verify couple_id matches user's couple
+      if (couple_id !== userAuth.coupleId) {
+        return res.status(403).json({ error: 'Cannot view different couple sessions' });
+      }
+
+      const { data: sessions, error: sessionsError } = await supabaseAdmin
+        .from('Couples_echo_sessions')
+        .select('*')
+        .eq('couple_id', couple_id)
+        .order('created_at', { ascending: false });
+
+      if (sessionsError) throw sessionsError;
+
+      // Get all turns for these sessions
+      const sessionIds = sessions?.map(s => s.id) || [];
+      const { data: turns, error: turnsError } = await supabaseAdmin
+        .from('Couples_echo_turns')
+        .select('*')
+        .in('session_id', sessionIds)
+        .order('created_at', { ascending: true });
+
+      if (turnsError) throw turnsError;
+
+      // Combine sessions with their turns
+      const sessionsWithTurns = sessions?.map(session => ({
+        ...session,
+        turns: turns?.filter(t => t.session_id === session.id) || [],
+      }));
+
+      res.json(sessionsWithTurns);
+    } catch (error: any) {
+      console.error('Error fetching echo sessions:', error);
+      res.status(500).json({ error: error.message || 'Failed to fetch sessions' });
+    }
+  });
+
+  // ==============================================
+  // IFS INTRODUCTION FEATURE - Inner Family Systems Exercise
+  // ==============================================
+
+  // Validation schemas
+  const insertIfsExerciseSchema = z.object({
+    user_id: z.string().uuid(),
+    couple_id: z.string().uuid(),
+    status: z.enum(["in_progress", "completed"]).default("in_progress"),
+  });
+
+  const insertIfsPartSchema = z.object({
+    exercise_id: z.string().uuid(),
+    user_id: z.string().uuid(),
+    part_name: z.string().min(1),
+    when_appears: z.string().min(1),
+    letter_content: z.string().min(1),
+  });
+
+  // POST /api/ifs/exercise - Create new IFS exercise
+  app.post("/api/ifs/exercise", async (req, res) => {
+    try {
+      const userAuth = await verifyUserSession(req);
+      if (!userAuth.success) {
+        return res.status(userAuth.status).json({ error: userAuth.error });
+      }
+
+      const validatedData = insertIfsExerciseSchema.parse(req.body);
+
+      // Verify user_id matches authenticated user
+      if (validatedData.user_id !== userAuth.userId) {
+        return res.status(403).json({ error: 'Cannot create exercise for different user' });
+      }
+
+      // Verify couple_id matches user's couple
+      if (validatedData.couple_id !== userAuth.coupleId) {
+        return res.status(403).json({ error: 'Cannot create exercise for different couple' });
+      }
+
+      const { data, error } = await supabaseAdmin
+        .from('Couples_ifs_exercises')
+        .insert(validatedData)
+        .select()
+        .single();
+
+      if (error) throw error;
+      res.json(data);
+    } catch (error: any) {
+      console.error('Error creating IFS exercise:', error);
+      res.status(500).json({ error: error.message || 'Failed to create exercise' });
+    }
+  });
+
+  // POST /api/ifs/part - Add protective part
+  app.post("/api/ifs/part", async (req, res) => {
+    try {
+      const userAuth = await verifyUserSession(req);
+      if (!userAuth.success) {
+        return res.status(userAuth.status).json({ error: userAuth.error });
+      }
+
+      const validatedData = insertIfsPartSchema.parse(req.body);
+
+      // Verify user_id matches authenticated user
+      if (validatedData.user_id !== userAuth.userId) {
+        return res.status(403).json({ error: 'Cannot create part for different user' });
+      }
+
+      // Verify exercise belongs to user
+      const { data: exercise, error: exerciseError } = await supabaseAdmin
+        .from('Couples_ifs_exercises')
+        .select('user_id')
+        .eq('id', validatedData.exercise_id)
+        .single();
+
+      if (exerciseError || !exercise) {
+        return res.status(404).json({ error: 'Exercise not found' });
+      }
+
+      if (exercise.user_id !== userAuth.userId) {
+        return res.status(403).json({ error: 'Cannot add part to different user exercise' });
+      }
+
+      const { data, error } = await supabaseAdmin
+        .from('Couples_ifs_parts')
+        .insert(validatedData)
+        .select()
+        .single();
+
+      if (error) throw error;
+      res.json(data);
+    } catch (error: any) {
+      console.error('Error creating IFS part:', error);
+      res.status(500).json({ error: error.message || 'Failed to create part' });
+    }
+  });
+
+  // PATCH /api/ifs/part/:id - Update part
+  app.patch("/api/ifs/part/:id", async (req, res) => {
+    try {
+      const userAuth = await verifyUserSession(req);
+      if (!userAuth.success) {
+        return res.status(userAuth.status).json({ error: userAuth.error });
+      }
+
+      const { id } = req.params;
+      const updates = req.body;
+
+      // Verify part belongs to user
+      const { data: part, error: partError } = await supabaseAdmin
+        .from('Couples_ifs_parts')
+        .select('user_id')
+        .eq('id', id)
+        .single();
+
+      if (partError || !part) {
+        return res.status(404).json({ error: 'Part not found' });
+      }
+
+      if (part.user_id !== userAuth.userId) {
+        return res.status(403).json({ error: 'Cannot update different user part' });
+      }
+
+      const { data, error } = await supabaseAdmin
+        .from('Couples_ifs_parts')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      res.json(data);
+    } catch (error: any) {
+      console.error('Error updating IFS part:', error);
+      res.status(500).json({ error: error.message || 'Failed to update part' });
+    }
+  });
+
+  // DELETE /api/ifs/part/:id - Delete part
+  app.delete("/api/ifs/part/:id", async (req, res) => {
+    try {
+      const userAuth = await verifyUserSession(req);
+      if (!userAuth.success) {
+        return res.status(userAuth.status).json({ error: userAuth.error });
+      }
+
+      const { id } = req.params;
+
+      // Verify part belongs to user
+      const { data: part, error: partError } = await supabaseAdmin
+        .from('Couples_ifs_parts')
+        .select('user_id')
+        .eq('id', id)
+        .single();
+
+      if (partError || !part) {
+        return res.status(404).json({ error: 'Part not found' });
+      }
+
+      if (part.user_id !== userAuth.userId) {
+        return res.status(403).json({ error: 'Cannot delete different user part' });
+      }
+
+      const { error } = await supabaseAdmin
+        .from('Couples_ifs_parts')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+      res.json({ success: true });
+    } catch (error: any) {
+      console.error('Error deleting IFS part:', error);
+      res.status(500).json({ error: error.message || 'Failed to delete part' });
+    }
+  });
+
+  // GET /api/ifs/exercises/:user_id - Get user's exercises
+  app.get("/api/ifs/exercises/:user_id", async (req, res) => {
+    try {
+      const userAuth = await verifyUserSession(req);
+      if (!userAuth.success) {
+        return res.status(userAuth.status).json({ error: userAuth.error });
+      }
+
+      const { user_id } = req.params;
+
+      // Verify user_id matches authenticated user
+      if (user_id !== userAuth.userId) {
+        return res.status(403).json({ error: 'Cannot view different user exercises' });
+      }
+
+      const { data: exercises, error: exercisesError } = await supabaseAdmin
+        .from('Couples_ifs_exercises')
+        .select('*')
+        .eq('user_id', user_id)
+        .order('created_at', { ascending: false });
+
+      if (exercisesError) throw exercisesError;
+
+      // Get all parts for these exercises
+      const exerciseIds = exercises?.map(e => e.id) || [];
+      const { data: parts, error: partsError } = await supabaseAdmin
+        .from('Couples_ifs_parts')
+        .select('*')
+        .in('exercise_id', exerciseIds)
+        .order('created_at', { ascending: true });
+
+      if (partsError) throw partsError;
+
+      // Combine exercises with their parts
+      const exercisesWithParts = exercises?.map(exercise => ({
+        ...exercise,
+        parts: parts?.filter(p => p.exercise_id === exercise.id) || [],
+      }));
+
+      res.json(exercisesWithParts);
+    } catch (error: any) {
+      console.error('Error fetching IFS exercises:', error);
+      res.status(500).json({ error: error.message || 'Failed to fetch exercises' });
+    }
+  });
+
+  // ==============================================
+  // SHARED PAUSE BUTTON FEATURE - Real-time De-escalation Tool
+  // ==============================================
+
+  // Validation schemas
+  const insertPauseEventSchema = z.object({
+    couple_id: z.string().uuid(),
+    initiated_by: z.string().uuid(),
+    reflection: z.string().optional(),
+  });
+
+  // POST /api/pause/activate - Activate pause (20-min timer)
+  app.post("/api/pause/activate", async (req, res) => {
+    try {
+      const userAuth = await verifyUserSession(req);
+      if (!userAuth.success) {
+        return res.status(userAuth.status).json({ error: userAuth.error });
+      }
+
+      const validatedData = insertPauseEventSchema.parse(req.body);
+
+      // Verify couple_id matches user's couple
+      if (validatedData.couple_id !== userAuth.coupleId) {
+        return res.status(403).json({ error: 'Cannot activate pause for different couple' });
+      }
+
+      // Check if there's already an active pause
+      const { data: couple, error: coupleError } = await supabaseAdmin
+        .from('Couples_couples')
+        .select('active_pause_id')
+        .eq('id', userAuth.coupleId)
+        .single();
+
+      if (coupleError) throw coupleError;
+
+      if (couple.active_pause_id) {
+        return res.status(400).json({ error: 'A pause is already active for this couple' });
+      }
+
+      // Create new pause event
+      const { data: pauseEvent, error: pauseError } = await supabaseAdmin
+        .from('Couples_pause_events')
+        .insert(validatedData)
+        .select()
+        .single();
+
+      if (pauseError) throw pauseError;
+
+      // Update couple's active_pause_id
+      const { error: updateError } = await supabaseAdmin
+        .from('Couples_couples')
+        .update({ active_pause_id: pauseEvent.id })
+        .eq('id', userAuth.coupleId);
+
+      if (updateError) throw updateError;
+
+      res.json(pauseEvent);
+    } catch (error: any) {
+      console.error('Error activating pause:', error);
+      res.status(500).json({ error: error.message || 'Failed to activate pause' });
+    }
+  });
+
+  // POST /api/pause/end/:id - End pause early (with reflection)
+  app.post("/api/pause/end/:id", async (req, res) => {
+    try {
+      const userAuth = await verifyUserSession(req);
+      if (!userAuth.success) {
+        return res.status(userAuth.status).json({ error: userAuth.error });
+      }
+
+      const { id } = req.params;
+      const { reflection } = req.body;
+
+      // Verify pause belongs to user's couple
+      const { data: pauseEvent, error: pauseError } = await supabaseAdmin
+        .from('Couples_pause_events')
+        .select('couple_id')
+        .eq('id', id)
+        .single();
+
+      if (pauseError || !pauseEvent) {
+        return res.status(404).json({ error: 'Pause event not found' });
+      }
+
+      if (pauseEvent.couple_id !== userAuth.coupleId) {
+        return res.status(403).json({ error: 'Cannot end different couple pause' });
+      }
+
+      // Update pause event
+      const { data, error } = await supabaseAdmin
+        .from('Couples_pause_events')
+        .update({ 
+          ended_at: new Date().toISOString(),
+          reflection: reflection || null,
+        })
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      // Clear couple's active_pause_id
+      const { error: clearError } = await supabaseAdmin
+        .from('Couples_couples')
+        .update({ active_pause_id: null })
+        .eq('id', userAuth.coupleId);
+
+      if (clearError) throw clearError;
+
+      res.json(data);
+    } catch (error: any) {
+      console.error('Error ending pause:', error);
+      res.status(500).json({ error: error.message || 'Failed to end pause' });
+    }
+  });
+
+  // GET /api/pause/active/:couple_id - Check if pause is active
+  app.get("/api/pause/active/:couple_id", async (req, res) => {
+    try {
+      const userAuth = await verifyUserSession(req);
+      if (!userAuth.success) {
+        return res.status(userAuth.status).json({ error: userAuth.error });
+      }
+
+      const { couple_id } = req.params;
+
+      // Verify couple_id matches user's couple
+      if (couple_id !== userAuth.coupleId) {
+        return res.status(403).json({ error: 'Cannot view different couple pause status' });
+      }
+
+      const { data: couple, error: coupleError } = await supabaseAdmin
+        .from('Couples_couples')
+        .select('active_pause_id')
+        .eq('id', couple_id)
+        .single();
+
+      if (coupleError) throw coupleError;
+
+      if (!couple.active_pause_id) {
+        return res.json({ active: false, pauseEvent: null });
+      }
+
+      // Get active pause event details
+      const { data: pauseEvent, error: pauseError } = await supabaseAdmin
+        .from('Couples_pause_events')
+        .select('*')
+        .eq('id', couple.active_pause_id)
+        .single();
+
+      if (pauseError) throw pauseError;
+
+      res.json({ active: true, pauseEvent });
+    } catch (error: any) {
+      console.error('Error checking active pause:', error);
+      res.status(500).json({ error: error.message || 'Failed to check pause status' });
+    }
+  });
+
+  // GET /api/pause/history/:couple_id - Get pause history
+  app.get("/api/pause/history/:couple_id", async (req, res) => {
+    try {
+      const userAuth = await verifyUserSession(req);
+      if (!userAuth.success) {
+        return res.status(userAuth.status).json({ error: userAuth.error });
+      }
+
+      const { couple_id } = req.params;
+
+      // Verify couple_id matches user's couple
+      if (couple_id !== userAuth.coupleId) {
+        return res.status(403).json({ error: 'Cannot view different couple pause history' });
+      }
+
+      const { data, error } = await supabaseAdmin
+        .from('Couples_pause_events')
+        .select('*')
+        .eq('couple_id', couple_id)
+        .order('started_at', { ascending: false });
+
+      if (error) throw error;
+      res.json(data);
+    } catch (error: any) {
+      console.error('Error fetching pause history:', error);
+      res.status(500).json({ error: error.message || 'Failed to fetch pause history' });
+    }
+  });
+
   const httpServer = createServer(app);
 
   return httpServer;

@@ -9,7 +9,7 @@ import { Toaster } from '@/components/ui/toaster';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { SidebarProvider, Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarTrigger, SidebarHeader } from '@/components/ui/sidebar';
 import { Button } from './components/ui/button';
-import { Home, ClipboardList, Sparkles, Target, Coffee, MessageCircle, Mic, Users, LogOut, Loader2, BarChart3, UserPlus, Heart, MessageSquare, Calendar as CalendarIcon, Map } from 'lucide-react';
+import { Home, ClipboardList, Sparkles, Target, Coffee, MessageCircle, Mic, Users, LogOut, Loader2, BarChart3, UserPlus, Heart, MessageSquare, Calendar as CalendarIcon, Map, Volume2, User, PauseCircle } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
 import tadiLogo from '@assets/logo_1762363277396.png';
 
@@ -27,6 +27,9 @@ import VoiceMemosPage from './pages/voice-memos';
 import DateNightPage from './pages/date-night';
 import MessagesPage from './pages/messages';
 import CalendarPage from './pages/calendar';
+import EchoEmpathyPage from './pages/echo-empathy';
+import IfsIntroPage from './pages/ifs-intro';
+import PauseButtonPage from './pages/pause-button';
 import ClientDashboard from './pages/client-dashboard';
 import AdminDashboard from './pages/admin-dashboard';
 import AnalyticsPage from './pages/analytics';
@@ -41,6 +44,9 @@ function AppSidebar() {
     { title: 'Dashboard', url: '/dashboard', icon: Home },
     { title: 'Weekly Check-In', url: '/weekly-checkin', icon: ClipboardList },
     { title: 'Love Map Quiz', url: '/love-map', icon: Map },
+    { title: 'Echo & Empathy', url: '/echo-empathy', icon: Volume2 },
+    { title: 'IFS Introduction', url: '/ifs-intro', icon: User },
+    { title: 'Pause Button', url: '/pause', icon: PauseCircle },
     { title: 'Messages', url: '/messages', icon: MessageSquare },
     { title: 'Calendar', url: '/calendar', icon: CalendarIcon },
     { title: 'Date Night Generator', url: '/date-night', icon: Sparkles },
@@ -120,7 +126,7 @@ function AuthenticatedApp() {
   useEffect(() => {
     if (!loading && user && profile) {
       const therapistRoutes = ['/admin', '/admin/analytics', '/admin/user-management'];
-      const clientRoutes = ['/dashboard', '/couple-setup', '/quiz', '/love-map', '/weekly-checkin', '/checkin-history', '/gratitude', '/goals', '/rituals', '/conversation', '/voice-memos', '/date-night', '/messages', '/calendar'];
+      const clientRoutes = ['/dashboard', '/couple-setup', '/quiz', '/love-map', '/weekly-checkin', '/checkin-history', '/gratitude', '/goals', '/rituals', '/conversation', '/voice-memos', '/date-night', '/messages', '/calendar', '/echo-empathy', '/ifs-intro', '/pause'];
       
       const isTherapist = profile.role === 'therapist';
       const isOnTherapistRoute = location.startsWith('/admin');
@@ -216,6 +222,9 @@ function AuthenticatedApp() {
                   <Route path="/date-night" component={DateNightPage} />
                   <Route path="/messages" component={MessagesPage} />
                   <Route path="/calendar" component={CalendarPage} />
+                  <Route path="/echo-empathy" component={EchoEmpathyPage} />
+                  <Route path="/ifs-intro" component={IfsIntroPage} />
+                  <Route path="/pause" component={PauseButtonPage} />
                   <Route path="/">
                     {profile.couple_id ? <Redirect to="/dashboard" /> : <Redirect to="/couple-setup" />}
                   </Route>

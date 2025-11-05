@@ -23,6 +23,7 @@ export const couplesCouples = pgTable("Couples_couples", {
   partner1_id: uuid("partner1_id"),
   partner2_id: uuid("partner2_id"),
   therapist_id: uuid("therapist_id"),
+  active_pause_id: uuid("active_pause_id"), // For Shared Pause Button feature
 });
 
 export type Couple = typeof couplesCouples.$inferSelect;
@@ -411,3 +412,124 @@ export const insertLoveMapGuessSchema = createInsertSchema(couplesLoveMapGuesses
 });
 export type InsertLoveMapGuess = z.infer<typeof insertLoveMapGuessSchema>;
 export type LoveMapGuess = typeof couplesLoveMapGuesses.$inferSelect;
+
+// ==============================================
+// ECHO & EMPATHY FEATURE - Active Listening Communication Skill Builder
+// ==============================================
+
+// 17. ECHO SESSIONS
+export const couplesEchoSessions = pgTable("Couples_echo_sessions", {
+  id: uuid("id").primaryKey(),
+  couple_id: uuid("couple_id").notNull(),
+  speaker_id: uuid("speaker_id").notNull(),
+  listener_id: uuid("listener_id").notNull(),
+  current_step: integer("current_step").notNull().default(1), // 1-3
+  status: text("status").notNull().default("in_progress"), // 'in_progress', 'completed'
+  created_at: timestamp("created_at").defaultNow(),
+  completed_at: timestamp("completed_at"),
+});
+
+export const insertEchoSessionSchema = createInsertSchema(couplesEchoSessions).omit({
+  id: true,
+  created_at: true,
+  completed_at: true,
+}).extend({
+  speaker_id: z.string().uuid(),
+  listener_id: z.string().uuid(),
+  current_step: z.number().min(1).max(3).default(1),
+  status: z.enum(["in_progress", "completed"]).default("in_progress"),
+});
+export type InsertEchoSession = z.infer<typeof insertEchoSessionSchema>;
+export type EchoSession = typeof couplesEchoSessions.$inferSelect;
+
+// 18. ECHO TURNS
+export const couplesEchoTurns = pgTable("Couples_echo_turns", {
+  id: uuid("id").primaryKey(),
+  session_id: uuid("session_id").notNull(),
+  step: integer("step").notNull(), // 1-3
+  author_id: uuid("author_id").notNull(),
+  content: text("content").notNull(),
+  created_at: timestamp("created_at").defaultNow(),
+});
+
+export const insertEchoTurnSchema = createInsertSchema(couplesEchoTurns).omit({
+  id: true,
+  created_at: true,
+}).extend({
+  step: z.number().min(1).max(3),
+  content: z.string().min(1, "Content is required"),
+});
+export type InsertEchoTurn = z.infer<typeof insertEchoTurnSchema>;
+export type EchoTurn = typeof couplesEchoTurns.$inferSelect;
+
+// ==============================================
+// IFS INTRODUCTION FEATURE - Inner Family Systems Exercise
+// ==============================================
+
+// 19. IFS EXERCISES
+export const couplesIfsExercises = pgTable("Couples_ifs_exercises", {
+  id: uuid("id").primaryKey(),
+  user_id: uuid("user_id").notNull(),
+  couple_id: uuid("couple_id").notNull(),
+  status: text("status").notNull().default("in_progress"), // 'in_progress', 'completed'
+  created_at: timestamp("created_at").defaultNow(),
+  completed_at: timestamp("completed_at"),
+});
+
+export const insertIfsExerciseSchema = createInsertSchema(couplesIfsExercises).omit({
+  id: true,
+  created_at: true,
+  completed_at: true,
+}).extend({
+  status: z.enum(["in_progress", "completed"]).default("in_progress"),
+});
+export type InsertIfsExercise = z.infer<typeof insertIfsExerciseSchema>;
+export type IfsExercise = typeof couplesIfsExercises.$inferSelect;
+
+// 20. IFS PARTS (Protective Parts)
+export const couplesIfsParts = pgTable("Couples_ifs_parts", {
+  id: uuid("id").primaryKey(),
+  exercise_id: uuid("exercise_id").notNull(),
+  user_id: uuid("user_id").notNull(),
+  part_name: text("part_name").notNull(),
+  when_appears: text("when_appears").notNull(),
+  letter_content: text("letter_content").notNull(),
+  created_at: timestamp("created_at").defaultNow(),
+});
+
+export const insertIfsPartSchema = createInsertSchema(couplesIfsParts).omit({
+  id: true,
+  created_at: true,
+}).extend({
+  part_name: z.string().min(1, "Part name is required"),
+  when_appears: z.string().min(1, "Please describe when this part appears"),
+  letter_content: z.string().min(1, "Letter content is required"),
+});
+export type InsertIfsPart = z.infer<typeof insertIfsPartSchema>;
+export type IfsPart = typeof couplesIfsParts.$inferSelect;
+
+// ==============================================
+// SHARED PAUSE BUTTON FEATURE - Real-time De-escalation Tool
+// ==============================================
+
+// 21. PAUSE EVENTS
+export const couplesPauseEvents = pgTable("Couples_pause_events", {
+  id: uuid("id").primaryKey(),
+  couple_id: uuid("couple_id").notNull(),
+  initiated_by: uuid("initiated_by").notNull(),
+  started_at: timestamp("started_at").defaultNow(),
+  ended_at: timestamp("ended_at"),
+  duration_minutes: integer("duration_minutes"),
+  reflection: text("reflection"),
+});
+
+export const insertPauseEventSchema = createInsertSchema(couplesPauseEvents).omit({
+  id: true,
+  started_at: true,
+  ended_at: true,
+  duration_minutes: true,
+}).extend({
+  reflection: z.string().optional(),
+});
+export type InsertPauseEvent = z.infer<typeof insertPauseEventSchema>;
+export type PauseEvent = typeof couplesPauseEvents.$inferSelect;
