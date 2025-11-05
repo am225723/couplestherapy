@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useAuth } from '@/lib/auth-context';
 import { queryClient, apiRequest } from '@/lib/queryClient';
+import { supabase } from '@/lib/supabase';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -77,8 +78,29 @@ export default function LoveMapQuiz() {
     enabled: !!session?.id && currentPhase === 'results',
   });
 
-  // Determine which partner the current user is
-  const isPartner1 = session && profile && session.couple_id === profile.couple_id && user?.id === session.partner1_truths_completed;
+  // Determine which partner the current user is (need to fetch couple to determine partner1_id vs partner2_id)
+  // For now, we'll use a heuristic based on completion status
+  const [isPartner1, setIsPartner1] = useState<boolean | null>(null);
+
+  // Determine which partner number based on who has completed what
+  useEffect(() => {
+    if (!session || !user) return;
+    
+    // Fetch the couple to determine which partner this user is
+    const fetchCoupleInfo = async () => {
+      const { data } = await supabase
+        .from('Couples_couples')
+        .select('partner1_id, partner2_id')
+        .eq('id', session.couple_id)
+        .single();
+      
+      if (data) {
+        setIsPartner1(data.partner1_id === user.id);
+      }
+    };
+    
+    fetchCoupleInfo();
+  }, [session, user]);
 
   // Calculate phase based on session status
   useEffect(() => {
@@ -123,12 +145,9 @@ export default function LoveMapQuiz() {
         answer_text,
       }));
 
-      return apiRequest('/api/love-map/truths', {
-        method: 'POST',
-        body: JSON.stringify({
-          session_id: session?.id,
-          truths: truthsArray,
-        }),
+      return apiRequest('POST', '/api/love-map/truths', {
+        session_id: session?.id,
+        truths: truthsArray,
       });
     },
     onSuccess: () => {
@@ -155,12 +174,9 @@ export default function LoveMapQuiz() {
         guess_text,
       }));
 
-      return apiRequest('/api/love-map/guesses', {
-        method: 'POST',
-        body: JSON.stringify({
-          session_id: session?.id,
-          guesses: guessesArray,
-        }),
+      return apiRequest('POST', '/api/love-map/guesses', {
+        session_id: session?.id,
+        guesses: guessesArray,
       });
     },
     onSuccess: () => {
