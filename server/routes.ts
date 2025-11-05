@@ -1,10 +1,85 @@
-import type { Express } from "express";
+import type { Express, Request } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { supabaseAdmin } from "./supabase";
 import type { TherapistAnalytics, CoupleAnalytics, AIInsight } from "@shared/schema";
 import { analyzeCheckInsWithPerplexity } from "./perplexity";
 import { generateCoupleReport } from "./csv-export";
+import { z } from "zod";
+
+// Helper function to extract access token from request (Authorization header or cookies)
+function getAccessToken(req: Request): string | null {
+  // First, try to get token from Authorization header
+  const authHeader = req.headers.authorization;
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    return authHeader.substring(7);
+  }
+
+  // Fallback to cookies
+  const cookies = req.headers.cookie;
+  if (!cookies) return null;
+
+  const cookieArray = cookies.split(';');
+  for (const cookie of cookieArray) {
+    const [name, value] = cookie.trim().split('=');
+    if (name === 'sb-access-token' || name.includes('access-token')) {
+      return value;
+    }
+  }
+  return null;
+}
+
+// Helper function to verify session and check if user is a therapist
+async function verifyTherapistSession(req: Request): Promise<{ success: false; error: string; status: number } | { success: true; therapistId: string }> {
+  const accessToken = getAccessToken(req);
+
+  if (!accessToken) {
+    return {
+      success: false,
+      error: 'No session found. Please log in.',
+      status: 401
+    };
+  }
+
+  // Verify the access token with Supabase
+  const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(accessToken);
+
+  if (authError || !user) {
+    return {
+      success: false,
+      error: 'Invalid or expired session. Please log in again.',
+      status: 401
+    };
+  }
+
+  // Verify user has therapist role
+  const { data: profile, error: profileError } = await supabaseAdmin
+    .from('Couples_profiles')
+    .select('role')
+    .eq('id', user.id)
+    .single();
+
+  if (profileError || !profile) {
+    return {
+      success: false,
+      error: 'User profile not found.',
+      status: 403
+    };
+  }
+
+  if (profile.role !== 'therapist') {
+    return {
+      success: false,
+      error: 'Access denied. Only therapists can perform this action.',
+      status: 403
+    };
+  }
+
+  return {
+    success: true,
+    therapistId: user.id
+  };
+}
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // THERAPIST ANALYTICS ENDPOINT
@@ -86,7 +161,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }, {} as Record<string, Set<string>>);
 
         const distinctWeeks = Object.keys(weekGroups).length;
-        const weeksWithBothPartners = Object.values(weekGroups).filter(s => s.size === 2).length;
+        const weeksWithBothPartners = (Object.values(weekGroups) as Set<string>[]).filter(s => s.size === 2).length;
         // Use actual distinct weeks as denominator, minimum 1 to avoid division by zero
         const denominator = Math.max(distinctWeeks, 1);
         const checkinCompletionRate = Math.min(Math.round((weeksWithBothPartners / denominator) * 100), 100);
@@ -546,6 +621,198 @@ Be precise, evidence-based, and therapeutically sensitive. Format your response 
       res.status(500).json({ 
         error: error.message || 'Failed to generate CSV export' 
       });
+    }
+  });
+
+  // VALIDATION SCHEMAS FOR USER MANAGEMENT
+  const createCoupleSchema = z.object({
+    partner1_email: z.string().email(),
+    partner1_password: z.string().min(6),
+    partner1_name: z.string().min(1),
+    partner2_email: z.string().email(),
+    partner2_password: z.string().min(6),
+    partner2_name: z.string().min(1),
+  });
+
+  const createTherapistSchema = z.object({
+    email: z.string().email(),
+    password: z.string().min(6),
+    full_name: z.string().min(1),
+  });
+
+  // CREATE COUPLE ENDPOINT
+  app.post("/api/therapist/create-couple", async (req, res) => {
+    try {
+      // Verify session and therapist authorization
+      const authResult = await verifyTherapistSession(req);
+      if (!authResult.success) {
+        return res.status(authResult.status).json({ error: authResult.error });
+      }
+
+      const therapistId = authResult.therapistId;
+
+      // Validate request body (therapist_id no longer accepted from client)
+      const validatedData = createCoupleSchema.parse(req.body);
+
+      // Create auth user for Partner 1
+      const { data: partner1Auth, error: partner1AuthError } = await supabaseAdmin.auth.admin.createUser({
+        email: validatedData.partner1_email,
+        password: validatedData.partner1_password,
+        email_confirm: true,
+      });
+
+      if (partner1AuthError) {
+        return res.status(400).json({ error: `Failed to create Partner 1: ${partner1AuthError.message}` });
+      }
+
+      // Create auth user for Partner 2
+      const { data: partner2Auth, error: partner2AuthError } = await supabaseAdmin.auth.admin.createUser({
+        email: validatedData.partner2_email,
+        password: validatedData.partner2_password,
+        email_confirm: true,
+      });
+
+      if (partner2AuthError) {
+        // Rollback: delete partner1 if partner2 creation fails
+        await supabaseAdmin.auth.admin.deleteUser(partner1Auth.user.id);
+        return res.status(400).json({ error: `Failed to create Partner 2: ${partner2AuthError.message}` });
+      }
+
+      // Create couple record using authenticated therapist's ID
+      const { data: couple, error: coupleError } = await supabaseAdmin
+        .from('Couples_couples')
+        .insert({
+          partner1_id: partner1Auth.user.id,
+          partner2_id: partner2Auth.user.id,
+          therapist_id: therapistId,
+        })
+        .select()
+        .single();
+
+      if (coupleError) {
+        // Rollback: delete both users
+        await supabaseAdmin.auth.admin.deleteUser(partner1Auth.user.id);
+        await supabaseAdmin.auth.admin.deleteUser(partner2Auth.user.id);
+        return res.status(500).json({ error: `Failed to create couple: ${coupleError.message}` });
+      }
+
+      // Generate join code from couple ID
+      const joinCode = couple.id.substring(0, 8).toUpperCase();
+
+      // Update couple with join_code
+      const { error: joinCodeError } = await supabaseAdmin
+        .from('Couples_couples')
+        .update({ join_code: joinCode })
+        .eq('id', couple.id);
+
+      if (joinCodeError) {
+        console.error('Failed to update join_code:', joinCodeError);
+      }
+
+      // Create profile for Partner 1
+      const { error: profile1Error } = await supabaseAdmin
+        .from('Couples_profiles')
+        .insert({
+          id: partner1Auth.user.id,
+          full_name: validatedData.partner1_name,
+          role: 'client',
+          couple_id: couple.id,
+        });
+
+      if (profile1Error) {
+        console.error('Failed to create Partner 1 profile:', profile1Error);
+      }
+
+      // Create profile for Partner 2
+      const { error: profile2Error } = await supabaseAdmin
+        .from('Couples_profiles')
+        .insert({
+          id: partner2Auth.user.id,
+          full_name: validatedData.partner2_name,
+          role: 'client',
+          couple_id: couple.id,
+        });
+
+      if (profile2Error) {
+        console.error('Failed to create Partner 2 profile:', profile2Error);
+      }
+
+      res.json({
+        success: true,
+        couple: {
+          id: couple.id,
+          join_code: joinCode,
+          partner1_id: partner1Auth.user.id,
+          partner1_email: validatedData.partner1_email,
+          partner1_name: validatedData.partner1_name,
+          partner2_id: partner2Auth.user.id,
+          partner2_email: validatedData.partner2_email,
+          partner2_name: validatedData.partner2_name,
+        },
+      });
+    } catch (error: any) {
+      console.error('Create couple error:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: error.errors[0].message });
+      }
+      res.status(500).json({ error: error.message || 'Failed to create couple' });
+    }
+  });
+
+  // CREATE THERAPIST ENDPOINT
+  app.post("/api/therapist/create-therapist", async (req, res) => {
+    try {
+      // Verify session and therapist authorization
+      const authResult = await verifyTherapistSession(req);
+      if (!authResult.success) {
+        return res.status(authResult.status).json({ error: authResult.error });
+      }
+
+      // Validate request body
+      const validatedData = createTherapistSchema.parse(req.body);
+
+      // Create auth user for the new therapist
+      const { data: therapistAuth, error: therapistAuthError } = await supabaseAdmin.auth.admin.createUser({
+        email: validatedData.email,
+        password: validatedData.password,
+        email_confirm: true,
+      });
+
+      if (therapistAuthError) {
+        return res.status(400).json({ error: `Failed to create therapist auth: ${therapistAuthError.message}` });
+      }
+
+      // Create profile with role='therapist'
+      const { error: profileError } = await supabaseAdmin
+        .from('Couples_profiles')
+        .insert({
+          id: therapistAuth.user.id,
+          full_name: validatedData.full_name,
+          role: 'therapist',
+          couple_id: null,
+        });
+
+      if (profileError) {
+        // Rollback: delete auth user
+        await supabaseAdmin.auth.admin.deleteUser(therapistAuth.user.id);
+        return res.status(500).json({ error: `Failed to create therapist profile: ${profileError.message}` });
+      }
+
+      res.json({
+        success: true,
+        therapist: {
+          id: therapistAuth.user.id,
+          email: validatedData.email,
+          full_name: validatedData.full_name,
+          role: 'therapist',
+        },
+      });
+    } catch (error: any) {
+      console.error('Create therapist error:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: error.errors[0].message });
+      }
+      res.status(500).json({ error: error.message || 'Failed to create therapist' });
     }
   });
 

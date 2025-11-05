@@ -8,7 +8,7 @@ import { Toaster } from '@/components/ui/toaster';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { SidebarProvider, Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarTrigger, SidebarHeader } from '@/components/ui/sidebar';
 import { Button } from './components/ui/button';
-import { Home, ClipboardList, Sparkles, Target, Coffee, MessageCircle, Users, LogOut, Loader2, BarChart3 } from 'lucide-react';
+import { Home, ClipboardList, Sparkles, Target, Coffee, MessageCircle, Users, LogOut, Loader2, BarChart3, UserPlus, Heart } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
 import tadiLogo from '@assets/logo_1762363277396.png';
 
@@ -24,6 +24,7 @@ import HoldMeTightPage from './pages/hold-me-tight';
 import ClientDashboard from './pages/client-dashboard';
 import AdminDashboard from './pages/admin-dashboard';
 import AnalyticsPage from './pages/analytics';
+import UserManagementPage from './pages/user-management';
 import NotFound from './pages/not-found';
 
 function AppSidebar() {
@@ -42,6 +43,7 @@ function AppSidebar() {
   const adminMenuItems = [
     { title: 'Couples', url: '/admin', icon: Users },
     { title: 'Analytics', url: '/admin/analytics', icon: BarChart3 },
+    { title: 'User Management', url: '/admin/user-management', icon: UserPlus },
   ];
 
   const menuItems = profile?.role === 'therapist' ? adminMenuItems : clientMenuItems;
@@ -150,6 +152,7 @@ function AuthenticatedApp() {
                   <Route path="/admin" component={AdminDashboard} />
                   <Route path="/admin/couple/:id" component={AdminDashboard} />
                   <Route path="/admin/analytics" component={AnalyticsPage} />
+                  <Route path="/admin/user-management" component={UserManagementPage} />
                   <Route path="/">
                     <Redirect to="/admin" />
                   </Route>
