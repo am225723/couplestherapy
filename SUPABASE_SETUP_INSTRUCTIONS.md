@@ -68,7 +68,7 @@ If you want to test the application, you can create a test therapist and couple:
 -- Create test therapist (replace with actual auth user ID after signup)
 -- First, sign up as a therapist in the app, then run:
 UPDATE public."Couples_profiles"
-SET role = 'therapist'
+SET role  in= 'therapist'
 WHERE id = 'YOUR_THERAPIST_USER_ID';
 
 -- Create a test couple
