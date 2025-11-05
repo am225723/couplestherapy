@@ -430,13 +430,16 @@ export default function AnalyticsPage() {
     }
   };
 
-  if (error) {
-    toast({
-      title: 'Error loading analytics',
-      description: error instanceof Error ? error.message : 'Failed to fetch analytics data',
-      variant: 'destructive',
-    });
-  }
+  // Show error toast only when error changes (prevent infinite loop)
+  useEffect(() => {
+    if (error) {
+      toast({
+        title: 'Error loading analytics',
+        description: error instanceof Error ? error.message : 'Failed to fetch analytics data',
+        variant: 'destructive',
+      });
+    }
+  }, [error, toast]);
 
   if (isLoading) {
     return (
