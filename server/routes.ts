@@ -4,6 +4,7 @@ import { storage } from "./storage";
 import { supabaseAdmin } from "./supabase";
 import type { TherapistAnalytics, CoupleAnalytics, AIInsight } from "@shared/schema";
 import { analyzeCheckInsWithPerplexity } from "./perplexity";
+import { generateCoupleReport } from "./csv-export";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // THERAPIST ANALYTICS ENDPOINT
@@ -381,6 +382,169 @@ Be precise, evidence-based, and therapeutically sensitive. Format your response 
       console.error('AI Insights error:', error);
       res.status(500).json({ 
         error: error.message || 'Failed to generate AI insights' 
+      });
+    }
+  });
+
+  // CSV EXPORT ENDPOINT
+  // SECURITY NOTE: In production, therapist_id should come from authenticated session,
+  // not from query parameters. This implementation assumes frontend authentication.
+  app.get("/api/therapist/export-couple-report", async (req, res) => {
+    try {
+      const coupleId = req.query.couple_id as string;
+      const therapistId = req.query.therapist_id as string;
+      const format = req.query.format as string;
+
+      // Validate required parameters
+      if (!coupleId || !therapistId) {
+        return res.status(400).json({ 
+          error: "couple_id and therapist_id are required" 
+        });
+      }
+
+      if (format && format !== 'csv') {
+        return res.status(400).json({ 
+          error: "Only CSV format is currently supported" 
+        });
+      }
+
+      // 1. Validate therapist has access to this couple
+      const { data: couple, error: coupleError } = await supabaseAdmin
+        .from('Couples_couples')
+        .select('*')
+        .eq('id', coupleId)
+        .single();
+
+      if (coupleError || !couple) {
+        return res.status(404).json({ error: "Couple not found" });
+      }
+
+      if (couple.therapist_id !== therapistId) {
+        return res.status(403).json({ 
+          error: "Unauthorized: You don't have access to this couple's data" 
+        });
+      }
+
+      // 2. Fetch all necessary data in parallel
+      const [
+        { data: profiles },
+        { data: therapistProfile },
+        { data: checkins },
+        { data: gratitudeLogs },
+        { data: sharedGoals },
+        { data: conversations },
+        { data: rituals },
+      ] = await Promise.all([
+        supabaseAdmin
+          .from('Couples_profiles')
+          .select('*')
+          .in('id', [couple.partner1_id, couple.partner2_id]),
+        supabaseAdmin
+          .from('Couples_profiles')
+          .select('full_name')
+          .eq('id', therapistId)
+          .single(),
+        supabaseAdmin
+          .from('Couples_weekly_checkins')
+          .select('*')
+          .eq('couple_id', coupleId)
+          .order('year', { ascending: true })
+          .order('week_number', { ascending: true }),
+        supabaseAdmin
+          .from('Couples_gratitude_logs')
+          .select('*')
+          .eq('couple_id', coupleId)
+          .order('created_at', { ascending: true }),
+        supabaseAdmin
+          .from('Couples_shared_goals')
+          .select('*')
+          .eq('couple_id', coupleId)
+          .order('created_at', { ascending: true }),
+        supabaseAdmin
+          .from('Couples_conversations')
+          .select('*')
+          .eq('couple_id', coupleId)
+          .order('created_at', { ascending: true }),
+        supabaseAdmin
+          .from('Couples_rituals')
+          .select('*')
+          .eq('couple_id', coupleId),
+      ]);
+
+      // 3. Organize profiles
+      const partner1 = profiles?.find(p => p.id === couple.partner1_id);
+      const partner2 = profiles?.find(p => p.id === couple.partner2_id);
+
+      if (!partner1 || !partner2) {
+        return res.status(500).json({ 
+          error: "Failed to retrieve partner profiles" 
+        });
+      }
+
+      // 4. Transform data for CSV generation
+      const reportData = {
+        couple: {
+          id: coupleId,
+          partner1_name: partner1.full_name || 'Partner 1',
+          partner2_name: partner2.full_name || 'Partner 2',
+          therapist_name: therapistProfile?.full_name || 'Therapist',
+        },
+        weeklyCheckins: (checkins || []).map(checkin => ({
+          week_number: checkin.week_number,
+          year: checkin.year,
+          created_at: checkin.created_at,
+          partner: (checkin.user_id === couple.partner1_id ? 1 : 2) as 1 | 2,
+          q_connectedness: checkin.q_connectedness,
+          q_conflict: checkin.q_conflict,
+          q_appreciation: checkin.q_appreciation,
+          q_regrettable_incident: checkin.q_regrettable_incident,
+          q_my_need: checkin.q_my_need,
+        })),
+        gratitudeLogs: (gratitudeLogs || []).map(log => ({
+          created_at: log.created_at,
+          partner: (log.user_id === couple.partner1_id ? 1 : 2) as 1 | 2,
+          text_content: log.text_content,
+          image_url: log.image_url,
+        })),
+        sharedGoals: (sharedGoals || []).map(goal => ({
+          title: goal.title,
+          status: goal.status,
+          created_at: goal.created_at,
+          completed_at: goal.completed_at || null,
+        })),
+        conversations: (conversations || []).map(conv => ({
+          conversation_type: conv.conversation_type || 'Hold Me Tight',
+          created_at: conv.created_at,
+          notes_summary: [
+            conv.initiator_statement_feel,
+            conv.initiator_statement_need,
+            conv.partner_reflection,
+            conv.partner_response,
+          ].filter(Boolean).join(' | '),
+        })),
+        rituals: (rituals || []).map(ritual => ({
+          category: ritual.category,
+          description: ritual.description,
+          created_at: ritual.created_at,
+        })),
+      };
+
+      // 5. Generate CSV
+      const csvContent = generateCoupleReport(reportData);
+
+      // 6. Set headers for file download
+      res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+      res.setHeader(
+        'Content-Disposition', 
+        `attachment; filename="couple-report-${coupleId}-${Date.now()}.csv"`
+      );
+
+      // 7. Send CSV
+      res.send(csvContent);
+    } catch (error: any) {
+      console.error('CSV Export error:', error);
+      res.status(500).json({ 
+        error: error.message || 'Failed to generate CSV export' 
       });
     }
   });
