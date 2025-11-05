@@ -8,6 +8,7 @@ import { analyzeCheckInsWithPerplexity } from "./perplexity";
 import { generateCoupleReport } from "./csv-export";
 import { generateVoiceMemoUploadUrl, generateVoiceMemoDownloadUrl, deleteVoiceMemo } from "./storage-helpers";
 import { z } from "zod";
+import crypto from "crypto";
 
 // Helper function to extract access token from request (Authorization header or cookies)
 function getAccessToken(req: Request): string | null {
@@ -887,6 +888,227 @@ Be precise, evidence-based, and therapeutically sensitive. Format your response 
         return res.status(400).json({ error: error.errors[0].message });
       }
       res.status(500).json({ error: error.message || 'Failed to create therapist' });
+    }
+  });
+
+  // ============================================================
+  // JOIN CODE MANAGEMENT AND LINKING ENDPOINTS
+  // ============================================================
+
+  // GET /api/therapist/my-couples - Get all couples assigned to current therapist
+  app.get("/api/therapist/my-couples", async (req, res) => {
+    try {
+      // Verify session and therapist authorization
+      const authResult = await verifyTherapistSession(req);
+      if (!authResult.success) {
+        return res.status(authResult.status).json({ error: authResult.error });
+      }
+
+      const { therapistId } = authResult;
+
+      // Get all couples for this therapist
+      const { data: couples, error: couplesError } = await supabaseAdmin
+        .from('Couples_couples')
+        .select('id, partner1_id, partner2_id, join_code')
+        .eq('therapist_id', therapistId);
+
+      if (couplesError) {
+        console.error('Error fetching couples:', couplesError);
+        return res.status(500).json({ error: 'Failed to fetch couples' });
+      }
+
+      if (!couples || couples.length === 0) {
+        return res.json({ couples: [] });
+      }
+
+      // Get all partner profiles
+      const partnerIds = couples.flatMap(c => [c.partner1_id, c.partner2_id]).filter(Boolean);
+      
+      const { data: profiles, error: profilesError } = await supabaseAdmin
+        .from('Couples_profiles')
+        .select('id, full_name')
+        .in('id', partnerIds);
+
+      if (profilesError) {
+        console.error('Error fetching profiles:', profilesError);
+        return res.status(500).json({ error: 'Failed to fetch partner profiles' });
+      }
+
+      // Map couples with partner names
+      const couplesWithNames = couples.map(couple => {
+        const partner1 = profiles?.find(p => p.id === couple.partner1_id);
+        const partner2 = profiles?.find(p => p.id === couple.partner2_id);
+
+        return {
+          couple_id: couple.id,
+          partner1_name: partner1?.full_name || 'Partner 1',
+          partner2_name: partner2?.full_name || 'Partner 2',
+          join_code: couple.join_code || '',
+        };
+      });
+
+      res.json({ couples: couplesWithNames });
+    } catch (error: any) {
+      console.error('Get my couples error:', error);
+      res.status(500).json({ error: error.message || 'Failed to fetch couples' });
+    }
+  });
+
+  // POST /api/therapist/regenerate-join-code - Regenerate join code for a couple
+  app.post("/api/therapist/regenerate-join-code", async (req, res) => {
+    try {
+      // Verify session and therapist authorization
+      const authResult = await verifyTherapistSession(req);
+      if (!authResult.success) {
+        return res.status(authResult.status).json({ error: authResult.error });
+      }
+
+      const { therapistId } = authResult;
+      const { couple_id } = req.body;
+
+      if (!couple_id) {
+        return res.status(400).json({ error: 'couple_id is required' });
+      }
+
+      // Verify this couple belongs to the therapist
+      const { data: couple, error: coupleError } = await supabaseAdmin
+        .from('Couples_couples')
+        .select('therapist_id')
+        .eq('id', couple_id)
+        .single();
+
+      if (coupleError || !couple) {
+        return res.status(404).json({ error: 'Couple not found' });
+      }
+
+      if (couple.therapist_id !== therapistId) {
+        return res.status(403).json({ error: 'You can only regenerate join codes for your own couples' });
+      }
+
+      // Generate new 8-character join code (first 8 chars of UUID)
+      const newJoinCode = crypto.randomUUID().replace(/-/g, '').slice(0, 8).toUpperCase();
+
+      // Update the join code
+      const { error: updateError } = await supabaseAdmin
+        .from('Couples_couples')
+        .update({ join_code: newJoinCode })
+        .eq('id', couple_id);
+
+      if (updateError) {
+        console.error('Error updating join code:', updateError);
+        return res.status(500).json({ error: 'Failed to regenerate join code' });
+      }
+
+      res.json({ join_code: newJoinCode });
+    } catch (error: any) {
+      console.error('Regenerate join code error:', error);
+      res.status(500).json({ error: error.message || 'Failed to regenerate join code' });
+    }
+  });
+
+  // GET /api/therapist/unassigned-couples - Get couples without a therapist
+  app.get("/api/therapist/unassigned-couples", async (req, res) => {
+    try {
+      // Verify session and therapist authorization
+      const authResult = await verifyTherapistSession(req);
+      if (!authResult.success) {
+        return res.status(authResult.status).json({ error: authResult.error });
+      }
+
+      // Get all couples without a therapist
+      const { data: couples, error: couplesError } = await supabaseAdmin
+        .from('Couples_couples')
+        .select('id, partner1_id, partner2_id, join_code')
+        .is('therapist_id', null);
+
+      if (couplesError) {
+        console.error('Error fetching unassigned couples:', couplesError);
+        return res.status(500).json({ error: 'Failed to fetch unassigned couples' });
+      }
+
+      if (!couples || couples.length === 0) {
+        return res.json({ couples: [] });
+      }
+
+      // Get all partner profiles
+      const partnerIds = couples.flatMap(c => [c.partner1_id, c.partner2_id]).filter(Boolean);
+      
+      const { data: profiles, error: profilesError } = await supabaseAdmin
+        .from('Couples_profiles')
+        .select('id, full_name')
+        .in('id', partnerIds);
+
+      if (profilesError) {
+        console.error('Error fetching profiles:', profilesError);
+        return res.status(500).json({ error: 'Failed to fetch partner profiles' });
+      }
+
+      // Map couples with partner names
+      const couplesWithNames = couples.map(couple => {
+        const partner1 = profiles?.find(p => p.id === couple.partner1_id);
+        const partner2 = profiles?.find(p => p.id === couple.partner2_id);
+
+        return {
+          couple_id: couple.id,
+          partner1_name: partner1?.full_name || 'Partner 1',
+          partner2_name: partner2?.full_name || 'Partner 2',
+          join_code: couple.join_code || '',
+        };
+      });
+
+      res.json({ couples: couplesWithNames });
+    } catch (error: any) {
+      console.error('Get unassigned couples error:', error);
+      res.status(500).json({ error: error.message || 'Failed to fetch unassigned couples' });
+    }
+  });
+
+  // POST /api/therapist/link-couple - Link a couple to the current therapist
+  app.post("/api/therapist/link-couple", async (req, res) => {
+    try {
+      // Verify session and therapist authorization
+      const authResult = await verifyTherapistSession(req);
+      if (!authResult.success) {
+        return res.status(authResult.status).json({ error: authResult.error });
+      }
+
+      const { therapistId } = authResult;
+      const { couple_id } = req.body;
+
+      if (!couple_id) {
+        return res.status(400).json({ error: 'couple_id is required' });
+      }
+
+      // Verify couple exists and is unassigned
+      const { data: couple, error: coupleError } = await supabaseAdmin
+        .from('Couples_couples')
+        .select('therapist_id')
+        .eq('id', couple_id)
+        .single();
+
+      if (coupleError || !couple) {
+        return res.status(404).json({ error: 'Couple not found' });
+      }
+
+      if (couple.therapist_id) {
+        return res.status(400).json({ error: 'This couple is already assigned to a therapist' });
+      }
+
+      // Link the couple to this therapist
+      const { error: updateError } = await supabaseAdmin
+        .from('Couples_couples')
+        .update({ therapist_id: therapistId })
+        .eq('id', couple_id);
+
+      if (updateError) {
+        console.error('Error linking couple:', updateError);
+        return res.status(500).json({ error: 'Failed to link couple' });
+      }
+
+      res.json({ success: true, message: 'Couple successfully linked to your account' });
+    } catch (error: any) {
+      console.error('Link couple error:', error);
+      res.status(500).json({ error: error.message || 'Failed to link couple' });
     }
   });
 

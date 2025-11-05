@@ -7,12 +7,13 @@ import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAuth } from '@/lib/auth-context';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Users, UserPlus, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Loader2, Users, UserPlus, AlertCircle, CheckCircle2, Copy, Link as LinkIcon, RefreshCw } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { apiRequest } from '@/lib/queryClient';
+import { apiRequest, queryClient } from '@/lib/queryClient';
+import { useQuery, useMutation } from '@tanstack/react-query';
 
 // Form validation schemas
 const createCoupleSchema = z.object({
@@ -32,6 +33,13 @@ const createTherapistSchema = z.object({
 
 type CreateCoupleFormData = z.infer<typeof createCoupleSchema>;
 type CreateTherapistFormData = z.infer<typeof createTherapistSchema>;
+
+type CoupleData = {
+  couple_id: string;
+  partner1_name: string;
+  partner2_name: string;
+  join_code: string;
+};
 
 export default function UserManagementPage() {
   const { profile } = useAuth();
@@ -109,6 +117,79 @@ export default function UserManagementPage() {
       toast({
         title: 'Error Creating Therapist',
         description: error.message || 'Failed to create therapist. Please try again.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  // Query for therapist's couples
+  const { data: myCouples, isLoading: isLoadingMyCouples } = useQuery<{ couples: CoupleData[] }>({
+    queryKey: ['/api/therapist/my-couples'],
+    enabled: profile?.role === 'therapist',
+  });
+
+  // Query for unassigned couples
+  const { data: unassignedCouples, isLoading: isLoadingUnassigned } = useQuery<{ couples: CoupleData[] }>({
+    queryKey: ['/api/therapist/unassigned-couples'],
+    enabled: profile?.role === 'therapist',
+  });
+
+  // Mutation to regenerate join code
+  const regenerateJoinCodeMutation = useMutation({
+    mutationFn: async (coupleId: string) => {
+      const res = await apiRequest('POST', '/api/therapist/regenerate-join-code', { couple_id: coupleId });
+      return res.json() as Promise<{ join_code: string }>;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/therapist/my-couples'] });
+      toast({
+        title: 'Join Code Regenerated',
+        description: 'New join code has been created successfully.',
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to regenerate join code',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  // Mutation to link couple
+  const linkCoupleMutation = useMutation({
+    mutationFn: async (coupleId: string) => {
+      const res = await apiRequest('POST', '/api/therapist/link-couple', { couple_id: coupleId });
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/therapist/my-couples'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/therapist/unassigned-couples'] });
+      toast({
+        title: 'Couple Linked',
+        description: 'Couple has been successfully linked to your account.',
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to link couple',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      toast({
+        title: 'Copied!',
+        description: 'Join code copied to clipboard',
+      });
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to copy to clipboard',
         variant: 'destructive',
       });
     }
@@ -443,6 +524,151 @@ export default function UserManagementPage() {
                   </Button>
                 </form>
               </Form>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Manage Existing Couples Section */}
+      <div className="mt-8">
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <Users className="h-5 w-5 text-primary" />
+              <CardTitle>Manage Existing Couples</CardTitle>
+            </div>
+            <CardDescription>
+              View and manage join codes for your assigned couples
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {isLoadingMyCouples ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+              </div>
+            ) : myCouples?.couples && myCouples.couples.length > 0 ? (
+              <div className="space-y-4">
+                {myCouples.couples.map((couple) => (
+                  <Card key={couple.couple_id} className="p-4" data-testid={`card-couple-${couple.couple_id}`}>
+                    <div className="flex items-center justify-between gap-4 flex-wrap">
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-sm mb-1" data-testid={`text-couple-names-${couple.couple_id}`}>
+                          {couple.partner1_name} & {couple.partner2_name}
+                        </p>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-muted-foreground">Join Code:</span>
+                          <code className="text-sm font-mono font-bold text-primary" data-testid={`text-join-code-${couple.couple_id}`}>
+                            {couple.join_code}
+                          </code>
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => copyToClipboard(couple.join_code)}
+                          data-testid={`button-copy-${couple.couple_id}`}
+                        >
+                          <Copy className="h-4 w-4 mr-2" />
+                          Copy Code
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => regenerateJoinCodeMutation.mutate(couple.couple_id)}
+                          disabled={regenerateJoinCodeMutation.isPending}
+                          data-testid={`button-regenerate-${couple.couple_id}`}
+                        >
+                          {regenerateJoinCodeMutation.isPending ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <>
+                              <RefreshCw className="h-4 w-4 mr-2" />
+                              Regenerate
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <Users className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                <p className="text-muted-foreground">No couples assigned yet</p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Create new couples above or link existing couples below
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Link Unassigned Couples Section */}
+      <div className="mt-8">
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <LinkIcon className="h-5 w-5 text-primary" />
+              <CardTitle>Link Unassigned Couples</CardTitle>
+            </div>
+            <CardDescription>
+              Assign yourself to couples that don't have a therapist yet
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {isLoadingUnassigned ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+              </div>
+            ) : unassignedCouples?.couples && unassignedCouples.couples.length > 0 ? (
+              <div className="space-y-4">
+                {unassignedCouples.couples.map((couple) => (
+                  <Card key={couple.couple_id} className="p-4" data-testid={`card-unassigned-${couple.couple_id}`}>
+                    <div className="flex items-center justify-between gap-4 flex-wrap">
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-sm mb-1" data-testid={`text-unassigned-names-${couple.couple_id}`}>
+                          {couple.partner1_name} & {couple.partner2_name}
+                        </p>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-muted-foreground">Join Code:</span>
+                          <code className="text-sm font-mono text-muted-foreground">
+                            {couple.join_code}
+                          </code>
+                        </div>
+                      </div>
+                      <Button
+                        size="sm"
+                        onClick={() => linkCoupleMutation.mutate(couple.couple_id)}
+                        disabled={linkCoupleMutation.isPending}
+                        data-testid={`button-link-${couple.couple_id}`}
+                      >
+                        {linkCoupleMutation.isPending ? (
+                          <>
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            Linking...
+                          </>
+                        ) : (
+                          <>
+                            <LinkIcon className="h-4 w-4 mr-2" />
+                            Link to Me
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <LinkIcon className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                <p className="text-muted-foreground">No unassigned couples found</p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  All couples are currently assigned to therapists
+                </p>
+              </div>
             )}
           </CardContent>
         </Card>
