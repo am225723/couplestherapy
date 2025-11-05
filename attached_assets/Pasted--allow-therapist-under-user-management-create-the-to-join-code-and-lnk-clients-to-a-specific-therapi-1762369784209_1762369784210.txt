@@ -1,0 +1,31 @@
+
+allow therapist under user management create the to join code and lnk clients to a specific therapist. Fix error allow therapist under user management crete the to link clients to a specific therapist. Fix 404 error on therapist first sign in. Add a messaging feature between therapist and clients. Add a calendar for couples to plan events and dates.  continue with task 9 & 10. Add in addtional quizes and fetures for couples therapy. Add in the date night generator that is in the attahment. 2. 🗺️ The "Love Map" Builder (A Gottman-Inspired Module)
+This is a guided exercise to rebuild emotional intimacy by relearning each other's inner worlds.
+ * How it Works: Each partner individually completes a questionnaire about the other person. The app saves their answers separately. Here are some sample questions, add more questions to this.
+ * The Questionnaire:
+   * "What is your partner's biggest stressor at work right now?"
+   * "Who is their best friend?"
+   * "What is their favorite way to relax?"
+   * "What is one of their core life dreams?"
+ * The "Reveal": After both submit, the app shows their answers side-by-side.
+ * Therapist Assignment: "Your assignment is to review your 'Love Map' results together. Then, use the journal prompt below to discuss one thing you learned and one area you want to get to know better." 3. Echo & Empathy" (A Communication Skill-Builder)
+This is a digital tool for practicing "Active Listening," turning a common therapy exercise into a tangible module.
+ * How it Works: This is a 3-step, turn-based module.
+ * Step 1 (Partner A): Partner A gets a prompt: "Share a low-stakes feeling or stressor from your day. (e.g., 'I am feeling overwhelmed by the laundry.')"
+ * Step 2 (Partner B): Partner B cannot see Partner A's entry yet. They see a prompt: "Your partner is about to share a feeling. Your only job is to listen. You are not allowed to solve the problem, defend yourself, or state your own feeling."
+ * Step 3 (The Exchange): Partner B now sees Partner A's entry. They must respond in two, distinct text boxes:
+   * Echo: "What I hear you saying is..."
+   * Empathy: "I can understand why you would feel..."
+ * Why it Works: It forces the couple to practice the structure of validation. You can review the exchange and see who is struggling with the "solve" vs. "listen" part. The "IFS Introduction" (An Inner World Bridge)
+This is perfect for your interest in Internal Family Systems (IFS) and "Inner Child" work.
+ * How it Works: You assign an individual module to each partner (like your "Alchemical Grimoire" or "Shadow Work" app).
+ * Therapist Assignment: "Complete the 'Meet Your Parts' exercise. Identify one 'Protective Part' that shows up in your relationship (e.g., 'The Angry Part,' 'The Silent Part')."
+ * The "Bridge": A new module where each partner writes a short letter from that Part to their partner, explaining its job.
+   * Example: "Dear Matthew, I am Carly's 'Critical Part.' I show up and criticize you about chores because I'm terrified she will be abandoned if she isn't 'perfect.' I'm not trying to hurt you; I'm trying to protect her."
+ * Why it Works: It depersonalizes the conflict. "Matthew" is no longer fighting "Carly"; he's seeing her "Protective Part." This builds immense empathy and stops the cycle of blame. The "Shared Pause Button" (A Real-Time De-escalation App)
+This is a more advanced, "in-the-moment" app that can be part of your "Citadel" or "Aura" client-facing app.
+ * How it Works: A "Pause" button is visible in the app. When a couple is arguing at home, either partner can press it.
+ * The "Pause": Pressing the button sends a notification to both partners' phones. It triggers a shared 20-minute "cool down" timer.
+ * During the Pause: The app locks them out of the argument. Instead, it directs them both to a simple, individual exercise, like your "Bonfire of Breath" app.
+ * The "Resume": After 20 minutes, a prompt asks, "Are you ready to resume this conversation calmly? Here is the 'I Feel' Translator tool to help you start."
+ * Why it Works: It digitizes the concept of a "physiological time-out" to stop emotional flooding, a core skill for high-conflict couples.
