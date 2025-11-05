@@ -3,11 +3,13 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { useAuth } from '@/lib/auth-context';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/hooks/use-toast';
-import { Coffee, Home, Utensils, Moon, Plus, Loader2 } from 'lucide-react';
+import { Coffee, Home, Utensils, Moon, Plus, Loader2, Lightbulb, Sparkles } from 'lucide-react';
 import { Ritual, RITUAL_CATEGORIES, RitualCategory } from '@shared/schema';
+import { RITUAL_EXAMPLES } from '@/lib/ritual-examples';
 
 const categoryIcons = {
   'Mornings': Coffee,
@@ -88,6 +90,15 @@ export default function RitualsPage() {
     }
   };
 
+  const handleUseExample = (example: string, category: RitualCategory) => {
+    setActiveCategory(category);
+    setNewRitual(example);
+    toast({
+      title: 'Example added to form',
+      description: 'Feel free to customize it before saving!',
+    });
+  };
+
   const categoryRituals = rituals.filter(r => r.category === activeCategory);
   const Icon = categoryIcons[activeCategory];
 
@@ -129,6 +140,45 @@ export default function RitualsPage() {
 
           {RITUAL_CATEGORIES.map((category) => (
             <TabsContent key={category} value={category} className="space-y-6 mt-6">
+              <Accordion type="single" collapsible className="w-full" data-testid="accordion-examples">
+                <AccordionItem value="examples" className="border rounded-lg px-6 bg-accent/30">
+                  <AccordionTrigger data-testid="trigger-examples" className="hover:no-underline">
+                    <div className="flex items-center gap-2">
+                      <Lightbulb className="h-5 w-5 text-primary" />
+                      <span className="font-semibold">Need Ideas? View Research-Based Examples</span>
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <div className="space-y-4 pt-2">
+                      <p className="text-sm text-muted-foreground flex items-center gap-2">
+                        <Sparkles className="h-4 w-4" />
+                        Try these research-based rituals from the Gottman Institute
+                      </p>
+                      <div className="space-y-3">
+                        {RITUAL_EXAMPLES[category].map((example, index) => (
+                          <div
+                            key={index}
+                            data-testid={`example-${index}`}
+                            className="flex items-start gap-3 p-4 rounded-md bg-background border hover-elevate"
+                          >
+                            <p className="flex-1 text-sm leading-relaxed">{example}</p>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleUseExample(example, category)}
+                              data-testid={`button-use-example-${index}`}
+                              className="shrink-0"
+                            >
+                              Use This
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
+
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
