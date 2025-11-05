@@ -1,9 +1,6 @@
 {
   "version": 2,
-  "buildCommand": "npm run build",
-  "outputDirectory": "dist/public",
-  "installCommand": "npm install",
-  "builds": [
+  "rewrites": [
     {
       "src": "api/index.ts",
       "use": "@vercel/node",
@@ -12,11 +9,8 @@
       }
     },
     {
-      "src": "package.json",
-      "use": "@vercel/static-build",
-      "config": {
-        "distDir": "dist/public"
-      }
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ],
   "routes": [

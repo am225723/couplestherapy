@@ -1,6 +1,5 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "../server/routes";
-import { setupVite, serveStatic, log } from "../server/vite";
 
 const app = express();
 
@@ -15,7 +14,6 @@ app.use(express.json({
     req.rawBody = buf;
   }
 }));
-
 app.use(express.urlencoded({ extended: false }));
 
 app.use((req, res, next) => {
@@ -41,28 +39,21 @@ app.use((req, res, next) => {
         logLine = logLine.slice(0, 79) + "…";
       }
 
-      log(logLine);
+      console.log(logLine);
     }
   });
 
   next();
 });
 
-(async () => {
-  const server = await registerRoutes(app);
+await registerRoutes(app);
 
-  app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-    const status = err.status || err.statusCode || 500;
-    const message = err.message || "Internal Server Error";
+app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+  const status = err.status || err.statusCode || 500;
+  const message = err.message || "Internal Server Error";
 
-    res.status(status).json({ message });
-    throw err;
-  });
+  res.status(status).json({ message });
+  console.error(err);
+});
 
-  // For Vercel, we export the app instead of listening
-  // Export for Vercel serverless functions
-  export default app;
-})();
-
-// Also export for module compatibility
-module.exports = app;
+export default app;
