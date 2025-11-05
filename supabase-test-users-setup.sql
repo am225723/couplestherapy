@@ -19,6 +19,7 @@
 -- FIND USER IDs (for reference)
 -- ==============================================
 DO $$
+<<main_block>>
 DECLARE
   therapist_id UUID;
   mcally_id UUID;
@@ -97,7 +98,7 @@ BEGIN
   -- ==============================================
   
   UPDATE public."Couples_profiles"
-  SET couple_id = couple_id
+  SET couple_id = main_block.couple_id
   WHERE id IN (mcally_id, ccally_id);
   
   RAISE NOTICE 'Linked profiles to couple';
