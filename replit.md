@@ -88,7 +88,8 @@ A comprehensive, multi-tenant couples therapy platform with separate client and 
 6. **Rituals of Connection** - Gottman-based daily rituals builder with research-based examples library
 7. **Hold Me Tight Conversation** - 6-step EFT wizard (situation, feelings, fears, shame, expectations, needs)
 8. **Voice Memos** - Record and send voice messages to partner (Words of Affirmation)
-9. **Realtime Therapist Comments** - Contextual feedback appears under activities
+9. **Connection Concierge** - AI-powered date night generator using Perplexity (asks preferences, generates 3 personalized date ideas with connection tips)
+10. **Realtime Therapist Comments** - Contextual feedback appears under activities
 
 ### Admin App (for Therapists)
 1. **Secure Login** - Only users with role='therapist' can access
@@ -153,7 +154,8 @@ WHERE id IN ('PARTNER1_ID', 'PARTNER2_ID');
 8. Build Rituals for each category (with research-based example suggestions)
 9. Start Hold Me Tight conversation (6-step EFT wizard) → Partner completes
 10. Record and send Voice Memos to partner
-11. Receive therapist comments in real-time
+11. Use Connection Concierge to plan AI-generated date nights with connection tips
+12. Receive therapist comments in real-time
 
 ### Therapist Journey
 1. Sign up → Profile set to role='therapist'
@@ -202,6 +204,7 @@ SUPABASE_SERVICE_ROLE_KEY=[Stored in Replit Secrets]
 - ✅ Added therapist user management (create couples and therapist accounts)
 - ✅ Updated design system to teal/green color scheme based on logo
 - ✅ Implemented Perplexity AI analytics dashboard for therapists
+- ✅ Implemented Connection Concierge: AI-powered date night generator that asks preferences and creates personalized date ideas with connection tips
 
 ## Future Enhancements
 
