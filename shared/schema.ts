@@ -198,6 +198,26 @@ export const insertVoiceMemoSchema = createInsertSchema(couplesVoiceMemos).omit(
 export type InsertVoiceMemo = z.infer<typeof insertVoiceMemoSchema>;
 export type VoiceMemo = typeof couplesVoiceMemos.$inferSelect;
 
+// 11. MESSAGES
+export const couplesMessages = pgTable("Couples_messages", {
+  id: uuid("id").primaryKey(),
+  couple_id: uuid("couple_id").notNull(),
+  sender_id: uuid("sender_id").notNull(),
+  message_text: text("message_text").notNull(),
+  created_at: timestamp("created_at").defaultNow(),
+  is_read: boolean("is_read").default(false),
+});
+
+export const insertMessageSchema = createInsertSchema(couplesMessages).omit({
+  id: true,
+  created_at: true,
+  is_read: true,
+}).extend({
+  message_text: z.string().min(1, "Message cannot be empty"),
+});
+export type InsertMessage = z.infer<typeof insertMessageSchema>;
+export type Message = typeof couplesMessages.$inferSelect;
+
 // Love Language Quiz Types
 export const LOVE_LANGUAGES = [
   "Words of Affirmation",
