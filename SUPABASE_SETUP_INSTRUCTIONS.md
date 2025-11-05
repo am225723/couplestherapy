@@ -69,22 +69,22 @@ If you want to test the application, you can create a test therapist and couple:
 -- First, sign up as a therapist in the app, then run:
 UPDATE public."Couples_profiles"
 SET role  in= 'therapist'
-WHERE id = 'YOUR_THERAPIST_USER_ID';
+WHERE id = '8b5c908c-b69a-4c28-8b6b-48925b419515';
 
 -- Create a test couple
 -- After two clients sign up, create a couple relationship:
 INSERT INTO public."Couples_couples" (id, partner1_id, partner2_id, therapist_id)
 VALUES (
   uuid_generate_v4(),
-  'PARTNER_1_USER_ID',
-  'PARTNER_2_USER_ID',
-  'THERAPIST_USER_ID'
+  '0dfc6875-7fcf-4522-ad9c-2b4d9bcd6d0e',
+  'fd723567-2dd3-440b-be8b-2a3179a3411b',
+  '8b5c908c-b69a-4c28-8b6b-48925b419515'
 );
 
 -- Update client profiles with couple_id
 UPDATE public."Couples_profiles"
-SET couple_id = (SELECT id FROM public."Couples_couples" WHERE partner1_id = 'PARTNER_1_USER_ID')
-WHERE id IN ('PARTNER_1_USER_ID', 'PARTNER_2_USER_ID');
+SET couple_id = (SELECT id FROM public."Couples_couples" WHERE partner1_id = '0dfc6875-7fcf-4522-ad9c-2b4d9bcd6d0e')
+WHERE id IN ('0dfc6875-7fcf-4522-ad9c-2b4d9bcd6d0e', 'fd723567-2dd3-440b-be8b-2a3179a3411b');
 ```
 
 ## Environment Variables
