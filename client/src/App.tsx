@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { Switch, Route, Redirect } from 'wouter';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from './lib/queryClient';
@@ -106,6 +107,38 @@ function AppSidebar() {
 
 function AuthenticatedApp() {
   const { user, profile, loading } = useAuth();
+  const [location, setLocation] = useLocation();
+
+  // Redirect users to their appropriate home page on first authentication
+  // This prevents 404 errors when therapists sign in while on client routes (or vice versa)
+  useEffect(() => {
+    if (!loading && user && profile) {
+      const therapistRoutes = ['/admin', '/admin/analytics', '/admin/user-management'];
+      const clientRoutes = ['/dashboard', '/couple-setup', '/quiz', '/weekly-checkin', '/checkin-history', '/gratitude', '/goals', '/rituals', '/conversation', '/voice-memos', '/date-night'];
+      
+      const isTherapist = profile.role === 'therapist';
+      const isOnTherapistRoute = location.startsWith('/admin');
+      const isOnClientRoute = clientRoutes.some(route => location.startsWith(route));
+      const isOnRootRoute = location === '/';
+      
+      // If therapist is on a client route, redirect to /admin
+      if (isTherapist && isOnClientRoute) {
+        setLocation('/admin');
+      }
+      // If client is on a therapist route, redirect based on couple setup status
+      else if (!isTherapist && isOnTherapistRoute) {
+        setLocation(profile.couple_id ? '/dashboard' : '/couple-setup');
+      }
+      // If on root route, redirect based on role
+      else if (isOnRootRoute) {
+        if (isTherapist) {
+          setLocation('/admin');
+        } else {
+          setLocation(profile.couple_id ? '/dashboard' : '/couple-setup');
+        }
+      }
+    }
+  }, [user, profile, loading, location, setLocation]);
 
   if (loading) {
     return (

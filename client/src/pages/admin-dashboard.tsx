@@ -121,7 +121,7 @@ export default function AdminDashboard() {
         ...(goalsRes.data || []).map(item => ({ ...item, type: 'shared_goals', timestamp: item.created_at })),
         ...(ritualsRes.data || []).map(item => ({ ...item, type: 'rituals', timestamp: item.created_at || new Date().toISOString() })),
         ...(conversationsRes.data || []).map(item => ({ ...item, type: 'conversations', timestamp: item.created_at })),
-        ...(voiceMemosData || []).map(item => ({ 
+        ...(voiceMemosData || []).map((item: any) => ({ 
           ...item, 
           type: 'voice_memos', 
           timestamp: item.created_at,
