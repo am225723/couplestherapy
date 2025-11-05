@@ -54,24 +54,24 @@ BEGIN
   -- ==============================================
   
   -- Therapist profile
-  INSERT INTO public."Couples_profiles" (id, email, full_name, role)
-  VALUES (therapist_id, 'therapist@example.com', 'Dr. Sarah Thompson', 'therapist')
+  INSERT INTO public."Couples_profiles" (id, full_name, role)
+  VALUES (therapist_id, 'Dr. Sarah Thompson', 'therapist')
   ON CONFLICT (id) DO UPDATE 
   SET role = 'therapist', full_name = 'Dr. Sarah Thompson';
   
   RAISE NOTICE 'Created therapist profile';
 
   -- MCally profile (Partner 1)
-  INSERT INTO public."Couples_profiles" (id, email, full_name, role)
-  VALUES (mcally_id, 'mcally@example.com', 'Morgan Cally', 'client')
+  INSERT INTO public."Couples_profiles" (id, full_name, role)
+  VALUES (mcally_id, 'Morgan Cally', 'client')
   ON CONFLICT (id) DO UPDATE 
   SET full_name = 'Morgan Cally', role = 'client';
   
   RAISE NOTICE 'Created Morgan Cally profile';
 
   -- CCally profile (Partner 2)
-  INSERT INTO public."Couples_profiles" (id, email, full_name, role)
-  VALUES (ccally_id, 'ccally@example.com', 'Cameron Cally', 'client')
+  INSERT INTO public."Couples_profiles" (id, full_name, role)
+  VALUES (ccally_id, 'Cameron Cally', 'client')
   ON CONFLICT (id) DO UPDATE 
   SET full_name = 'Cameron Cally', role = 'client';
   
@@ -107,24 +107,24 @@ BEGIN
   -- ==============================================
   
   -- Add sample love language data
-  INSERT INTO public."Couples_love_languages" (user_id, couple_id, words_of_affirmation, quality_time, receiving_gifts, acts_of_service, physical_touch, primary_language, secondary_language)
+  INSERT INTO public."Couples_love_languages" (user_id, primary_language, secondary_language, scores)
   VALUES 
-    (mcally_id, couple_id, 8, 9, 5, 7, 6, 'quality_time', 'words_of_affirmation'),
-    (ccally_id, couple_id, 7, 6, 4, 8, 9, 'physical_touch', 'acts_of_service')
+    (mcally_id, 'quality_time', 'words_of_affirmation', '{"words_of_affirmation": 8, "quality_time": 9, "receiving_gifts": 5, "acts_of_service": 7, "physical_touch": 6}'::jsonb),
+    (ccally_id, 'physical_touch', 'acts_of_service', '{"words_of_affirmation": 7, "quality_time": 6, "receiving_gifts": 4, "acts_of_service": 8, "physical_touch": 9}'::jsonb)
   ON CONFLICT (user_id) DO NOTHING;
   
   RAISE NOTICE 'Added sample love language data';
 
   -- Add a sample gratitude log entry
-  INSERT INTO public."Couples_gratitude_logs" (couple_id, author_id, content)
-  VALUES (couple_id, mcally_id, 'Grateful for the wonderful dinner you cooked tonight! 🍝')
+  INSERT INTO public."Couples_gratitude_logs" (couple_id, user_id, text_content)
+  VALUES (couple_id, mcally_id, 'Grateful for the wonderful dinner you cooked tonight!')
   ON CONFLICT DO NOTHING;
   
   RAISE NOTICE 'Added sample gratitude entry';
 
   -- Add a sample shared goal
-  INSERT INTO public."Couples_shared_goals" (couple_id, title, description, status, assigned_to)
-  VALUES (couple_id, 'Plan weekend getaway', 'Research and book a relaxing weekend trip', 'doing', mcally_id)
+  INSERT INTO public."Couples_shared_goals" (couple_id, created_by, title, status, assigned_to)
+  VALUES (couple_id, mcally_id, 'Plan weekend getaway', 'doing', mcally_id)
   ON CONFLICT DO NOTHING;
   
   RAISE NOTICE 'Added sample goal';
