@@ -18,8 +18,11 @@ type GratitudeWithAuthor = GratitudeLog & {
 export default function GratitudeLogPage() {
   const [logs, setLogs] = useState<GratitudeWithAuthor[]>([]);
   const [newText, setNewText] = useState('');
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const { user, profile } = useAuth();
   const { toast } = useToast();
 
@@ -57,13 +60,29 @@ export default function GratitudeLogPage() {
         .eq('related_activity_type', 'gratitude_logs')
         .eq('is_private_note', false);
 
-      const logsWithAuthors = logsData.map(log => ({
-        ...log,
-        author: profiles.find(p => p.id === log.user_id),
-        comments: comments?.filter(c => c.related_activity_id === log.id) || [],
+      // Generate signed URLs for images (valid for 1 hour)
+      const logsWithSignedUrls = await Promise.all(logsData.map(async (log) => {
+        let signedUrl: string | null = null;
+        
+        if (log.image_url) {
+          const { data, error } = await supabase.storage
+            .from('gratitude-images')
+            .createSignedUrl(log.image_url, 3600); // 1 hour expiry
+
+          if (!error && data) {
+            signedUrl = data.signedUrl;
+          }
+        }
+
+        return {
+          ...log,
+          image_url: signedUrl, // Replace file path with signed URL
+          author: profiles.find(p => p.id === log.user_id),
+          comments: comments?.filter(c => c.related_activity_id === log.id) || [],
+        };
       }));
 
-      setLogs(logsWithAuthors);
+      setLogs(logsWithSignedUrls);
     } catch (error: any) {
       toast({
         title: 'Error',
@@ -101,22 +120,97 @@ export default function GratitudeLogPage() {
     };
   };
 
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: 'Invalid file type',
+        description: 'Please select an image file',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: 'File too large',
+        description: 'Please select an image smaller than 5MB',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setSelectedImage(file);
+    
+    // Create preview
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setImagePreview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const removeImage = () => {
+    setSelectedImage(null);
+    setImagePreview(null);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user || !profile?.couple_id || !newText.trim()) return;
+    if (!user || !profile?.couple_id || (!newText.trim() && !selectedImage)) return;
 
     setSubmitting(true);
+    setUploading(!!selectedImage);
+
+    let uploadedFilePath: string | null = null;
 
     try {
-      const { error } = await supabase.from('Couples_gratitude_logs').insert({
+      let imageUrl: string | null = null;
+
+      // Upload image if selected
+      if (selectedImage) {
+        const timestamp = Date.now();
+        const fileName = `${timestamp}_${selectedImage.name}`;
+        const filePath = `${profile.couple_id}/${user.id}/${fileName}`;
+        uploadedFilePath = filePath;
+
+        const { error: uploadError } = await supabase.storage
+          .from('gratitude-images')
+          .upload(filePath, selectedImage, {
+            cacheControl: '3600',
+            upsert: false,
+          });
+
+        if (uploadError) throw uploadError;
+
+        // Store the file path (not public URL) for signed URL generation
+        imageUrl = filePath;
+      }
+
+      // Insert gratitude log
+      const { error: insertError } = await supabase.from('Couples_gratitude_logs').insert({
         couple_id: profile.couple_id,
         user_id: user.id,
-        text_content: newText.trim(),
+        text_content: newText.trim() || null,
+        image_url: imageUrl,
       });
 
-      if (error) throw error;
+      if (insertError) {
+        // Clean up uploaded file if database insert fails
+        if (uploadedFilePath) {
+          await supabase.storage.from('gratitude-images').remove([uploadedFilePath]);
+        }
+        throw insertError;
+      }
 
       setNewText('');
+      setSelectedImage(null);
+      setImagePreview(null);
+      
       toast({
         title: 'Gratitude shared!',
         description: 'Your moment of gratitude has been added.',
@@ -131,6 +225,7 @@ export default function GratitudeLogPage() {
       });
     } finally {
       setSubmitting(false);
+      setUploading(false);
     }
   };
 
@@ -165,13 +260,62 @@ export default function GratitudeLogPage() {
                 className="min-h-32 resize-none"
                 data-testid="textarea-new-gratitude"
               />
+              
+              {imagePreview && (
+                <div className="relative">
+                  <img
+                    src={imagePreview}
+                    alt="Preview"
+                    className="rounded-lg max-h-64 w-full object-cover"
+                    data-testid="img-preview"
+                  />
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="icon"
+                    className="absolute top-2 right-2"
+                    onClick={removeImage}
+                    data-testid="button-remove-image"
+                  >
+                    ×
+                  </Button>
+                </div>
+              )}
+
               <div className="flex gap-2">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageSelect}
+                  className="hidden"
+                  id="image-upload"
+                  data-testid="input-image-upload"
+                />
+                <label htmlFor="image-upload">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    asChild
+                    data-testid="button-upload-image"
+                  >
+                    <span className="cursor-pointer">
+                      <Upload className="mr-2 h-4 w-4" />
+                      {selectedImage ? 'Change Image' : 'Add Image'}
+                    </span>
+                  </Button>
+                </label>
+                
                 <Button
                   type="submit"
-                  disabled={!newText.trim() || submitting}
+                  disabled={(!newText.trim() && !selectedImage) || submitting}
                   data-testid="button-submit-gratitude"
                 >
-                  {submitting ? (
+                  {uploading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Uploading...
+                    </>
+                  ) : submitting ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       Posting...
@@ -217,9 +361,20 @@ export default function GratitudeLogPage() {
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <p className="text-base leading-relaxed whitespace-pre-wrap">
-                    {log.text_content}
-                  </p>
+                  {log.image_url && (
+                    <img
+                      src={log.image_url}
+                      alt="Gratitude moment"
+                      className="rounded-lg w-full object-cover max-h-96"
+                      data-testid={`img-gratitude-${log.id}`}
+                    />
+                  )}
+                  
+                  {log.text_content && (
+                    <p className="text-base leading-relaxed whitespace-pre-wrap">
+                      {log.text_content}
+                    </p>
+                  )}
                   
                   {log.comments && log.comments.length > 0 && (
                     <div className="border-l-4 border-primary/30 pl-4 mt-4 space-y-2">

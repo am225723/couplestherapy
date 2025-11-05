@@ -28,7 +28,17 @@ This adds the `join_code` column and updates RLS policies so partners can find a
 
 This adds automatic ISO week number tracking and enables the historical timeline view feature.
 
-## Step 2: Verify Table Creation
+### Part D: Storage Setup for Image Uploads (Recommended)
+1. In the same **SQL Editor**, click **New Query** again
+2. Copy the entire contents of `supabase-storage-setup.sql`
+3. Paste it into the SQL Editor
+4. Click **Run** to execute the setup
+
+This creates the storage bucket and RLS policies for gratitude log image uploads.
+
+## Step 2: Verify Table and Storage Creation
+
+### Tables
 
 After running the script, you should see a success message. You can verify by:
 
@@ -43,6 +53,12 @@ After running the script, you should see a success message. You can verify by:
    - Couples_therapist_comments
    - Couples_conversations
    - Couples_rituals
+
+### Storage Buckets
+
+1. Go to **Storage** in Supabase
+2. You should see a bucket named **gratitude-images**
+3. The bucket should be marked as **Private** (NOT public for security)
 
 ## Step 3: Test Data (Optional)
 

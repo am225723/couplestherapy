@@ -55,7 +55,13 @@ export const couplesGratitudeLogs = pgTable("Couples_gratitude_logs", {
 export const insertGratitudeLogSchema = createInsertSchema(couplesGratitudeLogs).omit({
   id: true,
   created_at: true,
-});
+}).extend({
+  text_content: z.string().nullable().optional(),
+  image_url: z.string().min(1).nullable().optional(), // Storage path, not URL
+}).refine(
+  (data) => data.text_content || data.image_url,
+  { message: "Either text content or image must be provided" }
+);
 export type InsertGratitudeLog = z.infer<typeof insertGratitudeLogSchema>;
 export type GratitudeLog = typeof couplesGratitudeLogs.$inferSelect;
 
