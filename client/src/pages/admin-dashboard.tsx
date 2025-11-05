@@ -102,6 +102,10 @@ export default function AdminDashboard() {
         supabase.from('Couples_conversations').select('*').eq('couple_id', couple.id).order('created_at', { ascending: false }),
       ]);
 
+      // Fetch voice memos via secure API endpoint (metadata only - no storage paths or transcripts)
+      const voiceMemosResponse = await fetch(`/api/voice-memos/therapist/${couple.id}`);
+      const voiceMemosData = voiceMemosResponse.ok ? await voiceMemosResponse.json() : [];
+
       const profiles = [couple.partner1, couple.partner2].filter(Boolean) as Profile[];
       
       const checkinsWithAuthors = (checkinsRes.data || []).map(checkin => ({
@@ -117,6 +121,13 @@ export default function AdminDashboard() {
         ...(goalsRes.data || []).map(item => ({ ...item, type: 'shared_goals', timestamp: item.created_at })),
         ...(ritualsRes.data || []).map(item => ({ ...item, type: 'rituals', timestamp: item.created_at || new Date().toISOString() })),
         ...(conversationsRes.data || []).map(item => ({ ...item, type: 'conversations', timestamp: item.created_at })),
+        ...(voiceMemosData || []).map(item => ({ 
+          ...item, 
+          type: 'voice_memos', 
+          timestamp: item.created_at,
+          sender: { full_name: item.sender_name },
+          recipient: { full_name: item.recipient_name }
+        })),
       ].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
       setActivities(allActivities);
@@ -361,6 +372,19 @@ export default function AdminDashboard() {
                     {activity.type === 'shared_goals' && <p><strong>Goal:</strong> {activity.title}</p>}
                     {activity.type === 'rituals' && <p><strong>{activity.category}:</strong> {activity.description}</p>}
                     {activity.type === 'conversations' && <p className="text-sm italic">Hold Me Tight conversation completed</p>}
+                    {activity.type === 'voice_memos' && (
+                      <div className="space-y-1">
+                        <p className="text-sm">
+                          <strong>{activity.sender?.full_name || 'Unknown'}</strong> → <strong>{activity.recipient?.full_name || 'Unknown'}</strong>
+                        </p>
+                        <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                          <span>Duration: {activity.duration_secs ? `${Math.floor(parseFloat(activity.duration_secs) / 60)}:${(Math.floor(parseFloat(activity.duration_secs)) % 60).toString().padStart(2, '0')}` : 'Unknown'}</span>
+                          <span className={activity.is_listened ? 'text-primary' : 'text-destructive'}>
+                            {activity.is_listened ? '✓ Listened' : '○ Not listened'}
+                          </span>
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   {commentingOn?.id === activity.id ? (

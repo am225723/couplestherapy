@@ -2,9 +2,11 @@ import type { Express, Request } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { supabaseAdmin } from "./supabase";
-import type { TherapistAnalytics, CoupleAnalytics, AIInsight } from "@shared/schema";
+import type { TherapistAnalytics, CoupleAnalytics, AIInsight, InsertVoiceMemo, VoiceMemo } from "@shared/schema";
+import { insertVoiceMemoSchema } from "@shared/schema";
 import { analyzeCheckInsWithPerplexity } from "./perplexity";
 import { generateCoupleReport } from "./csv-export";
+import { generateVoiceMemoUploadUrl, generateVoiceMemoDownloadUrl, deleteVoiceMemo } from "./storage-helpers";
 import { z } from "zod";
 
 // Helper function to extract access token from request (Authorization header or cookies)
@@ -78,6 +80,78 @@ async function verifyTherapistSession(req: Request): Promise<{ success: false; e
   return {
     success: true,
     therapistId: user.id
+  };
+}
+
+// Helper function to verify session for regular client users
+async function verifyUserSession(req: Request): Promise<{ success: false; error: string; status: number } | { success: true; userId: string; coupleId: string; partnerId: string }> {
+  const accessToken = getAccessToken(req);
+
+  if (!accessToken) {
+    return {
+      success: false,
+      error: 'No session found. Please log in.',
+      status: 401
+    };
+  }
+
+  // Verify the access token with Supabase
+  const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(accessToken);
+
+  if (authError || !user) {
+    return {
+      success: false,
+      error: 'Invalid or expired session. Please log in again.',
+      status: 401
+    };
+  }
+
+  // Get user profile and couple information
+  const { data: profile, error: profileError } = await supabaseAdmin
+    .from('Couples_profiles')
+    .select('role, couple_id')
+    .eq('id', user.id)
+    .single();
+
+  if (profileError || !profile) {
+    return {
+      success: false,
+      error: 'User profile not found.',
+      status: 403
+    };
+  }
+
+  if (!profile.couple_id) {
+    return {
+      success: false,
+      error: 'User is not part of a couple.',
+      status: 403
+    };
+  }
+
+  // Get couple details to find partner
+  const { data: couple, error: coupleError } = await supabaseAdmin
+    .from('Couples_couples')
+    .select('partner1_id, partner2_id')
+    .eq('id', profile.couple_id)
+    .single();
+
+  if (coupleError || !couple) {
+    return {
+      success: false,
+      error: 'Couple not found.',
+      status: 404
+    };
+  }
+
+  // Determine partner ID
+  const partnerId = couple.partner1_id === user.id ? couple.partner2_id : couple.partner1_id;
+
+  return {
+    success: true,
+    userId: user.id,
+    coupleId: profile.couple_id,
+    partnerId: partnerId
   };
 }
 
@@ -813,6 +887,321 @@ Be precise, evidence-based, and therapeutically sensitive. Format your response 
         return res.status(400).json({ error: error.errors[0].message });
       }
       res.status(500).json({ error: error.message || 'Failed to create therapist' });
+    }
+  });
+
+  // ============================================================
+  // VOICE MEMOS ENDPOINTS
+  // ============================================================
+
+  // POST /api/voice-memos - Create new voice memo and get upload URL
+  app.post("/api/voice-memos", async (req, res) => {
+    try {
+      // Verify user session
+      const authResult = await verifyUserSession(req);
+      if (!authResult.success) {
+        return res.status(authResult.status).json({ error: authResult.error });
+      }
+
+      const { userId, coupleId, partnerId } = authResult;
+
+      // Validate request body
+      const { recipient_id } = req.body;
+
+      if (!recipient_id) {
+        return res.status(400).json({ error: "recipient_id is required" });
+      }
+
+      // Validate recipient is the partner
+      if (recipient_id !== partnerId) {
+        return res.status(403).json({ error: "Can only send voice memos to your partner" });
+      }
+
+      // Create voice memo record with initial data
+      const { data: voiceMemo, error: insertError } = await supabaseAdmin
+        .from('Couples_voice_memos')
+        .insert({
+          couple_id: coupleId,
+          sender_id: userId,
+          recipient_id: recipient_id,
+          storage_path: null,
+          duration_secs: null,
+          transcript_text: null,
+          is_listened: false,
+        })
+        .select()
+        .single();
+
+      if (insertError) {
+        console.error('Failed to create voice memo record:', insertError);
+        return res.status(500).json({ error: "Failed to create voice memo record" });
+      }
+
+      // Generate signed upload URL
+      const { data: uploadData, error: uploadError, path } = await generateVoiceMemoUploadUrl(
+        coupleId,
+        voiceMemo.id
+      );
+
+      if (uploadError) {
+        console.error('Failed to generate upload URL:', uploadError);
+        // Clean up the DB record if upload URL generation fails
+        await supabaseAdmin
+          .from('Couples_voice_memos')
+          .delete()
+          .eq('id', voiceMemo.id);
+        return res.status(500).json({ error: "Failed to generate upload URL" });
+      }
+
+      res.json({
+        memo_id: voiceMemo.id,
+        upload_url: uploadData.signedUrl,
+        token: uploadData.token,
+        storage_path: path,
+      });
+    } catch (error: any) {
+      console.error('Create voice memo error:', error);
+      res.status(500).json({ error: error.message || 'Failed to create voice memo' });
+    }
+  });
+
+  // POST /api/voice-memos/:id/complete - Finalize upload
+  app.post("/api/voice-memos/:id/complete", async (req, res) => {
+    try {
+      // Verify user session
+      const authResult = await verifyUserSession(req);
+      if (!authResult.success) {
+        return res.status(authResult.status).json({ error: authResult.error });
+      }
+
+      const { userId } = authResult;
+      const memoId = req.params.id;
+      const { storage_path, duration_secs } = req.body;
+
+      if (!storage_path) {
+        return res.status(400).json({ error: "storage_path is required" });
+      }
+
+      // Verify user owns this voice memo
+      const { data: memo, error: fetchError } = await supabaseAdmin
+        .from('Couples_voice_memos')
+        .select('sender_id')
+        .eq('id', memoId)
+        .single();
+
+      if (fetchError || !memo) {
+        return res.status(404).json({ error: "Voice memo not found" });
+      }
+
+      if (memo.sender_id !== userId) {
+        return res.status(403).json({ error: "You don't have permission to complete this voice memo" });
+      }
+
+      // Update storage path and duration
+      const { error: updateError } = await supabaseAdmin
+        .from('Couples_voice_memos')
+        .update({
+          storage_path,
+          duration_secs: duration_secs || null,
+        })
+        .eq('id', memoId);
+
+      if (updateError) {
+        console.error('Failed to update voice memo:', updateError);
+        return res.status(500).json({ error: "Failed to finalize voice memo" });
+      }
+
+      res.json({ success: true });
+    } catch (error: any) {
+      console.error('Complete voice memo error:', error);
+      res.status(500).json({ error: error.message || 'Failed to complete voice memo' });
+    }
+  });
+
+  // PATCH /api/voice-memos/:id/listened - Mark as listened
+  app.patch("/api/voice-memos/:id/listened", async (req, res) => {
+    try {
+      // Verify user session
+      const authResult = await verifyUserSession(req);
+      if (!authResult.success) {
+        return res.status(authResult.status).json({ error: authResult.error });
+      }
+
+      const { userId } = authResult;
+      const memoId = req.params.id;
+
+      // Verify user is the recipient of this voice memo
+      const { data: memo, error: fetchError } = await supabaseAdmin
+        .from('Couples_voice_memos')
+        .select('recipient_id')
+        .eq('id', memoId)
+        .single();
+
+      if (fetchError || !memo) {
+        return res.status(404).json({ error: "Voice memo not found" });
+      }
+
+      if (memo.recipient_id !== userId) {
+        return res.status(403).json({ error: "You don't have permission to mark this voice memo as listened" });
+      }
+
+      // Update is_listened to true
+      const { error: updateError } = await supabaseAdmin
+        .from('Couples_voice_memos')
+        .update({ is_listened: true })
+        .eq('id', memoId);
+
+      if (updateError) {
+        console.error('Failed to mark voice memo as listened:', updateError);
+        return res.status(500).json({ error: "Failed to mark voice memo as listened" });
+      }
+
+      res.json({ success: true });
+    } catch (error: any) {
+      console.error('Mark listened error:', error);
+      res.status(500).json({ error: error.message || 'Failed to mark voice memo as listened' });
+    }
+  });
+
+  // GET /api/voice-memos - Get voice memos for couple
+  app.get("/api/voice-memos", async (req, res) => {
+    try {
+      // Verify user session
+      const authResult = await verifyUserSession(req);
+      if (!authResult.success) {
+        return res.status(authResult.status).json({ error: authResult.error });
+      }
+
+      const { coupleId } = authResult;
+
+      // Get all voice memos for this couple
+      const { data: memos, error: memosError } = await supabaseAdmin
+        .from('Couples_voice_memos')
+        .select('*')
+        .eq('couple_id', coupleId)
+        .order('created_at', { ascending: false });
+
+      if (memosError) {
+        console.error('Failed to fetch voice memos:', memosError);
+        return res.status(500).json({ error: "Failed to fetch voice memos" });
+      }
+
+      if (!memos || memos.length === 0) {
+        return res.json([]);
+      }
+
+      // Get sender and recipient profile details
+      const userIds = [...new Set([
+        ...memos.map(m => m.sender_id),
+        ...memos.map(m => m.recipient_id),
+      ])];
+
+      const { data: profiles } = await supabaseAdmin
+        .from('Couples_profiles')
+        .select('id, full_name')
+        .in('id', userIds);
+
+      const profileMap = new Map(profiles?.map(p => [p.id, p.full_name]) || []);
+
+      // Generate signed download URLs and format response
+      const memosWithUrls = await Promise.all(
+        memos.map(async (memo) => {
+          let downloadUrl = null;
+          
+          if (memo.storage_path) {
+            const { data: urlData } = await generateVoiceMemoDownloadUrl(memo.storage_path);
+            downloadUrl = urlData?.signedUrl || null;
+          }
+
+          return {
+            id: memo.id,
+            couple_id: memo.couple_id,
+            sender_id: memo.sender_id,
+            sender_name: profileMap.get(memo.sender_id) || 'Unknown',
+            recipient_id: memo.recipient_id,
+            recipient_name: profileMap.get(memo.recipient_id) || 'Unknown',
+            storage_path: memo.storage_path,
+            download_url: downloadUrl,
+            duration_secs: memo.duration_secs,
+            transcript_text: memo.transcript_text,
+            is_listened: memo.is_listened,
+            created_at: memo.created_at,
+          };
+        })
+      );
+
+      res.json(memosWithUrls);
+    } catch (error: any) {
+      console.error('Get voice memos error:', error);
+      res.status(500).json({ error: error.message || 'Failed to get voice memos' });
+    }
+  });
+
+  // GET /api/voice-memos/therapist/:coupleId - Get metadata for therapist
+  app.get("/api/voice-memos/therapist/:coupleId", async (req, res) => {
+    try {
+      // Verify therapist session
+      const authResult = await verifyTherapistSession(req);
+      if (!authResult.success) {
+        return res.status(authResult.status).json({ error: authResult.error });
+      }
+
+      const { therapistId } = authResult;
+      const coupleId = req.params.coupleId;
+
+      // Verify therapist has access to this couple
+      const { data: couple, error: coupleError } = await supabaseAdmin
+        .from('Couples_couples')
+        .select('partner1_id, partner2_id, therapist_id')
+        .eq('id', coupleId)
+        .single();
+
+      if (coupleError || !couple) {
+        return res.status(404).json({ error: "Couple not found" });
+      }
+
+      if (couple.therapist_id !== therapistId) {
+        return res.status(403).json({ error: "You don't have access to this couple's data" });
+      }
+
+      // Fetch voice memos with ONLY non-sensitive fields - explicitly exclude storage_path and transcript_text
+      const { data: memos, error: memosError } = await supabaseAdmin
+        .from('Couples_voice_memos')
+        .select('id, sender_id, recipient_id, duration_secs, is_listened, created_at')
+        .eq('couple_id', coupleId)
+        .order('created_at', { ascending: false });
+
+      if (memosError) {
+        console.error('Failed to fetch voice memos:', memosError);
+        return res.status(500).json({ error: "Failed to fetch voice memos" });
+      }
+
+      if (!memos || memos.length === 0) {
+        return res.json([]);
+      }
+
+      // Get profile names for sender and recipient
+      const { data: profiles } = await supabaseAdmin
+        .from('Couples_profiles')
+        .select('id, full_name')
+        .in('id', [couple.partner1_id, couple.partner2_id]);
+
+      const profileMap = new Map(profiles?.map(p => [p.id, p.full_name]) || []);
+
+      // Return METADATA ONLY - no storage paths, no transcripts, no download URLs
+      const metadata = memos.map((memo) => ({
+        id: memo.id,
+        sender_name: profileMap.get(memo.sender_id) || 'Unknown',
+        recipient_name: profileMap.get(memo.recipient_id) || 'Unknown',
+        duration_secs: memo.duration_secs,
+        is_listened: memo.is_listened,
+        created_at: memo.created_at,
+      }));
+
+      res.json(metadata);
+    } catch (error: any) {
+      console.error('Error fetching voice memo metadata:', error);
+      res.status(500).json({ error: error.message || 'Failed to fetch voice memo metadata' });
     }
   });
 

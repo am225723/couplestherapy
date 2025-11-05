@@ -1,4 +1,4 @@
-import { pgTable, text, uuid, timestamp, integer, jsonb, boolean } from "drizzle-orm/pg-core";
+import { pgTable, text, uuid, timestamp, integer, jsonb, boolean, numeric } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -173,6 +173,30 @@ export const insertRitualSchema = createInsertSchema(couplesRituals).omit({ id: 
 });
 export type InsertRitual = z.infer<typeof insertRitualSchema>;
 export type Ritual = typeof couplesRituals.$inferSelect;
+
+// 10. VOICE MEMOS
+export const couplesVoiceMemos = pgTable("Couples_voice_memos", {
+  id: uuid("id").primaryKey(),
+  couple_id: uuid("couple_id").notNull(),
+  sender_id: uuid("sender_id").notNull(),
+  recipient_id: uuid("recipient_id").notNull(),
+  storage_path: text("storage_path"),
+  duration_secs: numeric("duration_secs", { precision: 10, scale: 2 }),
+  transcript_text: text("transcript_text"),
+  is_listened: boolean("is_listened").default(false),
+  created_at: timestamp("created_at").defaultNow(),
+});
+
+export const insertVoiceMemoSchema = createInsertSchema(couplesVoiceMemos).omit({
+  id: true,
+  created_at: true,
+}).extend({
+  storage_path: z.string().min(1, "Storage path is required"),
+  duration_secs: z.string().optional(),
+  transcript_text: z.string().optional(),
+});
+export type InsertVoiceMemo = z.infer<typeof insertVoiceMemoSchema>;
+export type VoiceMemo = typeof couplesVoiceMemos.$inferSelect;
 
 // Love Language Quiz Types
 export const LOVE_LANGUAGES = [

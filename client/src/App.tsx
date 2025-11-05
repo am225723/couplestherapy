@@ -8,7 +8,7 @@ import { Toaster } from '@/components/ui/toaster';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { SidebarProvider, Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarTrigger, SidebarHeader } from '@/components/ui/sidebar';
 import { Button } from './components/ui/button';
-import { Home, ClipboardList, Sparkles, Target, Coffee, MessageCircle, Users, LogOut, Loader2, BarChart3, UserPlus, Heart } from 'lucide-react';
+import { Home, ClipboardList, Sparkles, Target, Coffee, MessageCircle, Mic, Users, LogOut, Loader2, BarChart3, UserPlus, Heart } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
 import tadiLogo from '@assets/logo_1762363277396.png';
 
@@ -21,6 +21,7 @@ import GratitudeLogPage from './pages/gratitude-log';
 import SharedGoalsPage from './pages/shared-goals';
 import RitualsPage from './pages/rituals';
 import HoldMeTightPage from './pages/hold-me-tight';
+import VoiceMemosPage from './pages/voice-memos';
 import ClientDashboard from './pages/client-dashboard';
 import AdminDashboard from './pages/admin-dashboard';
 import AnalyticsPage from './pages/analytics';
@@ -38,6 +39,7 @@ function AppSidebar() {
     { title: 'Shared Goals', url: '/goals', icon: Target },
     { title: 'Rituals', url: '/rituals', icon: Coffee },
     { title: 'Hold Me Tight', url: '/conversation', icon: MessageCircle },
+    { title: 'Voice Memos', url: '/voice-memos', icon: Mic },
   ];
 
   const adminMenuItems = [
@@ -168,6 +170,7 @@ function AuthenticatedApp() {
                   <Route path="/goals" component={SharedGoalsPage} />
                   <Route path="/rituals" component={RitualsPage} />
                   <Route path="/conversation" component={HoldMeTightPage} />
+                  <Route path="/voice-memos" component={VoiceMemosPage} />
                   <Route path="/">
                     {profile.couple_id ? <Redirect to="/dashboard" /> : <Redirect to="/couple-setup" />}
                   </Route>

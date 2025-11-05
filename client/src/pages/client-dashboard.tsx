@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/auth-context';
 import { supabase } from '@/lib/supabase';
-import { Heart, MessageCircle, Target, Sparkles, Coffee, ClipboardList, Loader2, ArrowRight, Calendar, TrendingUp } from 'lucide-react';
+import { Heart, MessageCircle, Target, Sparkles, Coffee, ClipboardList, Mic, Loader2, ArrowRight, Calendar, TrendingUp } from 'lucide-react';
 import { LoveLanguage } from '@shared/schema';
 import clientHeroImage from '@assets/generated_images/Client_app_hero_image_9fd4eaf0.png';
 
@@ -84,6 +84,14 @@ export default function ClientDashboard() {
       path: '/conversation',
       color: 'text-destructive',
       bgColor: 'bg-destructive/10',
+    },
+    {
+      title: 'Voice Memos',
+      description: 'Send voice messages to your partner',
+      icon: Mic,
+      path: '/voice-memos',
+      color: 'text-primary',
+      bgColor: 'bg-primary/10',
     },
   ];
 
