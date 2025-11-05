@@ -5,8 +5,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Heart } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import clientHeroImage from '@assets/generated_images/Client_app_hero_image_9fd4eaf0.png';
+import tadiLogo from '@assets/logo_1762363277396.png';
 
 export default function AuthPage() {
   const [email, setEmail] = useState('');
@@ -75,10 +76,15 @@ export default function AuthPage() {
       <div className="flex-1 flex items-center justify-center p-8 bg-background">
         <Card className="w-full max-w-md">
           <CardHeader className="space-y-4">
-            <div className="flex items-center justify-center gap-2">
-              <Heart className="h-8 w-8 text-primary" />
-              <CardTitle className="text-3xl font-bold">TADI</CardTitle>
+            <div className="flex items-center justify-center">
+              <img 
+                src={tadiLogo} 
+                alt="TADI Logo" 
+                className="h-16 w-auto"
+                data-testid="img-logo"
+              />
             </div>
+            <CardTitle className="text-3xl font-bold text-center">TADI</CardTitle>
             <CardDescription className="text-center">
               {isSignUp
                 ? 'Create your account to begin your journey together'

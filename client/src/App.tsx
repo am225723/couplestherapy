@@ -8,8 +8,9 @@ import { Toaster } from '@/components/ui/toaster';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { SidebarProvider, Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarTrigger, SidebarHeader } from '@/components/ui/sidebar';
 import { Button } from './components/ui/button';
-import { Heart, Home, ClipboardList, Sparkles, Target, Coffee, MessageCircle, Users, LogOut, Loader2, BarChart3 } from 'lucide-react';
+import { Home, ClipboardList, Sparkles, Target, Coffee, MessageCircle, Users, LogOut, Loader2, BarChart3 } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
+import tadiLogo from '@assets/logo_1762363277396.png';
 
 import AuthPage from './pages/auth';
 import CoupleSetup from './pages/couple-setup';
@@ -45,13 +46,20 @@ function AppSidebar() {
 
   const menuItems = profile?.role === 'therapist' ? adminMenuItems : clientMenuItems;
 
+  const homeUrl = profile?.role === 'therapist' ? '/admin' : '/dashboard';
+
   return (
     <Sidebar>
       <SidebarHeader className="p-6 border-b">
-        <div className="flex items-center gap-2">
-          <Heart className="h-6 w-6 text-primary" />
+        <Link href={homeUrl} className="flex items-center gap-3 hover-elevate active-elevate-2 p-2 rounded-md -m-2" data-testid="link-home">
+          <img 
+            src={tadiLogo} 
+            alt="TADI Logo" 
+            className="h-10 w-auto"
+            data-testid="img-sidebar-logo"
+          />
           <span className="text-xl font-bold">TADI</span>
-        </div>
+        </Link>
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>

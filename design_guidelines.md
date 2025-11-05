@@ -13,6 +13,54 @@
 
 ---
 
+## Branding & Color Philosophy
+
+**Logo:**
+The TADI logo features a tree/brain design that symbolizes growth, connection, and emotional intelligence. The design evokes both the organic nature of relationships and the thoughtful therapeutic approach.
+
+**Logo Usage:**
+- Primary placement: Navigation header (h-10 to h-12)
+- Authentication pages: Larger size (h-16)
+- Always maintain aspect ratio
+- Works on both light and dark backgrounds
+- Clickable logo returns to dashboard/home
+
+**Color Palette:**
+
+The color scheme centers around teal/green hues that convey calmness, growth, trust, and healing—essential qualities for a therapeutic environment.
+
+**Primary Colors:**
+- **Primary (Teal):** 
+  - Light mode: `hsl(175, 60%, 45%)` - A balanced, professional teal
+  - Dark mode: `hsl(175, 55%, 50%)` - Slightly lighter for visibility
+  - Use for: Primary actions, active states, key interactive elements
+
+**Supporting Colors:**
+- **Secondary (Mint):**
+  - Light mode: `hsl(180, 45%, 92%)` - Soft, calming mint background
+  - Dark mode: `hsl(180, 30%, 20%)` - Deeper mint for contrast
+  - Use for: Secondary actions, subtle backgrounds
+
+- **Accent (Light Teal):**
+  - Light mode: `hsl(180, 60%, 90%)` - Very light teal for highlights
+  - Dark mode: `hsl(180, 40%, 22%)` - Muted teal for dark UI
+  - Use for: Hover states, emphasized content areas
+
+**Sidebar Colors:**
+- Light mode: Very light teal (`hsl(175, 50%, 97%)`)
+- Dark mode: Deep teal (`hsl(175, 40%, 12%)`)
+- Creates a distinct navigation zone while maintaining brand cohesion
+
+**Color Philosophy:**
+The teal/green palette:
+- Evokes nature, growth, and renewal
+- Conveys trust and professionalism
+- Creates a calming atmosphere conducive to emotional work
+- Provides sufficient contrast for accessibility
+- Works harmoniously in both light and dark modes
+
+---
+
 ## Typography
 
 **Font Family:**
