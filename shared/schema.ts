@@ -196,3 +196,48 @@ export const RITUAL_CATEGORIES = [
 ] as const;
 
 export type RitualCategory = typeof RITUAL_CATEGORIES[number];
+
+// ANALYTICS TYPES
+export interface CoupleAnalytics {
+  couple_id: string;
+  partner1_name: string;
+  partner2_name: string;
+  total_checkins: number;
+  checkins_this_month: number;
+  checkin_completion_rate: number; // percentage 0-100
+  gratitude_count: number;
+  goals_total: number;
+  goals_completed: number;
+  conversations_count: number;
+  rituals_count: number;
+  avg_connectedness: number; // 1-10
+  avg_conflict: number; // 1-10
+  last_activity_date: string | null;
+  engagement_score: number; // 0-100 composite score
+}
+
+export interface TherapistAnalytics {
+  therapist_id: string;
+  total_couples: number;
+  active_couples: number; // active in last 30 days
+  overall_checkin_rate: number;
+  total_gratitude_logs: number;
+  total_comments_given: number;
+  couples: CoupleAnalytics[];
+}
+
+export interface ActivityTimelinePoint {
+  date: string; // ISO date
+  checkins: number;
+  gratitude_logs: number;
+  goals_completed: number;
+  conversations: number;
+}
+
+export interface WeeklyCompletionData {
+  week_number: number;
+  year: number;
+  partner1_completed: boolean;
+  partner2_completed: boolean;
+  both_completed: boolean;
+}
