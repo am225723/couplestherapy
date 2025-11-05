@@ -8,7 +8,7 @@ import { Toaster } from '@/components/ui/toaster';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { SidebarProvider, Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarTrigger, SidebarHeader } from '@/components/ui/sidebar';
 import { Button } from './components/ui/button';
-import { Heart, Home, ClipboardList, Sparkles, Target, Coffee, MessageCircle, Users, LogOut, Loader2 } from 'lucide-react';
+import { Heart, Home, ClipboardList, Sparkles, Target, Coffee, MessageCircle, Users, LogOut, Loader2, BarChart3 } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
 
 import AuthPage from './pages/auth';
@@ -22,6 +22,7 @@ import RitualsPage from './pages/rituals';
 import HoldMeTightPage from './pages/hold-me-tight';
 import ClientDashboard from './pages/client-dashboard';
 import AdminDashboard from './pages/admin-dashboard';
+import AnalyticsPage from './pages/analytics';
 import NotFound from './pages/not-found';
 
 function AppSidebar() {
@@ -39,6 +40,7 @@ function AppSidebar() {
 
   const adminMenuItems = [
     { title: 'Couples', url: '/admin', icon: Users },
+    { title: 'Analytics', url: '/admin/analytics', icon: BarChart3 },
   ];
 
   const menuItems = profile?.role === 'therapist' ? adminMenuItems : clientMenuItems;
@@ -139,6 +141,7 @@ function AuthenticatedApp() {
                 <>
                   <Route path="/admin" component={AdminDashboard} />
                   <Route path="/admin/couple/:id" component={AdminDashboard} />
+                  <Route path="/admin/analytics" component={AnalyticsPage} />
                   <Route path="/">
                     <Redirect to="/admin" />
                   </Route>
