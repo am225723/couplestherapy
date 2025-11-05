@@ -1,10 +1,15 @@
 import { useAuth } from '@/lib/auth-context';
 import { useQuery } from '@tanstack/react-query';
-import type { TherapistAnalytics, CoupleAnalytics } from '@shared/schema';
+import { useState, useEffect } from 'react';
+import type { TherapistAnalytics, CoupleAnalytics, AIInsight } from '@shared/schema';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Users, Activity, ClipboardCheck, Sparkles, MessageSquare, TrendingUp, TrendingDown } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Users, Activity, ClipboardCheck, Sparkles, MessageSquare, TrendingUp, TrendingDown, Brain, Loader2, ChevronDown, AlertCircle, ExternalLink } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { formatDistanceToNow } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
@@ -45,7 +50,7 @@ function KPICard({
   );
 }
 
-function CoupleCard({ couple }: { couple: CoupleAnalytics }) {
+function CoupleCard({ couple, onViewInsights }: { couple: CoupleAnalytics; onViewInsights: () => void }) {
   const engagementVariant = getEngagementBadgeVariant(couple.engagement_score);
   const engagementLabel = getEngagementLabel(couple.engagement_score);
 
@@ -132,19 +137,231 @@ function CoupleCard({ couple }: { couple: CoupleAnalytics }) {
             <div className="text-xl font-bold">{couple.avg_conflict.toFixed(1)}/10</div>
           </div>
         </div>
+
+        <div className="pt-4 border-t">
+          <Button 
+            variant="outline" 
+            className="w-full"
+            onClick={onViewInsights}
+            data-testid={`button-ai-insights-${couple.couple_id}`}
+          >
+            <Brain className="h-4 w-4 mr-2" />
+            View AI Insights
+          </Button>
+        </div>
       </CardContent>
     </Card>
+  );
+}
+
+function AIInsightsDialog({ 
+  coupleId, 
+  coupleName, 
+  therapistId, 
+  open, 
+  onOpenChange 
+}: { 
+  coupleId: string; 
+  coupleName: string; 
+  therapistId: string; 
+  open: boolean; 
+  onOpenChange: (open: boolean) => void;
+}) {
+  const { toast } = useToast();
+  const [showRawAnalysis, setShowRawAnalysis] = useState(false);
+
+  const { data: insights, isLoading, error } = useQuery<AIInsight>({
+    queryKey: ['/api/therapist/ai-insights', coupleId, therapistId],
+    queryFn: async () => {
+      const url = `/api/therapist/ai-insights?couple_id=${coupleId}&therapist_id=${therapistId}`;
+      const res = await fetch(url, { credentials: 'include' });
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || res.statusText);
+      }
+      return res.json();
+    },
+    enabled: open && !!coupleId && !!therapistId,
+  });
+
+  // Show error toast only when error changes (prevent infinite loop)
+  useEffect(() => {
+    if (error) {
+      toast({
+        title: 'Error loading AI insights',
+        description: error instanceof Error ? error.message : 'Failed to fetch AI insights',
+        variant: 'destructive',
+      });
+    }
+  }, [error, toast]);
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto" data-testid="dialog-ai-insights">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Brain className="h-5 w-5 text-primary" />
+            AI Insights for {coupleName}
+          </DialogTitle>
+        </DialogHeader>
+
+        {isLoading && (
+          <div className="space-y-6 py-6">
+            <div className="flex flex-col items-center justify-center py-12 gap-4">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              <p className="text-muted-foreground">Generating insights...</p>
+            </div>
+          </div>
+        )}
+
+        {!isLoading && !insights && (
+          <Alert>
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              No insights available. There may not be enough check-in data yet. At least 4 weeks of check-ins are needed to generate meaningful insights.
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {!isLoading && insights && (
+          <div className="space-y-6 py-4">
+            <div className="text-sm text-muted-foreground">
+              Generated {formatDistanceToNow(new Date(insights.generated_at), { addSuffix: true })}
+            </div>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Summary</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm leading-relaxed" data-testid="text-ai-summary">
+                  {insights.summary}
+                </p>
+              </CardContent>
+            </Card>
+
+            {insights.discrepancies && insights.discrepancies.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Badge variant="secondary">Discrepancies</Badge>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ul className="space-y-2" data-testid="list-ai-discrepancies">
+                    {insights.discrepancies.map((item, index) => (
+                      <li key={index} className="flex gap-2 text-sm">
+                        <span className="text-muted-foreground mt-1">•</span>
+                        <span>{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </CardContent>
+              </Card>
+            )}
+
+            {insights.patterns && insights.patterns.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Badge variant="secondary">Patterns</Badge>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ul className="space-y-2" data-testid="list-ai-patterns">
+                    {insights.patterns.map((item, index) => (
+                      <li key={index} className="flex gap-2 text-sm">
+                        <span className="text-muted-foreground mt-1">•</span>
+                        <span>{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </CardContent>
+              </Card>
+            )}
+
+            {insights.recommendations && insights.recommendations.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Badge variant="default">Recommendations</Badge>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ul className="space-y-2" data-testid="list-ai-recommendations">
+                    {insights.recommendations.map((item, index) => (
+                      <li key={index} className="flex gap-2 text-sm">
+                        <span className="text-muted-foreground mt-1">•</span>
+                        <span>{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </CardContent>
+              </Card>
+            )}
+
+            {insights.citations && insights.citations.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-sm">Citations</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ul className="space-y-1">
+                    {insights.citations.map((citation, index) => (
+                      <li key={index} className="text-xs">
+                        <a 
+                          href={citation} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-primary hover:underline flex items-center gap-1"
+                        >
+                          <ExternalLink className="h-3 w-3" />
+                          {citation}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </CardContent>
+              </Card>
+            )}
+
+            {insights.raw_analysis && (
+              <Collapsible open={showRawAnalysis} onOpenChange={setShowRawAnalysis}>
+                <CollapsibleTrigger asChild>
+                  <Button variant="ghost" className="w-full justify-between">
+                    <span className="text-sm">View Raw Analysis</span>
+                    <ChevronDown className={`h-4 w-4 transition-transform ${showRawAnalysis ? 'rotate-180' : ''}`} />
+                  </Button>
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <Card className="mt-2">
+                    <CardContent className="pt-6">
+                      <pre className="text-xs whitespace-pre-wrap font-mono bg-muted p-4 rounded-md overflow-x-auto">
+                        {insights.raw_analysis}
+                      </pre>
+                    </CardContent>
+                  </Card>
+                </CollapsibleContent>
+              </Collapsible>
+            )}
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
   );
 }
 
 export default function AnalyticsPage() {
   const { profile } = useAuth();
   const { toast } = useToast();
+  const [selectedCoupleId, setSelectedCoupleId] = useState<string | null>(null);
 
   const { data, isLoading, error } = useQuery<TherapistAnalytics>({
     queryKey: ['/api/therapist/analytics', profile?.id],
     enabled: !!profile?.id,
   });
+
+  const selectedCouple = data?.couples.find(c => c.couple_id === selectedCoupleId);
 
   if (error) {
     toast({
@@ -323,11 +540,25 @@ export default function AnalyticsPage() {
         ) : (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {data.couples.map((couple) => (
-              <CoupleCard key={couple.couple_id} couple={couple} />
+              <CoupleCard 
+                key={couple.couple_id} 
+                couple={couple}
+                onViewInsights={() => setSelectedCoupleId(couple.couple_id)}
+              />
             ))}
           </div>
         )}
       </div>
+
+      {selectedCouple && profile && (
+        <AIInsightsDialog
+          coupleId={selectedCouple.couple_id}
+          coupleName={`${selectedCouple.partner1_name} & ${selectedCouple.partner2_name}`}
+          therapistId={profile.id}
+          open={!!selectedCoupleId}
+          onOpenChange={(open) => !open && setSelectedCoupleId(null)}
+        />
+      )}
     </div>
   );
 }
