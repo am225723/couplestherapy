@@ -118,6 +118,26 @@ export default function ClientDashboard() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 -mt-16 pb-12 space-y-12">
+        <Link href="/date-night">
+          <Card className="shadow-lg hover-elevate active-elevate-2 cursor-pointer border-primary/20 bg-gradient-to-br from-primary/5 to-accent/10" data-testid="card-date-night-featured">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="flex items-center gap-2 text-2xl">
+                    <Sparkles className="h-6 w-6 text-primary" />
+                    Date Night Generator
+                  </CardTitle>
+                  <CardDescription className="text-base mt-2">Plan a meaningful date with AI-powered suggestions tailored to your preferences</CardDescription>
+                </div>
+                <div className="flex items-center gap-2 text-primary">
+                  <span className="font-medium">Start Planning</span>
+                  <ArrowRight className="h-5 w-5" />
+                </div>
+              </div>
+            </CardHeader>
+          </Card>
+        </Link>
+
         <Link href="/checkin-history">
           <Card className="shadow-lg hover-elevate active-elevate-2 cursor-pointer border-primary/20" data-testid="card-checkin-history">
             <CardHeader>

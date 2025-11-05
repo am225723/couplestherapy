@@ -943,7 +943,7 @@ Be precise, evidence-based, and therapeutically sensitive. Format your response 
         voiceMemo.id
       );
 
-      if (uploadError) {
+      if (uploadError || !uploadData) {
         console.error('Failed to generate upload URL:', uploadError);
         // Clean up the DB record if upload URL generation fails
         await supabaseAdmin
@@ -1091,10 +1091,10 @@ Be precise, evidence-based, and therapeutically sensitive. Format your response 
       }
 
       // Get sender and recipient profile details
-      const userIds = [...new Set([
+      const userIds = Array.from(new Set([
         ...memos.map(m => m.sender_id),
         ...memos.map(m => m.recipient_id),
-      ])];
+      ]));
 
       const { data: profiles } = await supabaseAdmin
         .from('Couples_profiles')
@@ -1202,6 +1202,109 @@ Be precise, evidence-based, and therapeutically sensitive. Format your response 
     } catch (error: any) {
       console.error('Error fetching voice memo metadata:', error);
       res.status(500).json({ error: error.message || 'Failed to fetch voice memo metadata' });
+    }
+  });
+
+  // DATE NIGHT GENERATOR ENDPOINT
+  const dateNightPreferencesSchema = z.object({
+    time: z.string().min(1, "Time preference is required"),
+    location: z.string().min(1, "Location preference is required"),
+    price: z.string().min(1, "Price preference is required"),
+    participants: z.string().min(1, "Participants preference is required"),
+    energy: z.string().min(1, "Energy level preference is required"),
+  });
+
+  app.post("/api/date-night/generate", async (req, res) => {
+    try {
+      // Verify user session (client only, not therapist)
+      const authResult = await verifyUserSession(req);
+      if (!authResult.success) {
+        return res.status(authResult.status).json({ error: authResult.error });
+      }
+
+      // Validate request body
+      const validationResult = dateNightPreferencesSchema.safeParse(req.body);
+      if (!validationResult.success) {
+        return res.status(400).json({ 
+          error: "Invalid preferences", 
+          details: validationResult.error.format() 
+        });
+      }
+
+      const { time, location, price, participants, energy } = validationResult.data;
+
+      // System prompt for the Connection Concierge
+      const systemPrompt = `You are the "Connection Concierge," an AI assistant that helps couples design meaningful date nights. Your goal is to create positive memories and strengthen connections.
+
+When given preferences (time, location, price, participants, energy level), you MUST generate exactly 3 distinct date night ideas.
+
+Format each idea EXACTLY as follows:
+✨ [Title of Date]
+Description: [1-2 sentence summary]
+Connection Tip: [Simple, actionable prompt to help the couple connect during the date]
+
+Example Connection Tips:
+- "While you cook, take turns sharing one small thing you appreciated about each other this week."
+- "After the movie, spend 10 minutes (no phones!) sharing your favorite part of the film and why it resonated with you."
+- "As you walk, try to find 3 'shared' things you both find beautiful or interesting."
+
+Be warm, creative, and encouraging. Emphasize connection, fun, and breaking routines.`;
+
+      // User message with preferences
+      const userPrompt = `Generate 3 date night ideas with these preferences:
+- Time available: ${time}
+- Location: ${location}
+- Budget: ${price}
+- Participants: ${participants}
+- Energy level: ${energy}`;
+
+      // Call Perplexity API with custom temperature and max_tokens
+      const apiKey = process.env.PERPLEXITY_API_KEY;
+      if (!apiKey) {
+        return res.status(500).json({ error: 'Perplexity API key not configured' });
+      }
+
+      const perplexityRequest = {
+        model: 'llama-3.1-sonar-small-128k-online',
+        messages: [
+          { role: 'system' as const, content: systemPrompt },
+          { role: 'user' as const, content: userPrompt },
+        ],
+        temperature: 0.7,
+        max_tokens: 1500,
+        stream: false,
+      };
+
+      const response = await fetch('https://api.perplexity.ai/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(perplexityRequest),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Perplexity API error (${response.status}): ${errorText}`);
+      }
+
+      const data = await response.json();
+
+      if (!data.choices || data.choices.length === 0) {
+        throw new Error('Perplexity API returned no choices');
+      }
+
+      // Return the generated content
+      res.json({
+        content: data.choices[0].message.content,
+        citations: data.citations,
+      });
+    } catch (error: any) {
+      console.error('Date night generation error:', error);
+      res.status(500).json({ 
+        error: error.message || 'Failed to generate date night ideas' 
+      });
     }
   });
 

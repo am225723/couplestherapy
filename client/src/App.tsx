@@ -22,6 +22,7 @@ import SharedGoalsPage from './pages/shared-goals';
 import RitualsPage from './pages/rituals';
 import HoldMeTightPage from './pages/hold-me-tight';
 import VoiceMemosPage from './pages/voice-memos';
+import DateNightPage from './pages/date-night';
 import ClientDashboard from './pages/client-dashboard';
 import AdminDashboard from './pages/admin-dashboard';
 import AnalyticsPage from './pages/analytics';
@@ -35,7 +36,8 @@ function AppSidebar() {
   const clientMenuItems = [
     { title: 'Dashboard', url: '/dashboard', icon: Home },
     { title: 'Weekly Check-In', url: '/weekly-checkin', icon: ClipboardList },
-    { title: 'Gratitude Log', url: '/gratitude', icon: Sparkles },
+    { title: 'Date Night Generator', url: '/date-night', icon: Sparkles },
+    { title: 'Gratitude Log', url: '/gratitude', icon: Heart },
     { title: 'Shared Goals', url: '/goals', icon: Target },
     { title: 'Rituals', url: '/rituals', icon: Coffee },
     { title: 'Hold Me Tight', url: '/conversation', icon: MessageCircle },
@@ -171,6 +173,7 @@ function AuthenticatedApp() {
                   <Route path="/rituals" component={RitualsPage} />
                   <Route path="/conversation" component={HoldMeTightPage} />
                   <Route path="/voice-memos" component={VoiceMemosPage} />
+                  <Route path="/date-night" component={DateNightPage} />
                   <Route path="/">
                     {profile.couple_id ? <Redirect to="/dashboard" /> : <Redirect to="/couple-setup" />}
                   </Route>
