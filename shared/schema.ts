@@ -327,3 +327,87 @@ export type AIInsight = {
   raw_analysis: string; // Full Perplexity response
   citations?: string[]; // If Perplexity provides citations
 };
+
+// ==============================================
+// LOVE MAP QUIZ TABLES (Gottman Methodology)
+// ==============================================
+
+// 13. LOVE MAP QUESTIONS
+export const couplesLoveMapQuestions = pgTable("Couples_love_map_questions", {
+  id: uuid("id").primaryKey(),
+  question_text: text("question_text").notNull(),
+  category: text("category"),
+  is_active: boolean("is_active").default(true),
+  created_at: timestamp("created_at").defaultNow(),
+});
+
+export type LoveMapQuestion = typeof couplesLoveMapQuestions.$inferSelect;
+
+// 14. LOVE MAP SESSIONS
+export const couplesLoveMapSessions = pgTable("Couples_love_map_sessions", {
+  id: uuid("id").primaryKey(),
+  couple_id: uuid("couple_id").notNull(),
+  created_at: timestamp("created_at").defaultNow(),
+  completed_at: timestamp("completed_at"),
+  partner1_truths_completed: boolean("partner1_truths_completed").default(false),
+  partner2_truths_completed: boolean("partner2_truths_completed").default(false),
+  partner1_guesses_completed: boolean("partner1_guesses_completed").default(false),
+  partner2_guesses_completed: boolean("partner2_guesses_completed").default(false),
+  partner1_score: numeric("partner1_score", { precision: 5, scale: 2 }),
+  partner2_score: numeric("partner2_score", { precision: 5, scale: 2 }),
+});
+
+export const insertLoveMapSessionSchema = createInsertSchema(couplesLoveMapSessions).omit({
+  id: true,
+  created_at: true,
+  completed_at: true,
+  partner1_truths_completed: true,
+  partner2_truths_completed: true,
+  partner1_guesses_completed: true,
+  partner2_guesses_completed: true,
+  partner1_score: true,
+  partner2_score: true,
+});
+export type InsertLoveMapSession = z.infer<typeof insertLoveMapSessionSchema>;
+export type LoveMapSession = typeof couplesLoveMapSessions.$inferSelect;
+
+// 15. LOVE MAP TRUTHS (Self-answers)
+export const couplesLoveMapTruths = pgTable("Couples_love_map_truths", {
+  id: uuid("id").primaryKey(),
+  session_id: uuid("session_id").notNull(),
+  question_id: uuid("question_id").notNull(),
+  author_id: uuid("author_id").notNull(),
+  answer_text: text("answer_text").notNull(),
+  created_at: timestamp("created_at").defaultNow(),
+});
+
+export const insertLoveMapTruthSchema = createInsertSchema(couplesLoveMapTruths).omit({
+  id: true,
+  created_at: true,
+}).extend({
+  answer_text: z.string().min(1, "Answer is required"),
+});
+export type InsertLoveMapTruth = z.infer<typeof insertLoveMapTruthSchema>;
+export type LoveMapTruth = typeof couplesLoveMapTruths.$inferSelect;
+
+// 16. LOVE MAP GUESSES (Partner guesses)
+export const couplesLoveMapGuesses = pgTable("Couples_love_map_guesses", {
+  id: uuid("id").primaryKey(),
+  session_id: uuid("session_id").notNull(),
+  question_id: uuid("question_id").notNull(),
+  guesser_id: uuid("guesser_id").notNull(),
+  truth_id: uuid("truth_id").notNull(),
+  guess_text: text("guess_text").notNull(),
+  is_correct: boolean("is_correct"),
+  created_at: timestamp("created_at").defaultNow(),
+});
+
+export const insertLoveMapGuessSchema = createInsertSchema(couplesLoveMapGuesses).omit({
+  id: true,
+  created_at: true,
+  is_correct: true,
+}).extend({
+  guess_text: z.string().min(1, "Guess is required"),
+});
+export type InsertLoveMapGuess = z.infer<typeof insertLoveMapGuessSchema>;
+export type LoveMapGuess = typeof couplesLoveMapGuesses.$inferSelect;

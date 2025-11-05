@@ -280,9 +280,10 @@ export default function AdminDashboard() {
         </div>
 
         <Tabs defaultValue="checkins">
-          <TabsList className="grid w-full grid-cols-5 gap-2">
+          <TabsList className="grid w-full grid-cols-6 gap-2">
             <TabsTrigger value="checkins">Weekly Check-ins</TabsTrigger>
             <TabsTrigger value="languages">Love Languages</TabsTrigger>
+            <TabsTrigger value="lovemap">Love Map Quiz</TabsTrigger>
             <TabsTrigger value="activity">Activity Feed</TabsTrigger>
             <TabsTrigger value="messages">Messages</TabsTrigger>
             <TabsTrigger value="calendar">Calendar</TabsTrigger>
@@ -468,6 +469,10 @@ export default function AdminDashboard() {
 
           <TabsContent value="calendar" className="space-y-4">
             <CalendarTab coupleId={selectedCouple.id} />
+          </TabsContent>
+
+          <TabsContent value="lovemap" className="space-y-4">
+            <LoveMapTab coupleId={selectedCouple.id} />
           </TabsContent>
         </Tabs>
       </div>
@@ -745,5 +750,186 @@ function CalendarTab({ coupleId }: { coupleId: string }) {
         </div>
       </CardContent>
     </Card>
+  );
+}
+
+function LoveMapTab({ coupleId }: { coupleId: string }) {
+  const { toast } = useToast();
+
+  const { data: loveMapData, isLoading } = useQuery({
+    queryKey: ['/api/love-map/therapist', coupleId],
+    queryFn: async () => {
+      const response = await fetch(`/api/love-map/therapist/${coupleId}`);
+      if (!response.ok) throw new Error('Failed to fetch Love Map data');
+      return response.json();
+    },
+    enabled: !!coupleId,
+  });
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardContent className="flex items-center justify-center p-12">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" data-testid="loader-lovemap-therapist" />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (!loveMapData || !loveMapData.session) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Love Map Quiz</CardTitle>
+          <CardDescription>
+            Based on Dr. Gottman's research - How well partners know each other
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="text-center py-12">
+          <Heart className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+          <p className="text-muted-foreground">
+            This couple has not completed the Love Map Quiz yet.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const { session, partner1_name, partner2_name, partner1_score, partner2_score, results } = loveMapData;
+
+  return (
+    <div className="space-y-6">
+      {/* Score Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">{partner1_name}</CardTitle>
+            <CardDescription>How well {partner1_name} knows {partner2_name}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="text-4xl font-bold text-primary" data-testid="text-partner1-score-therapist">
+              {partner1_score ? `${parseFloat(partner1_score).toFixed(0)}%` : 'N/A'}
+            </div>
+            <Progress 
+              value={partner1_score ? parseFloat(partner1_score) : 0} 
+              className="mt-2"
+              data-testid="progress-partner1-score-therapist"
+            />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">{partner2_name}</CardTitle>
+            <CardDescription>How well {partner2_name} knows {partner1_name}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="text-4xl font-bold text-primary" data-testid="text-partner2-score-therapist">
+              {partner2_score ? `${parseFloat(partner2_score).toFixed(0)}%` : 'N/A'}
+            </div>
+            <Progress 
+              value={partner2_score ? parseFloat(partner2_score) : 0} 
+              className="mt-2"
+              data-testid="progress-partner2-score-therapist"
+            />
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Detailed Comparison */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Detailed Comparison</CardTitle>
+          <CardDescription>
+            Review both partners' answers and guesses
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {results && results.length > 0 ? (
+            results.map((result: any, index: number) => (
+              <div 
+                key={result.question_id} 
+                className="space-y-4 border-b pb-4 last:border-b-0" 
+                data-testid={`lovemap-result-${index}`}
+              >
+                <div className="font-semibold">
+                  {index + 1}. {result.question_text}
+                  {result.category && (
+                    <Badge variant="secondary" className="ml-2">
+                      {result.category}
+                    </Badge>
+                  )}
+                </div>
+
+                {/* Partner 1's Answer vs Partner 2's Guess */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <Label className="text-sm text-muted-foreground">
+                      {partner1_name}'s Answer
+                    </Label>
+                    <p className="text-sm p-3 bg-muted rounded-md" data-testid={`text-p1-answer-${index}`}>
+                      {result.partner1_answer || 'Not answered'}
+                    </p>
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-sm text-muted-foreground flex items-center gap-2">
+                      {partner2_name}'s Guess
+                      {result.partner2_guess_correct ? (
+                        <CheckCircle2 className="h-4 w-4 text-green-600" data-testid={`icon-p2-correct-${index}`} />
+                      ) : (
+                        <XCircle className="h-4 w-4 text-red-600" data-testid={`icon-p2-incorrect-${index}`} />
+                      )}
+                    </Label>
+                    <p className="text-sm p-3 bg-muted rounded-md" data-testid={`text-p2-guess-${index}`}>
+                      {result.partner2_guess || 'Not guessed'}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Partner 2's Answer vs Partner 1's Guess */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <Label className="text-sm text-muted-foreground">
+                      {partner2_name}'s Answer
+                    </Label>
+                    <p className="text-sm p-3 bg-muted rounded-md" data-testid={`text-p2-answer-${index}`}>
+                      {result.partner2_answer || 'Not answered'}
+                    </p>
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-sm text-muted-foreground flex items-center gap-2">
+                      {partner1_name}'s Guess
+                      {result.partner1_guess_correct ? (
+                        <CheckCircle2 className="h-4 w-4 text-green-600" data-testid={`icon-p1-correct-${index}`} />
+                      ) : (
+                        <XCircle className="h-4 w-4 text-red-600" data-testid={`icon-p1-incorrect-${index}`} />
+                      )}
+                    </Label>
+                    <p className="text-sm p-3 bg-muted rounded-md" data-testid={`text-p1-guess-${index}`}>
+                      {result.partner1_guess || 'Not guessed'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ))
+          ) : (
+            <p className="text-center text-muted-foreground py-8">No results available</p>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Clinical Insight */}
+      <Alert className="border-primary/20 bg-primary/5">
+        <Heart className="h-4 w-4 text-primary" />
+        <AlertDescription>
+          <p className="font-semibold mb-2">Clinical Insight: Love Maps</p>
+          <p className="text-sm">
+            Love Maps represent the cognitive space where partners store detailed knowledge about each other's inner world. 
+            Research by Dr. Gottman shows that couples with detailed Love Maps are better equipped to handle stress and conflict. 
+            Low scores may indicate areas where partners could benefit from more curiosity and active listening about each other's experiences, dreams, and preferences.
+          </p>
+        </AlertDescription>
+      </Alert>
+    </div>
   );
 }
