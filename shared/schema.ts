@@ -66,6 +66,7 @@ export const couplesWeeklyCheckins = pgTable("Couples_weekly_checkins", {
   user_id: uuid("user_id").notNull(),
   created_at: timestamp("created_at").defaultNow(),
   week_number: integer("week_number"),
+  year: integer("year"),
   q_connectedness: integer("q_connectedness"), // 1-10
   q_conflict: integer("q_conflict"), // 1-10
   q_appreciation: text("q_appreciation"),
@@ -76,6 +77,8 @@ export const couplesWeeklyCheckins = pgTable("Couples_weekly_checkins", {
 export const insertWeeklyCheckinSchema = createInsertSchema(couplesWeeklyCheckins).omit({
   id: true,
   created_at: true,
+  week_number: true, // Auto-calculated by database trigger
+  year: true, // Auto-calculated by database trigger
 }).extend({
   q_connectedness: z.number().min(1).max(10),
   q_conflict: z.number().min(1).max(10),

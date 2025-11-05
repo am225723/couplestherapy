@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/auth-context';
 import { supabase } from '@/lib/supabase';
-import { Heart, MessageCircle, Target, Sparkles, Coffee, ClipboardList, Loader2, ArrowRight } from 'lucide-react';
+import { Heart, MessageCircle, Target, Sparkles, Coffee, ClipboardList, Loader2, ArrowRight, Calendar, TrendingUp } from 'lucide-react';
 import { LoveLanguage } from '@shared/schema';
 import clientHeroImage from '@assets/generated_images/Client_app_hero_image_9fd4eaf0.png';
 
@@ -110,6 +110,27 @@ export default function ClientDashboard() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 -mt-16 pb-12 space-y-12">
+        <Link href="/checkin-history">
+          <Card className="shadow-lg hover-elevate active-elevate-2 cursor-pointer border-primary/20" data-testid="card-checkin-history">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    <Calendar className="h-5 w-5 text-primary" />
+                    Check-In History
+                  </CardTitle>
+                  <CardDescription>Review your weekly reflections and track your progress over time</CardDescription>
+                </div>
+                <div className="flex items-center gap-2 text-primary">
+                  <TrendingUp className="h-5 w-5" />
+                  <span className="font-medium">View Timeline</span>
+                  <ArrowRight className="h-4 w-4" />
+                </div>
+              </div>
+            </CardHeader>
+          </Card>
+        </Link>
+
         {!loading && loveLanguages.length > 0 && (
           <Card className="shadow-lg">
             <CardHeader>

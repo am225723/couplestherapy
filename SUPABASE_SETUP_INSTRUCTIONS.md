@@ -20,6 +20,14 @@ This will create all tables with the `Couples_` prefix and set up basic Row Leve
 
 This adds the `join_code` column and updates RLS policies so partners can find and join each other securely.
 
+### Part C: Week Tracking Upgrade (Recommended)
+1. In the same **SQL Editor**, click **New Query** again
+2. Copy the entire contents of `supabase-week-tracking-upgrade.sql`
+3. Paste it into the SQL Editor
+4. Click **Run** to execute the upgrade
+
+This adds automatic ISO week number tracking and enables the historical timeline view feature.
+
 ## Step 2: Verify Table Creation
 
 After running the script, you should see a success message. You can verify by:

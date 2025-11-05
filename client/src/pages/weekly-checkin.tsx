@@ -29,12 +29,10 @@ export default function WeeklyCheckin() {
     setLoading(true);
 
     try {
-      const weekNumber = Math.floor((Date.now() - new Date().getTimezoneOffset() * 60000) / (7 * 24 * 60 * 60 * 1000));
-
+      // Week number and year are auto-calculated by database trigger
       const { error } = await supabase.from('Couples_weekly_checkins').insert({
         couple_id: profile.couple_id,
         user_id: user.id,
-        week_number: weekNumber,
         q_connectedness: connectedness[0],
         q_conflict: conflict[0],
         q_appreciation: appreciation,

@@ -15,6 +15,7 @@ import AuthPage from './pages/auth';
 import CoupleSetup from './pages/couple-setup';
 import LoveLanguageQuiz from './pages/love-language-quiz';
 import WeeklyCheckin from './pages/weekly-checkin';
+import CheckinHistory from './pages/checkin-history';
 import GratitudeLogPage from './pages/gratitude-log';
 import SharedGoalsPage from './pages/shared-goals';
 import RitualsPage from './pages/rituals';
@@ -148,6 +149,7 @@ function AuthenticatedApp() {
                   <Route path="/dashboard" component={ClientDashboard} />
                   <Route path="/quiz" component={LoveLanguageQuiz} />
                   <Route path="/weekly-checkin" component={WeeklyCheckin} />
+                  <Route path="/checkin-history" component={CheckinHistory} />
                   <Route path="/gratitude" component={GratitudeLogPage} />
                   <Route path="/goals" component={SharedGoalsPage} />
                   <Route path="/rituals" component={RitualsPage} />
