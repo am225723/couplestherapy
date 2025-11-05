@@ -218,6 +218,32 @@ export const insertMessageSchema = createInsertSchema(couplesMessages).omit({
 export type InsertMessage = z.infer<typeof insertMessageSchema>;
 export type Message = typeof couplesMessages.$inferSelect;
 
+// 12. CALENDAR EVENTS
+export const couplesCalendarEvents = pgTable("Couples_calendar_events", {
+  id: uuid("id").primaryKey(),
+  couple_id: uuid("couple_id").notNull(),
+  created_by: uuid("created_by").notNull(),
+  title: text("title").notNull(),
+  description: text("description"),
+  start_at: timestamp("start_at").notNull(),
+  end_at: timestamp("end_at").notNull(),
+  is_all_day: boolean("is_all_day").default(false),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow(),
+});
+
+export const insertCalendarEventSchema = createInsertSchema(couplesCalendarEvents).omit({
+  id: true,
+  created_at: true,
+  updated_at: true,
+}).extend({
+  title: z.string().min(1, "Event title is required"),
+  start_at: z.date(),
+  end_at: z.date(),
+});
+export type InsertCalendarEvent = z.infer<typeof insertCalendarEventSchema>;
+export type CalendarEvent = typeof couplesCalendarEvents.$inferSelect;
+
 // Love Language Quiz Types
 export const LOVE_LANGUAGES = [
   "Words of Affirmation",

@@ -9,7 +9,7 @@ import { Toaster } from '@/components/ui/toaster';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { SidebarProvider, Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarTrigger, SidebarHeader } from '@/components/ui/sidebar';
 import { Button } from './components/ui/button';
-import { Home, ClipboardList, Sparkles, Target, Coffee, MessageCircle, Mic, Users, LogOut, Loader2, BarChart3, UserPlus, Heart, MessageSquare } from 'lucide-react';
+import { Home, ClipboardList, Sparkles, Target, Coffee, MessageCircle, Mic, Users, LogOut, Loader2, BarChart3, UserPlus, Heart, MessageSquare, Calendar as CalendarIcon } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
 import tadiLogo from '@assets/logo_1762363277396.png';
 
@@ -25,6 +25,7 @@ import HoldMeTightPage from './pages/hold-me-tight';
 import VoiceMemosPage from './pages/voice-memos';
 import DateNightPage from './pages/date-night';
 import MessagesPage from './pages/messages';
+import CalendarPage from './pages/calendar';
 import ClientDashboard from './pages/client-dashboard';
 import AdminDashboard from './pages/admin-dashboard';
 import AnalyticsPage from './pages/analytics';
@@ -39,6 +40,7 @@ function AppSidebar() {
     { title: 'Dashboard', url: '/dashboard', icon: Home },
     { title: 'Weekly Check-In', url: '/weekly-checkin', icon: ClipboardList },
     { title: 'Messages', url: '/messages', icon: MessageSquare },
+    { title: 'Calendar', url: '/calendar', icon: CalendarIcon },
     { title: 'Date Night Generator', url: '/date-night', icon: Sparkles },
     { title: 'Gratitude Log', url: '/gratitude', icon: Heart },
     { title: 'Shared Goals', url: '/goals', icon: Target },
@@ -116,7 +118,7 @@ function AuthenticatedApp() {
   useEffect(() => {
     if (!loading && user && profile) {
       const therapistRoutes = ['/admin', '/admin/analytics', '/admin/user-management'];
-      const clientRoutes = ['/dashboard', '/couple-setup', '/quiz', '/weekly-checkin', '/checkin-history', '/gratitude', '/goals', '/rituals', '/conversation', '/voice-memos', '/date-night', '/messages'];
+      const clientRoutes = ['/dashboard', '/couple-setup', '/quiz', '/weekly-checkin', '/checkin-history', '/gratitude', '/goals', '/rituals', '/conversation', '/voice-memos', '/date-night', '/messages', '/calendar'];
       
       const isTherapist = profile.role === 'therapist';
       const isOnTherapistRoute = location.startsWith('/admin');
@@ -210,6 +212,7 @@ function AuthenticatedApp() {
                   <Route path="/voice-memos" component={VoiceMemosPage} />
                   <Route path="/date-night" component={DateNightPage} />
                   <Route path="/messages" component={MessagesPage} />
+                  <Route path="/calendar" component={CalendarPage} />
                   <Route path="/">
                     {profile.couple_id ? <Redirect to="/dashboard" /> : <Redirect to="/couple-setup" />}
                   </Route>

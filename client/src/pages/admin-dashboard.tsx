@@ -12,11 +12,26 @@ import { useAuth } from '@/lib/auth-context';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/hooks/use-toast';
 import { Users, Loader2, Heart, Send, MessageSquare } from 'lucide-react';
-import { Couple, Profile, WeeklyCheckin, LoveLanguage, GratitudeLog, SharedGoal, Ritual, Conversation, Message } from '@shared/schema';
-import { formatDistanceToNow } from 'date-fns';
+import { Couple, Profile, WeeklyCheckin, LoveLanguage, GratitudeLog, SharedGoal, Ritual, Conversation, Message, CalendarEvent } from '@shared/schema';
+import { formatDistanceToNow, format, parse, startOfWeek, getDay } from 'date-fns';
+import enUS from 'date-fns/locale/en-US';
+import { Calendar, dateFnsLocalizer } from 'react-big-calendar';
+import 'react-big-calendar/lib/css/react-big-calendar.css';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { queryClient, apiRequest } from '@/lib/queryClient';
 import adminHeroImage from '@assets/generated_images/Admin_app_hero_image_7f3581f4.png';
+
+const locales = {
+  'en-US': enUS,
+};
+
+const localizer = dateFnsLocalizer({
+  format,
+  parse,
+  startOfWeek,
+  getDay,
+  locales,
+});
 
 type MessageWithSender = Message & {
   sender: Pick<Profile, 'id' | 'full_name' | 'role'>;
@@ -265,11 +280,12 @@ export default function AdminDashboard() {
         </div>
 
         <Tabs defaultValue="checkins">
-          <TabsList className="grid w-full grid-cols-4 gap-2">
+          <TabsList className="grid w-full grid-cols-5 gap-2">
             <TabsTrigger value="checkins">Weekly Check-ins</TabsTrigger>
             <TabsTrigger value="languages">Love Languages</TabsTrigger>
             <TabsTrigger value="activity">Activity Feed</TabsTrigger>
             <TabsTrigger value="messages">Messages</TabsTrigger>
+            <TabsTrigger value="calendar">Calendar</TabsTrigger>
           </TabsList>
 
           <TabsContent value="checkins" className="space-y-6">
@@ -448,6 +464,10 @@ export default function AdminDashboard() {
               setMessageText={setMessageText}
               messagesEndRef={messagesEndRef}
             />
+          </TabsContent>
+
+          <TabsContent value="calendar" className="space-y-4">
+            <CalendarTab coupleId={selectedCouple.id} />
           </TabsContent>
         </Tabs>
       </div>
@@ -660,6 +680,68 @@ function MessagesTab({
               )}
             </Button>
           </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function CalendarTab({ coupleId }: { coupleId: string }) {
+  const [view, setView] = useState<'month' | 'week' | 'day' | 'agenda'>('month');
+  const [date, setDate] = useState(new Date());
+
+  const { data: events = [], isLoading } = useQuery<CalendarEvent[]>({
+    queryKey: ['/api/calendar', coupleId],
+    enabled: !!coupleId,
+    queryFn: async () => {
+      const response = await fetch(`/api/calendar/${coupleId}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch calendar events');
+      }
+      return response.json();
+    },
+  });
+
+  const calendarEvents = events.map((event) => ({
+    ...event,
+    start: new Date(event.start_at),
+    end: new Date(event.end_at),
+    title: event.title,
+  }));
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardContent className="flex items-center justify-center p-12">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" data-testid="loader-calendar-therapist" />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Calendar</CardTitle>
+        <CardDescription>
+          View the couple's scheduled events and dates (read-only)
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div style={{ height: '600px' }} data-testid="calendar-container-therapist">
+          <Calendar
+            localizer={localizer}
+            events={calendarEvents}
+            startAccessor="start"
+            endAccessor="end"
+            view={view}
+            onView={setView}
+            date={date}
+            onNavigate={setDate}
+            selectable={false}
+            popup
+            style={{ height: '100%' }}
+          />
         </div>
       </CardContent>
     </Card>

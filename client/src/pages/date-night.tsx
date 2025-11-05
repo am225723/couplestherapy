@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Sparkles, Loader2, ArrowLeft, ArrowRight, Heart } from 'lucide-react';
+import { Sparkles, Loader2, ArrowLeft, ArrowRight, Heart, CalendarPlus } from 'lucide-react';
 import { useMutation } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
+import { useLocation } from 'wouter';
 
 interface DateNightPreferences {
   time: string;
@@ -40,6 +41,7 @@ export default function DateNightPage() {
   });
   const [generatedIdeas, setGeneratedIdeas] = useState<string>('');
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
 
   const generateMutation = useMutation({
     mutationFn: async (prefs: DateNightPreferences) => {
@@ -86,6 +88,22 @@ export default function DateNightPage() {
       energy: '',
     });
     setGeneratedIdeas('');
+  };
+
+  const handleAddToCalendar = (title: string, description: string) => {
+    // Store the pre-filled event data in localStorage for the calendar page to pick up
+    localStorage.setItem('prefilled_event', JSON.stringify({
+      title,
+      description,
+    }));
+    
+    toast({
+      title: 'Navigating to Calendar',
+      description: 'Event details will be pre-filled for you',
+    });
+
+    // Navigate to calendar page
+    setLocation('/calendar');
   };
 
   const getStepTitle = () => {
@@ -246,6 +264,17 @@ export default function DateNightPage() {
                     <p className="text-sm" data-testid={`text-connection-tip-${index}`}>{connectionTip}</p>
                   </div>
                 )}
+                <div className="pt-2">
+                  <Button
+                    onClick={() => handleAddToCalendar(title, description + (connectionTip ? `\n\nConnection Tip: ${connectionTip}` : ''))}
+                    variant="outline"
+                    className="w-full"
+                    data-testid={`button-add-to-calendar-${index}`}
+                  >
+                    <CalendarPlus className="h-4 w-4 mr-2" />
+                    Add to Calendar
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           );

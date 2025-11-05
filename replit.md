@@ -67,6 +67,11 @@ A comprehensive, multi-tenant couples therapy platform with separate client and 
    - transcript_text (nullable), is_listened
    - **Privacy**: Therapists see metadata only (no audio access)
 
+11. **Couples_messages** - Secure messaging between therapists and couples
+   - couple_id, sender_id, message_text, is_read
+   - **Security**: SELECT and INSERT only via RLS; no UPDATE to prevent tampering
+   - **Privacy**: Therapists can message their assigned couples; couples can message their therapist
+
 ## Row Level Security (RLS)
 
 **Critical Privacy Features:**
@@ -76,6 +81,7 @@ A comprehensive, multi-tenant couples therapy platform with separate client and 
 - Private therapist notes (is_private_note=true) only visible to therapist
 - Public therapist comments (is_private_note=false) pushed via Realtime to client app
 - Voice memos: Partners can listen to each other's recordings; therapists see metadata only
+- Messages: No UPDATE access via RLS to prevent tampering; mark-as-read handled server-side only
 
 ## Application Features
 
@@ -89,7 +95,8 @@ A comprehensive, multi-tenant couples therapy platform with separate client and 
 7. **Hold Me Tight Conversation** - 6-step EFT wizard (situation, feelings, fears, shame, expectations, needs)
 8. **Voice Memos** - Record and send voice messages to partner (Words of Affirmation)
 9. **Connection Concierge** - AI-powered date night generator using Perplexity (asks preferences, generates 3 personalized date ideas with connection tips)
-10. **Realtime Therapist Comments** - Contextual feedback appears under activities
+10. **Messages** - Chat-style secure messaging with therapist (real-time updates via Supabase Realtime)
+11. **Realtime Therapist Comments** - Contextual feedback appears under activities
 
 ### Admin App (for Therapists)
 1. **Secure Login** - Only users with role='therapist' can access
@@ -100,7 +107,8 @@ A comprehensive, multi-tenant couples therapy platform with separate client and 
    - **Love Languages**: Side-by-side profile comparison (30-question quiz results)
    - **Activity Feed**: Chronological view of all couple activities including voice memo metadata
 5. **Contextual Commenting** - Add comments to any activity with private/public toggle
-6. **Analytics** - Perplexity AI-powered insights and progress tracking
+6. **Messages** - Chat-style secure messaging with assigned couples (real-time updates)
+7. **Analytics** - Perplexity AI-powered insights and progress tracking
 
 ## How to Run
 
@@ -110,6 +118,7 @@ A comprehensive, multi-tenant couples therapy platform with separate client and 
    - `supabase-setup.sql` (main schema)
    - `supabase-hold-me-tight-update.sql` (6-step EFT conversation fields)
    - `supabase-voice-memos.sql` (voice memo feature)
+   - `supabase-messages-migration.sql` (secure messaging feature)
 3. Verify all tables with `Couples_` prefix are created
 4. Set up Supabase Storage:
    - Create bucket: `voice-memos` (private)
@@ -155,7 +164,8 @@ WHERE id IN ('PARTNER1_ID', 'PARTNER2_ID');
 9. Start Hold Me Tight conversation (6-step EFT wizard) → Partner completes
 10. Record and send Voice Memos to partner
 11. Use Connection Concierge to plan AI-generated date nights with connection tips
-12. Receive therapist comments in real-time
+12. Send and receive messages with therapist in real-time chat
+13. Receive therapist comments in real-time
 
 ### Therapist Journey
 1. Sign up → Profile set to role='therapist'
@@ -166,7 +176,8 @@ WHERE id IN ('PARTNER1_ID', 'PARTNER2_ID');
 6. Browse activity feed (includes voice memo metadata)
 7. Add contextual comments (private or public)
 8. Public comments appear in client app via Realtime
-9. Use Analytics dashboard for AI-powered insights
+9. Send and receive messages with couples in real-time chat
+10. Use Analytics dashboard for AI-powered insights
 
 ## Design System
 
@@ -205,6 +216,7 @@ SUPABASE_SERVICE_ROLE_KEY=[Stored in Replit Secrets]
 - ✅ Updated design system to teal/green color scheme based on logo
 - ✅ Implemented Perplexity AI analytics dashboard for therapists
 - ✅ Implemented Connection Concierge: AI-powered date night generator that asks preferences and creates personalized date ideas with connection tips
+- ✅ Implemented secure messaging system: Chat-style UI with real-time updates, RLS policies for security (SELECT/INSERT only, no UPDATE to prevent tampering)
 
 ## Future Enhancements
 

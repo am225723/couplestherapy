@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { supabaseAdmin } from "./supabase";
 import type { TherapistAnalytics, CoupleAnalytics, AIInsight, InsertVoiceMemo, VoiceMemo } from "@shared/schema";
-import { insertVoiceMemoSchema } from "@shared/schema";
+import { insertVoiceMemoSchema, insertCalendarEventSchema } from "@shared/schema";
 import { analyzeCheckInsWithPerplexity } from "./perplexity";
 import { generateCoupleReport } from "./csv-export";
 import { generateVoiceMemoUploadUrl, generateVoiceMemoDownloadUrl, deleteVoiceMemo } from "./storage-helpers";
@@ -1655,6 +1655,216 @@ Be precise, evidence-based, and therapeutically sensitive. Format your response 
     } catch (error: any) {
       console.error('Mark message as read error:', error);
       res.status(500).json({ error: error.message || 'Failed to mark message as read' });
+    }
+  });
+
+  // ==========================================
+  // CALENDAR EVENTS ENDPOINTS
+  // ==========================================
+
+  // GET /api/calendar/:couple_id - Fetch all events for a couple
+  app.get("/api/calendar/:couple_id", async (req, res) => {
+    try {
+      const { couple_id } = req.params;
+      const accessToken = getAccessToken(req);
+
+      if (!accessToken) {
+        return res.status(401).json({ error: 'No session found. Please log in.' });
+      }
+
+      // Verify the access token with Supabase
+      const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(accessToken);
+
+      if (authError || !user) {
+        return res.status(401).json({ error: 'Invalid or expired session. Please log in again.' });
+      }
+
+      // Get user profile
+      const { data: profile, error: profileError } = await supabaseAdmin
+        .from('Couples_profiles')
+        .select('role, couple_id')
+        .eq('id', user.id)
+        .single();
+
+      if (profileError || !profile) {
+        return res.status(403).json({ error: 'User profile not found.' });
+      }
+
+      // Verify user has access to this couple's calendar
+      let hasAccess = false;
+      if (profile.role === 'therapist') {
+        // Check if therapist is assigned to this couple
+        const { data: couple } = await supabaseAdmin
+          .from('Couples_couples')
+          .select('therapist_id')
+          .eq('id', couple_id)
+          .single();
+        hasAccess = couple?.therapist_id === user.id;
+      } else {
+        // Check if client is part of this couple
+        hasAccess = profile.couple_id === couple_id;
+      }
+
+      if (!hasAccess) {
+        return res.status(403).json({ error: 'Access denied to view this calendar.' });
+      }
+
+      // Fetch events using RLS-enabled query
+      const { data: events, error: eventsError } = await supabaseAdmin
+        .from('Couples_calendar_events')
+        .select('*')
+        .eq('couple_id', couple_id)
+        .order('start_at', { ascending: true });
+
+      if (eventsError) throw eventsError;
+
+      res.json(events || []);
+    } catch (error: any) {
+      console.error('Fetch calendar events error:', error);
+      res.status(500).json({ error: error.message || 'Failed to fetch calendar events' });
+    }
+  });
+
+  // POST /api/calendar - Create new event
+  app.post("/api/calendar", async (req, res) => {
+    try {
+      const authResult = await verifyUserSession(req);
+      if (!authResult.success) {
+        return res.status(authResult.status).json({ error: authResult.error });
+      }
+
+      const { userId, coupleId } = authResult;
+
+      // Validate request body
+      const eventData = {
+        ...req.body,
+        start_at: req.body.start_at ? new Date(req.body.start_at) : undefined,
+        end_at: req.body.end_at ? new Date(req.body.end_at) : undefined,
+      };
+
+      const validationResult = insertCalendarEventSchema.safeParse(eventData);
+      if (!validationResult.success) {
+        return res.status(400).json({ 
+          error: "Invalid event data", 
+          details: validationResult.error.format() 
+        });
+      }
+
+      // Insert event
+      const { data: newEvent, error: insertError } = await supabaseAdmin
+        .from('Couples_calendar_events')
+        .insert({
+          ...validationResult.data,
+          couple_id: coupleId,
+          created_by: userId,
+        })
+        .select()
+        .single();
+
+      if (insertError) throw insertError;
+
+      res.status(201).json(newEvent);
+    } catch (error: any) {
+      console.error('Create calendar event error:', error);
+      res.status(500).json({ error: error.message || 'Failed to create calendar event' });
+    }
+  });
+
+  // PATCH /api/calendar/:event_id - Update event
+  app.patch("/api/calendar/:event_id", async (req, res) => {
+    try {
+      const { event_id } = req.params;
+      const authResult = await verifyUserSession(req);
+      if (!authResult.success) {
+        return res.status(authResult.status).json({ error: authResult.error });
+      }
+
+      const { coupleId } = authResult;
+
+      // Verify event exists and belongs to user's couple
+      const { data: existingEvent, error: fetchError } = await supabaseAdmin
+        .from('Couples_calendar_events')
+        .select('couple_id')
+        .eq('id', event_id)
+        .single();
+
+      if (fetchError || !existingEvent) {
+        return res.status(404).json({ error: 'Event not found' });
+      }
+
+      if (existingEvent.couple_id !== coupleId) {
+        return res.status(403).json({ error: 'Access denied to update this event' });
+      }
+
+      // Prepare update data
+      const updateData = {
+        ...req.body,
+        start_at: req.body.start_at ? new Date(req.body.start_at) : undefined,
+        end_at: req.body.end_at ? new Date(req.body.end_at) : undefined,
+      };
+
+      // Remove fields that shouldn't be updated
+      delete updateData.id;
+      delete updateData.couple_id;
+      delete updateData.created_by;
+      delete updateData.created_at;
+      delete updateData.updated_at;
+
+      // Update event
+      const { data: updatedEvent, error: updateError } = await supabaseAdmin
+        .from('Couples_calendar_events')
+        .update(updateData)
+        .eq('id', event_id)
+        .select()
+        .single();
+
+      if (updateError) throw updateError;
+
+      res.json(updatedEvent);
+    } catch (error: any) {
+      console.error('Update calendar event error:', error);
+      res.status(500).json({ error: error.message || 'Failed to update calendar event' });
+    }
+  });
+
+  // DELETE /api/calendar/:event_id - Delete event
+  app.delete("/api/calendar/:event_id", async (req, res) => {
+    try {
+      const { event_id } = req.params;
+      const authResult = await verifyUserSession(req);
+      if (!authResult.success) {
+        return res.status(authResult.status).json({ error: authResult.error });
+      }
+
+      const { coupleId } = authResult;
+
+      // Verify event exists and belongs to user's couple
+      const { data: existingEvent, error: fetchError } = await supabaseAdmin
+        .from('Couples_calendar_events')
+        .select('couple_id')
+        .eq('id', event_id)
+        .single();
+
+      if (fetchError || !existingEvent) {
+        return res.status(404).json({ error: 'Event not found' });
+      }
+
+      if (existingEvent.couple_id !== coupleId) {
+        return res.status(403).json({ error: 'Access denied to delete this event' });
+      }
+
+      // Delete event
+      const { error: deleteError } = await supabaseAdmin
+        .from('Couples_calendar_events')
+        .delete()
+        .eq('id', event_id);
+
+      if (deleteError) throw deleteError;
+
+      res.json({ success: true, message: 'Event deleted successfully' });
+    } catch (error: any) {
+      console.error('Delete calendar event error:', error);
+      res.status(500).json({ error: error.message || 'Failed to delete calendar event' });
     }
   });
 
