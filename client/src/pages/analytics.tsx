@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Users, Activity, ClipboardCheck, Sparkles, MessageSquare, TrendingUp, TrendingDown, Brain, Loader2, ChevronDown, AlertCircle, ExternalLink } from 'lucide-react';
+import { Users, Activity, ClipboardCheck, Sparkles, MessageSquare, TrendingUp, TrendingDown, Brain, Loader2, ChevronDown, AlertCircle, ExternalLink, Download } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { formatDistanceToNow } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
@@ -50,7 +50,17 @@ function KPICard({
   );
 }
 
-function CoupleCard({ couple, onViewInsights }: { couple: CoupleAnalytics; onViewInsights: () => void }) {
+function CoupleCard({ 
+  couple, 
+  onViewInsights, 
+  onExport, 
+  isExporting 
+}: { 
+  couple: CoupleAnalytics; 
+  onViewInsights: () => void;
+  onExport: () => void;
+  isExporting: boolean;
+}) {
   const engagementVariant = getEngagementBadgeVariant(couple.engagement_score);
   const engagementLabel = getEngagementLabel(couple.engagement_score);
 
@@ -138,7 +148,7 @@ function CoupleCard({ couple, onViewInsights }: { couple: CoupleAnalytics; onVie
           </div>
         </div>
 
-        <div className="pt-4 border-t">
+        <div className="pt-4 border-t space-y-2">
           <Button 
             variant="outline" 
             className="w-full"
@@ -147,6 +157,25 @@ function CoupleCard({ couple, onViewInsights }: { couple: CoupleAnalytics; onVie
           >
             <Brain className="h-4 w-4 mr-2" />
             View AI Insights
+          </Button>
+          <Button 
+            variant="outline" 
+            className="w-full"
+            onClick={onExport}
+            disabled={isExporting}
+            data-testid={`button-export-${couple.couple_id}`}
+          >
+            {isExporting ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Exporting...
+              </>
+            ) : (
+              <>
+                <Download className="h-4 w-4 mr-2" />
+                Export Report
+              </>
+            )}
           </Button>
         </div>
       </CardContent>
@@ -355,6 +384,7 @@ export default function AnalyticsPage() {
   const { profile } = useAuth();
   const { toast } = useToast();
   const [selectedCoupleId, setSelectedCoupleId] = useState<string | null>(null);
+  const [exportingCoupleId, setExportingCoupleId] = useState<string | null>(null);
 
   const { data, isLoading, error } = useQuery<TherapistAnalytics>({
     queryKey: ['/api/therapist/analytics', profile?.id],
@@ -362,6 +392,43 @@ export default function AnalyticsPage() {
   });
 
   const selectedCouple = data?.couples.find(c => c.couple_id === selectedCoupleId);
+
+  const handleExport = async (coupleId: string) => {
+    if (!profile?.id) return;
+    
+    try {
+      setExportingCoupleId(coupleId);
+      
+      const url = `/api/therapist/export-couple-report?couple_id=${coupleId}&therapist_id=${profile.id}&format=csv`;
+      
+      const response = await fetch(url, { credentials: 'include' });
+      
+      if (!response.ok) {
+        throw new Error('Failed to export report');
+      }
+      
+      const blob = await response.blob();
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.download = `couple-report-${coupleId}-${Date.now()}.csv`;
+      link.click();
+      window.URL.revokeObjectURL(downloadUrl);
+      
+      toast({
+        title: 'Export started',
+        description: 'Your report is downloading...',
+      });
+    } catch (error) {
+      toast({
+        title: 'Export failed',
+        description: error instanceof Error ? error.message : 'Failed to export report',
+        variant: 'destructive',
+      });
+    } finally {
+      setExportingCoupleId(null);
+    }
+  };
 
   if (error) {
     toast({
@@ -544,6 +611,8 @@ export default function AnalyticsPage() {
                 key={couple.couple_id} 
                 couple={couple}
                 onViewInsights={() => setSelectedCoupleId(couple.couple_id)}
+                onExport={() => handleExport(couple.couple_id)}
+                isExporting={exportingCoupleId === couple.couple_id}
               />
             ))}
           </div>
