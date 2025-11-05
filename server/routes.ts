@@ -2,7 +2,8 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { supabaseAdmin } from "./supabase";
-import type { TherapistAnalytics, CoupleAnalytics } from "@shared/schema";
+import type { TherapistAnalytics, CoupleAnalytics, AIInsight } from "@shared/schema";
+import { analyzeCheckInsWithPerplexity } from "./perplexity";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // THERAPIST ANALYTICS ENDPOINT
@@ -170,6 +171,217 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error: any) {
       console.error('Analytics error:', error);
       res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Simple in-memory cache for AI insights (5-minute TTL)
+  // This prevents expensive repeated API calls and provides basic rate limiting
+  const aiInsightsCache = new Map<string, { data: AIInsight; timestamp: number }>();
+  const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+
+  // AI INSIGHTS ENDPOINT
+  // SECURITY NOTE: In production, therapist_id should come from authenticated session,
+  // not from query parameters. This implementation assumes frontend authentication.
+  app.get("/api/therapist/ai-insights", async (req, res) => {
+    try {
+      const coupleId = req.query.couple_id as string;
+      const therapistId = req.query.therapist_id as string;
+
+      if (!coupleId || !therapistId) {
+        return res.status(400).json({ 
+          error: "couple_id and therapist_id are required" 
+        });
+      }
+
+      // Check cache first to prevent expensive duplicate API calls
+      const cacheKey = `${therapistId}:${coupleId}`;
+      const cached = aiInsightsCache.get(cacheKey);
+      if (cached && (Date.now() - cached.timestamp) < CACHE_TTL_MS) {
+        return res.json(cached.data);
+      }
+
+      // 1. Validate therapist has access to this couple
+      const { data: couple, error: coupleError } = await supabaseAdmin
+        .from('Couples_couples')
+        .select('*')
+        .eq('id', coupleId)
+        .single();
+
+      if (coupleError || !couple) {
+        return res.status(404).json({ error: "Couple not found" });
+      }
+
+      if (couple.therapist_id !== therapistId) {
+        return res.status(403).json({ 
+          error: "You don't have access to this couple's data" 
+        });
+      }
+
+      // 2. Fetch last 8-12 weeks of check-ins for BOTH partners
+      const twelveWeeksAgo = new Date();
+      twelveWeeksAgo.setDate(twelveWeeksAgo.getDate() - 84); // 12 weeks
+
+      const { data: checkins, error: checkinsError } = await supabaseAdmin
+        .from('Couples_weekly_checkins')
+        .select('*')
+        .eq('couple_id', coupleId)
+        .gte('created_at', twelveWeeksAgo.toISOString())
+        .order('year', { ascending: true })
+        .order('week_number', { ascending: true });
+
+      if (checkinsError) {
+        throw checkinsError;
+      }
+
+      if (!checkins || checkins.length === 0) {
+        return res.status(400).json({ 
+          error: "No check-in data available for this couple in the last 12 weeks" 
+        });
+      }
+
+      // 3. Format data for Perplexity AI analysis
+      // PRIVACY: Use anonymized labels instead of actual names when sending to external AI service
+      const weeklyData: Record<string, any[]> = {};
+      
+      checkins.forEach(checkin => {
+        const weekKey = `${checkin.year}-W${checkin.week_number}`;
+        if (!weeklyData[weekKey]) {
+          weeklyData[weekKey] = [];
+        }
+        const partnerId = checkin.user_id === couple.partner1_id ? 1 : 2;
+        weeklyData[weekKey].push({
+          userId: checkin.user_id,
+          partnerId,
+          partnerLabel: `Partner ${partnerId}`, // Anonymized - no real names sent to AI
+          connectedness: checkin.q_connectedness,
+          conflict: checkin.q_conflict,
+          appreciation: checkin.q_appreciation,
+          regrettableIncident: checkin.q_regrettable_incident,
+          need: checkin.q_my_need,
+          createdAt: checkin.created_at,
+        });
+      });
+
+      // Build user prompt
+      let userPrompt = `Analyze the following weekly check-in data for a couple in therapy:\n\n`;
+      
+      const sortedWeeks = Object.keys(weeklyData).sort();
+      sortedWeeks.forEach(weekKey => {
+        const weekCheckins = weeklyData[weekKey];
+        const [year, weekNum] = weekKey.split('-W');
+        const sampleDate = weekCheckins[0]?.createdAt ? 
+          new Date(weekCheckins[0].createdAt).toLocaleDateString() : '';
+
+        userPrompt += `Week ${weekNum}, ${year} (${sampleDate}):\n`;
+
+        weekCheckins.forEach(checkin => {
+          userPrompt += `- ${checkin.partnerLabel}: Connectedness: ${checkin.connectedness}/10, Conflict: ${checkin.conflict}/10\n`;
+          userPrompt += `  Appreciation: "${checkin.appreciation}"\n`;
+          userPrompt += `  Regrettable Incident: "${checkin.regrettableIncident}"\n`;
+          userPrompt += `  Need: "${checkin.need}"\n`;
+        });
+
+        userPrompt += '\n';
+      });
+
+      userPrompt += `\nBased on this data, provide:\n`;
+      userPrompt += `1. A brief summary of the couple's relationship dynamics\n`;
+      userPrompt += `2. Key discrepancies between partners' perceptions (list 3-5 specific points)\n`;
+      userPrompt += `3. Important patterns and trends over time (list 3-5 specific observations)\n`;
+      userPrompt += `4. Therapeutic recommendations for the therapist (list 3-5 actionable items)\n`;
+
+      const systemPrompt = `You are an expert couples therapist analyzing weekly check-in data from a therapeutic intervention. Analyze the provided data to identify:
+1. Significant discrepancies between partners' perceptions (connectedness and conflict scores)
+2. Temporal patterns and trends
+3. Areas of concern requiring therapeutic attention
+4. Potential relationship strengths to build upon
+5. Specific recommendations for the therapist
+
+Be precise, evidence-based, and therapeutically sensitive. Format your response as structured insights.`;
+
+      // 4. Call Perplexity API
+      const analysisResult = await analyzeCheckInsWithPerplexity({
+        systemPrompt,
+        userPrompt,
+      });
+
+      // 5. Parse and structure the response
+      const rawAnalysis = analysisResult.content;
+      
+      // Simple parsing - extract sections (this is a basic implementation)
+      // In a production system, you might want more sophisticated parsing
+      const lines = rawAnalysis.split('\n').filter(line => line.trim());
+      
+      let summary = '';
+      const discrepancies: string[] = [];
+      const patterns: string[] = [];
+      const recommendations: string[] = [];
+      
+      let currentSection = '';
+      
+      lines.forEach(line => {
+        const lowerLine = line.toLowerCase();
+        
+        if (lowerLine.includes('summary') || lowerLine.includes('dynamic')) {
+          currentSection = 'summary';
+        } else if (lowerLine.includes('discrepanc')) {
+          currentSection = 'discrepancies';
+        } else if (lowerLine.includes('pattern') || lowerLine.includes('trend')) {
+          currentSection = 'patterns';
+        } else if (lowerLine.includes('recommendation') || lowerLine.includes('therapeutic')) {
+          currentSection = 'recommendations';
+        } else if (line.trim().match(/^[\d\-\*•]/)) {
+          // This is a list item
+          const cleanedLine = line.trim().replace(/^[\d\-\*•.)\s]+/, '');
+          if (currentSection === 'discrepancies') {
+            discrepancies.push(cleanedLine);
+          } else if (currentSection === 'patterns') {
+            patterns.push(cleanedLine);
+          } else if (currentSection === 'recommendations') {
+            recommendations.push(cleanedLine);
+          }
+        } else if (currentSection === 'summary' && line.trim()) {
+          summary += line.trim() + ' ';
+        }
+      });
+
+      // If parsing didn't work well, provide fallback
+      if (!summary) {
+        summary = rawAnalysis.substring(0, 300) + '...';
+      }
+      if (discrepancies.length === 0) {
+        discrepancies.push('Analysis completed - see raw analysis for details');
+      }
+      if (patterns.length === 0) {
+        patterns.push('Analysis completed - see raw analysis for details');
+      }
+      if (recommendations.length === 0) {
+        recommendations.push('Analysis completed - see raw analysis for details');
+      }
+
+      const insights: AIInsight = {
+        couple_id: coupleId,
+        generated_at: new Date().toISOString(),
+        summary: summary.trim(),
+        discrepancies,
+        patterns,
+        recommendations,
+        raw_analysis: rawAnalysis,
+        citations: analysisResult.citations,
+      };
+
+      // Cache the result to prevent repeated expensive API calls
+      aiInsightsCache.set(cacheKey, {
+        data: insights,
+        timestamp: Date.now(),
+      });
+
+      res.json(insights);
+    } catch (error: any) {
+      console.error('AI Insights error:', error);
+      res.status(500).json({ 
+        error: error.message || 'Failed to generate AI insights' 
+      });
     }
   });
 

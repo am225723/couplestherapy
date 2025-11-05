@@ -241,3 +241,15 @@ export interface WeeklyCompletionData {
   partner2_completed: boolean;
   both_completed: boolean;
 }
+
+// AI INSIGHTS TYPE
+export type AIInsight = {
+  couple_id: string;
+  generated_at: string; // ISO timestamp
+  summary: string;
+  discrepancies: string[];
+  patterns: string[];
+  recommendations: string[];
+  raw_analysis: string; // Full Perplexity response
+  citations?: string[]; // If Perplexity provides citations
+};
