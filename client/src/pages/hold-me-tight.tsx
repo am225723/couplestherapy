@@ -7,14 +7,19 @@ import { Progress } from '@/components/ui/progress';
 import { useAuth } from '@/lib/auth-context';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/hooks/use-toast';
-import { Heart, Loader2, MessageCircle } from 'lucide-react';
+import { Heart, Loader2, MessageCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 
 type ConversationStep = 'initiate' | 'partner-reflect' | 'partner-respond' | 'complete';
 
 export default function HoldMeTightPage() {
   const [step, setStep] = useState<ConversationStep>('initiate');
+  const [initiatorStep, setInitiatorStep] = useState(1);
   const [conversationId, setConversationId] = useState<string | null>(null);
+  const [initiatorSituation, setInitiatorSituation] = useState('');
   const [initiatorFeel, setInitiatorFeel] = useState('');
+  const [initiatorScaredOf, setInitiatorScaredOf] = useState('');
+  const [initiatorEmbarrassedAbout, setInitiatorEmbarrassedAbout] = useState('');
+  const [initiatorExpectations, setInitiatorExpectations] = useState('');
   const [initiatorNeed, setInitiatorNeed] = useState('');
   const [partnerReflection, setPartnerReflection] = useState('');
   const [partnerResponse, setPartnerResponse] = useState('');
@@ -46,7 +51,11 @@ export default function HoldMeTightPage() {
         if (data.initiator_id === user?.id) {
           if (!data.partner_reflection) {
             setStep('initiate');
+            setInitiatorSituation(data.initiator_situation || '');
             setInitiatorFeel(data.initiator_statement_feel || '');
+            setInitiatorScaredOf(data.initiator_scared_of || '');
+            setInitiatorEmbarrassedAbout(data.initiator_embarrassed_about || '');
+            setInitiatorExpectations(data.initiator_expectations || '');
             setInitiatorNeed(data.initiator_statement_need || '');
           } else {
             toast({
@@ -58,7 +67,11 @@ export default function HoldMeTightPage() {
         } else {
           if (!data.partner_reflection) {
             setStep('partner-reflect');
+            setInitiatorSituation(data.initiator_situation || '');
             setInitiatorFeel(data.initiator_statement_feel || '');
+            setInitiatorScaredOf(data.initiator_scared_of || '');
+            setInitiatorEmbarrassedAbout(data.initiator_embarrassed_about || '');
+            setInitiatorExpectations(data.initiator_expectations || '');
             setInitiatorNeed(data.initiator_statement_need || '');
           } else {
             setStep('partner-respond');
@@ -73,6 +86,34 @@ export default function HoldMeTightPage() {
     }
   };
 
+  const handleNext = () => {
+    if (initiatorStep < 6) {
+      setInitiatorStep(initiatorStep + 1);
+    }
+  };
+
+  const handlePrevious = () => {
+    if (initiatorStep > 1) {
+      setInitiatorStep(initiatorStep - 1);
+    }
+  };
+
+  const getCurrentStepValue = () => {
+    switch (initiatorStep) {
+      case 1: return initiatorSituation;
+      case 2: return initiatorFeel;
+      case 3: return initiatorScaredOf;
+      case 4: return initiatorEmbarrassedAbout;
+      case 5: return initiatorExpectations;
+      case 6: return initiatorNeed;
+      default: return '';
+    }
+  };
+
+  const isCurrentStepValid = () => {
+    return getCurrentStepValue().trim().length > 0;
+  };
+
   const handleInitiate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user || !profile?.couple_id) return;
@@ -85,7 +126,11 @@ export default function HoldMeTightPage() {
         .insert({
           couple_id: profile.couple_id,
           initiator_id: user.id,
+          initiator_situation: initiatorSituation,
           initiator_statement_feel: initiatorFeel,
+          initiator_scared_of: initiatorScaredOf,
+          initiator_embarrassed_about: initiatorEmbarrassedAbout,
+          initiator_expectations: initiatorExpectations,
           initiator_statement_need: initiatorNeed,
         })
         .select()
@@ -168,6 +213,74 @@ export default function HoldMeTightPage() {
     }
   };
 
+  const getStepPrompt = () => {
+    switch (initiatorStep) {
+      case 1:
+        return {
+          title: 'When this happens...',
+          description: 'Describe the specific situation or trigger that brings up difficult emotions.',
+          placeholder: 'Example: When you come home late without calling me...',
+          value: initiatorSituation,
+          onChange: setInitiatorSituation,
+          testId: 'textarea-situation',
+        };
+      case 2:
+        return {
+          title: 'I feel...',
+          description: 'Name the emotions that arise in this situation. Be specific.',
+          placeholder: 'Example: I feel anxious, alone, and scared that I\'m not important to you...',
+          value: initiatorFeel,
+          onChange: setInitiatorFeel,
+          testId: 'textarea-feel',
+        };
+      case 3:
+        return {
+          title: 'What am I scared of?',
+          description: 'Explore your deeper fears. What are you most afraid might happen?',
+          placeholder: 'Example: I\'m scared that you don\'t need me, that I\'m not a priority in your life...',
+          value: initiatorScaredOf,
+          onChange: setInitiatorScaredOf,
+          testId: 'textarea-scared-of',
+        };
+      case 4:
+        return {
+          title: 'What am I embarrassed about?',
+          description: 'Acknowledge what feels vulnerable or shameful to admit.',
+          placeholder: 'Example: I\'m embarrassed that I need so much reassurance, that I can\'t just be okay on my own...',
+          value: initiatorEmbarrassedAbout,
+          onChange: setInitiatorEmbarrassedAbout,
+          testId: 'textarea-embarrassed-about',
+        };
+      case 5:
+        return {
+          title: 'What are my expectations?',
+          description: 'Share your hopes and desires. What would feel good to you?',
+          placeholder: 'Example: I hope that we can stay connected even when we\'re apart, that you\'ll think of me during the day...',
+          value: initiatorExpectations,
+          onChange: setInitiatorExpectations,
+          testId: 'textarea-expectations',
+        };
+      case 6:
+        return {
+          title: 'What do I need?',
+          description: 'Make a clear, specific request of your partner.',
+          placeholder: 'Example: I need you to send me a quick text when you\'re running late, so I know you\'re thinking of me...',
+          value: initiatorNeed,
+          onChange: setInitiatorNeed,
+          testId: 'textarea-need',
+        };
+      default:
+        return {
+          title: '',
+          description: '',
+          placeholder: '',
+          value: '',
+          onChange: () => {},
+          testId: '',
+        };
+    }
+  };
+
   if (checkingExisting) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -176,7 +289,12 @@ export default function HoldMeTightPage() {
     );
   }
 
-  const progressValue = step === 'initiate' ? 33 : step === 'partner-reflect' ? 66 : 100;
+  const progressValue = 
+    step === 'initiate' 
+      ? (initiatorStep / 6) * 100 / 3
+      : step === 'partner-reflect' 
+        ? 33 + (100 / 3) 
+        : 66 + (100 / 3);
 
   return (
     <div className="min-h-screen bg-background py-8 px-4">
@@ -193,15 +311,15 @@ export default function HoldMeTightPage() {
 
         <Card>
           <CardHeader>
-            <Progress value={progressValue} className="mb-4" />
+            <Progress value={progressValue} className="mb-4" data-testid="progress-bar" />
             <CardTitle>
-              {step === 'initiate' && 'Step 1: Share Your Raw Spot'}
-              {step === 'partner-reflect' && 'Step 2: Reflect Back'}
-              {step === 'partner-respond' && 'Step 3: Share Your Experience'}
+              {step === 'initiate' && `Step ${initiatorStep} of 6: ${getStepPrompt().title}`}
+              {step === 'partner-reflect' && 'Partner Step 1: Reflect Back'}
+              {step === 'partner-respond' && 'Partner Step 2: Share Your Experience'}
             </CardTitle>
             <CardDescription>
-              {step === 'initiate' && 'Share a vulnerable moment using "I feel" statements'}
-              {step === 'partner-reflect' && 'Repeat back what you heard your partner say'}
+              {step === 'initiate' && getStepPrompt().description}
+              {step === 'partner-reflect' && 'Reflect back what you heard your partner share'}
               {step === 'partner-respond' && 'Share how you felt during that moment'}
             </CardDescription>
           </CardHeader>
@@ -209,66 +327,112 @@ export default function HoldMeTightPage() {
             {step === 'initiate' && (
               <form onSubmit={handleInitiate} className="space-y-6">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">
-                    When this happens... I feel...
+                  <label className="text-sm font-medium text-foreground">
+                    {getStepPrompt().title}
                   </label>
                   <Textarea
-                    placeholder="Example: When you come home late without calling, I feel anxious and alone..."
-                    value={initiatorFeel}
-                    onChange={(e) => setInitiatorFeel(e.target.value)}
+                    placeholder={getStepPrompt().placeholder}
+                    value={getStepPrompt().value}
+                    onChange={(e) => getStepPrompt().onChange(e.target.value)}
                     className="min-h-32 resize-none"
                     required
-                    data-testid="textarea-initiator-feel"
+                    data-testid={getStepPrompt().testId}
                   />
                 </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">
-                    What I need from you is...
-                  </label>
-                  <Textarea
-                    placeholder="Example: I need to know you're thinking of me, even when you're busy..."
-                    value={initiatorNeed}
-                    onChange={(e) => setInitiatorNeed(e.target.value)}
-                    className="min-h-32 resize-none"
-                    required
-                    data-testid="textarea-initiator-need"
-                  />
-                </div>
-                <Button type="submit" className="w-full" disabled={loading} data-testid="button-initiate">
-                  {loading ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Starting conversation...
-                    </>
-                  ) : (
-                    <>
-                      <Heart className="mr-2 h-4 w-4" />
-                      Share with Partner
-                    </>
+
+                <div className="flex gap-4">
+                  {initiatorStep > 1 && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={handlePrevious}
+                      className="flex-1"
+                      data-testid="button-previous"
+                    >
+                      <ChevronLeft className="mr-2 h-4 w-4" />
+                      Previous
+                    </Button>
                   )}
-                </Button>
+                  {initiatorStep < 6 ? (
+                    <Button
+                      type="button"
+                      onClick={handleNext}
+                      disabled={!isCurrentStepValid()}
+                      className="flex-1"
+                      data-testid="button-next"
+                    >
+                      Next
+                      <ChevronRight className="ml-2 h-4 w-4" />
+                    </Button>
+                  ) : (
+                    <Button 
+                      type="submit" 
+                      className="flex-1" 
+                      disabled={loading || !isCurrentStepValid()} 
+                      data-testid="button-submit"
+                    >
+                      {loading ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Starting conversation...
+                        </>
+                      ) : (
+                        <>
+                          <Heart className="mr-2 h-4 w-4" />
+                          Share with Partner
+                        </>
+                      )}
+                    </Button>
+                  )}
+                </div>
               </form>
             )}
 
             {step === 'partner-reflect' && (
               <form onSubmit={handlePartnerReflect} className="space-y-6">
-                <div className="bg-accent/30 p-6 rounded-lg space-y-4">
+                <div className="bg-accent/30 p-6 rounded-lg space-y-6">
                   <p className="text-sm font-medium text-muted-foreground">Your partner shared:</p>
+                  
                   <div className="space-y-2">
-                    <p className="font-medium">They feel:</p>
-                    <p className="italic">"{initiatorFeel}"</p>
+                    <p className="font-semibold text-foreground">When this happens:</p>
+                    <p className="italic text-foreground/90">"{initiatorSituation}"</p>
                   </div>
+
                   <div className="space-y-2">
-                    <p className="font-medium">They need:</p>
-                    <p className="italic">"{initiatorNeed}"</p>
+                    <p className="font-semibold text-foreground">They feel:</p>
+                    <p className="italic text-foreground/90">"{initiatorFeel}"</p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <p className="font-semibold text-foreground">They're scared of:</p>
+                    <p className="italic text-foreground/90">"{initiatorScaredOf}"</p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <p className="font-semibold text-foreground">They're embarrassed about:</p>
+                    <p className="italic text-foreground/90">"{initiatorEmbarrassedAbout}"</p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <p className="font-semibold text-foreground">Their expectations:</p>
+                    <p className="italic text-foreground/90">"{initiatorExpectations}"</p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <p className="font-semibold text-foreground">They need:</p>
+                    <p className="italic text-foreground/90">"{initiatorNeed}"</p>
                   </div>
                 </div>
+
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">
+                  <label className="text-sm font-medium text-foreground">
                     What I'm hearing you say is...
                   </label>
+                  <p className="text-sm text-muted-foreground mb-2">
+                    Reflect back the essence of what you heard, showing you understand their vulnerable sharing.
+                  </p>
                   <Textarea
-                    placeholder="Reflect back what you heard without judgment..."
+                    placeholder="Example: I hear you saying that when I come home late without calling, you feel anxious and alone, and you're scared that you're not important to me..."
                     value={partnerReflection}
                     onChange={(e) => setPartnerReflection(e.target.value)}
                     className="min-h-32 resize-none"
@@ -283,7 +447,7 @@ export default function HoldMeTightPage() {
                       Continuing...
                     </>
                   ) : (
-                    'Continue to Step 3'
+                    'Continue to Partner Step 2'
                   )}
                 </Button>
               </form>
