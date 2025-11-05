@@ -111,22 +111,19 @@ BEGIN
   INSERT INTO public."Couples_love_languages" (user_id, primary_language, secondary_language, scores)
   VALUES 
     (mcally_id, 'quality_time', 'words_of_affirmation', '{"words_of_affirmation": 8, "quality_time": 9, "receiving_gifts": 5, "acts_of_service": 7, "physical_touch": 6}'::jsonb),
-    (ccally_id, 'physical_touch', 'acts_of_service', '{"words_of_affirmation": 7, "quality_time": 6, "receiving_gifts": 4, "acts_of_service": 8, "physical_touch": 9}'::jsonb)
-  ON CONFLICT (user_id) DO NOTHING;
+    (ccally_id, 'physical_touch', 'acts_of_service', '{"words_of_affirmation": 7, "quality_time": 6, "receiving_gifts": 4, "acts_of_service": 8, "physical_touch": 9}'::jsonb);
   
   RAISE NOTICE 'Added sample love language data';
 
   -- Add a sample gratitude log entry
   INSERT INTO public."Couples_gratitude_logs" (couple_id, user_id, text_content)
-  VALUES (couple_id, mcally_id, 'Grateful for the wonderful dinner you cooked tonight!')
-  ON CONFLICT DO NOTHING;
+  VALUES (main_block.couple_id, mcally_id, 'Grateful for the wonderful dinner you cooked tonight!');
   
   RAISE NOTICE 'Added sample gratitude entry';
 
   -- Add a sample shared goal
   INSERT INTO public."Couples_shared_goals" (couple_id, created_by, title, status, assigned_to)
-  VALUES (couple_id, mcally_id, 'Plan weekend getaway', 'doing', mcally_id)
-  ON CONFLICT DO NOTHING;
+  VALUES (main_block.couple_id, mcally_id, 'Plan weekend getaway', 'doing', mcally_id);
   
   RAISE NOTICE 'Added sample goal';
 
