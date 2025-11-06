@@ -34,6 +34,7 @@ import ClientDashboard from './pages/client-dashboard';
 import AdminDashboard from './pages/admin-dashboard';
 import AnalyticsPage from './pages/analytics';
 import UserManagementPage from './pages/user-management';
+import TherapistManagementPage from './pages/therapist-management';
 import NotFound from './pages/not-found';
 
 function AppSidebar() {
@@ -62,6 +63,7 @@ function AppSidebar() {
     { title: 'Analytics', url: '/admin/analytics', icon: BarChart3 },
     { title: 'User Management', url: '/admin/user-management', icon: UserPlus },
   ];
+      { title: 'Therapist Management', url: '/admin/therapist-management', icon: UserPlus },
 
   const menuItems = profile?.role === 'therapist' ? adminMenuItems : clientMenuItems;
 
@@ -202,6 +204,7 @@ function AuthenticatedApp() {
                   <Route path="/admin/couple/:id" component={AdminDashboard} />
                   <Route path="/admin/analytics" component={AnalyticsPage} />
                   <Route path="/admin/user-management" component={UserManagementPage} />
+                  <Route path="/admin/therapist-management" component={TherapistManagementPage} />
                   <Route path="/">
                     <Redirect to="/admin" />
                   </Route>
