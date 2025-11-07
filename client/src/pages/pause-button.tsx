@@ -142,13 +142,11 @@ export default function PauseButtonPage() {
   // Activate pause mutation
   const activatePauseMutation = useMutation({
     mutationFn: async () => {
-      return apiRequest(`/api/pause/activate`, {
-        method: 'POST',
-        body: JSON.stringify({
-          couple_id: profile!.couple_id,
-          initiated_by: user!.id,
-        }),
+      const response = await apiRequest('POST', '/api/pause/activate', {
+        couple_id: profile!.couple_id,
+        initiated_by: user!.id,
       });
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/pause/active', profile?.couple_id] });
@@ -170,10 +168,8 @@ export default function PauseButtonPage() {
   // End pause mutation
   const endPauseMutation = useMutation({
     mutationFn: async ({ id, reflection }: { id: string; reflection: string }) => {
-      return apiRequest(`/api/pause/end/${id}`, {
-        method: 'POST',
-        body: JSON.stringify({ reflection }),
-      });
+      const response = await apiRequest('POST', `/api/pause/end/${id}`, { reflection });
+      return response.json();
     },
     onSuccess: () => {
       setShowEndDialog(false);

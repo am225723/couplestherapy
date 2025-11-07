@@ -41,16 +41,14 @@ export default function EchoEmpathyPage() {
   // Start new session mutation
   const startSessionMutation = useMutation({
     mutationFn: async ({ speaker_id, listener_id }: { speaker_id: string; listener_id: string }) => {
-      return apiRequest(`/api/echo/session`, {
-        method: 'POST',
-        body: JSON.stringify({
-          couple_id: profile!.couple_id,
-          speaker_id,
-          listener_id,
-          current_step: 1,
-          status: 'in_progress',
-        }),
+      const response = await apiRequest('POST', '/api/echo/session', {
+        couple_id: profile!.couple_id,
+        speaker_id,
+        listener_id,
+        current_step: 1,
+        status: 'in_progress',
       });
+      return response.json();
     },
     onSuccess: (data) => {
       setActiveSession({ ...data, turns: [] });
@@ -72,15 +70,13 @@ export default function EchoEmpathyPage() {
   // Submit turn mutation
   const submitTurnMutation = useMutation({
     mutationFn: async ({ session_id, step, author_id, content }: { session_id: string; step: number; author_id: string; content: string }) => {
-      return apiRequest(`/api/echo/turn`, {
-        method: 'POST',
-        body: JSON.stringify({
-          session_id,
-          step,
-          author_id,
-          content,
-        }),
+      const response = await apiRequest('POST', '/api/echo/turn', {
+        session_id,
+        step,
+        author_id,
+        content,
       });
+      return response.json();
     },
     onSuccess: (data, variables) => {
       if (activeSession) {
@@ -118,9 +114,8 @@ export default function EchoEmpathyPage() {
   // Complete session mutation
   const completeSessionMutation = useMutation({
     mutationFn: async (session_id: string) => {
-      return apiRequest(`/api/echo/session/${session_id}/complete`, {
-        method: 'PATCH',
-      });
+      const response = await apiRequest('PATCH', `/api/echo/session/${session_id}/complete`);
+      return response.json();
     },
     onSuccess: () => {
       setActiveSession(null);
