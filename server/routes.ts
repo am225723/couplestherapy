@@ -157,8 +157,12 @@ async function verifyUserSession(req: Request): Promise<{ success: false; error:
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // THERAPIST ANALYTICS ENDPOINT
-  app.get("/api/therapist/analytics", async (req, res) => {
+  // ==============================================
+  // AI ENDPOINTS
+  // ==============================================
+
+  // THERAPIST ANALYTICS (AI-Powered)
+  app.get("/api/ai/analytics", async (req, res) => {
     try {
       const therapistId = req.query.therapist_id as string;
 
@@ -330,10 +334,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const aiInsightsCache = new Map<string, { data: AIInsight; timestamp: number }>();
   const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 
-  // AI INSIGHTS ENDPOINT
+  // AI INSIGHTS (Clinical Insights from Check-ins)
   // SECURITY NOTE: In production, therapist_id should come from authenticated session,
   // not from query parameters. This implementation assumes frontend authentication.
-  app.get("/api/therapist/ai-insights", async (req, res) => {
+  app.get("/api/ai/insights", async (req, res) => {
     try {
       const coupleId = req.query.couple_id as string;
       const therapistId = req.query.therapist_id as string;
@@ -2021,7 +2025,11 @@ Be precise, evidence-based, and therapeutically sensitive. Format your response 
     }
   });
 
-  // DATE NIGHT GENERATOR ENDPOINT
+  // ==============================================
+  // AI ENDPOINTS
+  // ==============================================
+
+  // DATE NIGHT GENERATOR (Connection Concierge)
   const dateNightPreferencesSchema = z.object({
     time: z.string().min(1, "Time preference is required"),
     location: z.string().min(1, "Location preference is required"),
@@ -2030,7 +2038,7 @@ Be precise, evidence-based, and therapeutically sensitive. Format your response 
     energy: z.string().min(1, "Energy level preference is required"),
   });
 
-  app.post("/api/date-night/generate", async (req, res) => {
+  app.post("/api/ai/date-night", async (req, res) => {
     try {
       // Verify user session (client only, not therapist)
       const authResult = await verifyUserSession(req);
