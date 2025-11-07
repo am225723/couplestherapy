@@ -417,8 +417,8 @@ Go to Table Editor → Couples_profiles:
 The serverless function had **top-level `await`** which Vercel doesn't support properly in serverless functions.
 
 ### Solution (FIXED):
-✅ **Updated `api/index.ts` to use lazy initialization**
-- Routes now initialize on first request instead of at module load
+✅ **Updated `api/index.ts` to remove top-level await**
+- Routes are now registered synchronously at module load
 - Compatible with Vercel's serverless architecture
 - Prevents `FUNCTION_INVOCATION_FAILED` errors
 
@@ -429,19 +429,17 @@ await registerRoutes(app);
 export default app;
 
 // NEW (works with Vercel):
-app.use(async (req, res, next) => {
-  if (!isInitialized) {
-    if (!initializationPromise) {
-      initializationPromise = registerRoutes(app).then(() => {
-        isInitialized = true;
-      });
-    }
-    await initializationPromise;
-  }
-  next();
-});
+// Register routes synchronously - route registration itself is synchronous
+// even though registerRoutes returns Promise<Server>
+registerRoutes(app);
 export default app;
 ```
+
+**Why This Works:**
+- `registerRoutes()` registers all routes synchronously via `app.get()`, `app.post()`, etc.
+- It only returns `Promise<Server>` for the HTTP server instance (needed in development)
+- For Vercel serverless, we don't need the Server instance - just the Express app
+- No await needed = no top-level await = Vercel compatible ✅
 
 ### Next Steps After Fix:
 1. **Commit and push** your changes to GitHub
