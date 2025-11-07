@@ -30,7 +30,7 @@ These files were using `apiRequest` correctly from the start:
 
 ### 3. **client/src/pages/date-night.tsx** ✅
 ```typescript
-✅ apiRequest('POST', '/api/date-night/generate', prefs)
+✅ apiRequest('POST', '/api/ai/date-night', prefs)
 ```
 
 ### 4. **client/src/pages/user-management.tsx** ✅

@@ -187,10 +187,13 @@ All routes from `server/routes.ts` available at `/api/*`:
 
 ### Therapist Features
 - `GET /api/therapist/couples` - Get therapist's couples
-- `POST /api/therapist/analytics` - Get AI analytics
+- `POST /api/therapist/create-couple` - Create new couple
+- `POST /api/therapist/create-therapist` - Create new therapist
 
-### AI Date Night
-- `POST /api/perplexity/date-night` - Generate date ideas
+### AI Endpoints
+- `POST /api/ai/date-night` - Generate date night ideas (Perplexity)
+- `GET /api/ai/analytics` - Get therapist analytics (Perplexity)
+- `GET /api/ai/insights` - Get detailed couple insights (Perplexity)
 
 **All routes registered in `server/routes.ts` (3102 lines) ✅**
 

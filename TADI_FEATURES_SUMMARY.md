@@ -258,10 +258,11 @@
 - `POST /api/public/register-couple` - Secure couple registration with invitation code
 
 ### **Authenticated Endpoints**
-- `POST /api/date-night/generate` - Generate AI date night ideas
+- `POST /api/ai/date-night` - Generate AI date night ideas (Perplexity)
+- `GET /api/ai/analytics` - Get therapist analytics overview (Perplexity)
+- `GET /api/ai/insights` - Get detailed couple insights (Perplexity)
 - `GET /api/love-map/questions` - Fetch Love Map questions
 - `GET /api/love-map/session/:couple_id` - Get/create Love Map session
-- `POST /api/analytics` - Generate therapist analytics (Perplexity AI)
 
 ### **Therapist-Only Endpoints**
 - `POST /api/therapist/create-therapist` - Create new therapist

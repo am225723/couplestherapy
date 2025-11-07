@@ -101,7 +101,7 @@ model: 'sonar-pro' // ✅ Current (2025)
 8. Display ideas with titles, descriptions, connection tips ✅
 
 **API Verification:**
-- `POST /api/date-night/generate` → **200 OK** ✅
+- `POST /api/ai/date-night` → **200 OK** ✅
 - Perplexity `sonar-pro` model → **Valid response** ✅
 - 3 date night ideas generated successfully ✅
 
