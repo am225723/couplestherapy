@@ -43,14 +43,12 @@ export default function IfsIntroPage() {
   // Create exercise mutation
   const createExerciseMutation = useMutation({
     mutationFn: async () => {
-      return apiRequest(`/api/ifs/exercise`, {
-        method: 'POST',
-        body: JSON.stringify({
-          user_id: user!.id,
-          couple_id: profile!.couple_id,
-          status: 'in_progress',
-        }),
+      const response = await apiRequest('POST', '/api/ifs/exercise', {
+        user_id: user!.id,
+        couple_id: profile!.couple_id,
+        status: 'in_progress',
       });
+      return response.json();
     },
     onSuccess: (data) => {
       setCurrentExerciseId(data.id);
@@ -75,14 +73,12 @@ export default function IfsIntroPage() {
       const exerciseId = currentExerciseId || activeExercise?.id;
       if (!exerciseId) throw new Error('No active exercise');
       
-      return apiRequest(`/api/ifs/part`, {
-        method: 'POST',
-        body: JSON.stringify({
-          exercise_id: exerciseId,
-          user_id: user!.id,
-          ...partData,
-        }),
+      const response = await apiRequest('POST', '/api/ifs/part', {
+        exercise_id: exerciseId,
+        user_id: user!.id,
+        ...partData,
       });
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/ifs/exercises', user?.id] });
@@ -107,10 +103,8 @@ export default function IfsIntroPage() {
   // Update part mutation
   const updatePartMutation = useMutation({
     mutationFn: async ({ id, updates }: { id: string; updates: Partial<IfsPart> }) => {
-      return apiRequest(`/api/ifs/part/${id}`, {
-        method: 'PATCH',
-        body: JSON.stringify(updates),
-      });
+      const response = await apiRequest('PATCH', `/api/ifs/part/${id}`, updates);
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/ifs/exercises', user?.id] });
@@ -135,9 +129,8 @@ export default function IfsIntroPage() {
   // Delete part mutation
   const deletePartMutation = useMutation({
     mutationFn: async (id: string) => {
-      return apiRequest(`/api/ifs/part/${id}`, {
-        method: 'DELETE',
-      });
+      const response = await apiRequest('DELETE', `/api/ifs/part/${id}`);
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/ifs/exercises', user?.id] });
