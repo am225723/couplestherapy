@@ -2081,7 +2081,7 @@ Be warm, creative, and encouraging. Emphasize connection, fun, and breaking rout
       }
 
       const perplexityRequest = {
-        model: 'llama-3.1-sonar-small-128k-online',
+        model: 'sonar-pro',
         messages: [
           { role: 'system' as const, content: systemPrompt },
           { role: 'user' as const, content: userPrompt },
