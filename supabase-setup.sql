@@ -138,7 +138,6 @@ $$;
 
 -- 1. PROFILES
 ALTER TABLE public."Couples_profiles" ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public."Couples_profiles" FORCE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "Users can see own profile" ON public."Couples_profiles";
 CREATE POLICY "Users can see own profile"
@@ -174,7 +173,6 @@ WITH CHECK ( auth.uid() = id );
 
 -- 2. COUPLES
 ALTER TABLE public."Couples_couples" ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public."Couples_couples" FORCE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "Users can see their couple" ON public."Couples_couples";
 CREATE POLICY "Users can see their couple"
