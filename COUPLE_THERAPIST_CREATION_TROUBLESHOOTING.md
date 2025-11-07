@@ -405,6 +405,74 @@ Go to Table Editor → Couples_profiles:
 
 ---
 
+---
+
+## ⚡ Vercel Deployment Issue - FUNCTION_INVOCATION_FAILED
+
+### Symptom:
+- Error: "500: A server error has occurred FUNCTION_INVOCATION_FAILED"
+- Error includes Vercel function ID like: `iad1::2i6wf-1762479028837-78143a4fa23a`
+
+### Root Cause:
+The serverless function had **top-level `await`** which Vercel doesn't support properly in serverless functions.
+
+### Solution (FIXED):
+✅ **Updated `api/index.ts` to use lazy initialization**
+- Routes now initialize on first request instead of at module load
+- Compatible with Vercel's serverless architecture
+- Prevents `FUNCTION_INVOCATION_FAILED` errors
+
+### What Changed:
+```typescript
+// OLD (causes FUNCTION_INVOCATION_FAILED):
+await registerRoutes(app);
+export default app;
+
+// NEW (works with Vercel):
+app.use(async (req, res, next) => {
+  if (!isInitialized) {
+    if (!initializationPromise) {
+      initializationPromise = registerRoutes(app).then(() => {
+        isInitialized = true;
+      });
+    }
+    await initializationPromise;
+  }
+  next();
+});
+export default app;
+```
+
+### Next Steps After Fix:
+1. **Commit and push** your changes to GitHub
+2. **Redeploy** to Vercel (automatic if connected to GitHub)
+3. **Wait for deployment** to complete
+4. **Try creating couple/therapist** again
+
+### Other Vercel-Specific Issues:
+
+**Missing Environment Variables on Vercel:**
+- Make sure all environment variables are set in Vercel Dashboard
+- Go to: Project Settings → Environment Variables
+- Required variables:
+  - `VITE_SUPABASE_URL`
+  - `VITE_SUPABASE_ANON_KEY`
+  - `SUPABASE_SERVICE_ROLE_KEY`
+  - `SESSION_SECRET`
+  - `PERPLEXITY_API_KEY`
+
+**Function Timeout:**
+- Default timeout: 10 seconds (Hobby plan)
+- Configured timeout: 30 seconds (in `vercel.json`)
+- If still timing out, check Supabase response times
+
+**Cold Start Issues:**
+- First request after deployment may be slow
+- This is normal for serverless functions
+- Subsequent requests will be faster
+
+---
+
 ## 📞 Still Having Issues?
 
 If you're still experiencing problems:
@@ -421,8 +489,9 @@ Common error messages and what they mean:
 - "Failed to create Partner X" = Supabase Auth error
 - "Failed to create couple" = Database insert error
 - "Failed to create therapist profile" = RLS policy or insert error
+- "FUNCTION_INVOCATION_FAILED" = Vercel serverless error (now fixed)
 
 ---
 
-**Status:** All code is correctly configured ✅  
-**Next Step:** Try creating a couple/therapist and note any error messages you see
+**Status:** Vercel serverless issue FIXED ✅  
+**Next Step:** Redeploy to Vercel and try creating a couple/therapist again

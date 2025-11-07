@@ -2,6 +2,8 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "../server/routes";
 
 const app = express();
+let isInitialized = false;
+let initializationPromise: Promise<void> | null = null;
 
 declare module 'http' {
   interface IncomingMessage {
@@ -46,7 +48,19 @@ app.use((req, res, next) => {
   next();
 });
 
-await registerRoutes(app);
+// Lazy initialization middleware for serverless
+app.use(async (req, res, next) => {
+  if (!isInitialized) {
+    if (!initializationPromise) {
+      initializationPromise = registerRoutes(app).then(() => {
+        isInitialized = true;
+        initializationPromise = null;
+      });
+    }
+    await initializationPromise;
+  }
+  next();
+});
 
 app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
   const status = err.status || err.statusCode || 500;
