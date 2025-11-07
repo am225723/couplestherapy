@@ -45,6 +45,7 @@ function AppSidebar() {
   const clientMenuItems = [
     { title: 'Dashboard', url: '/dashboard', icon: Home },
     { title: 'Weekly Check-In', url: '/weekly-checkin', icon: ClipboardList },
+    { title: 'Love Language Quiz', url: '/quiz', icon: Heart },
     { title: 'Love Map Quiz', url: '/love-map', icon: Map },
     { title: 'Echo & Empathy', url: '/echo-empathy', icon: Volume2 },
     { title: 'IFS Introduction', url: '/ifs-intro', icon: User },
