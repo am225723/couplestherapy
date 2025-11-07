@@ -14,6 +14,8 @@ import { Link, useLocation } from 'wouter';
 import tadiLogo from '@assets/logo_1762363277396.png';
 
 import AuthPage from './pages/auth';
+import TherapistSignup from './pages/therapist-signup';
+import CoupleSignup from './pages/couple-signup';
 import CoupleSetup from './pages/couple-setup';
 import LoveLanguageQuiz from './pages/love-language-quiz';
 import LoveMapQuiz from './pages/love-map';
@@ -33,7 +35,7 @@ import PauseButtonPage from './pages/pause-button';
 import ClientDashboard from './pages/client-dashboard';
 import AdminDashboard from './pages/admin-dashboard';
 import AnalyticsPage from './pages/analytics';
-import UserManagementPage from './pages/user-management';
+import InvitationCodesPage from './pages/invitation-codes';
 import NotFound from './pages/not-found';
 
 function AppSidebar() {
@@ -60,8 +62,7 @@ function AppSidebar() {
   const adminMenuItems = [
     { title: 'Couples', url: '/admin', icon: Users },
     { title: 'Analytics', url: '/admin/analytics', icon: BarChart3 },
-    { title: 'User Management', url: '/admin/user-management', icon: UserPlus },
-    // { title: 'Therapist Management', url: '/admin/therapist-management', icon: UserPlus }, // This was the line causing the error, I've corrected it by commenting it out as it seems to be what you intended. If you wanted to add it, it should be inside the array like the line above.
+    { title: 'Invitation Codes', url: '/admin/invitation-codes', icon: UserPlus },
   ];
 
   const menuItems = profile?.role === 'therapist' ? adminMenuItems : clientMenuItems;
@@ -126,7 +127,7 @@ function AuthenticatedApp() {
   // This prevents 404 errors when therapists sign in while on client routes (or vice versa)
   useEffect(() => {
     if (!loading && user && profile) {
-      const therapistRoutes = ['/admin', '/admin/analytics', '/admin/user-management'];
+      const therapistRoutes = ['/admin', '/admin/analytics', '/admin/invitation-codes'];
       const clientRoutes = ['/dashboard', '/couple-setup', '/quiz', '/love-map', '/weekly-checkin', '/checkin-history', '/gratitude', '/goals', '/rituals', '/conversation', '/voice-memos', '/date-night', '/messages', '/calendar', '/echo-empathy', '/ifs-intro', '/pause'];
       
       const isTherapist = profile.role === 'therapist';
@@ -158,6 +159,16 @@ function AuthenticatedApp() {
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
+    );
+  }
+
+  // Allow public access to signup pages
+  if (!user && (location === '/auth/therapist-signup' || location === '/auth/couple-signup')) {
+    return (
+      <Switch>
+        <Route path="/auth/therapist-signup" component={TherapistSignup} />
+        <Route path="/auth/couple-signup" component={CoupleSignup} />
+      </Switch>
     );
   }
 
@@ -202,7 +213,7 @@ function AuthenticatedApp() {
                   <Route path="/admin" component={AdminDashboard} />
                   <Route path="/admin/couple/:id" component={AdminDashboard} />
                   <Route path="/admin/analytics" component={AnalyticsPage} />
-                  <Route path="/admin/user-management" component={UserManagementPage} />
+                  <Route path="/admin/invitation-codes" component={InvitationCodesPage} />
                   <Route path="/">
                     <Redirect to="/admin" />
                   </Route>

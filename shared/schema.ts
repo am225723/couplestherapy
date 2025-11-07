@@ -533,3 +533,28 @@ export const insertPauseEventSchema = createInsertSchema(couplesPauseEvents).omi
 });
 export type InsertPauseEvent = z.infer<typeof insertPauseEventSchema>;
 export type PauseEvent = typeof couplesPauseEvents.$inferSelect;
+
+// ==============================================
+// INVITATION CODES - For Therapist-Couple Linking
+// ==============================================
+
+// 22. INVITATION CODES
+export const couplesInvitationCodes = pgTable("Couples_invitation_codes", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  code: text("code").notNull().unique(),
+  therapist_id: uuid("therapist_id").notNull(),
+  created_at: timestamp("created_at").defaultNow(),
+  expires_at: timestamp("expires_at"),
+  used_at: timestamp("used_at"),
+  used_by_couple_id: uuid("used_by_couple_id"),
+  is_active: boolean("is_active").default(true),
+});
+
+export const insertInvitationCodeSchema = createInsertSchema(couplesInvitationCodes).omit({
+  id: true,
+  created_at: true,
+  used_at: true,
+  used_by_couple_id: true,
+});
+export type InsertInvitationCode = z.infer<typeof insertInvitationCodeSchema>;
+export type InvitationCode = typeof couplesInvitationCodes.$inferSelect;
