@@ -45,7 +45,7 @@ export default function DateNightPage() {
 
   const generateMutation = useMutation({
     mutationFn: async (prefs: DateNightPreferences) => {
-      const response = await apiRequest('POST', '/api/date-night/generate', prefs);
+      const response = await apiRequest('POST', '/api/ai/date-night', prefs);
       const data = await response.json();
       return data as DateNightResponse;
     },

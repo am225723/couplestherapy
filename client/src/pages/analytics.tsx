@@ -200,9 +200,9 @@ function AIInsightsDialog({
   const [showRawAnalysis, setShowRawAnalysis] = useState(false);
 
   const { data: insights, isLoading, error } = useQuery<AIInsight>({
-    queryKey: ['/api/therapist/ai-insights', coupleId, therapistId],
+    queryKey: ['/api/ai/insights', coupleId, therapistId],
     queryFn: async () => {
-      const url = `/api/therapist/ai-insights?couple_id=${coupleId}&therapist_id=${therapistId}`;
+      const url = `/api/ai/insights?couple_id=${coupleId}&therapist_id=${therapistId}`;
       const res = await fetch(url, { credentials: 'include' });
       if (!res.ok) {
         const text = await res.text();
@@ -387,7 +387,7 @@ export default function AnalyticsPage() {
   const [exportingCoupleId, setExportingCoupleId] = useState<string | null>(null);
 
   const { data, isLoading, error } = useQuery<TherapistAnalytics>({
-    queryKey: ['/api/therapist/analytics', profile?.id],
+    queryKey: ['/api/ai/analytics', profile?.id],
     enabled: !!profile?.id,
   });
 
