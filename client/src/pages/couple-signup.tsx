@@ -48,94 +48,19 @@ export default function CoupleSignup() {
     setIsSubmitting(true);
 
     try {
-      // Step 1: Validate invitation code
-      const { data: invitationData, error: codeError } = await supabase
-        .from('Couples_invitation_codes')
-        .select('id, therapist_id, is_active, used_at')
-        .eq('code', data.invitation_code.trim().toUpperCase())
-        .single();
-
-      if (codeError || !invitationData) {
-        throw new Error("Invalid invitation code");
-      }
-
-      if (!invitationData.is_active || invitationData.used_at) {
-        throw new Error("This invitation code has already been used");
-      }
-
-      // Step 2: Create Partner 1 account
-      const { data: partner1Auth, error: partner1Error } = await supabase.auth.signUp({
-        email: data.partner1_email,
-        password: data.partner1_password,
+      // Call secure backend endpoint
+      const response = await fetch('/api/public/register-couple', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
       });
 
-      if (partner1Error) throw new Error(`Failed to create Partner 1: ${partner1Error.message}`);
-      if (!partner1Auth.user) throw new Error("Partner 1 creation failed");
+      const result = await response.json();
 
-      // Step 3: Create Partner 2 account
-      const { data: partner2Auth, error: partner2Error } = await supabase.auth.signUp({
-        email: data.partner2_email,
-        password: data.partner2_password,
-      });
-
-      if (partner2Error) {
-        // If Partner 2 fails, we should ideally rollback Partner 1
-        // For now, just throw the error
-        throw new Error(`Failed to create Partner 2: ${partner2Error.message}`);
-      }
-      if (!partner2Auth.user) throw new Error("Partner 2 creation failed");
-
-      // Step 4: Create couple record
-      const { data: couple, error: coupleError } = await supabase
-        .from('Couples_couples')
-        .insert({
-          partner1_id: partner1Auth.user.id,
-          partner2_id: partner2Auth.user.id,
-          therapist_id: invitationData.therapist_id,
-        })
-        .select()
-        .single();
-
-      if (coupleError) throw new Error(`Failed to create couple: ${coupleError.message}`);
-
-      // Step 5: Create profiles for both partners
-      const { error: profile1Error } = await supabase
-        .from('Couples_profiles')
-        .insert({
-          id: partner1Auth.user.id,
-          full_name: data.partner1_name,
-          role: 'client',
-          couple_id: couple.id,
-        });
-
-      if (profile1Error) {
-        console.error('Failed to create Partner 1 profile:', profile1Error);
-      }
-
-      const { error: profile2Error } = await supabase
-        .from('Couples_profiles')
-        .insert({
-          id: partner2Auth.user.id,
-          full_name: data.partner2_name,
-          role: 'client',
-          couple_id: couple.id,
-        });
-
-      if (profile2Error) {
-        console.error('Failed to create Partner 2 profile:', profile2Error);
-      }
-
-      // Step 6: Mark invitation code as used
-      const { error: updateCodeError } = await supabase
-        .from('Couples_invitation_codes')
-        .update({
-          used_at: new Date().toISOString(),
-          used_by_couple_id: couple.id,
-        })
-        .eq('id', invitationData.id);
-
-      if (updateCodeError) {
-        console.error('Failed to mark invitation code as used:', updateCodeError);
+      if (!response.ok) {
+        throw new Error(result.error || 'Registration failed');
       }
 
       toast({
