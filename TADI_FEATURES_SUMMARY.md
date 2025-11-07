@@ -70,8 +70,8 @@
 
 #### **Connection Concierge (Date Night Generator)** ✅
 - **Path:** `/date-night`
-- **AI-Powered:** Uses Perplexity API (`llama-3.1-sonar-small-128k-online`)
-- **Backend:** `/api/date-night/generate`
+- **AI-Powered:** Uses Perplexity API (`sonar-pro` model)
+- **Backend:** `/api/ai/date-night`
 - **Input Preferences:**
   - Time available
   - Location (at-home vs. out)
@@ -209,7 +209,8 @@
 
 #### **Analytics (AI-Powered)** ✅
 - **Path:** `/admin/analytics`
-- **AI Engine:** Perplexity AI
+- **AI Engine:** Perplexity AI (`sonar-pro` model)
+- **Backend:** `/api/ai/analytics` (overview), `/api/ai/insights` (detailed analysis)
 - **Analyzes:**
   - Check-in patterns
   - Engagement levels
