@@ -283,7 +283,7 @@ export default function AdminDashboard() {
         </div>
 
         <Tabs defaultValue="checkins">
-          <TabsList className="grid w-full grid-cols-9 gap-2">
+          <TabsList className="grid w-full grid-cols-10 gap-2">
             <TabsTrigger value="checkins">Weekly Check-ins</TabsTrigger>
             <TabsTrigger value="languages">Love Languages</TabsTrigger>
             <TabsTrigger value="lovemap">Love Map Quiz</TabsTrigger>
@@ -293,6 +293,7 @@ export default function AdminDashboard() {
             <TabsTrigger value="activity">Activity Feed</TabsTrigger>
             <TabsTrigger value="messages">Messages</TabsTrigger>
             <TabsTrigger value="calendar">Calendar</TabsTrigger>
+            <TabsTrigger value="therapy-tools">Therapy Tools</TabsTrigger>
           </TabsList>
 
           <TabsContent value="checkins" className="space-y-6">
@@ -491,6 +492,53 @@ export default function AdminDashboard() {
 
           <TabsContent value="pause" className="space-y-4">
             <PauseHistoryTab coupleId={selectedCouple.id} partnerId1={selectedCouple.partner1_id} partnerId2={selectedCouple.partner2_id} partner1Name={selectedCouple.partner1?.full_name || undefined} partner2Name={selectedCouple.partner2?.full_name || undefined} />
+          </TabsContent>
+
+          <TabsContent value="therapy-tools" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Advanced Therapy Tools</CardTitle>
+                <CardDescription>
+                  Track usage and progress across additional therapeutic interventions
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Tabs defaultValue="four-horsemen">
+                  <TabsList className="grid w-full grid-cols-6 gap-2">
+                    <TabsTrigger value="four-horsemen" data-testid="tab-trigger-four-horsemen">Four Horsemen</TabsTrigger>
+                    <TabsTrigger value="demon-dialogues" data-testid="tab-trigger-demon-dialogues">Demon Dialogues</TabsTrigger>
+                    <TabsTrigger value="meditation" data-testid="tab-trigger-meditation">Meditation</TabsTrigger>
+                    <TabsTrigger value="intimacy" data-testid="tab-trigger-intimacy">Intimacy Mapping</TabsTrigger>
+                    <TabsTrigger value="values" data-testid="tab-trigger-values">Values & Vision</TabsTrigger>
+                    <TabsTrigger value="parenting" data-testid="tab-trigger-parenting">Parenting</TabsTrigger>
+                  </TabsList>
+
+                  <TabsContent value="four-horsemen" className="space-y-4 mt-6">
+                    <FourHorsemenTab coupleId={selectedCouple.id} />
+                  </TabsContent>
+
+                  <TabsContent value="demon-dialogues" className="space-y-4 mt-6">
+                    <DemonDialoguesTab coupleId={selectedCouple.id} />
+                  </TabsContent>
+
+                  <TabsContent value="meditation" className="space-y-4 mt-6">
+                    <MeditationLibraryTab coupleId={selectedCouple.id} />
+                  </TabsContent>
+
+                  <TabsContent value="intimacy" className="space-y-4 mt-6">
+                    <IntimacyMappingTab coupleId={selectedCouple.id} />
+                  </TabsContent>
+
+                  <TabsContent value="values" className="space-y-4 mt-6">
+                    <ValuesVisionTab coupleId={selectedCouple.id} />
+                  </TabsContent>
+
+                  <TabsContent value="parenting" className="space-y-4 mt-6">
+                    <ParentingPartnersTab coupleId={selectedCouple.id} />
+                  </TabsContent>
+                </Tabs>
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
       </div>
@@ -1249,6 +1297,678 @@ function PauseHistoryTab({ coupleId, partnerId1, partnerId2, partner1Name, partn
           </p>
         </AlertDescription>
       </Alert>
+    </div>
+  );
+}
+
+function FourHorsemenTab({ coupleId }: { coupleId: string }) {
+  const { data: incidents = [], isLoading } = useQuery<any[]>({
+    queryKey: [`/api/horsemen`, coupleId],
+    enabled: !!coupleId,
+  });
+
+  const totalIncidents = incidents.length;
+  const antidotePracticed = incidents.filter((i: any) => i.antidote_practiced).length;
+  const recentIncidents = incidents.slice(0, 10);
+
+  const stats = incidents.reduce((acc: any, incident: any) => {
+    acc[incident.horseman_type] = (acc[incident.horseman_type] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+
+  return (
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card data-testid="card-total-incidents">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Total Incidents</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold" data-testid="text-total-incidents">{totalIncidents}</div>
+          </CardContent>
+        </Card>
+
+        <Card data-testid="card-antidote-rate">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Antidote Success Rate</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-600" data-testid="text-antidote-rate">
+              {totalIncidents > 0 ? Math.round((antidotePracticed / totalIncidents) * 100) : 0}%
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card data-testid="card-recent-activity">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Recent Activity</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold" data-testid="text-recent-count">{recentIncidents.length}</div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <Card data-testid="card-horsemen-breakdown">
+        <CardHeader>
+          <CardTitle>Horsemen Breakdown</CardTitle>
+          <CardDescription>Distribution of incident types</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            {['criticism', 'contempt', 'defensiveness', 'stonewalling'].map(type => (
+              <div key={type} className="flex items-center justify-between" data-testid={`stat-${type}`}>
+                <span className="capitalize text-sm">{type}</span>
+                <Badge variant="outline">{stats[type] || 0}</Badge>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card data-testid="card-recent-incidents">
+        <CardHeader>
+          <CardTitle>Recent Incidents</CardTitle>
+          <CardDescription>Last 10 logged incidents</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {recentIncidents.length > 0 ? (
+            <div className="space-y-4">
+              {recentIncidents.map((incident: any) => (
+                <Card key={incident.id} data-testid={`incident-${incident.id}`}>
+                  <CardHeader className="pb-2">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-base capitalize">{incident.horseman_type}</CardTitle>
+                      <div className="flex gap-2">
+                        <Badge variant={incident.antidote_practiced ? 'default' : 'secondary'} data-testid={`badge-antidote-${incident.id}`}>
+                          {incident.antidote_practiced ? <CheckCircle2 className="w-3 h-3 mr-1" /> : <XCircle className="w-3 h-3 mr-1" />}
+                          {incident.antidote_practiced ? 'Antidote Practiced' : 'No Antidote'}
+                        </Badge>
+                      </div>
+                    </div>
+                    <CardDescription>
+                      {incident.created_at ? formatDistanceToNow(new Date(incident.created_at), { addSuffix: true }) : 'Recently'}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-muted-foreground">{incident.situation}</p>
+                    {incident.notes && <p className="text-sm text-muted-foreground mt-2 italic">{incident.notes}</p>}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <p className="text-center text-muted-foreground py-8">No incidents logged yet</p>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+function DemonDialoguesTab({ coupleId }: { coupleId: string }) {
+  const { data: dialogues = [], isLoading } = useQuery<any[]>({
+    queryKey: [`/api/demon-dialogues`, coupleId],
+    enabled: !!coupleId,
+  });
+
+  const totalDialogues = dialogues.length;
+  const interruptedCount = dialogues.filter((d: any) => d.interrupted).length;
+  const recentDialogues = dialogues.slice(0, 10);
+
+  const stats = dialogues.reduce((acc: any, dialogue: any) => {
+    acc[dialogue.dialogue_type] = (acc[dialogue.dialogue_type] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+
+  return (
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card data-testid="card-total-dialogues">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Total Cycles Recognized</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold" data-testid="text-total-dialogues">{totalDialogues}</div>
+          </CardContent>
+        </Card>
+
+        <Card data-testid="card-interruption-rate">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Interruption Success Rate</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-600" data-testid="text-interruption-rate">
+              {totalDialogues > 0 ? Math.round((interruptedCount / totalDialogues) * 100) : 0}%
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card data-testid="card-recent-activity">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Recent Activity</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold" data-testid="text-recent-count">{recentDialogues.length}</div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <Card data-testid="card-dialogue-breakdown">
+        <CardHeader>
+          <CardTitle>Dialogue Type Breakdown</CardTitle>
+          <CardDescription>Distribution of negative cycles</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            {['find_bad_guy', 'protest_polka', 'freeze_flee'].map(type => (
+              <div key={type} className="flex items-center justify-between" data-testid={`stat-${type}`}>
+                <span className="text-sm">{type.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}</span>
+                <Badge variant="outline">{stats[type] || 0}</Badge>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card data-testid="card-recent-dialogues">
+        <CardHeader>
+          <CardTitle>Recent Demon Dialogues</CardTitle>
+          <CardDescription>Last 10 recognized cycles</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {recentDialogues.length > 0 ? (
+            <div className="space-y-4">
+              {recentDialogues.map((dialogue: any) => (
+                <Card key={dialogue.id} data-testid={`dialogue-${dialogue.id}`}>
+                  <CardHeader className="pb-2">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-base">
+                        {dialogue.dialogue_type.split('_').map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
+                      </CardTitle>
+                      <Badge variant={dialogue.interrupted ? 'default' : 'secondary'} data-testid={`badge-interrupted-${dialogue.id}`}>
+                        {dialogue.interrupted ? 'Interrupted' : 'Not Interrupted'}
+                      </Badge>
+                    </div>
+                    <CardDescription>
+                      {dialogue.created_at ? formatDistanceToNow(new Date(dialogue.created_at), { addSuffix: true }) : 'Recently'}
+                    </CardDescription>
+                  </CardHeader>
+                  {dialogue.notes && (
+                    <CardContent>
+                      <p className="text-sm text-muted-foreground">{dialogue.notes}</p>
+                    </CardContent>
+                  )}
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <p className="text-center text-muted-foreground py-8">No demon dialogues recognized yet</p>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+function MeditationLibraryTab({ coupleId }: { coupleId: string }) {
+  const { data: sessions = [], isLoading } = useQuery<any[]>({
+    queryKey: [`/api/meditation/sessions`, coupleId],
+    enabled: !!coupleId,
+  });
+
+  const completedSessions = sessions.filter((s: any) => s.completed).length;
+  const totalMinutes = sessions
+    .filter((s: any) => s.completed)
+    .reduce((sum: number, s: any) => sum + (s.meditation?.duration_mins || 0), 0);
+  const recentSessions = sessions.slice(0, 10);
+
+  return (
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card data-testid="card-total-sessions">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Sessions Completed</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold" data-testid="text-total-sessions">{completedSessions}</div>
+          </CardContent>
+        </Card>
+
+        <Card data-testid="card-total-minutes">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Total Minutes</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-primary" data-testid="text-total-minutes">{totalMinutes}</div>
+          </CardContent>
+        </Card>
+
+        <Card data-testid="card-recent-activity">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Recent Sessions</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold" data-testid="text-recent-count">{recentSessions.length}</div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <Card data-testid="card-recent-sessions">
+        <CardHeader>
+          <CardTitle>Recent Meditation Sessions</CardTitle>
+          <CardDescription>Last 10 meditation practices</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {recentSessions.length > 0 ? (
+            <div className="space-y-4">
+              {recentSessions.map((session: any) => (
+                <Card key={session.id} data-testid={`session-${session.id}`}>
+                  <CardHeader className="pb-2">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-base">{session.meditation?.title || 'Meditation'}</CardTitle>
+                      <Badge variant={session.completed ? 'default' : 'secondary'} data-testid={`badge-status-${session.id}`}>
+                        {session.completed ? 'Completed' : 'In Progress'}
+                      </Badge>
+                    </div>
+                    <CardDescription>
+                      {session.created_at ? formatDistanceToNow(new Date(session.created_at), { addSuffix: true }) : 'Recently'}
+                      {session.meditation?.duration_mins && ` • ${session.meditation.duration_mins} mins`}
+                    </CardDescription>
+                  </CardHeader>
+                  {session.feedback && (
+                    <CardContent>
+                      <p className="text-sm text-muted-foreground italic">{session.feedback}</p>
+                    </CardContent>
+                  )}
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <p className="text-center text-muted-foreground py-8">No meditation sessions yet</p>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+function IntimacyMappingTab({ coupleId }: { coupleId: string }) {
+  const { data: ratings = [], isLoading: ratingsLoading } = useQuery<any[]>({
+    queryKey: [`/api/intimacy/ratings`, coupleId],
+    enabled: !!coupleId,
+  });
+
+  const { data: goals = [], isLoading: goalsLoading } = useQuery<any[]>({
+    queryKey: [`/api/intimacy/goals`, coupleId],
+    enabled: !!coupleId,
+  });
+
+  const totalRatings = ratings.length;
+  const achievedGoals = goals.filter((g: any) => g.is_achieved).length;
+  const recentRatings = ratings.slice(0, 5);
+
+  const latestRating = ratings[0];
+  const avgPhysical = ratings.length > 0 ? Math.round((ratings.reduce((sum: number, r: any) => sum + r.physical, 0) / ratings.length) * 10) / 10 : 0;
+  const avgEmotional = ratings.length > 0 ? Math.round((ratings.reduce((sum: number, r: any) => sum + r.emotional, 0) / ratings.length) * 10) / 10 : 0;
+  const avgIntellectual = ratings.length > 0 ? Math.round((ratings.reduce((sum: number, r: any) => sum + r.intellectual, 0) / ratings.length) * 10) / 10 : 0;
+
+  return (
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card data-testid="card-total-ratings">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Total Ratings</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold" data-testid="text-total-ratings">{totalRatings}</div>
+          </CardContent>
+        </Card>
+
+        <Card data-testid="card-active-goals">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Goals Achieved</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-600" data-testid="text-goals-achieved">
+              {achievedGoals} / {goals.length}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card data-testid="card-avg-intimacy">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Avg Physical Intimacy</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-primary" data-testid="text-avg-physical">{avgPhysical}/10</div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <Card data-testid="card-dimension-averages">
+        <CardHeader>
+          <CardTitle>Intimacy Dimension Averages</CardTitle>
+          <CardDescription>Average ratings across all five dimensions</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div data-testid="dimension-physical">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium">Physical</span>
+                <span className="text-sm font-bold">{avgPhysical}/10</span>
+              </div>
+              <Progress value={avgPhysical * 10} className="h-2" data-testid="progress-physical" />
+            </div>
+            <div data-testid="dimension-emotional">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium">Emotional</span>
+                <span className="text-sm font-bold">{avgEmotional}/10</span>
+              </div>
+              <Progress value={avgEmotional * 10} className="h-2" data-testid="progress-emotional" />
+            </div>
+            <div data-testid="dimension-intellectual">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium">Intellectual</span>
+                <span className="text-sm font-bold">{avgIntellectual}/10</span>
+              </div>
+              <Progress value={avgIntellectual * 10} className="h-2" data-testid="progress-intellectual" />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card data-testid="card-active-goals-list">
+        <CardHeader>
+          <CardTitle>Intimacy Goals</CardTitle>
+          <CardDescription>Couple's intimacy improvement goals</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {goals.length > 0 ? (
+            <div className="space-y-3">
+              {goals.map((goal: any) => (
+                <div key={goal.id} className="flex items-center justify-between p-3 border rounded-md" data-testid={`goal-${goal.id}`}>
+                  <div>
+                    <p className="text-sm font-medium capitalize">{goal.dimension}</p>
+                    <p className="text-sm text-muted-foreground">{goal.goal_text}</p>
+                  </div>
+                  <Badge variant={goal.is_achieved ? 'default' : 'secondary'} data-testid={`badge-goal-${goal.id}`}>
+                    {goal.is_achieved ? 'Achieved' : 'Active'}
+                  </Badge>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-center text-muted-foreground py-8">No intimacy goals set yet</p>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+function ValuesVisionTab({ coupleId }: { coupleId: string }) {
+  const { data: dreams = [], isLoading: dreamsLoading } = useQuery<any[]>({
+    queryKey: [`/api/dreams`, coupleId],
+    enabled: !!coupleId,
+  });
+
+  const { data: values = [], isLoading: valuesLoading } = useQuery<any[]>({
+    queryKey: [`/api/core-values`, coupleId],
+    enabled: !!coupleId,
+  });
+
+  const { data: visionBoard = [], isLoading: visionLoading } = useQuery<any[]>({
+    queryKey: [`/api/vision-board`, coupleId],
+    enabled: !!coupleId,
+  });
+
+  const honoredDreams = dreams.filter((d: any) => d.partner_honored).length;
+  const agreedValues = values.filter((v: any) => v.is_agreed).length;
+  const achievedVisions = visionBoard.filter((v: any) => v.is_achieved).length;
+
+  return (
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card data-testid="card-total-dreams">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Shared Dreams</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold" data-testid="text-total-dreams">{dreams.length}</div>
+            <p className="text-xs text-muted-foreground">{honoredDreams} honored</p>
+          </CardContent>
+        </Card>
+
+        <Card data-testid="card-core-values">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Core Values</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold" data-testid="text-core-values">{values.length}</div>
+            <p className="text-xs text-muted-foreground">{agreedValues} agreed upon</p>
+          </CardContent>
+        </Card>
+
+        <Card data-testid="card-vision-items">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Vision Board Items</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold" data-testid="text-vision-items">{visionBoard.length}</div>
+            <p className="text-xs text-muted-foreground">{achievedVisions} achieved</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      <Card data-testid="card-recent-dreams">
+        <CardHeader>
+          <CardTitle>Recent Dreams</CardTitle>
+          <CardDescription>Last 5 shared dreams</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {dreams.length > 0 ? (
+            <div className="space-y-3">
+              {dreams.slice(0, 5).map((dream: any) => (
+                <div key={dream.id} className="p-3 border rounded-md" data-testid={`dream-${dream.id}`}>
+                  <div className="flex items-start justify-between mb-2">
+                    <Badge variant="outline" data-testid={`badge-category-${dream.id}`}>{dream.category}</Badge>
+                    <Badge variant={dream.partner_honored ? 'default' : 'secondary'} data-testid={`badge-honored-${dream.id}`}>
+                      {dream.partner_honored ? 'Honored' : 'Pending'}
+                    </Badge>
+                  </div>
+                  <p className="text-sm">{dream.dream_text}</p>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    {dream.time_horizon} • {dream.created_at ? formatDistanceToNow(new Date(dream.created_at), { addSuffix: true }) : 'Recently'}
+                  </p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-center text-muted-foreground py-8">No dreams shared yet</p>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card data-testid="card-core-values-list">
+        <CardHeader>
+          <CardTitle>Core Values</CardTitle>
+          <CardDescription>Couple's shared values</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {values.length > 0 ? (
+            <div className="space-y-3">
+              {values.map((value: any) => (
+                <div key={value.id} className="flex items-center justify-between p-3 border rounded-md" data-testid={`value-${value.id}`}>
+                  <div>
+                    <p className="text-sm font-medium">{value.value_name}</p>
+                    {value.definition && <p className="text-sm text-muted-foreground">{value.definition}</p>}
+                  </div>
+                  <Badge variant={value.is_agreed ? 'default' : 'secondary'} data-testid={`badge-value-${value.id}`}>
+                    {value.is_agreed ? 'Agreed' : 'Proposed'}
+                  </Badge>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-center text-muted-foreground py-8">No core values defined yet</p>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+function ParentingPartnersTab({ coupleId }: { coupleId: string }) {
+  const { data: agreements = [], isLoading: agreementsLoading } = useQuery<any[]>({
+    queryKey: [`/api/parenting/agreements`, coupleId],
+    enabled: !!coupleId,
+  });
+
+  const { data: stressCheckins = [], isLoading: stressLoading } = useQuery<any[]>({
+    queryKey: [`/api/parenting/stress-checkins`, coupleId],
+    enabled: !!coupleId,
+  });
+
+  const { data: styles = [], isLoading: stylesLoading } = useQuery<any[]>({
+    queryKey: [`/api/parenting/styles`, coupleId],
+    enabled: !!coupleId,
+  });
+
+  const activeAgreements = agreements.filter((a: any) => a.is_active).length;
+  const avgStress = stressCheckins.length > 0 
+    ? Math.round((stressCheckins.reduce((sum: number, s: any) => sum + s.stress_level, 0) / stressCheckins.length) * 10) / 10 
+    : 0;
+  const recentStressCheckins = stressCheckins.slice(0, 5);
+
+  return (
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card data-testid="card-discipline-agreements">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Discipline Agreements</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold" data-testid="text-agreements">{agreements.length}</div>
+            <p className="text-xs text-muted-foreground">{activeAgreements} active</p>
+          </CardContent>
+        </Card>
+
+        <Card data-testid="card-stress-checkins">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Stress Check-ins</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold" data-testid="text-checkins">{stressCheckins.length}</div>
+          </CardContent>
+        </Card>
+
+        <Card data-testid="card-avg-stress">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Avg Stress Level</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-orange-600" data-testid="text-avg-stress">{avgStress}/10</div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <Card data-testid="card-parenting-styles">
+        <CardHeader>
+          <CardTitle>Parenting Styles</CardTitle>
+          <CardDescription>Each partner's identified parenting approach</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {styles.length > 0 ? (
+            <div className="space-y-4">
+              {styles.map((style: any) => (
+                <div key={style.id} className="p-4 border rounded-md" data-testid={`style-${style.id}`}>
+                  <div className="flex items-center justify-between mb-2">
+                    <Badge variant="outline" data-testid={`badge-style-${style.id}`}>{style.style_type}</Badge>
+                  </div>
+                  {style.discipline_approach && (
+                    <p className="text-sm text-muted-foreground mt-2">
+                      <strong>Discipline:</strong> {style.discipline_approach}
+                    </p>
+                  )}
+                  {style.values_text && (
+                    <p className="text-sm text-muted-foreground mt-1">
+                      <strong>Values:</strong> {style.values_text}
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-center text-muted-foreground py-8">No parenting styles defined yet</p>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card data-testid="card-recent-stress">
+        <CardHeader>
+          <CardTitle>Recent Stress Check-ins</CardTitle>
+          <CardDescription>Last 5 parenting stress reports</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {recentStressCheckins.length > 0 ? (
+            <div className="space-y-3">
+              {recentStressCheckins.map((checkin: any) => (
+                <Card key={checkin.id} data-testid={`checkin-${checkin.id}`}>
+                  <CardHeader className="pb-2">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-base">Stress Level: {checkin.stress_level}/10</CardTitle>
+                      <CardDescription>
+                        {checkin.created_at ? formatDistanceToNow(new Date(checkin.created_at), { addSuffix: true }) : 'Recently'}
+                      </CardDescription>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    {checkin.stressor_text && (
+                      <p className="text-sm text-muted-foreground">
+                        <strong>Stressor:</strong> {checkin.stressor_text}
+                      </p>
+                    )}
+                    {checkin.support_needed && (
+                      <p className="text-sm text-muted-foreground">
+                        <strong>Support Needed:</strong> {checkin.support_needed}
+                      </p>
+                    )}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <p className="text-center text-muted-foreground py-8">No stress check-ins yet</p>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card data-testid="card-agreements-list">
+        <CardHeader>
+          <CardTitle>Discipline Agreements</CardTitle>
+          <CardDescription>Agreed-upon approaches to common scenarios</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {agreements.length > 0 ? (
+            <div className="space-y-3">
+              {agreements.map((agreement: any) => (
+                <div key={agreement.id} className="p-3 border rounded-md" data-testid={`agreement-${agreement.id}`}>
+                  <div className="flex items-start justify-between mb-2">
+                    <p className="text-sm font-medium">{agreement.scenario}</p>
+                    <Badge variant={agreement.is_active ? 'default' : 'secondary'} data-testid={`badge-agreement-${agreement.id}`}>
+                      {agreement.is_active ? 'Active' : 'Inactive'}
+                    </Badge>
+                  </div>
+                  <p className="text-sm text-muted-foreground">{agreement.agreed_approach}</p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-center text-muted-foreground py-8">No discipline agreements yet</p>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }
