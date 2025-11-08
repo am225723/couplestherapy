@@ -165,7 +165,7 @@ async function analyzeWithPerplexity(
   }
 
   const requestBody: PerplexityRequest = {
-    model: 'llama-3.1-sonar-large-128k-online',
+    model: 'sonar',
     messages: [
       { role: 'system', content: systemPrompt },
       { role: 'user', content: userPrompt },
