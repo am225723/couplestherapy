@@ -9,7 +9,7 @@ import { Toaster } from '@/components/ui/toaster';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { SidebarProvider, Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarTrigger, SidebarHeader } from '@/components/ui/sidebar';
 import { Button } from './components/ui/button';
-import { Home, ClipboardList, Sparkles, Target, Coffee, MessageCircle, Mic, Users, LogOut, Loader2, BarChart3, UserPlus, Heart, MessageSquare, Calendar as CalendarIcon, Map, Volume2, User, PauseCircle } from 'lucide-react';
+import { Home, ClipboardList, Sparkles, Target, Coffee, MessageCircle, Mic, Users, LogOut, Loader2, BarChart3, UserPlus, Heart, MessageSquare, Calendar as CalendarIcon, Map, Volume2, User, PauseCircle, AlertTriangle, BookOpen, Activity, Compass, Baby } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
 import tadiLogo from '@assets/logo_1762363277396.png';
 
@@ -32,6 +32,12 @@ import CalendarPage from './pages/calendar';
 import EchoEmpathyPage from './pages/echo-empathy';
 import IfsIntroPage from './pages/ifs-intro';
 import PauseButtonPage from './pages/pause-button';
+import FourHorsemenPage from './pages/four-horsemen';
+import DemonDialoguesPage from './pages/demon-dialogues';
+import MeditationLibraryPage from './pages/meditation-library';
+import IntimacyMappingPage from './pages/intimacy-mapping';
+import ValuesVisionPage from './pages/values-vision';
+import ParentingPartnersPage from './pages/parenting-partners';
 import ClientDashboard from './pages/client-dashboard';
 import AdminDashboard from './pages/admin-dashboard';
 import AnalyticsPage from './pages/analytics';
@@ -50,6 +56,12 @@ function AppSidebar() {
     { title: 'Echo & Empathy', url: '/echo-empathy', icon: Volume2 },
     { title: 'IFS Introduction', url: '/ifs-intro', icon: User },
     { title: 'Pause Button', url: '/pause', icon: PauseCircle },
+    { title: 'Four Horsemen', url: '/four-horsemen', icon: AlertTriangle },
+    { title: 'Demon Dialogues', url: '/demon-dialogues', icon: MessageCircle },
+    { title: 'Meditation Library', url: '/meditation-library', icon: BookOpen },
+    { title: 'Intimacy Mapping', url: '/intimacy-mapping', icon: Activity },
+    { title: 'Values & Vision', url: '/values-vision', icon: Compass },
+    { title: 'Parenting Partners', url: '/parenting-partners', icon: Baby },
     { title: 'Messages', url: '/messages', icon: MessageSquare },
     { title: 'Calendar', url: '/calendar', icon: CalendarIcon },
     { title: 'Date Night Generator', url: '/date-night', icon: Sparkles },
@@ -129,7 +141,7 @@ function AuthenticatedApp() {
   useEffect(() => {
     if (!loading && user && profile) {
       const therapistRoutes = ['/admin', '/admin/analytics', '/admin/invitation-codes'];
-      const clientRoutes = ['/dashboard', '/couple-setup', '/quiz', '/love-map', '/weekly-checkin', '/checkin-history', '/gratitude', '/goals', '/rituals', '/conversation', '/voice-memos', '/date-night', '/messages', '/calendar', '/echo-empathy', '/ifs-intro', '/pause'];
+      const clientRoutes = ['/dashboard', '/couple-setup', '/quiz', '/love-map', '/weekly-checkin', '/checkin-history', '/gratitude', '/goals', '/rituals', '/conversation', '/voice-memos', '/date-night', '/messages', '/calendar', '/echo-empathy', '/ifs-intro', '/pause', '/four-horsemen', '/demon-dialogues', '/meditation-library', '/intimacy-mapping', '/values-vision', '/parenting-partners'];
       
       const isTherapist = profile.role === 'therapist';
       const isOnTherapistRoute = location.startsWith('/admin');
@@ -238,6 +250,12 @@ function AuthenticatedApp() {
                   <Route path="/echo-empathy" component={EchoEmpathyPage} />
                   <Route path="/ifs-intro" component={IfsIntroPage} />
                   <Route path="/pause" component={PauseButtonPage} />
+                  <Route path="/four-horsemen" component={FourHorsemenPage} />
+                  <Route path="/demon-dialogues" component={DemonDialoguesPage} />
+                  <Route path="/meditation-library" component={MeditationLibraryPage} />
+                  <Route path="/intimacy-mapping" component={IntimacyMappingPage} />
+                  <Route path="/values-vision" component={ValuesVisionPage} />
+                  <Route path="/parenting-partners" component={ParentingPartnersPage} />
                   <Route path="/">
                     {profile.couple_id ? <Redirect to="/dashboard" /> : <Redirect to="/couple-setup" />}
                   </Route>

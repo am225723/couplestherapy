@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { useAuth } from '@/hooks/use-auth';
+import { useAuth } from '@/lib/auth-context';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -19,13 +19,13 @@ const TIME_HORIZONS = {
 };
 
 const DREAM_CATEGORIES = {
-  personal: '👤 Personal',
-  shared: '💑 Shared',
-  career: '💼 Career',
-  family: '👨‍👩‍👧 Family',
-  adventure: '✈️ Adventure',
-  legacy: '🏆 Legacy',
-  other: '✨ Other',
+  personal: 'Personal',
+  shared: 'Shared',
+  career: 'Career',
+  family: 'Family',
+  adventure: 'Adventure',
+  legacy: 'Legacy',
+  other: 'Other',
 };
 
 interface SharedDream {
@@ -159,7 +159,7 @@ export default function ValuesVisionPage() {
         <CardContent className="space-y-4">
           <div className="space-y-3">
             <Textarea
-              data-testid="input-dream-text"
+              data-testid="textarea-dream-text"
               placeholder="Describe a dream or aspiration..."
               value={newDream.dream_text}
               onChange={(e) => setNewDream({ ...newDream, dream_text: e.target.value })}
@@ -209,11 +209,11 @@ export default function ValuesVisionPage() {
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
-                        <Badge>{TIME_HORIZONS[dream.time_horizon as keyof typeof TIME_HORIZONS]}</Badge>
-                        <Badge variant="outline">{DREAM_CATEGORIES[dream.category as keyof typeof DREAM_CATEGORIES]}</Badge>
+                        <Badge data-testid={`badge-horizon-${dream.id}`}>{TIME_HORIZONS[dream.time_horizon as keyof typeof TIME_HORIZONS]}</Badge>
+                        <Badge variant="outline" data-testid={`badge-category-${dream.id}`}>{DREAM_CATEGORIES[dream.category as keyof typeof DREAM_CATEGORIES]}</Badge>
                       </div>
-                      <p className="text-sm">{dream.dream_text}</p>
-                      <p className="text-xs text-muted-foreground mt-1">
+                      <p className="text-sm" data-testid={`text-dream-${dream.id}`}>{dream.dream_text}</p>
+                      <p className="text-xs text-muted-foreground mt-1" data-testid={`text-date-${dream.id}`}>
                         {format(new Date(dream.created_at), 'MMM d, yyyy')}
                       </p>
                     </div>
@@ -228,7 +228,7 @@ export default function ValuesVisionPage() {
                       </Button>
                     )}
                     {dream.partner_honored && (
-                      <Badge variant="default" className="bg-pink-600">
+                      <Badge variant="default" className="bg-pink-600" data-testid={`badge-honored-${dream.id}`}>
                         <Heart className="w-3 h-3 mr-1" />
                         Honored
                       </Badge>
@@ -260,7 +260,7 @@ export default function ValuesVisionPage() {
             />
 
             <Textarea
-              data-testid="input-value-definition"
+              data-testid="textarea-value-definition"
               placeholder="What does this value mean to us?"
               value={newValue.definition}
               onChange={(e) => setNewValue({ ...newValue, definition: e.target.value })}
@@ -312,7 +312,7 @@ export default function ValuesVisionPage() {
             />
 
             <Textarea
-              data-testid="input-vision-description"
+              data-testid="textarea-vision-description"
               placeholder="Describe this vision..."
               value={newVisionItem.description}
               onChange={(e) => setNewVisionItem({ ...newVisionItem, description: e.target.value })}
@@ -361,12 +361,12 @@ export default function ValuesVisionPage() {
             {visionBoard.map(item => (
               <Card key={item.id} data-testid={`vision-${item.id}`}>
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-sm">{item.title}</CardTitle>
+                  <CardTitle className="text-sm" data-testid={`text-title-${item.id}`}>{item.title}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-xs text-muted-foreground">{item.description}</p>
+                  <p className="text-xs text-muted-foreground" data-testid={`text-description-${item.id}`}>{item.description}</p>
                   <div className="flex items-center gap-2 mt-2">
-                    <Badge variant="outline" className="text-xs">{TIME_HORIZONS[item.time_horizon as keyof typeof TIME_HORIZONS]}</Badge>
+                    <Badge variant="outline" className="text-xs" data-testid={`badge-horizon-${item.id}`}>{TIME_HORIZONS[item.time_horizon as keyof typeof TIME_HORIZONS]}</Badge>
                   </div>
                 </CardContent>
               </Card>

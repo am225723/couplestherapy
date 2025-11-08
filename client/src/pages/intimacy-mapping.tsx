@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { useAuth } from '@/hooks/use-auth';
+import { useAuth } from '@/lib/auth-context';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -223,7 +223,7 @@ export default function IntimacyMappingPage() {
           <div>
             <label className="text-sm font-medium">Notes (optional)</label>
             <Textarea
-              data-testid="input-notes"
+              data-testid="textarea-notes"
               placeholder="Any reflections on your intimacy this week..."
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
@@ -266,7 +266,7 @@ export default function IntimacyMappingPage() {
             </select>
 
             <Textarea
-              data-testid="input-goal-text"
+              data-testid="textarea-goal-text"
               placeholder="Describe your goal..."
               value={newGoal.goal_text}
               onChange={(e) => setNewGoal({ ...newGoal, goal_text: e.target.value })}
@@ -306,9 +306,9 @@ export default function IntimacyMappingPage() {
                 <div key={goal.id} className="border rounded-md p-3" data-testid={`goal-${goal.id}`}>
                   <div className="flex items-start justify-between">
                     <div>
-                      <Badge className="mb-2">{DIMENSIONS.find(d => d.key === goal.dimension)?.name}</Badge>
-                      <p className="text-sm">{goal.goal_text}</p>
-                      <p className="text-xs text-muted-foreground mt-1">Target: {goal.target_rating}/10</p>
+                      <Badge className="mb-2" data-testid={`badge-dimension-${goal.id}`}>{DIMENSIONS.find(d => d.key === goal.dimension)?.name}</Badge>
+                      <p className="text-sm" data-testid={`text-goal-${goal.id}`}>{goal.goal_text}</p>
+                      <p className="text-xs text-muted-foreground mt-1" data-testid={`text-target-${goal.id}`}>Target: {goal.target_rating}/10</p>
                     </div>
                   </div>
                 </div>

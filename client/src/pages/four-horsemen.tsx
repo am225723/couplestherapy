@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { useAuth } from '@/hooks/use-auth';
+import { useAuth } from '@/lib/auth-context';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -14,28 +14,24 @@ const HORSEMEN_CONFIG = {
   criticism: {
     name: 'Criticism',
     color: 'bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-200',
-    icon: '🗣️',
     description: 'Attacking your partner\'s character',
     antidote: 'Gentle Start-Up: Express feelings and needs without blame',
   },
   contempt: {
     name: 'Contempt',
     color: 'bg-purple-100 dark:bg-purple-900/20 text-purple-800 dark:text-purple-200',
-    icon: '😤',
     description: 'Treating your partner with disrespect',
     antidote: 'Build a Culture of Appreciation: Express gratitude and fondness',
   },
   defensiveness: {
     name: 'Defensiveness',
     color: 'bg-orange-100 dark:bg-orange-900/20 text-orange-800 dark:text-orange-200',
-    icon: '🛡️',
     description: 'Making excuses or playing the victim',
     antidote: 'Take Responsibility: Accept your partner\'s perspective',
   },
   stonewalling: {
     name: 'Stonewalling',
     color: 'bg-gray-100 dark:bg-gray-900/20 text-gray-800 dark:text-gray-200',
-    icon: '🧱',
     description: 'Withdrawing from the conversation',
     antidote: 'Self-Soothing: Take a break and return when calm',
   },
@@ -151,15 +147,14 @@ export default function FourHorsemenPage() {
       {/* Stats Overview */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {Object.entries(HORSEMEN_CONFIG).map(([key, config]) => (
-          <Card key={key}>
+          <Card key={key} data-testid={`stat-card-${key}`}>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium flex items-center gap-2">
-                <span className="text-2xl">{config.icon}</span>
+              <CardTitle className="text-sm font-medium">
                 {config.name}
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats[key as HorsemanType] || 0}</div>
+              <div className="text-2xl font-bold" data-testid={`text-stat-${key}`}>{stats[key as HorsemanType] || 0}</div>
               <p className="text-xs text-muted-foreground mt-1">incidents logged</p>
             </CardContent>
           </Card>
@@ -168,7 +163,7 @@ export default function FourHorsemenPage() {
 
       {/* Antidote Success Rate */}
       {totalIncidents > 0 && (
-        <Card>
+        <Card data-testid="card-antidote-success">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <CheckCircle className="w-5 h-5 text-green-600" />
@@ -176,7 +171,7 @@ export default function FourHorsemenPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-green-600">
+            <div className="text-3xl font-bold text-green-600" data-testid="text-success-rate">
               {Math.round((antidotePracticed / totalIncidents) * 100)}%
             </div>
             <p className="text-sm text-muted-foreground">
@@ -205,7 +200,6 @@ export default function FourHorsemenPage() {
                 onClick={() => setSelectedHorseman(key as HorsemanType)}
               >
                 <div className="flex items-center gap-2 w-full">
-                  <span className="text-2xl">{config.icon}</span>
                   <span className="font-semibold">{config.name}</span>
                 </div>
                 <p className="text-xs text-left mt-1">{config.description}</p>
@@ -224,7 +218,7 @@ export default function FourHorsemenPage() {
               <div>
                 <label className="text-sm font-medium">What happened?</label>
                 <Textarea
-                  data-testid="input-situation"
+                  data-testid="textarea-situation"
                   placeholder="Describe the situation..."
                   value={situation}
                   onChange={(e) => setSituation(e.target.value)}
@@ -235,7 +229,7 @@ export default function FourHorsemenPage() {
               <div>
                 <label className="text-sm font-medium">Notes (optional)</label>
                 <Textarea
-                  data-testid="input-notes"
+                  data-testid="textarea-notes"
                   placeholder="Any additional thoughts..."
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
@@ -276,10 +270,10 @@ export default function FourHorsemenPage() {
               >
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-2">
-                    <Badge className={HORSEMEN_CONFIG[incident.horseman_type].color}>
-                      {HORSEMEN_CONFIG[incident.horseman_type].icon} {HORSEMEN_CONFIG[incident.horseman_type].name}
+                    <Badge className={HORSEMEN_CONFIG[incident.horseman_type].color} data-testid={`badge-horseman-${incident.id}`}>
+                      {HORSEMEN_CONFIG[incident.horseman_type].name}
                     </Badge>
-                    <span className="text-sm text-muted-foreground">
+                    <span className="text-sm text-muted-foreground" data-testid={`text-date-${incident.id}`}>
                       {format(new Date(incident.created_at), 'MMM d, h:mm a')}
                     </span>
                   </div>
@@ -331,8 +325,8 @@ export default function FourHorsemenPage() {
                   )}
 
                   {incident.antidote_practiced && (
-                    <Badge variant="default" className="bg-green-600">
-                      ✓ Antidote Practiced
+                    <Badge variant="default" className="bg-green-600" data-testid={`badge-practiced-${incident.id}`}>
+                      Antidote Practiced
                     </Badge>
                   )}
                 </div>

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { useAuth } from '@/hooks/use-auth';
+import { useAuth } from '@/lib/auth-context';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -180,14 +180,14 @@ export default function ParentingPartnersPage() {
             </select>
 
             <Textarea
-              data-testid="input-discipline-approach"
+              data-testid="textarea-discipline-approach"
               placeholder="Your discipline approach..."
               value={newStyle.discipline_approach}
               onChange={(e) => setNewStyle({ ...newStyle, discipline_approach: e.target.value })}
             />
 
             <Textarea
-              data-testid="input-parenting-values"
+              data-testid="textarea-parenting-values"
               placeholder="Your parenting values..."
               value={newStyle.values_text}
               onChange={(e) => setNewStyle({ ...newStyle, values_text: e.target.value })}
@@ -204,7 +204,7 @@ export default function ParentingPartnersPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card data-testid="card-style-comparison">
           <CardHeader>
             <CardTitle>Style Comparison</CardTitle>
           </CardHeader>
@@ -212,18 +212,18 @@ export default function ParentingPartnersPage() {
             {myStyle && (
               <div>
                 <p className="text-sm font-semibold">You</p>
-                <Badge>{PARENTING_STYLES[myStyle.style_type as keyof typeof PARENTING_STYLES].name}</Badge>
+                <Badge data-testid="badge-my-style">{PARENTING_STYLES[myStyle.style_type as keyof typeof PARENTING_STYLES].name}</Badge>
                 {myStyle.discipline_approach && (
-                  <p className="text-sm mt-1">{myStyle.discipline_approach}</p>
+                  <p className="text-sm mt-1" data-testid="text-my-approach">{myStyle.discipline_approach}</p>
                 )}
               </div>
             )}
             {partnerStyle && (
               <div>
                 <p className="text-sm font-semibold">Partner</p>
-                <Badge>{PARENTING_STYLES[partnerStyle.style_type as keyof typeof PARENTING_STYLES].name}</Badge>
+                <Badge data-testid="badge-partner-style">{PARENTING_STYLES[partnerStyle.style_type as keyof typeof PARENTING_STYLES].name}</Badge>
                 {partnerStyle.discipline_approach && (
-                  <p className="text-sm mt-1">{partnerStyle.discipline_approach}</p>
+                  <p className="text-sm mt-1" data-testid="text-partner-approach">{partnerStyle.discipline_approach}</p>
                 )}
               </div>
             )}
@@ -253,7 +253,7 @@ export default function ParentingPartnersPage() {
             />
 
             <Textarea
-              data-testid="input-agreed-approach"
+              data-testid="textarea-agreed-approach"
               placeholder="Our agreed approach..."
               value={newAgreement.agreed_approach}
               onChange={(e) => setNewAgreement({ ...newAgreement, agreed_approach: e.target.value })}
@@ -276,8 +276,8 @@ export default function ParentingPartnersPage() {
             ) : (
               agreements.map(agreement => (
                 <div key={agreement.id} className="border rounded-md p-3" data-testid={`agreement-${agreement.id}`}>
-                  <p className="font-semibold text-sm">{agreement.scenario}</p>
-                  <p className="text-sm text-muted-foreground mt-1">{agreement.agreed_approach}</p>
+                  <p className="font-semibold text-sm" data-testid={`text-scenario-${agreement.id}`}>{agreement.scenario}</p>
+                  <p className="text-sm text-muted-foreground mt-1" data-testid={`text-approach-${agreement.id}`}>{agreement.agreed_approach}</p>
                 </div>
               ))
             )}
@@ -335,11 +335,11 @@ export default function ParentingPartnersPage() {
             ) : (
               coupleTime.filter(ct => !ct.completed).map(block => (
                 <div key={block.id} className="border rounded-md p-3" data-testid={`couple-time-${block.id}`}>
-                  <p className="font-semibold text-sm">
+                  <p className="font-semibold text-sm" data-testid={`text-date-${block.id}`}>
                     {format(new Date(block.scheduled_date), 'MMM d, h:mm a')}
                   </p>
-                  <p className="text-sm text-muted-foreground">{block.duration_minutes} minutes</p>
-                  {block.activity && <p className="text-sm">{block.activity}</p>}
+                  <p className="text-sm text-muted-foreground" data-testid={`text-duration-${block.id}`}>{block.duration_minutes} minutes</p>
+                  {block.activity && <p className="text-sm" data-testid={`text-activity-${block.id}`}>{block.activity}</p>}
                 </div>
               ))
             )}
@@ -377,14 +377,14 @@ export default function ParentingPartnersPage() {
             </div>
 
             <Textarea
-              data-testid="input-stressor"
+              data-testid="textarea-stressor"
               placeholder="What's stressing you?"
               value={newStressCheckin.stressor_text}
               onChange={(e) => setNewStressCheckin({ ...newStressCheckin, stressor_text: e.target.value })}
             />
 
             <Textarea
-              data-testid="input-support-needed"
+              data-testid="textarea-support-needed"
               placeholder="What support do you need?"
               value={newStressCheckin.support_needed}
               onChange={(e) => setNewStressCheckin({ ...newStressCheckin, support_needed: e.target.value })}
@@ -405,18 +405,18 @@ export default function ParentingPartnersPage() {
             {stressCheckins.slice(0, 3).map(checkin => (
               <div key={checkin.id} className="border rounded-md p-3" data-testid={`stress-${checkin.id}`}>
                 <div className="flex items-center justify-between">
-                  <Badge variant={checkin.stress_level > 7 ? "destructive" : "default"}>
+                  <Badge variant={checkin.stress_level > 7 ? "destructive" : "default"} data-testid={`badge-stress-${checkin.id}`}>
                     Stress: {checkin.stress_level}/10
                   </Badge>
-                  <span className="text-xs text-muted-foreground">
+                  <span className="text-xs text-muted-foreground" data-testid={`text-date-${checkin.id}`}>
                     {format(new Date(checkin.created_at), 'MMM d, h:mm a')}
                   </span>
                 </div>
                 {checkin.stressor_text && (
-                  <p className="text-sm mt-2">{checkin.stressor_text}</p>
+                  <p className="text-sm mt-2" data-testid={`text-stressor-${checkin.id}`}>{checkin.stressor_text}</p>
                 )}
                 {checkin.support_needed && (
-                  <p className="text-sm text-muted-foreground mt-1">Needs: {checkin.support_needed}</p>
+                  <p className="text-sm text-muted-foreground mt-1" data-testid={`text-support-${checkin.id}`}>Needs: {checkin.support_needed}</p>
                 )}
               </div>
             ))}

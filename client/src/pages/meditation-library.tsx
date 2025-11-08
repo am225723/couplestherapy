@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { useAuth } from '@/hooks/use-auth';
+import { useAuth } from '@/lib/auth-context';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -11,11 +11,6 @@ import { format } from 'date-fns';
 import { Play, CheckCircle, Clock, Heart } from 'lucide-react';
 
 const CATEGORY_CONFIG = {
-  connection: { name: 'Connection', icon: '🤝', color: 'bg-pink-100 dark:bg-pink-900/20 text-pink-800 dark:text-pink-200' },
-  loving_kindness: { name: 'Loving-Kindness', icon: '💖', color: 'bg-purple-100 dark:bg-purple-900/20 text-purple-800 dark:text-purple-200' },
-  body_scan: { name: 'Body Scan', icon: '🧘', color: 'bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-200' },
-  breathwork: { name: 'Breathwork', icon: '🌬️', color: 'bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-200' },
-  mindfulness: { name: 'Mindfulness', icon: '🙏', color: 'bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-200' },
 };
 
 interface Meditation {
@@ -126,7 +121,7 @@ export default function MeditationLibraryPage() {
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Card>
+        <Card data-testid="card-sessions-completed">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
               <CheckCircle className="w-5 h-5" />
@@ -134,10 +129,10 @@ export default function MeditationLibraryPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{completedSessions}</div>
+            <div className="text-2xl font-bold" data-testid="text-completed-sessions">{completedSessions}</div>
           </CardContent>
         </Card>
-        <Card>
+        <Card data-testid="card-total-minutes">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
               <Clock className="w-5 h-5" />
@@ -145,7 +140,7 @@ export default function MeditationLibraryPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{totalMinutes}</div>
+            <div className="text-2xl font-bold" data-testid="text-total-minutes">{totalMinutes}</div>
           </CardContent>
         </Card>
       </div>
@@ -162,10 +157,10 @@ export default function MeditationLibraryPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center gap-2">
-              <Badge className={CATEGORY_CONFIG[activeMeditation.category].color}>
-                {CATEGORY_CONFIG[activeMeditation.category].icon} {CATEGORY_CONFIG[activeMeditation.category].name}
+              <Badge data-testid="badge-category">
+                {activeMeditation.category}
               </Badge>
-              <Badge variant="outline">
+              <Badge variant="outline" data-testid="badge-duration">
                 <Clock className="w-3 h-3 mr-1" />
                 {activeMeditation.duration_mins} mins
               </Badge>
@@ -181,7 +176,7 @@ export default function MeditationLibraryPage() {
             <div>
               <label className="text-sm font-medium">How was your experience?</label>
               <Textarea
-                data-testid="input-feedback"
+                data-testid="textarea-feedback"
                 placeholder="Reflect on your meditation..."
                 value={feedback}
                 onChange={(e) => setFeedback(e.target.value)}
@@ -205,11 +200,10 @@ export default function MeditationLibraryPage() {
       {!activeMeditation && (
         <div className="space-y-6">
           {Object.entries(meditationsByCategory).map(([category, meds]) => (
-            <Card key={category}>
+            <Card key={category} data-testid={`category-card-${category}`}>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <span className="text-2xl">{CATEGORY_CONFIG[category as keyof typeof CATEGORY_CONFIG].icon}</span>
-                  {CATEGORY_CONFIG[category as keyof typeof CATEGORY_CONFIG].name}
+                <CardTitle>
+                  {category}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
@@ -220,10 +214,10 @@ export default function MeditationLibraryPage() {
                     data-testid={`meditation-${meditation.id}`}
                   >
                     <div className="flex-1">
-                      <h3 className="font-semibold">{meditation.title}</h3>
+                      <h3 className="font-semibold" data-testid={`text-title-${meditation.id}`}>{meditation.title}</h3>
                       <p className="text-sm text-muted-foreground">{meditation.description}</p>
                       <div className="flex items-center gap-2 mt-2">
-                        <Badge variant="outline" className="text-xs">
+                        <Badge variant="outline" className="text-xs" data-testid={`badge-duration-${meditation.id}`}>
                           <Clock className="w-3 h-3 mr-1" />
                           {meditation.duration_mins} mins
                         </Badge>
@@ -266,7 +260,7 @@ export default function MeditationLibraryPage() {
                     </p>
                   </div>
                   {session.completed && (
-                    <Badge variant="default" className="bg-green-600">
+                    <Badge variant="default" className="bg-green-600" data-testid={`badge-completed-${session.id}`}>
                       <CheckCircle className="w-3 h-3 mr-1" />
                       Completed
                     </Badge>
