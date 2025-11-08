@@ -203,31 +203,171 @@ Based on evidence-based therapeutic modalities, here are additional tools that w
 
 ---
 
-## Implementation Priority (Recommended)
+## Implementation Priority with Technical Guidance
 
-**Phase 1 (High Impact, Low Complexity):**
-- Gottman Four Horsemen Tracker
-- Fair Fighting Rules
-- Gratitude & Appreciation enhancements
-- Intimacy Mapping
+### **Phase 1: High Impact, Low Complexity** (2-3 weeks)
 
-**Phase 2 (Moderate Impact, Moderate Complexity):**
-- Demon Dialogues Recognition
-- Speaker-Listener Technique
-- Money Conversation Facilitator
-- Values & Vision exercises
+#### 1. Gottman Four Horsemen Tracker
+**Database Schema:**
+```typescript
+// shared/schema.ts
+export const horsemenIncidents = pgTable("Couples_horsemen_incidents", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  couple_id: varchar("couple_id").notNull().references(() => couples.id),
+  reporter_id: varchar("reporter_id").notNull().references(() => profiles.id),
+  horseman_type: varchar("horseman_type").$type<"criticism" | "contempt" | "defensiveness" | "stonewalling">().notNull(),
+  situation: text("situation"),
+  partner_validated: boolean("partner_validated"),
+  antidote_practiced: boolean("antidote_practiced"),
+  created_at: timestamp("created_at").defaultNow(),
+});
+```
 
-**Phase 3 (High Impact, High Complexity):**
-- Affair Recovery Program
-- Trauma-Informed features
-- Sensate Focus Tracker
-- Meditation Library
+**API Routes:**
+- `POST /api/horsemen/incident` - Log incident
+- `GET /api/horsemen/:couple_id` - Get history
+- `PATCH /api/horsemen/:id/validate` - Partner validation
 
-**Phase 4 (Nice to Have):**
-- Extended Family tools
-- Parenting features
-- Social connection tracking
-- Research library
+**Frontend:**
+- Add to client dashboard as "Conflict Patterns" card
+- Simple form with 4 buttons for each horseman
+- Weekly trend chart using recharts
+- Antidote suggestions modal
+
+**Estimated Effort:** 3-4 days
+
+#### 2. Fair Fighting Rules
+**Database Schema:**
+```typescript
+export const fightingRules = pgTable("Couples_fighting_rules", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  couple_id: varchar("couple_id").notNull().references(() => couples.id),
+  rule_text: text("rule_text").notNull(),
+  is_agreed: boolean("is_agreed").default(false),
+  created_at: timestamp("created_at").defaultNow(),
+});
+
+export const conflictInstances = pgTable("Couples_conflict_instances", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  couple_id: varchar("couple_id").notNull().references(() => couples.id),
+  rules_followed: boolean("rules_followed"),
+  rules_broken: text("rules_broken").array(),
+  repair_attempted: boolean("repair_attempted"),
+  created_at: timestamp("created_at").defaultNow(),
+});
+```
+
+**Integration:** Extend existing Pause Button feature
+- When pause ends, show "How did it go?" form
+- Checklist of agreed rules
+- Success celebration if all followed
+
+**Estimated Effort:** 2-3 days
+
+#### 3. Intimacy Mapping
+**Database Schema:**
+```typescript
+export const intimacyRatings = pgTable("Couples_intimacy_ratings", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  couple_id: varchar("couple_id").notNull().references(() => couples.id),
+  user_id: varchar("user_id").notNull().references(() => profiles.id),
+  week_number: integer("week_number").notNull(),
+  year: integer("year").notNull(),
+  physical: integer("physical"),
+  emotional: integer("emotional"),
+  intellectual: integer("intellectual"),
+  experiential: integer("experiential"),
+  spiritual: integer("spiritual"),
+  created_at: timestamp("created_at").defaultNow(),
+});
+```
+
+**Frontend:**
+- Radar chart visualization (use recharts)
+- Weekly check-in integration (add to existing Couples_weekly_checkins)
+- Goal setting for low-scoring dimensions
+
+**Estimated Effort:** 4-5 days
+
+### **Phase 2: Moderate Impact, Moderate Complexity** (4-6 weeks)
+
+#### 4. Demon Dialogues Recognition (EFT)
+**Database Schema:**
+```typescript
+export const demonDialogues = pgTable("Couples_demon_dialogues", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  couple_id: varchar("couple_id").notNull().references(() => couples.id),
+  dialogue_type: varchar("dialogue_type").$type<"find_bad_guy" | "protest_polka" | "freeze_flee">().notNull(),
+  recognized_by: varchar("recognized_by").notNull().references(() => profiles.id),
+  interrupted: boolean("interrupted").default(false),
+  created_at: timestamp("created_at").defaultNow(),
+});
+```
+
+**Integration:** Leverage existing Pause Button
+- Add "Which pattern?" during pause
+- Track frequency over time
+- AI-powered pattern detection from check-ins
+
+**Estimated Effort:** 5-7 days
+
+#### 5. Speaker-Listener Technique (PREP)
+**Database Schema:**
+```typescript
+export const speakerListenerSessions = pgTable("Couples_speaker_listener_sessions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  couple_id: varchar("couple_id").notNull().references(() => couples.id),
+  current_speaker_id: varchar("current_speaker_id").notNull().references(() => profiles.id),
+  topic: text("topic").notNull(),
+  turn_duration_secs: integer("turn_duration_secs").default(180),
+  turns_completed: integer("turns_completed").default(0),
+  status: varchar("status").$type<"in_progress" | "completed">().default("in_progress"),
+  created_at: timestamp("created_at").defaultNow(),
+});
+```
+
+**Frontend:**
+- Visual "floor" indicator (who holds the floor)
+- Timer with turn switching
+- Paraphrasing requirement before responding
+
+**Estimated Effort:** 6-8 days
+
+### **Phase 3: High Impact, High Complexity** (8-12 weeks)
+
+#### 6. Meditation Library
+**Implementation:**
+- Use existing Supabase Storage for audio files
+- Add metadata table for meditations:
+```typescript
+export const meditations = pgTable("Couples_meditations", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  title: text("title").notNull(),
+  duration_mins: integer("duration_mins"),
+  category: varchar("category").$type<"connection" | "loving_kindness" | "body_scan" | "breathwork">(),
+  audio_url: text("audio_url"),
+  transcript: text("transcript"),
+});
+
+export const meditationSessions = pgTable("Couples_meditation_sessions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  couple_id: varchar("couple_id").notNull().references(() => couples.id),
+  meditation_id: varchar("meditation_id").notNull().references(() => meditations.id),
+  user_id: varchar("user_id").notNull().references(() => profiles.id),
+  completed: boolean("completed").default(false),
+  created_at: timestamp("created_at").defaultNow(),
+});
+```
+
+**Content Sources:**
+- Record custom guided meditations (therapist collaboration)
+- OR partner with Insight Timer/Calm for content licensing
+
+**Estimated Effort:** 10-14 days (excluding content creation)
+
+### **Phase 4: Nice to Have** (Future Roadmap)
+
+Implementation details available upon request. Focus on Phases 1-3 first to maximize ROI.
 
 ---
 

@@ -7,7 +7,11 @@
 ```typescript
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 
-const PERPLEXITY_API_KEY = "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"
+const PERPLEXITY_API_KEY = Deno.env.get('PERPLEXITY_API_KEY')
+
+if (!PERPLEXITY_API_KEY) {
+  throw new Error('PERPLEXITY_API_KEY environment variable is required')
+}
 
 // Allowlist for logging - only log these specific fields
 const ALLOWLIST_FIELDS = ['status', 'model', 'duration_ms', 'prompt_length', 'response_length']
@@ -191,7 +195,11 @@ serve(async (req) => {
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
-const PERPLEXITY_API_KEY = "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"
+const PERPLEXITY_API_KEY = Deno.env.get('PERPLEXITY_API_KEY')
+
+if (!PERPLEXITY_API_KEY) {
+  throw new Error('PERPLEXITY_API_KEY environment variable is required')
+}
 
 // Allowlist for logging
 const ALLOWLIST_FIELDS = ['status', 'model', 'duration_ms', 'checkin_count', 'couple_id']
@@ -446,8 +454,14 @@ Use "Partner 1" and "Partner 2" - never use real names.`
 
 3. **Set secrets:**
    ```bash
-   supabase secrets set PERPLEXITY_API_KEY=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
+   supabase secrets set PERPLEXITY_API_KEY=your_actual_perplexity_api_key_here
    ```
+   
+   **Important:** 
+   - Never commit API keys to version control
+   - Get your Perplexity API key from: https://www.perplexity.ai/settings/api
+   - For development, set it in your `.env` file
+   - For production, use Supabase secrets management
 
 4. **Deploy functions:**
    ```bash
