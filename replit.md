@@ -6,6 +6,45 @@ TADI is a multi-tenant platform designed for couples therapy, offering separate 
 
 ## Recent Changes (January 2025)
 
+**AI Features Implementation (January 8, 2025 - Night):**
+- ✅ **5 Production-Ready AI Features** - All architect-approved and security-reviewed
+  - `POST /api/ai/session-prep/:couple_id` - AI-powered therapist session preparation analyzing 13 therapy tools
+  - `POST /api/ai/empathy-prompt` - Hold Me Tight empathy suggestions using EFT principles  
+  - `GET /api/ai/exercise-recommendations` - Personalized therapy tool recommendations based on usage patterns
+  - `POST /api/ai/echo-coaching` - Real-time active listening feedback with scoring (6-10)
+  - `POST /api/ai/voice-memo-sentiment` - Voice memo tone analysis (loving, appreciative, etc.)
+- **Security & Privacy:**
+  - Removed sensitive logging from Perplexity API calls (no therapeutic content in logs)
+  - Input size validation (2000-5000 char limits) prevents token overflow
+  - Anonymized labels ("Partner 1/2") when sending data to AI - no real names
+  - Proper authentication (therapist-only vs client endpoints)
+- **Performance:**
+  - Intelligent caching (5min to 24hr TTL depending on use case)
+  - Parallel data fetching with Promise.all()
+  - Structured JSON parsing of AI responses
+- **Documentation:** See `AI_FEATURES_COMPLETE.md` for comprehensive guide
+
+**Therapist Dashboard Enhancement (January 8, 2025 - Evening):**
+- ✅ **6 New Therapy Tools Dashboard Views** - Added "Therapy Tools" tab in Admin Dashboard
+  - Four Horsemen Tracker (incidents, antidote success rate, type breakdown)
+  - Demon Dialogues (cycles, interruption rate, type breakdown)
+  - Meditation Library (sessions, minutes, recent meditations)
+  - Intimacy Mapping (ratings, goals, dimension averages)
+  - Values & Vision (dreams, values, vision board items)
+  - Parenting as Partners (agreements, stress check-ins, parenting styles)
+- ✅ **6 Secure Therapist API Endpoints** - All use `verifyTherapistSession()` and verify couple assignment
+  - `GET /api/four-horsemen/couple/:couple_id`
+  - `GET /api/demon-dialogues/couple/:couple_id`
+  - `GET /api/meditation/couple/:couple_id/sessions`
+  - `GET /api/intimacy-mapping/couple/:couple_id`
+  - `GET /api/values-vision/couple/:couple_id`
+  - `GET /api/parenting/couple/:couple_id`
+
+**Bug Fixes (January 8, 2025 - Evening):**
+- ✅ Fixed Pause Button query key issue (corrected URL format to match backend)
+- ✅ Fixed 26 TypeScript/LSP errors in admin-dashboard.tsx (imports, null safety, Date handling)
+- ✅ Created Love Map Questions Seed SQL with 50 Gottman-inspired questions across 5 categories
+
 **Documentation & Planning Deliverables (January 8, 2025 - Evening):**
 - ✅ **SUPABASE_EDGE_FUNCTIONS_READY.md** - Production-ready Edge Functions
   - Complete code for `ai-date-night` and `ai-insights` Edge Functions
