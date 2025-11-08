@@ -1,0 +1,36 @@
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "storage", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[db]
+port = 54322
+shadow_port = 54320
+major_version = 15
+
+[studio]
+enabled = true
+port = 54323
+api_url = "http://localhost"
+
+[auth]
+enabled = true
+site_url = "http://localhost:5000"
+additional_redirect_urls = ["https://couples.integrativepsychiatry.xyz"]
+jwt_expiry = 3600
+enable_signup = true
+
+[edge_runtime]
+enabled = true
+port = 54324
+
+[functions.ai-date-night]
+verify_jwt = true
+
+[functions.ai-analytics]
+verify_jwt = true
+
+[functions.ai-insights]
+verify_jwt = true

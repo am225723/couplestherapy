@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Sparkles, Loader2, ArrowLeft, ArrowRight, Heart, CalendarPlus } from 'lucide-react';
 import { useMutation } from '@tanstack/react-query';
-import { apiRequest } from '@/lib/queryClient';
+import { supabase } from '@/lib/supabase';
 import { useToast } from '@/hooks/use-toast';
 import { useLocation } from 'wouter';
 
@@ -45,8 +45,11 @@ export default function DateNightPage() {
 
   const generateMutation = useMutation({
     mutationFn: async (prefs: DateNightPreferences) => {
-      const response = await apiRequest('POST', '/api/ai/date-night', prefs);
-      const data = await response.json();
+      const { data, error } = await supabase.functions.invoke('ai-date-night', {
+        body: prefs,
+      });
+      
+      if (error) throw error;
       return data as DateNightResponse;
     },
     onSuccess: (data) => {
