@@ -2089,7 +2089,7 @@ Be warm, creative, and encouraging. Emphasize connection, fun, and breaking rout
       }
 
       const perplexityRequest = {
-        model: 'sonar-pro',
+        model: 'sonar-medium-online',
         messages: [
           { role: 'system' as const, content: systemPrompt },
           { role: 'user' as const, content: userPrompt },
