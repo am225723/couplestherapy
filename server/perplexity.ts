@@ -75,7 +75,8 @@ export async function analyzeCheckInsWithPerplexity(
   };
 
   try {
-    console.log('Perplexity API Request:', JSON.stringify(request, null, 2));
+    // PRIVACY: Do not log request payload - contains sensitive therapeutic content
+    // console.log('Perplexity API Request:', JSON.stringify(request, null, 2));
     const response = await fetch('https://api.perplexity.ai/chat/completions', {
       method: 'POST',
       headers: {

@@ -329,6 +329,23 @@ export type AIInsight = {
   citations?: string[]; // If Perplexity provides citations
 };
 
+// AI SESSION PREP TYPE
+export type SessionPrepResult = {
+  couple_id: string;
+  generated_at: string;
+  engagement_summary: string;
+  concerning_patterns: string[];
+  positive_patterns: string[];
+  session_focus_areas: string[];
+  recommended_interventions: string[];
+  ai_analysis: string;
+  usage: {
+    prompt_tokens: number;
+    completion_tokens: number;
+    total_tokens: number;
+  };
+};
+
 // ==============================================
 // LOVE MAP QUIZ TABLES (Gottman Methodology)
 // ==============================================

@@ -2,7 +2,7 @@ import type { Express, Request } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage.js";
 import { supabaseAdmin } from "./supabase.js";
-import type { TherapistAnalytics, CoupleAnalytics, AIInsight, InsertVoiceMemo, VoiceMemo } from "../shared/schema.ts";
+import type { TherapistAnalytics, CoupleAnalytics, AIInsight, SessionPrepResult, InsertVoiceMemo, VoiceMemo } from "../shared/schema.ts";
 import { insertVoiceMemoSchema, insertCalendarEventSchema } from "../shared/schema.ts";
 import { analyzeCheckInsWithPerplexity } from "./perplexity.js";
 import { generateCoupleReport } from "./csv-export.js";
@@ -334,7 +334,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Simple in-memory cache for AI insights (5-minute TTL)
   // This prevents expensive repeated API calls and provides basic rate limiting
   const aiInsightsCache = new Map<string, { data: AIInsight; timestamp: number }>();
+  const sessionPrepCache = new Map<string, { data: SessionPrepResult; timestamp: number }>();
+  const empathyPromptCache = new Map<string, { data: any; timestamp: number }>();
+  const recommendationsCache = new Map<string, { data: any; timestamp: number }>();
+  const echoCoachingCache = new Map<string, { data: any; timestamp: number }>();
+  const voiceSentimentCache = new Map<string, { data: any; timestamp: number }>();
   const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+  const EMPATHY_CACHE_TTL_MS = 10 * 60 * 1000; // 10 minutes for empathy prompts
+  const RECOMMENDATIONS_CACHE_TTL_MS = 30 * 60 * 1000; // 30 minutes for exercise recommendations
+  const ECHO_COACHING_CACHE_TTL_MS = 60 * 60 * 1000; // 60 minutes for echo coaching feedback
+  const VOICE_SENTIMENT_CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours for voice sentiment (transcript doesn't change)
 
   // AI INSIGHTS (Clinical Insights from Check-ins)
   app.get("/api/ai/insights", async (req, res) => {
@@ -542,6 +551,1262 @@ Be precise, evidence-based, and therapeutically sensitive. Format your response 
       console.error('AI Insights error:', error);
       res.status(500).json({ 
         error: error.message || 'Failed to generate AI insights' 
+      });
+    }
+  });
+
+  // AI SESSION PREP (Comprehensive Weekly Summary for Therapists)
+  app.post("/api/ai/session-prep/:couple_id", async (req, res) => {
+    try {
+      // Verify therapist session and get therapist ID from authenticated session
+      const authResult = await verifyTherapistSession(req);
+      if (!authResult.success) {
+        return res.status(authResult.status).json({ error: authResult.error });
+      }
+
+      const therapistId = authResult.therapistId;
+      const coupleId = req.params.couple_id;
+
+      if (!coupleId) {
+        return res.status(400).json({ 
+          error: "couple_id is required" 
+        });
+      }
+
+      // Check cache first to prevent expensive duplicate API calls
+      const cacheKey = `session-prep:${therapistId}:${coupleId}`;
+      const cached = sessionPrepCache.get(cacheKey);
+      if (cached && (Date.now() - cached.timestamp) < CACHE_TTL_MS) {
+        return res.json(cached.data);
+      }
+
+      // 1. Validate therapist has access to this couple
+      const { data: couple, error: coupleError } = await supabaseAdmin
+        .from('Couples_couples')
+        .select('partner1_id, partner2_id, therapist_id')
+        .eq('id', coupleId)
+        .single();
+
+      if (coupleError || !couple) {
+        return res.status(404).json({ error: "Couple not found" });
+      }
+
+      if (couple.therapist_id !== therapistId) {
+        return res.status(403).json({ 
+          error: "You don't have access to this couple's data" 
+        });
+      }
+
+      // 2. Fetch all recent activity data (last 4 weeks) in parallel
+      const fourWeeksAgo = new Date();
+      fourWeeksAgo.setDate(fourWeeksAgo.getDate() - 28); // 4 weeks
+      const fourWeeksAgoISO = fourWeeksAgo.toISOString();
+
+      const [
+        { data: checkins },
+        { data: gratitude },
+        { data: goals },
+        { data: rituals },
+        { data: conversations },
+        { data: voiceMemos },
+        { data: horsemenIncidents },
+        { data: demonDialogues },
+        { data: meditationSessions },
+        { data: intimacyRatings },
+        { data: intimacyGoals },
+        { data: echoSessions },
+        { data: ifsExercises },
+        { data: pauseEvents },
+      ] = await Promise.all([
+        supabaseAdmin
+          .from('Couples_weekly_checkins')
+          .select('*')
+          .eq('couple_id', coupleId)
+          .gte('created_at', fourWeeksAgoISO)
+          .order('created_at', { ascending: true }),
+        supabaseAdmin
+          .from('Couples_gratitude_logs')
+          .select('*')
+          .eq('couple_id', coupleId)
+          .gte('created_at', fourWeeksAgoISO)
+          .order('created_at', { ascending: true }),
+        supabaseAdmin
+          .from('Couples_shared_goals')
+          .select('*')
+          .eq('couple_id', coupleId)
+          .gte('created_at', fourWeeksAgoISO)
+          .order('created_at', { ascending: true }),
+        supabaseAdmin
+          .from('Couples_rituals')
+          .select('*')
+          .eq('couple_id', coupleId),
+        supabaseAdmin
+          .from('Couples_conversations')
+          .select('*')
+          .eq('couple_id', coupleId)
+          .gte('created_at', fourWeeksAgoISO)
+          .order('created_at', { ascending: true }),
+        supabaseAdmin
+          .from('Couples_voice_memos')
+          .select('id, sender_id, recipient_id, created_at, is_listened')
+          .eq('couple_id', coupleId)
+          .gte('created_at', fourWeeksAgoISO)
+          .order('created_at', { ascending: true }),
+        supabaseAdmin
+          .from('Couples_horsemen_incidents')
+          .select('*')
+          .eq('couple_id', coupleId)
+          .gte('created_at', fourWeeksAgoISO)
+          .order('created_at', { ascending: true }),
+        supabaseAdmin
+          .from('Couples_demon_dialogues')
+          .select('*')
+          .eq('couple_id', coupleId)
+          .gte('created_at', fourWeeksAgoISO)
+          .order('created_at', { ascending: true }),
+        supabaseAdmin
+          .from('Couples_meditation_sessions')
+          .select('*')
+          .eq('couple_id', coupleId)
+          .gte('created_at', fourWeeksAgoISO)
+          .order('created_at', { ascending: true }),
+        supabaseAdmin
+          .from('Couples_intimacy_ratings')
+          .select('*')
+          .eq('couple_id', coupleId)
+          .gte('created_at', fourWeeksAgoISO)
+          .order('created_at', { ascending: true }),
+        supabaseAdmin
+          .from('Couples_intimacy_goals')
+          .select('*')
+          .eq('couple_id', coupleId)
+          .gte('created_at', fourWeeksAgoISO)
+          .order('created_at', { ascending: true }),
+        supabaseAdmin
+          .from('Couples_echo_sessions')
+          .select('*')
+          .eq('couple_id', coupleId)
+          .gte('created_at', fourWeeksAgoISO)
+          .order('created_at', { ascending: true }),
+        supabaseAdmin
+          .from('Couples_ifs_exercises')
+          .select('*')
+          .eq('couple_id', coupleId)
+          .gte('created_at', fourWeeksAgoISO)
+          .order('created_at', { ascending: true }),
+        supabaseAdmin
+          .from('Couples_pause_events')
+          .select('*')
+          .eq('couple_id', coupleId)
+          .gte('started_at', fourWeeksAgoISO)
+          .order('started_at', { ascending: true }),
+      ]);
+
+      // Check if there's any recent activity
+      const hasActivity = (
+        (checkins && checkins.length > 0) ||
+        (gratitude && gratitude.length > 0) ||
+        (goals && goals.length > 0) ||
+        (conversations && conversations.length > 0) ||
+        (horsemenIncidents && horsemenIncidents.length > 0) ||
+        (demonDialogues && demonDialogues.length > 0) ||
+        (meditationSessions && meditationSessions.length > 0) ||
+        (intimacyRatings && intimacyRatings.length > 0) ||
+        (echoSessions && echoSessions.length > 0) ||
+        (ifsExercises && ifsExercises.length > 0) ||
+        (pauseEvents && pauseEvents.length > 0)
+      );
+
+      if (!hasActivity) {
+        return res.status(400).json({ 
+          error: "No recent activity data available for this couple in the last 4 weeks" 
+        });
+      }
+
+      // 3. Format data for AI analysis (PRIVACY-FOCUSED: anonymize partners)
+      let userPrompt = `Analyze the following 4-week activity summary for a couple in therapy:\n\n`;
+
+      // ENGAGEMENT METRICS
+      userPrompt += `=== ENGAGEMENT OVERVIEW ===\n`;
+      userPrompt += `Weekly Check-ins: ${checkins?.length || 0} completed\n`;
+      
+      // Calculate check-in completion by partner
+      const partner1Checkins = checkins?.filter(c => c.user_id === couple.partner1_id).length || 0;
+      const partner2Checkins = checkins?.filter(c => c.user_id === couple.partner2_id).length || 0;
+      userPrompt += `  - Partner 1: ${partner1Checkins} check-ins\n`;
+      userPrompt += `  - Partner 2: ${partner2Checkins} check-ins\n`;
+      
+      userPrompt += `Gratitude Logs: ${gratitude?.length || 0} entries\n`;
+      userPrompt += `Shared Goals: ${goals?.length || 0} total (${goals?.filter(g => g.status === 'done').length || 0} completed)\n`;
+      userPrompt += `Hold Me Tight Conversations: ${conversations?.length || 0} sessions\n`;
+      userPrompt += `Voice Memos Exchanged: ${voiceMemos?.length || 0} messages\n`;
+      userPrompt += `Echo & Empathy Sessions: ${echoSessions?.length || 0} completed\n`;
+      userPrompt += `IFS Exercises: ${ifsExercises?.length || 0} completed\n`;
+      userPrompt += `Meditation Sessions: ${meditationSessions?.length || 0} completed\n`;
+      userPrompt += `Pause Button Uses: ${pauseEvents?.length || 0} times\n\n`;
+
+      // CHECK-IN SCORES SUMMARY
+      if (checkins && checkins.length > 0) {
+        userPrompt += `=== WEEKLY CHECK-IN TRENDS ===\n`;
+        
+        const connectednessScores = checkins.map(c => c.q_connectedness).filter(Boolean);
+        const conflictScores = checkins.map(c => c.q_conflict).filter(Boolean);
+        
+        if (connectednessScores.length > 0) {
+          const avgConnectedness = (connectednessScores.reduce((a, b) => a + b, 0) / connectednessScores.length).toFixed(1);
+          const minConnectedness = Math.min(...connectednessScores);
+          const maxConnectedness = Math.max(...connectednessScores);
+          userPrompt += `Connectedness Scores (1-10): Avg ${avgConnectedness}, Range ${minConnectedness}-${maxConnectedness}\n`;
+        }
+        
+        if (conflictScores.length > 0) {
+          const avgConflict = (conflictScores.reduce((a, b) => a + b, 0) / conflictScores.length).toFixed(1);
+          const minConflict = Math.min(...conflictScores);
+          const maxConflict = Math.max(...conflictScores);
+          userPrompt += `Conflict Scores (1-10): Avg ${avgConflict}, Range ${minConflict}-${maxConflict}\n`;
+        }
+        
+        userPrompt += '\n';
+      }
+
+      // CONCERNING PATTERNS
+      userPrompt += `=== CONCERNING PATTERNS ===\n`;
+      
+      if (horsemenIncidents && horsemenIncidents.length > 0) {
+        const criticismCount = horsemenIncidents.filter(h => h.horseman_type === 'criticism').length;
+        const contemptCount = horsemenIncidents.filter(h => h.horseman_type === 'contempt').length;
+        const defensivenessCount = horsemenIncidents.filter(h => h.horseman_type === 'defensiveness').length;
+        const stonewallCount = horsemenIncidents.filter(h => h.horseman_type === 'stonewalling').length;
+        
+        userPrompt += `Four Horsemen Incidents: ${horsemenIncidents.length} total\n`;
+        userPrompt += `  - Criticism: ${criticismCount}\n`;
+        userPrompt += `  - Contempt: ${contemptCount}\n`;
+        userPrompt += `  - Defensiveness: ${defensivenessCount}\n`;
+        userPrompt += `  - Stonewalling: ${stonewallCount}\n`;
+        
+        const antidotesPracticed = horsemenIncidents.filter(h => h.antidote_practiced).length;
+        userPrompt += `  - Antidotes practiced: ${antidotesPracticed}/${horsemenIncidents.length}\n`;
+      } else {
+        userPrompt += `Four Horsemen Incidents: 0 (positive sign)\n`;
+      }
+      
+      if (demonDialogues && demonDialogues.length > 0) {
+        const findBadGuyCount = demonDialogues.filter(d => d.dialogue_type === 'find_bad_guy').length;
+        const protestPolkaCount = demonDialogues.filter(d => d.dialogue_type === 'protest_polka').length;
+        const freezeFleeCount = demonDialogues.filter(d => d.dialogue_type === 'freeze_flee').length;
+        const interruptedCount = demonDialogues.filter(d => d.interrupted).length;
+        
+        userPrompt += `Demon Dialogues Recognized: ${demonDialogues.length} total\n`;
+        userPrompt += `  - Find the Bad Guy: ${findBadGuyCount}\n`;
+        userPrompt += `  - Protest Polka: ${protestPolkaCount}\n`;
+        userPrompt += `  - Freeze & Flee: ${freezeFleeCount}\n`;
+        userPrompt += `  - Successfully interrupted: ${interruptedCount}/${demonDialogues.length}\n`;
+      } else {
+        userPrompt += `Demon Dialogues: 0 recognized\n`;
+      }
+      
+      userPrompt += '\n';
+
+      // POSITIVE PATTERNS
+      userPrompt += `=== POSITIVE PATTERNS ===\n`;
+      
+      if (gratitude && gratitude.length > 0) {
+        const partner1Gratitude = gratitude.filter(g => g.user_id === couple.partner1_id).length;
+        const partner2Gratitude = gratitude.filter(g => g.user_id === couple.partner2_id).length;
+        userPrompt += `Gratitude Practice: ${gratitude.length} entries\n`;
+        userPrompt += `  - Partner 1: ${partner1Gratitude} entries\n`;
+        userPrompt += `  - Partner 2: ${partner2Gratitude} entries\n`;
+      }
+      
+      if (rituals && rituals.length > 0) {
+        userPrompt += `Rituals of Connection: ${rituals.length} active rituals\n`;
+      }
+      
+      if (intimacyRatings && intimacyRatings.length > 0) {
+        userPrompt += `Intimacy Tracking: ${intimacyRatings.length} ratings submitted\n`;
+      }
+      
+      if (intimacyGoals && intimacyGoals.length > 0) {
+        const achievedGoals = intimacyGoals.filter(g => g.is_achieved).length;
+        userPrompt += `Intimacy Goals: ${achievedGoals}/${intimacyGoals.length} achieved\n`;
+      }
+      
+      userPrompt += '\n';
+
+      // REQUEST STRUCTURED OUTPUT
+      userPrompt += `Based on this data, provide:\n`;
+      userPrompt += `1. ENGAGEMENT SUMMARY: Brief overview of couple's engagement level and consistency\n`;
+      userPrompt += `2. CONCERNING PATTERNS: List 3-5 specific concerns that need therapeutic attention\n`;
+      userPrompt += `3. POSITIVE PATTERNS: List 3-5 strengths and positive developments to build upon\n`;
+      userPrompt += `4. SESSION FOCUS AREAS: Top 3 priorities for the upcoming therapy session\n`;
+      userPrompt += `5. RECOMMENDED INTERVENTIONS: 3-5 specific therapeutic tools or exercises to suggest\n`;
+
+      const systemPrompt = `You are an expert couples therapist preparing for a therapy session. Analyze the couple's recent activity data and provide a structured session preparation summary.
+
+Your analysis should be:
+- Evidence-based and specific (cite metrics when relevant)
+- Therapeutically sensitive and compassionate
+- Action-oriented with clear recommendations
+- Balanced (acknowledge both concerns and strengths)
+- Focused on helping the therapist prepare for an effective session
+
+Format your response with clear section headings.`;
+
+      // 4. Call Perplexity API
+      const analysisResult = await analyzeCheckInsWithPerplexity({
+        systemPrompt,
+        userPrompt,
+      });
+
+      // 5. Parse and structure the response
+      const rawAnalysis = analysisResult.content;
+      const lines = rawAnalysis.split('\n').filter(line => line.trim());
+      
+      let engagementSummary = '';
+      const concerningPatterns: string[] = [];
+      const positivePatterns: string[] = [];
+      const sessionFocusAreas: string[] = [];
+      const recommendedInterventions: string[] = [];
+      
+      let currentSection = '';
+      
+      lines.forEach(line => {
+        const lowerLine = line.toLowerCase();
+        
+        if (lowerLine.includes('engagement') && lowerLine.includes('summary')) {
+          currentSection = 'engagement';
+        } else if (lowerLine.includes('concerning') || lowerLine.includes('concern')) {
+          currentSection = 'concerning';
+        } else if (lowerLine.includes('positive') || lowerLine.includes('strength')) {
+          currentSection = 'positive';
+        } else if (lowerLine.includes('session focus') || lowerLine.includes('focus area')) {
+          currentSection = 'focus';
+        } else if (lowerLine.includes('intervention') || lowerLine.includes('recommend')) {
+          currentSection = 'interventions';
+        } else if (line.trim().match(/^[\d\-\*•]/)) {
+          const cleanedLine = line.trim().replace(/^[\d\-\*•.)\s]+/, '');
+          if (currentSection === 'concerning') {
+            concerningPatterns.push(cleanedLine);
+          } else if (currentSection === 'positive') {
+            positivePatterns.push(cleanedLine);
+          } else if (currentSection === 'focus') {
+            sessionFocusAreas.push(cleanedLine);
+          } else if (currentSection === 'interventions') {
+            recommendedInterventions.push(cleanedLine);
+          }
+        } else if (currentSection === 'engagement' && line.trim() && !lowerLine.includes('engagement')) {
+          engagementSummary += line.trim() + ' ';
+        }
+      });
+
+      // Provide fallbacks if parsing didn't work well
+      if (!engagementSummary) {
+        engagementSummary = rawAnalysis.substring(0, 200) + '...';
+      }
+      if (concerningPatterns.length === 0) {
+        concerningPatterns.push('See full analysis for details');
+      }
+      if (positivePatterns.length === 0) {
+        positivePatterns.push('See full analysis for details');
+      }
+      if (sessionFocusAreas.length === 0) {
+        sessionFocusAreas.push('See full analysis for details');
+      }
+      if (recommendedInterventions.length === 0) {
+        recommendedInterventions.push('See full analysis for details');
+      }
+
+      const sessionPrep: SessionPrepResult = {
+        couple_id: coupleId,
+        generated_at: new Date().toISOString(),
+        engagement_summary: engagementSummary.trim(),
+        concerning_patterns: concerningPatterns,
+        positive_patterns: positivePatterns,
+        session_focus_areas: sessionFocusAreas,
+        recommended_interventions: recommendedInterventions,
+        ai_analysis: rawAnalysis,
+        usage: analysisResult.usage,
+      };
+
+      // Cache the result
+      sessionPrepCache.set(cacheKey, {
+        data: sessionPrep,
+        timestamp: Date.now(),
+      });
+
+      res.json(sessionPrep);
+    } catch (error: any) {
+      console.error('AI Session Prep error:', error);
+      res.status(500).json({ 
+        error: error.message || 'Failed to generate session preparation summary' 
+      });
+    }
+  });
+
+  // AI EMPATHY PROMPT (EFT-powered response suggestions for Hold Me Tight conversations)
+  app.post("/api/ai/empathy-prompt", async (req, res) => {
+    try {
+      // Verify user session and get user info
+      const authResult = await verifyUserSession(req);
+      if (!authResult.success) {
+        return res.status(authResult.status).json({ error: authResult.error });
+      }
+
+      const { userId, coupleId } = authResult;
+
+      // Validate request body
+      const requestBodySchema = z.object({
+        conversation_id: z.string().uuid(),
+        step_number: z.number().int().min(1).max(6),
+        user_response: z.string().min(1),
+      });
+
+      const parseResult = requestBodySchema.safeParse(req.body);
+      if (!parseResult.success) {
+        return res.status(400).json({ 
+          error: 'Invalid request body',
+          details: parseResult.error.errors 
+        });
+      }
+
+      const { conversation_id, step_number, user_response } = parseResult.data;
+
+      // Verify conversation exists and belongs to user's couple
+      const { data: conversation, error: conversationError } = await supabaseAdmin
+        .from('Couples_conversations')
+        .select('couple_id, initiator_id')
+        .eq('id', conversation_id)
+        .single();
+
+      if (conversationError || !conversation) {
+        return res.status(404).json({ error: 'Conversation not found' });
+      }
+
+      if (conversation.couple_id !== coupleId) {
+        return res.status(403).json({ 
+          error: 'Access denied. This conversation does not belong to your couple.' 
+        });
+      }
+
+      // Verify user is a participant in this conversation
+      const { data: couple, error: coupleError } = await supabaseAdmin
+        .from('Couples_couples')
+        .select('partner1_id, partner2_id')
+        .eq('id', coupleId)
+        .single();
+
+      if (coupleError || !couple) {
+        return res.status(404).json({ error: 'Couple not found' });
+      }
+
+      const isParticipant = couple.partner1_id === userId || couple.partner2_id === userId;
+      if (!isParticipant) {
+        return res.status(403).json({ 
+          error: 'Access denied. You are not a participant in this conversation.' 
+        });
+      }
+
+      // Check cache first - use first 50 chars of user_response as cache key suffix
+      const responseSuffix = user_response.substring(0, 50).replace(/[^a-zA-Z0-9]/g, '_');
+      const cacheKey = `empathy:${conversation_id}:${step_number}:${responseSuffix}`;
+      const cached = empathyPromptCache.get(cacheKey);
+      if (cached && (Date.now() - cached.timestamp) < EMPATHY_CACHE_TTL_MS) {
+        return res.json(cached.data);
+      }
+
+      // Build Perplexity prompts
+      const systemPrompt = "You are an expert Emotionally Focused Therapy (EFT) therapist coaching couples through the Hold Me Tight conversation. Your role is to help the listening partner respond with empathy, validation, and emotional attunement.";
+
+      const userPrompt = `Step ${step_number} of the Hold Me Tight Conversation.
+
+One partner just shared:
+"${user_response}"
+
+Suggest 2-3 empathetic responses for their partner that:
+1. Validate their feelings and experience
+2. Show understanding and compassion
+3. Invite deeper sharing
+4. Avoid defensiveness or problem-solving
+5. Use "I hear..." or "It sounds like..." language
+
+Format as a numbered list of suggested responses.`;
+
+      // Call Perplexity AI
+      const analysisResult = await analyzeCheckInsWithPerplexity({
+        systemPrompt,
+        userPrompt,
+      });
+
+      const aiFullResponse = analysisResult.content;
+
+      // Parse AI response to extract numbered suggestions
+      const suggestedResponses: string[] = [];
+      const lines = aiFullResponse.split('\n');
+      
+      for (const line of lines) {
+        const trimmedLine = line.trim();
+        // Match lines starting with numbers (1., 2., 3., etc.) or bullet points
+        const match = trimmedLine.match(/^[\d]+[\.\)]\s*(.+)$/);
+        if (match && match[1]) {
+          suggestedResponses.push(match[1].trim());
+          if (suggestedResponses.length >= 3) {
+            break; // Limit to 3 suggestions
+          }
+        }
+      }
+
+      // If parsing failed, return full response as single item
+      if (suggestedResponses.length === 0) {
+        suggestedResponses.push(aiFullResponse);
+      }
+
+      // Build response
+      const response = {
+        conversation_id,
+        step_number,
+        suggested_responses: suggestedResponses,
+        ai_full_response: aiFullResponse,
+        usage: analysisResult.usage,
+      };
+
+      // Cache the result
+      empathyPromptCache.set(cacheKey, {
+        data: response,
+        timestamp: Date.now(),
+      });
+
+      res.json(response);
+    } catch (error: any) {
+      console.error('AI Empathy Prompt error:', error);
+      res.status(500).json({ 
+        error: error.message || 'Failed to generate empathy prompts' 
+      });
+    }
+  });
+
+  // AI EXERCISE RECOMMENDATIONS (Personalized therapy tool suggestions)
+  app.get("/api/ai/exercise-recommendations", async (req, res) => {
+    try {
+      // Verify user session and get user info
+      const authResult = await verifyUserSession(req);
+      if (!authResult.success) {
+        return res.status(authResult.status).json({ error: authResult.error });
+      }
+
+      const { coupleId } = authResult;
+
+      // Check cache first
+      const cacheKey = `recommendations:${coupleId}`;
+      const cached = recommendationsCache.get(cacheKey);
+      if (cached && (Date.now() - cached.timestamp) < RECOMMENDATIONS_CACHE_TTL_MS) {
+        return res.json(cached.data);
+      }
+
+      // Calculate 30 days ago timestamp
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      const thirtyDaysAgoISO = thirtyDaysAgo.toISOString();
+
+      // Fetch activity counts for all therapy tools in parallel
+      const [
+        { data: weeklyCheckins },
+        { data: gratitudeLogs },
+        { data: sharedGoals },
+        { data: rituals },
+        { data: conversations },
+        { data: voiceMemos },
+        { data: fourHorsemen },
+        { data: demonDialogues },
+        { data: meditationSessions },
+        { data: intimacyRatings },
+        { data: intimacyGoals },
+        { data: sharedDreams },
+        { data: visionBoardItems },
+        { data: coreValues },
+        { data: parentingAgreements },
+        { data: parentingStressCheckins },
+        { data: echoSessions },
+        { data: ifsExercises },
+        { data: pauseEvents },
+        { data: messages },
+        { data: calendarEvents },
+        { data: loveMapSessions },
+      ] = await Promise.all([
+        supabaseAdmin.from('Couples_weekly_checkins').select('id').eq('couple_id', coupleId).gte('created_at', thirtyDaysAgoISO),
+        supabaseAdmin.from('Couples_gratitude_logs').select('id').eq('couple_id', coupleId).gte('created_at', thirtyDaysAgoISO),
+        supabaseAdmin.from('Couples_shared_goals').select('id').eq('couple_id', coupleId).gte('created_at', thirtyDaysAgoISO),
+        supabaseAdmin.from('Couples_rituals').select('id').eq('couple_id', coupleId),
+        supabaseAdmin.from('Couples_conversations').select('id').eq('couple_id', coupleId).gte('created_at', thirtyDaysAgoISO),
+        supabaseAdmin.from('Couples_voice_memos').select('id').eq('couple_id', coupleId).gte('created_at', thirtyDaysAgoISO),
+        supabaseAdmin.from('Couples_horsemen_incidents').select('id').eq('couple_id', coupleId).gte('created_at', thirtyDaysAgoISO),
+        supabaseAdmin.from('Couples_demon_dialogues').select('id').eq('couple_id', coupleId).gte('created_at', thirtyDaysAgoISO),
+        supabaseAdmin.from('Couples_meditation_sessions').select('id').eq('couple_id', coupleId).gte('created_at', thirtyDaysAgoISO),
+        supabaseAdmin.from('Couples_intimacy_ratings').select('id').eq('couple_id', coupleId).gte('created_at', thirtyDaysAgoISO),
+        supabaseAdmin.from('Couples_intimacy_goals').select('id').eq('couple_id', coupleId).gte('created_at', thirtyDaysAgoISO),
+        supabaseAdmin.from('Couples_shared_dreams').select('id').eq('couple_id', coupleId).gte('created_at', thirtyDaysAgoISO),
+        supabaseAdmin.from('Couples_vision_board_items').select('id').eq('couple_id', coupleId).gte('created_at', thirtyDaysAgoISO),
+        supabaseAdmin.from('Couples_core_values').select('id').eq('couple_id', coupleId).gte('created_at', thirtyDaysAgoISO),
+        supabaseAdmin.from('Couples_discipline_agreements').select('id').eq('couple_id', coupleId).gte('created_at', thirtyDaysAgoISO),
+        supabaseAdmin.from('Couples_parenting_stress_checkins').select('id').eq('couple_id', coupleId).gte('created_at', thirtyDaysAgoISO),
+        supabaseAdmin.from('Couples_echo_sessions').select('id').eq('couple_id', coupleId).gte('created_at', thirtyDaysAgoISO),
+        supabaseAdmin.from('Couples_ifs_exercises').select('id').eq('couple_id', coupleId).gte('created_at', thirtyDaysAgoISO),
+        supabaseAdmin.from('Couples_pause_events').select('id').eq('couple_id', coupleId).gte('started_at', thirtyDaysAgoISO),
+        supabaseAdmin.from('Couples_messages').select('id').eq('couple_id', coupleId).gte('created_at', thirtyDaysAgoISO),
+        supabaseAdmin.from('Couples_calendar_events').select('id').eq('couple_id', coupleId).gte('created_at', thirtyDaysAgoISO),
+        supabaseAdmin.from('Couples_love_map_sessions').select('id').eq('couple_id', coupleId).gte('created_at', thirtyDaysAgoISO),
+      ]);
+
+      // Calculate activity counts
+      const activityCounts = {
+        'Weekly Check-ins': weeklyCheckins?.length || 0,
+        'Gratitude Log': gratitudeLogs?.length || 0,
+        'Shared Goals': sharedGoals?.length || 0,
+        'Rituals of Connection': rituals?.length || 0,
+        'Hold Me Tight Conversations': conversations?.length || 0,
+        'Voice Memos': voiceMemos?.length || 0,
+        'Four Horsemen Awareness': fourHorsemen?.length || 0,
+        'Demon Dialogues': demonDialogues?.length || 0,
+        'Meditation Library': meditationSessions?.length || 0,
+        'Intimacy Mapping': (intimacyRatings?.length || 0) + (intimacyGoals?.length || 0),
+        'Values & Vision': (sharedDreams?.length || 0) + (visionBoardItems?.length || 0) + (coreValues?.length || 0),
+        'Parenting Partners': (parentingAgreements?.length || 0) + (parentingStressCheckins?.length || 0),
+        'Echo & Empathy': echoSessions?.length || 0,
+        'IFS Introduction': ifsExercises?.length || 0,
+        'Pause Button': pauseEvents?.length || 0,
+        'Messages': messages?.length || 0,
+        'Shared Calendar': calendarEvents?.length || 0,
+        'Love Map Quiz': loveMapSessions?.length || 0,
+      };
+
+      // Categorize activities
+      const notStarted: string[] = [];
+      const underutilized: string[] = [];
+      const active: string[] = [];
+
+      Object.entries(activityCounts).forEach(([toolName, count]) => {
+        if (count === 0) {
+          notStarted.push(toolName);
+        } else if (count >= 1 && count <= 3) {
+          underutilized.push(`${toolName} (${count} uses)`);
+        } else {
+          active.push(`${toolName} (${count} uses)`);
+        }
+      });
+
+      // Build Perplexity prompts
+      const systemPrompt = "You are an expert couples therapist recommending therapeutic exercises and activities. Based on a couple's activity patterns, suggest 3-5 specific therapy tools they should try next to strengthen their relationship.";
+
+      let userPrompt = `Analyze this couple's therapy tool usage over the last 30 days:\n\n`;
+
+      if (notStarted.length > 0) {
+        userPrompt += `NOT STARTED (never used):\n`;
+        notStarted.forEach(tool => {
+          userPrompt += `- ${tool}\n`;
+        });
+        userPrompt += '\n';
+      }
+
+      if (underutilized.length > 0) {
+        userPrompt += `UNDERUTILIZED (1-3 uses):\n`;
+        underutilized.forEach(tool => {
+          userPrompt += `- ${tool}\n`;
+        });
+        userPrompt += '\n';
+      }
+
+      if (active.length > 0) {
+        userPrompt += `ACTIVE (4+ uses):\n`;
+        active.forEach(tool => {
+          userPrompt += `- ${tool}\n`;
+        });
+        userPrompt += '\n';
+      }
+
+      userPrompt += `Based on this data:\n`;
+      userPrompt += `1. Recommend 3-5 specific therapy tools they should try or use more\n`;
+      userPrompt += `2. For each recommendation, explain WHY it would benefit them based on their current patterns\n`;
+      userPrompt += `3. Suggest a specific action they can take this week\n\n`;
+      userPrompt += `Format as numbered recommendations with tool name, rationale, and suggested action.`;
+
+      // Call Perplexity AI
+      const analysisResult = await analyzeCheckInsWithPerplexity({
+        systemPrompt,
+        userPrompt,
+      });
+
+      const aiFullResponse = analysisResult.content;
+
+      // Parse AI response to extract recommendations
+      const recommendations: Array<{
+        tool_name: string;
+        rationale: string;
+        suggested_action: string;
+      }> = [];
+
+      const lines = aiFullResponse.split('\n');
+      let currentRecommendation: any = null;
+      let currentSection = '';
+
+      for (const line of lines) {
+        const trimmedLine = line.trim();
+        
+        // Match numbered recommendations (1., 2., etc.)
+        const numberMatch = trimmedLine.match(/^(\d+)[\.\)]\s*(.+)$/);
+        if (numberMatch) {
+          // Save previous recommendation if exists
+          if (currentRecommendation && currentRecommendation.tool_name) {
+            recommendations.push(currentRecommendation);
+          }
+          
+          // Start new recommendation
+          currentRecommendation = {
+            tool_name: numberMatch[2].trim(),
+            rationale: '',
+            suggested_action: '',
+          };
+          currentSection = '';
+          
+          if (recommendations.length >= 5) {
+            break; // Limit to 5 recommendations
+          }
+          continue;
+        }
+
+        // Match section headers
+        if (trimmedLine.toLowerCase().includes('rationale') || trimmedLine.toLowerCase().includes('why')) {
+          currentSection = 'rationale';
+          continue;
+        }
+        if (trimmedLine.toLowerCase().includes('action') || trimmedLine.toLowerCase().includes('this week')) {
+          currentSection = 'action';
+          continue;
+        }
+
+        // Add content to current section
+        if (currentRecommendation && trimmedLine && !trimmedLine.match(/^[\d]+[\.\)]/)) {
+          if (currentSection === 'rationale') {
+            currentRecommendation.rationale += (currentRecommendation.rationale ? ' ' : '') + trimmedLine;
+          } else if (currentSection === 'action') {
+            currentRecommendation.suggested_action += (currentRecommendation.suggested_action ? ' ' : '') + trimmedLine;
+          } else if (!currentRecommendation.rationale) {
+            // If no section specified, assume it's rationale
+            currentRecommendation.rationale += (currentRecommendation.rationale ? ' ' : '') + trimmedLine;
+          }
+        }
+      }
+
+      // Save last recommendation
+      if (currentRecommendation && currentRecommendation.tool_name) {
+        recommendations.push(currentRecommendation);
+      }
+
+      // If parsing failed to extract structured recommendations, create simple ones from the response
+      if (recommendations.length === 0) {
+        const numberMatches = aiFullResponse.match(/^\d+[\.\)]\s*(.+)$/gm);
+        if (numberMatches) {
+          numberMatches.slice(0, 5).forEach(match => {
+            const content = match.replace(/^\d+[\.\)]\s*/, '').trim();
+            recommendations.push({
+              tool_name: content.substring(0, 50), // First 50 chars as tool name
+              rationale: content,
+              suggested_action: 'Try this exercise this week',
+            });
+          });
+        }
+      }
+
+      // Build response
+      const response = {
+        couple_id: coupleId,
+        generated_at: new Date().toISOString(),
+        activity_summary: {
+          not_started: notStarted.map(t => t.replace(/ \(\d+ uses\)/, '')),
+          underutilized: underutilized.map(t => t.replace(/ \(\d+ uses\)/, '')),
+          active: active.map(t => t.replace(/ \(\d+ uses\)/, '')),
+        },
+        recommendations,
+        ai_full_response: aiFullResponse,
+        usage: analysisResult.usage,
+      };
+
+      // Cache the result
+      recommendationsCache.set(cacheKey, {
+        data: response,
+        timestamp: Date.now(),
+      });
+
+      res.json(response);
+    } catch (error: any) {
+      console.error('AI Exercise Recommendations error:', error);
+      res.status(500).json({ 
+        error: error.message || 'Failed to generate exercise recommendations' 
+      });
+    }
+  });
+
+  // AI ECHO & EMPATHY COACHING (Real-time active listening feedback)
+  app.post("/api/ai/echo-coaching", async (req, res) => {
+    try {
+      // Verify user session
+      const authResult = await verifyUserSession(req);
+      if (!authResult.success) {
+        return res.status(authResult.status).json({ error: authResult.error });
+      }
+
+      const { userId, coupleId } = authResult;
+
+      // Validate request body with size limits to prevent Perplexity token overflow
+      const requestSchema = z.object({
+        session_id: z.string().uuid("Invalid session ID"),
+        turn_id: z.string().uuid("Invalid turn ID"),
+        speaker_message: z.string().min(1, "Speaker message is required").max(2000, "Speaker message too long (max 2000 characters)"),
+        listener_response: z.string().min(1, "Listener response is required").max(2000, "Listener response too long (max 2000 characters)"),
+      });
+
+      const validationResult = requestSchema.safeParse(req.body);
+      if (!validationResult.success) {
+        return res.status(400).json({ 
+          error: validationResult.error.errors[0].message 
+        });
+      }
+
+      const { session_id, turn_id, speaker_message, listener_response } = validationResult.data;
+
+      // Check cache first
+      const cacheKey = `echo-coaching:${session_id}:${turn_id}`;
+      const cached = echoCoachingCache.get(cacheKey);
+      if (cached && (Date.now() - cached.timestamp) < ECHO_COACHING_CACHE_TTL_MS) {
+        return res.json(cached.data);
+      }
+
+      // Verify session exists and belongs to user's couple
+      const { data: session, error: sessionError } = await supabaseAdmin
+        .from('Couples_echo_sessions')
+        .select('*')
+        .eq('id', session_id)
+        .single();
+
+      if (sessionError || !session) {
+        return res.status(404).json({ error: "Session not found" });
+      }
+
+      if (session.couple_id !== coupleId) {
+        return res.status(403).json({ 
+          error: "Unauthorized: Session does not belong to your couple" 
+        });
+      }
+
+      // Verify user is the listener in this session
+      if (session.listener_id !== userId) {
+        return res.status(403).json({ 
+          error: "Unauthorized: You must be the listener in this session to receive coaching" 
+        });
+      }
+
+      // Verify turn exists and belongs to this session
+      const { data: turn, error: turnError } = await supabaseAdmin
+        .from('Couples_echo_turns')
+        .select('*')
+        .eq('id', turn_id)
+        .single();
+
+      if (turnError || !turn) {
+        return res.status(404).json({ error: "Turn not found" });
+      }
+
+      if (turn.session_id !== session_id) {
+        return res.status(403).json({ 
+          error: "Unauthorized: Turn does not belong to this session" 
+        });
+      }
+
+      // Build Perplexity prompts
+      const systemPrompt = "You are an expert communication coach specializing in active listening skills for couples. Your role is to provide constructive, encouraging feedback on how well the listener demonstrated active listening. Be supportive and specific.";
+
+      const userPrompt = `SPEAKER SAID:
+"${speaker_message}"
+
+LISTENER RESPONDED:
+"${listener_response}"
+
+Analyze the listener's response and provide:
+
+1. WHAT WENT WELL (2-3 specific positives about their active listening)
+2. AREAS TO IMPROVE (1-2 gentle suggestions)
+3. SUGGESTED BETTER RESPONSE (one example of how they could have responded even better)
+
+Active listening checklist:
+✓ Paraphrased the speaker's words
+✓ Reflected the speaker's emotions
+✓ Avoided defensiveness or problem-solving
+✓ Asked clarifying questions
+✓ Showed empathy and validation
+✓ Used "I hear..." or "It sounds like..." language
+
+Be encouraging and constructive. Focus on growth.`;
+
+      // Call Perplexity AI
+      const analysisResult = await analyzeCheckInsWithPerplexity({
+        systemPrompt,
+        userPrompt,
+      });
+
+      const aiFullResponse = analysisResult.content;
+
+      // Parse AI response to extract structured feedback
+      const whatWentWell: string[] = [];
+      const areasToImprove: string[] = [];
+      let suggestedResponse = "";
+
+      const lines = aiFullResponse.split('\n');
+      let currentSection = '';
+
+      for (const line of lines) {
+        const trimmedLine = line.trim();
+        
+        // Detect sections
+        if (trimmedLine.match(/^1\.|WHAT WENT WELL/i)) {
+          currentSection = 'what_went_well';
+          continue;
+        }
+        if (trimmedLine.match(/^2\.|AREAS TO IMPROVE/i)) {
+          currentSection = 'areas_to_improve';
+          continue;
+        }
+        if (trimmedLine.match(/^3\.|SUGGESTED (BETTER )?RESPONSE/i)) {
+          currentSection = 'suggested_response';
+          continue;
+        }
+
+        // Extract content based on current section
+        if (trimmedLine && !trimmedLine.match(/^[\d]+[\.\)]/)) {
+          // Match bullet points or numbered sub-items
+          const bulletMatch = trimmedLine.match(/^[-•*]\s*(.+)$/);
+          const subNumberMatch = trimmedLine.match(/^[a-z]\)|^\d+\)\s*(.+)$/);
+          
+          if (currentSection === 'what_went_well') {
+            if (bulletMatch || subNumberMatch) {
+              const content = bulletMatch ? bulletMatch[1] : (subNumberMatch ? subNumberMatch[1] : trimmedLine);
+              whatWentWell.push(content.trim());
+            } else if (whatWentWell.length === 0 || trimmedLine.length > 30) {
+              whatWentWell.push(trimmedLine);
+            }
+          } else if (currentSection === 'areas_to_improve') {
+            if (bulletMatch || subNumberMatch) {
+              const content = bulletMatch ? bulletMatch[1] : (subNumberMatch ? subNumberMatch[1] : trimmedLine);
+              areasToImprove.push(content.trim());
+            } else if (areasToImprove.length === 0 || trimmedLine.length > 30) {
+              areasToImprove.push(trimmedLine);
+            }
+          } else if (currentSection === 'suggested_response') {
+            if (trimmedLine.startsWith('"') || trimmedLine.includes('could say') || trimmedLine.includes('might respond')) {
+              suggestedResponse += (suggestedResponse ? ' ' : '') + trimmedLine;
+            } else if (!suggestedResponse) {
+              suggestedResponse = trimmedLine;
+            }
+          }
+        }
+      }
+
+      // Fallback parsing if sections not found
+      if (whatWentWell.length === 0 && areasToImprove.length === 0 && !suggestedResponse) {
+        // Try simpler extraction
+        const allBullets = aiFullResponse.match(/[-•*]\s*(.+)/g);
+        if (allBullets && allBullets.length >= 3) {
+          whatWentWell.push(allBullets[0].replace(/^[-•*]\s*/, '').trim());
+          whatWentWell.push(allBullets[1].replace(/^[-•*]\s*/, '').trim());
+          if (allBullets.length > 2) {
+            areasToImprove.push(allBullets[2].replace(/^[-•*]\s*/, '').trim());
+          }
+          if (allBullets.length > 3) {
+            suggestedResponse = allBullets[3].replace(/^[-•*]\s*/, '').trim();
+          }
+        } else {
+          // Ultimate fallback
+          whatWentWell.push("You showed effort in responding to your partner.");
+          areasToImprove.push("Continue practicing active listening techniques.");
+          suggestedResponse = "Try incorporating more reflective statements like 'It sounds like you're feeling...'";
+        }
+      }
+
+      // Limit arrays to specified lengths
+      const finalWhatWentWell = whatWentWell.slice(0, 3);
+      const finalAreasToImprove = areasToImprove.slice(0, 2);
+
+      // Calculate overall score (1-10) based on positive indicators
+      // Count positive indicators mentioned in the response
+      const positiveKeywords = [
+        'paraphras', 'reflect', 'empathy', 'validat', 'acknowledg',
+        'understand', 'hear', 'sounds like', 'feel', 'clarif'
+      ];
+      
+      let positiveCount = 0;
+      const lowerResponse = listener_response.toLowerCase();
+      const lowerAiResponse = aiFullResponse.toLowerCase();
+      
+      positiveKeywords.forEach(keyword => {
+        if (lowerResponse.includes(keyword) || lowerAiResponse.includes(keyword)) {
+          positiveCount++;
+        }
+      });
+
+      // Score from 6-10 based on positive indicators and feedback
+      // Start at 6 (baseline), add up to 4 points based on quality
+      const baseScore = 6;
+      const bonusPoints = Math.min(4, Math.floor(positiveCount / 2));
+      const overallScore = Math.min(10, baseScore + bonusPoints);
+
+      // Build response
+      const response = {
+        session_id,
+        turn_id,
+        feedback: {
+          what_went_well: finalWhatWentWell,
+          areas_to_improve: finalAreasToImprove,
+          suggested_response: suggestedResponse || "Continue practicing empathetic responses.",
+        },
+        overall_score: overallScore,
+        ai_full_response: aiFullResponse,
+        usage: analysisResult.usage,
+      };
+
+      // Cache the result
+      echoCoachingCache.set(cacheKey, {
+        data: response,
+        timestamp: Date.now(),
+      });
+
+      res.json(response);
+    } catch (error: any) {
+      console.error('AI Echo Coaching error:', error);
+      res.status(500).json({ 
+        error: error.message || 'Failed to generate coaching feedback' 
+      });
+    }
+  });
+
+  // AI VOICE MEMO SENTIMENT ANALYSIS
+  app.post("/api/ai/voice-memo-sentiment", async (req, res) => {
+    try {
+      // Verify user session
+      const authResult = await verifyUserSession(req);
+      if (!authResult.success) {
+        return res.status(authResult.status).json({ error: authResult.error });
+      }
+
+      const { userId, coupleId } = authResult;
+
+      // Validate request body
+      const requestSchema = z.object({
+        memo_id: z.string().uuid("Invalid memo ID"),
+      });
+
+      const validationResult = requestSchema.safeParse(req.body);
+      if (!validationResult.success) {
+        return res.status(400).json({ 
+          error: validationResult.error.errors[0].message 
+        });
+      }
+
+      const { memo_id } = validationResult.data;
+
+      // Check cache first
+      const cacheKey = `voice-sentiment:${memo_id}`;
+      const cached = voiceSentimentCache.get(cacheKey);
+      if (cached && (Date.now() - cached.timestamp) < VOICE_SENTIMENT_CACHE_TTL_MS) {
+        return res.json(cached.data);
+      }
+
+      // Fetch memo from database
+      const { data: memo, error: memoError } = await supabaseAdmin
+        .from('Couples_voice_memos')
+        .select('*')
+        .eq('id', memo_id)
+        .single();
+
+      if (memoError || !memo) {
+        return res.status(404).json({ error: "Voice memo not found" });
+      }
+
+      // Verify memo belongs to user's couple
+      if (memo.couple_id !== coupleId) {
+        return res.status(403).json({ 
+          error: "Unauthorized: Memo does not belong to your couple" 
+        });
+      }
+
+      // Verify user is the sender of the memo
+      if (memo.sender_id !== userId) {
+        return res.status(403).json({ 
+          error: "Unauthorized: You must be the sender of this memo to analyze it" 
+        });
+      }
+
+      // Check if transcript is available
+      if (!memo.transcript_text || memo.transcript_text.trim() === '') {
+        return res.status(400).json({ 
+          error: "Transcript not available yet. Please try again later." 
+        });
+      }
+
+      // Validate transcript size to prevent Perplexity token overflow
+      if (memo.transcript_text.length > 5000) {
+        return res.status(413).json({ 
+          error: "Voice memo transcript is too long for AI analysis (max 5000 characters). Please keep voice memos under 5 minutes." 
+        });
+      }
+
+      // Build Perplexity prompts
+      const systemPrompt = "You are a compassionate communication coach helping couples express love and appreciation. Analyze the tone and sentiment of voice messages and provide gentle, supportive feedback. Be kind and encouraging.";
+
+      const userPrompt = `Analyze the tone and sentiment of this voice message sent from one partner to another:
+
+"${memo.transcript_text}"
+
+Provide:
+1. OVERALL TONE (one word: loving, appreciative, neutral, concerned, frustrated, etc.)
+2. SENTIMENT SCORE (1-10, where 10 is most positive/loving)
+3. WHAT'S WORKING (1-2 things that feel warm and connective)
+4. GENTLE SUGGESTIONS (0-1 optional suggestions only if the tone could be softer or more appreciative)
+5. ENCOURAGEMENT (One sentence of positive reinforcement)
+
+Be very gentle. Focus on the positive. Only suggest improvements if truly needed.`;
+
+      // Call Perplexity AI
+      const analysisResult = await analyzeCheckInsWithPerplexity({
+        systemPrompt,
+        userPrompt,
+      });
+
+      const aiFullResponse = analysisResult.content;
+
+      // Parse AI response to extract structured feedback
+      let tone = "neutral";
+      let sentimentScore = 7;
+      const whatsWorking: string[] = [];
+      const gentleSuggestions: string[] = [];
+      let encouragement = "Keep expressing yourself authentically!";
+
+      const lines = aiFullResponse.split('\n');
+      let currentSection = '';
+
+      for (const line of lines) {
+        const trimmedLine = line.trim();
+        
+        // Detect sections
+        if (trimmedLine.match(/^1\.|OVERALL TONE/i)) {
+          currentSection = 'tone';
+          // Extract tone from same line or next
+          const toneMatch = trimmedLine.match(/OVERALL TONE[:\s]+(\w+)/i);
+          if (toneMatch) {
+            tone = toneMatch[1].toLowerCase();
+          }
+          continue;
+        }
+        if (trimmedLine.match(/^2\.|SENTIMENT SCORE/i)) {
+          currentSection = 'sentiment';
+          // Extract score from same line or next
+          const scoreMatch = trimmedLine.match(/SENTIMENT SCORE[:\s]+(\d+)/i);
+          if (scoreMatch) {
+            sentimentScore = parseInt(scoreMatch[1], 10);
+          }
+          continue;
+        }
+        if (trimmedLine.match(/^3\.|WHAT'S WORKING/i)) {
+          currentSection = 'whats_working';
+          continue;
+        }
+        if (trimmedLine.match(/^4\.|GENTLE SUGGESTIONS/i)) {
+          currentSection = 'gentle_suggestions';
+          continue;
+        }
+        if (trimmedLine.match(/^5\.|ENCOURAGEMENT/i)) {
+          currentSection = 'encouragement';
+          continue;
+        }
+
+        // Extract content based on current section
+        if (trimmedLine) {
+          // Match bullet points or numbered sub-items
+          const bulletMatch = trimmedLine.match(/^[-•*]\s*(.+)$/);
+          const subNumberMatch = trimmedLine.match(/^[a-z]\)|^\d+\)\s*(.+)$/);
+          
+          if (currentSection === 'tone' && !tone.match(/neutral|loving|appreciative|concerned|frustrated/i)) {
+            // Try to extract tone word from this line
+            const words = trimmedLine.toLowerCase().split(/\s+/);
+            const toneWords = ['loving', 'appreciative', 'neutral', 'concerned', 'frustrated', 'warm', 'caring', 'supportive', 'anxious', 'tense'];
+            for (const word of words) {
+              if (toneWords.includes(word)) {
+                tone = word;
+                break;
+              }
+            }
+          } else if (currentSection === 'sentiment' && sentimentScore === 7) {
+            // Try to extract score from this line
+            const scoreMatch = trimmedLine.match(/(\d+)/);
+            if (scoreMatch) {
+              const parsed = parseInt(scoreMatch[1], 10);
+              if (parsed >= 1 && parsed <= 10) {
+                sentimentScore = parsed;
+              }
+            }
+          } else if (currentSection === 'whats_working') {
+            if (bulletMatch || subNumberMatch) {
+              const content = bulletMatch ? bulletMatch[1] : (subNumberMatch ? subNumberMatch[1] : trimmedLine);
+              whatsWorking.push(content.trim());
+            } else if (whatsWorking.length === 0 && trimmedLine.length > 20) {
+              whatsWorking.push(trimmedLine);
+            }
+          } else if (currentSection === 'gentle_suggestions') {
+            if (bulletMatch || subNumberMatch) {
+              const content = bulletMatch ? bulletMatch[1] : (subNumberMatch ? subNumberMatch[1] : trimmedLine);
+              gentleSuggestions.push(content.trim());
+            } else if (gentleSuggestions.length === 0 && trimmedLine.length > 20 && !trimmedLine.toLowerCase().includes('none')) {
+              gentleSuggestions.push(trimmedLine);
+            }
+          } else if (currentSection === 'encouragement') {
+            if (!trimmedLine.match(/^[\d]+[\.\)]/)) {
+              encouragement = trimmedLine;
+            }
+          }
+        }
+      }
+
+      // Fallback parsing if sections not found
+      if (whatsWorking.length === 0) {
+        whatsWorking.push("Your message shows genuine effort to connect with your partner.");
+      }
+
+      // Limit arrays to specified lengths
+      const finalWhatsWorking = whatsWorking.slice(0, 2);
+      const finalGentleSuggestions = gentleSuggestions.slice(0, 1);
+
+      // Ensure sentiment score is in valid range
+      sentimentScore = Math.max(1, Math.min(10, sentimentScore));
+
+      // Build response
+      const response = {
+        memo_id,
+        tone,
+        sentiment_score: sentimentScore,
+        whats_working: finalWhatsWorking,
+        gentle_suggestions: finalGentleSuggestions,
+        encouragement,
+        ai_full_response: aiFullResponse,
+        usage: analysisResult.usage,
+      };
+
+      // Cache the result (24-hour TTL since transcript doesn't change)
+      voiceSentimentCache.set(cacheKey, {
+        data: response,
+        timestamp: Date.now(),
+      });
+
+      res.json(response);
+    } catch (error: any) {
+      console.error('AI Voice Memo Sentiment error:', error);
+      res.status(500).json({ 
+        error: error.message || 'Failed to analyze voice memo sentiment' 
       });
     }
   });
