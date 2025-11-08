@@ -161,16 +161,13 @@ export default function VoiceMemosPage() {
 
       // Step 1: Create voice memo and get upload URL
       const createResponse = await apiRequest('POST', '/api/voice-memos', {
-        couple_id: profile.couple_id,
-        sender_id: profile.id,
         recipient_id: recipientId,
-        duration_secs: recordingTime.toString(),
       });
 
-      const { id, uploadUrl } = await createResponse.json();
+      const { memo_id, upload_url, storage_path } = await createResponse.json();
 
       // Step 2: Upload blob to Supabase Storage
-      const uploadResponse = await fetch(uploadUrl, {
+      const uploadResponse = await fetch(upload_url, {
         method: 'PUT',
         body: audioBlob,
         headers: {
@@ -183,7 +180,10 @@ export default function VoiceMemosPage() {
       }
 
       // Step 3: Complete the upload
-      await apiRequest('POST', `/api/voice-memos/${id}/complete`);
+      await apiRequest('POST', `/api/voice-memos/${memo_id}/complete`, {
+        storage_path: storage_path,
+        duration_secs: recordingTime,
+      });
 
       toast({
         title: 'Voice memo sent!',

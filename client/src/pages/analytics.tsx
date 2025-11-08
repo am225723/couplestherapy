@@ -200,9 +200,9 @@ function AIInsightsDialog({
   const [showRawAnalysis, setShowRawAnalysis] = useState(false);
 
   const { data: insights, isLoading, error } = useQuery<AIInsight>({
-    queryKey: ['/api/ai/insights', coupleId, therapistId],
+    queryKey: ['/api/ai/insights', coupleId],
     queryFn: async () => {
-      const url = `/api/ai/insights?couple_id=${coupleId}&therapist_id=${therapistId}`;
+      const url = `/api/ai/insights?couple_id=${coupleId}`;
       const res = await fetch(url, { credentials: 'include' });
       if (!res.ok) {
         const text = await res.text();
@@ -210,7 +210,7 @@ function AIInsightsDialog({
       }
       return res.json();
     },
-    enabled: open && !!coupleId && !!therapistId,
+    enabled: open && !!coupleId,
   });
 
   // Show error toast only when error changes (prevent infinite loop)
@@ -387,7 +387,7 @@ export default function AnalyticsPage() {
   const [exportingCoupleId, setExportingCoupleId] = useState<string | null>(null);
 
   const { data, isLoading, error } = useQuery<TherapistAnalytics>({
-    queryKey: ['/api/ai/analytics', profile?.id],
+    queryKey: ['/api/ai/analytics'],
     enabled: !!profile?.id,
   });
 
@@ -399,7 +399,7 @@ export default function AnalyticsPage() {
     try {
       setExportingCoupleId(coupleId);
       
-      const url = `/api/therapist/export-couple-report?couple_id=${coupleId}&therapist_id=${profile.id}&format=csv`;
+      const url = `/api/therapist/export-couple-report?couple_id=${coupleId}&format=csv`;
       
       const response = await fetch(url, { credentials: 'include' });
       
