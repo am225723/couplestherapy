@@ -59,7 +59,7 @@ export async function analyzeCheckInsWithPerplexity(
   }
 
   const request: PerplexityRequest = {
-    model: 'sonar-pro',
+    model: 'sonar',
     messages: [
       {
         role: 'system',
@@ -75,6 +75,7 @@ export async function analyzeCheckInsWithPerplexity(
   };
 
   try {
+    console.log('Perplexity API Request:', JSON.stringify(request, null, 2));
     const response = await fetch('https://api.perplexity.ai/chat/completions', {
       method: 'POST',
       headers: {
@@ -86,6 +87,12 @@ export async function analyzeCheckInsWithPerplexity(
 
     if (!response.ok) {
       const errorText = await response.text();
+      console.error('Perplexity API Error Response:', {
+        status: response.status,
+        statusText: response.statusText,
+        headers: Object.fromEntries(response.headers.entries()),
+        body: errorText,
+      });
       throw new Error(
         `Perplexity API error (${response.status}): ${errorText}`
       );
@@ -104,7 +111,7 @@ export async function analyzeCheckInsWithPerplexity(
     };
   } catch (error) {
     if (error instanceof Error) {
-      console.error('Perplexity API call failed:', error.message);
+      console.error('Perplexity API call failed:', error);
       throw error;
     }
     throw new Error('Unknown error calling Perplexity API');

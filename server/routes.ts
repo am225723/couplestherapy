@@ -1,12 +1,12 @@
 import type { Express, Request } from "express";
 import { createServer, type Server } from "http";
-import { storage } from "./storage";
-import { supabaseAdmin } from "./supabase";
-import type { TherapistAnalytics, CoupleAnalytics, AIInsight, InsertVoiceMemo, VoiceMemo } from "@shared/schema";
-import { insertVoiceMemoSchema, insertCalendarEventSchema } from "@shared/schema";
-import { analyzeCheckInsWithPerplexity } from "./perplexity";
-import { generateCoupleReport } from "./csv-export";
-import { generateVoiceMemoUploadUrl, generateVoiceMemoDownloadUrl, deleteVoiceMemo } from "./storage-helpers";
+import { storage } from "./storage.js";
+import { supabaseAdmin } from "./supabase.js";
+import type { TherapistAnalytics, CoupleAnalytics, AIInsight, InsertVoiceMemo, VoiceMemo } from "../shared/schema.ts";
+import { insertVoiceMemoSchema, insertCalendarEventSchema } from "../shared/schema.ts";
+import { analyzeCheckInsWithPerplexity } from "./perplexity.js";
+import { generateCoupleReport } from "./csv-export.js";
+import { generateVoiceMemoUploadUrl, generateVoiceMemoDownloadUrl, deleteVoiceMemo } from "./storage-helpers.js";
 import { z } from "zod";
 import crypto from "crypto";
 
@@ -2089,7 +2089,7 @@ Be warm, creative, and encouraging. Emphasize connection, fun, and breaking rout
       }
 
       const perplexityRequest = {
-        model: 'sonar-pro',
+        model: 'sonar',
         messages: [
           { role: 'system' as const, content: systemPrompt },
           { role: 'user' as const, content: userPrompt },
