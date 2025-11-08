@@ -6,10 +6,15 @@ TADI is a multi-tenant platform designed for couples therapy, offering separate 
 
 ## Recent Changes (January 2025)
 
-**Supabase Edge Functions Migration:**
-- Migrated AI endpoints from Express routes to Supabase Edge Functions for better performance and scalability
-- **Completed:** `ai-date-night` edge function with input validation and privacy-focused logging (all code inlined, no shared imports)
-- **Frontend:** Updated date-night.tsx to use `fetch()` for public access (works for all users, authenticated or not)
+**Supabase Edge Functions Migration (COMPLETE):**
+- ✅ Migrated all AI endpoints from Express routes to Supabase Edge Functions for better performance and scalability
+- **Completed Functions:**
+  - `ai-date-night` - Connection Concierge (generates personalized date night ideas with Perplexity AI)
+  - `ai-insights` - Clinical Insights (analyzes weekly check-ins for therapist with privacy-focused anonymization)
+- **Architecture:** All code inlined in single files (no shared imports for simpler deployment)
+- **Privacy:** Allowlist logging approach, never logs user data, uses anonymized labels ("Partner 1/2") when sending to AI
+- **Model:** Uses Perplexity 'sonar' model with proper output formatting
+- **Frontend:** Updated to use `fetch()` for public access (works for all users, authenticated or not)
 - **Benefits:** Global edge deployment, pay-per-invocation pricing, simplified Vercel deployment
 - **Deployment:** See `SUPABASE_EDGE_FUNCTIONS_COMPLETE.md` for copy-paste ready code and instructions
 
