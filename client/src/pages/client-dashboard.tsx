@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/auth-context';
 import { supabase } from '@/lib/supabase';
-import { Heart, MessageCircle, Target, Sparkles, Coffee, ClipboardList, Mic, Loader2, ArrowRight, Calendar, TrendingUp } from 'lucide-react';
+import { Heart, MessageCircle, Target, Sparkles, Coffee, ClipboardList, Mic, Loader2, ArrowRight, Calendar, TrendingUp, AlertTriangle, BookOpen, Activity, Compass, Baby } from 'lucide-react';
 import { LoveLanguage } from '@shared/schema';
 import clientHeroImage from '@assets/generated_images/Client_app_hero_image_9fd4eaf0.png';
 
@@ -92,6 +92,54 @@ export default function ClientDashboard() {
       path: '/voice-memos',
       color: 'text-primary',
       bgColor: 'bg-primary/10',
+    },
+    {
+      title: 'Four Horsemen Tracker',
+      description: 'Identify and transform conflict patterns',
+      icon: AlertTriangle,
+      path: '/four-horsemen',
+      color: 'text-destructive',
+      bgColor: 'bg-destructive/10',
+    },
+    {
+      title: 'Demon Dialogues',
+      description: 'Recognize and break negative cycles (EFT)',
+      icon: MessageCircle,
+      path: '/demon-dialogues',
+      color: 'text-purple-600 dark:text-purple-400',
+      bgColor: 'bg-purple-100 dark:bg-purple-900/20',
+    },
+    {
+      title: 'Meditation Library',
+      description: 'Guided meditations for connection',
+      icon: BookOpen,
+      path: '/meditation-library',
+      color: 'text-green-600 dark:text-green-400',
+      bgColor: 'bg-green-100 dark:bg-green-900/20',
+    },
+    {
+      title: 'Intimacy Mapping',
+      description: 'Track five dimensions of intimacy',
+      icon: Activity,
+      path: '/intimacy-mapping',
+      color: 'text-pink-600 dark:text-pink-400',
+      bgColor: 'bg-pink-100 dark:bg-pink-900/20',
+    },
+    {
+      title: 'Values & Vision',
+      description: 'Share dreams and create your future',
+      icon: Compass,
+      path: '/values-vision',
+      color: 'text-blue-600 dark:text-blue-400',
+      bgColor: 'bg-blue-100 dark:bg-blue-900/20',
+    },
+    {
+      title: 'Parenting as Partners',
+      description: 'Align on parenting and protect couple time',
+      icon: Baby,
+      path: '/parenting-partners',
+      color: 'text-amber-600 dark:text-amber-400',
+      bgColor: 'bg-amber-100 dark:bg-amber-900/20',
     },
   ];
 

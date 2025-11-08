@@ -3267,6 +3267,939 @@ Be warm, creative, and encouraging. Emphasize connection, fun, and breaking rout
     }
   });
 
+  // ========================================
+  // GOTTMAN FOUR HORSEMEN TRACKER ROUTES
+  // ========================================
+
+  // POST /api/horsemen/incident - Create a new horsemen incident
+  app.post("/api/horsemen/incident", async (req, res) => {
+    try {
+      const userAuth = await verifyUserSession(req);
+      if (!userAuth.success) {
+        return res.status(userAuth.status).json({ error: userAuth.error });
+      }
+
+      const { horseman_type, situation, notes } = req.body;
+
+      if (!horseman_type || !['criticism', 'contempt', 'defensiveness', 'stonewalling'].includes(horseman_type)) {
+        return res.status(400).json({ error: 'Valid horseman_type is required' });
+      }
+
+      const { data, error } = await supabaseAdmin
+        .from('Couples_horsemen_incidents')
+        .insert({
+          couple_id: userAuth.coupleId,
+          reporter_id: userAuth.userId,
+          horseman_type,
+          situation,
+          notes,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      res.json(data);
+    } catch (error: any) {
+      console.error('Error creating horsemen incident:', error);
+      res.status(500).json({ error: error.message || 'Failed to create incident' });
+    }
+  });
+
+  // GET /api/horsemen/:couple_id - Get all horsemen incidents for a couple
+  app.get("/api/horsemen/:couple_id", async (req, res) => {
+    try {
+      const userAuth = await verifyUserSession(req);
+      if (!userAuth.success) {
+        return res.status(userAuth.status).json({ error: userAuth.error });
+      }
+
+      const { couple_id } = req.params;
+
+      if (couple_id !== userAuth.coupleId) {
+        return res.status(403).json({ error: 'Cannot view different couple incidents' });
+      }
+
+      const { data, error } = await supabaseAdmin
+        .from('Couples_horsemen_incidents')
+        .select('*')
+        .eq('couple_id', couple_id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      res.json(data);
+    } catch (error: any) {
+      console.error('Error fetching horsemen incidents:', error);
+      res.status(500).json({ error: error.message || 'Failed to fetch incidents' });
+    }
+  });
+
+  // PATCH /api/horsemen/:id/validate - Partner validates an incident
+  app.patch("/api/horsemen/:id/validate", async (req, res) => {
+    try {
+      const userAuth = await verifyUserSession(req);
+      if (!userAuth.success) {
+        return res.status(userAuth.status).json({ error: userAuth.error });
+      }
+
+      const { id } = req.params;
+      const { partner_validated } = req.body;
+
+      const { data, error } = await supabaseAdmin
+        .from('Couples_horsemen_incidents')
+        .update({ partner_validated })
+        .eq('id', id)
+        .eq('couple_id', userAuth.coupleId)
+        .select()
+        .single();
+
+      if (error) throw error;
+      res.json(data);
+    } catch (error: any) {
+      console.error('Error validating incident:', error);
+      res.status(500).json({ error: error.message || 'Failed to validate incident' });
+    }
+  });
+
+  // PATCH /api/horsemen/:id/antidote - Mark antidote as practiced
+  app.patch("/api/horsemen/:id/antidote", async (req, res) => {
+    try {
+      const userAuth = await verifyUserSession(req);
+      if (!userAuth.success) {
+        return res.status(userAuth.status).json({ error: userAuth.error });
+      }
+
+      const { id } = req.params;
+      const { antidote_practiced } = req.body;
+
+      const { data, error } = await supabaseAdmin
+        .from('Couples_horsemen_incidents')
+        .update({ antidote_practiced })
+        .eq('id', id)
+        .eq('couple_id', userAuth.coupleId)
+        .select()
+        .single();
+
+      if (error) throw error;
+      res.json(data);
+    } catch (error: any) {
+      console.error('Error updating antidote:', error);
+      res.status(500).json({ error: error.message || 'Failed to update antidote' });
+    }
+  });
+
+  // ========================================
+  // DEMON DIALOGUES ROUTES
+  // ========================================
+
+  // POST /api/demon-dialogues - Create a demon dialogue record
+  app.post("/api/demon-dialogues", async (req, res) => {
+    try {
+      const userAuth = await verifyUserSession(req);
+      if (!userAuth.success) {
+        return res.status(userAuth.status).json({ error: userAuth.error });
+      }
+
+      const { dialogue_type, interrupted, notes, pause_event_id } = req.body;
+
+      if (!dialogue_type || !['find_bad_guy', 'protest_polka', 'freeze_flee'].includes(dialogue_type)) {
+        return res.status(400).json({ error: 'Valid dialogue_type is required' });
+      }
+
+      const { data, error } = await supabaseAdmin
+        .from('Couples_demon_dialogues')
+        .insert({
+          couple_id: userAuth.coupleId,
+          recognized_by: userAuth.userId,
+          dialogue_type,
+          interrupted: interrupted || false,
+          notes,
+          pause_event_id,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      res.json(data);
+    } catch (error: any) {
+      console.error('Error creating demon dialogue:', error);
+      res.status(500).json({ error: error.message || 'Failed to create record' });
+    }
+  });
+
+  // GET /api/demon-dialogues/:couple_id - Get all demon dialogues for a couple
+  app.get("/api/demon-dialogues/:couple_id", async (req, res) => {
+    try {
+      const userAuth = await verifyUserSession(req);
+      if (!userAuth.success) {
+        return res.status(userAuth.status).json({ error: userAuth.error });
+      }
+
+      const { couple_id } = req.params;
+
+      if (couple_id !== userAuth.coupleId) {
+        return res.status(403).json({ error: 'Cannot view different couple records' });
+      }
+
+      const { data, error } = await supabaseAdmin
+        .from('Couples_demon_dialogues')
+        .select('*')
+        .eq('couple_id', couple_id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      res.json(data);
+    } catch (error: any) {
+      console.error('Error fetching demon dialogues:', error);
+      res.status(500).json({ error: error.message || 'Failed to fetch records' });
+    }
+  });
+
+  // ========================================
+  // MEDITATION LIBRARY ROUTES
+  // ========================================
+
+  // GET /api/meditations - Get all active meditations
+  app.get("/api/meditations", async (req, res) => {
+    try {
+      const userAuth = await verifyUserSession(req);
+      if (!userAuth.success) {
+        return res.status(userAuth.status).json({ error: userAuth.error });
+      }
+
+      const { data, error } = await supabaseAdmin
+        .from('Couples_meditations')
+        .select('*')
+        .eq('is_active', true)
+        .order('category', { ascending: true });
+
+      if (error) throw error;
+      res.json(data);
+    } catch (error: any) {
+      console.error('Error fetching meditations:', error);
+      res.status(500).json({ error: error.message || 'Failed to fetch meditations' });
+    }
+  });
+
+  // POST /api/meditation/session - Start a meditation session
+  app.post("/api/meditation/session", async (req, res) => {
+    try {
+      const userAuth = await verifyUserSession(req);
+      if (!userAuth.success) {
+        return res.status(userAuth.status).json({ error: userAuth.error });
+      }
+
+      const { meditation_id } = req.body;
+
+      if (!meditation_id) {
+        return res.status(400).json({ error: 'meditation_id is required' });
+      }
+
+      const { data, error } = await supabaseAdmin
+        .from('Couples_meditation_sessions')
+        .insert({
+          couple_id: userAuth.coupleId,
+          meditation_id,
+          user_id: userAuth.userId,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      res.json(data);
+    } catch (error: any) {
+      console.error('Error starting meditation session:', error);
+      res.status(500).json({ error: error.message || 'Failed to start session' });
+    }
+  });
+
+  // PATCH /api/meditation/session/:id/complete - Complete a meditation session
+  app.patch("/api/meditation/session/:id/complete", async (req, res) => {
+    try {
+      const userAuth = await verifyUserSession(req);
+      if (!userAuth.success) {
+        return res.status(userAuth.status).json({ error: userAuth.error });
+      }
+
+      const { id } = req.params;
+      const { feedback } = req.body;
+
+      const { data, error } = await supabaseAdmin
+        .from('Couples_meditation_sessions')
+        .update({
+          completed: true,
+          completed_at: new Date().toISOString(),
+          feedback,
+        })
+        .eq('id', id)
+        .eq('user_id', userAuth.userId)
+        .select()
+        .single();
+
+      if (error) throw error;
+      res.json(data);
+    } catch (error: any) {
+      console.error('Error completing meditation session:', error);
+      res.status(500).json({ error: error.message || 'Failed to complete session' });
+    }
+  });
+
+  // GET /api/meditation/sessions/:couple_id - Get meditation history for a couple
+  app.get("/api/meditation/sessions/:couple_id", async (req, res) => {
+    try {
+      const userAuth = await verifyUserSession(req);
+      if (!userAuth.success) {
+        return res.status(userAuth.status).json({ error: userAuth.error });
+      }
+
+      const { couple_id } = req.params;
+
+      if (couple_id !== userAuth.coupleId) {
+        return res.status(403).json({ error: 'Cannot view different couple sessions' });
+      }
+
+      const { data, error } = await supabaseAdmin
+        .from('Couples_meditation_sessions')
+        .select(`
+          *,
+          meditation:Couples_meditations(*)
+        `)
+        .eq('couple_id', couple_id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      res.json(data);
+    } catch (error: any) {
+      console.error('Error fetching meditation sessions:', error);
+      res.status(500).json({ error: error.message || 'Failed to fetch sessions' });
+    }
+  });
+
+  // ========================================
+  // INTIMACY MAPPING ROUTES
+  // ========================================
+
+  // POST /api/intimacy/rating - Submit weekly intimacy rating
+  app.post("/api/intimacy/rating", async (req, res) => {
+    try {
+      const userAuth = await verifyUserSession(req);
+      if (!userAuth.success) {
+        return res.status(userAuth.status).json({ error: userAuth.error });
+      }
+
+      const { week_number, year, physical, emotional, intellectual, experiential, spiritual, notes } = req.body;
+
+      if (!week_number || !year) {
+        return res.status(400).json({ error: 'week_number and year are required' });
+      }
+
+      const { data, error } = await supabaseAdmin
+        .from('Couples_intimacy_ratings')
+        .upsert({
+          couple_id: userAuth.coupleId,
+          user_id: userAuth.userId,
+          week_number,
+          year,
+          physical,
+          emotional,
+          intellectual,
+          experiential,
+          spiritual,
+          notes,
+        }, {
+          onConflict: 'couple_id,user_id,week_number,year',
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      res.json(data);
+    } catch (error: any) {
+      console.error('Error saving intimacy rating:', error);
+      res.status(500).json({ error: error.message || 'Failed to save rating' });
+    }
+  });
+
+  // GET /api/intimacy/ratings/:couple_id - Get intimacy ratings for a couple
+  app.get("/api/intimacy/ratings/:couple_id", async (req, res) => {
+    try {
+      const userAuth = await verifyUserSession(req);
+      if (!userAuth.success) {
+        return res.status(userAuth.status).json({ error: userAuth.error });
+      }
+
+      const { couple_id } = req.params;
+
+      if (couple_id !== userAuth.coupleId) {
+        return res.status(403).json({ error: 'Cannot view different couple ratings' });
+      }
+
+      const { data, error } = await supabaseAdmin
+        .from('Couples_intimacy_ratings')
+        .select('*')
+        .eq('couple_id', couple_id)
+        .order('year', { ascending: false })
+        .order('week_number', { ascending: false });
+
+      if (error) throw error;
+      res.json(data);
+    } catch (error: any) {
+      console.error('Error fetching intimacy ratings:', error);
+      res.status(500).json({ error: error.message || 'Failed to fetch ratings' });
+    }
+  });
+
+  // POST /api/intimacy/goal - Create an intimacy goal
+  app.post("/api/intimacy/goal", async (req, res) => {
+    try {
+      const userAuth = await verifyUserSession(req);
+      if (!userAuth.success) {
+        return res.status(userAuth.status).json({ error: userAuth.error });
+      }
+
+      const { dimension, goal_text, target_rating } = req.body;
+
+      if (!dimension || !goal_text) {
+        return res.status(400).json({ error: 'dimension and goal_text are required' });
+      }
+
+      const { data, error } = await supabaseAdmin
+        .from('Couples_intimacy_goals')
+        .insert({
+          couple_id: userAuth.coupleId,
+          dimension,
+          goal_text,
+          target_rating,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      res.json(data);
+    } catch (error: any) {
+      console.error('Error creating intimacy goal:', error);
+      res.status(500).json({ error: error.message || 'Failed to create goal' });
+    }
+  });
+
+  // GET /api/intimacy/goals/:couple_id - Get intimacy goals for a couple
+  app.get("/api/intimacy/goals/:couple_id", async (req, res) => {
+    try {
+      const userAuth = await verifyUserSession(req);
+      if (!userAuth.success) {
+        return res.status(userAuth.status).json({ error: userAuth.error });
+      }
+
+      const { couple_id } = req.params;
+
+      if (couple_id !== userAuth.coupleId) {
+        return res.status(403).json({ error: 'Cannot view different couple goals' });
+      }
+
+      const { data, error } = await supabaseAdmin
+        .from('Couples_intimacy_goals')
+        .select('*')
+        .eq('couple_id', couple_id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      res.json(data);
+    } catch (error: any) {
+      console.error('Error fetching intimacy goals:', error);
+      res.status(500).json({ error: error.message || 'Failed to fetch goals' });
+    }
+  });
+
+  // PATCH /api/intimacy/goal/:id/achieve - Mark goal as achieved
+  app.patch("/api/intimacy/goal/:id/achieve", async (req, res) => {
+    try {
+      const userAuth = await verifyUserSession(req);
+      if (!userAuth.success) {
+        return res.status(userAuth.status).json({ error: userAuth.error });
+      }
+
+      const { id } = req.params;
+
+      const { data, error } = await supabaseAdmin
+        .from('Couples_intimacy_goals')
+        .update({
+          is_achieved: true,
+          achieved_at: new Date().toISOString(),
+        })
+        .eq('id', id)
+        .eq('couple_id', userAuth.coupleId)
+        .select()
+        .single();
+
+      if (error) throw error;
+      res.json(data);
+    } catch (error: any) {
+      console.error('Error marking goal achieved:', error);
+      res.status(500).json({ error: error.message || 'Failed to update goal' });
+    }
+  });
+
+  // ========================================
+  // VALUES & VISION ROUTES
+  // ========================================
+
+  // POST /api/dreams - Create a shared dream
+  app.post("/api/dreams", async (req, res) => {
+    try {
+      const userAuth = await verifyUserSession(req);
+      if (!userAuth.success) {
+        return res.status(userAuth.status).json({ error: userAuth.error });
+      }
+
+      const { dream_text, category, time_horizon } = req.body;
+
+      if (!dream_text) {
+        return res.status(400).json({ error: 'dream_text is required' });
+      }
+
+      const { data, error } = await supabaseAdmin
+        .from('Couples_shared_dreams')
+        .insert({
+          couple_id: userAuth.coupleId,
+          author_id: userAuth.userId,
+          dream_text,
+          category,
+          time_horizon,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      res.json(data);
+    } catch (error: any) {
+      console.error('Error creating dream:', error);
+      res.status(500).json({ error: error.message || 'Failed to create dream' });
+    }
+  });
+
+  // GET /api/dreams/:couple_id - Get all dreams for a couple
+  app.get("/api/dreams/:couple_id", async (req, res) => {
+    try {
+      const userAuth = await verifyUserSession(req);
+      if (!userAuth.success) {
+        return res.status(userAuth.status).json({ error: userAuth.error });
+      }
+
+      const { couple_id } = req.params;
+
+      if (couple_id !== userAuth.coupleId) {
+        return res.status(403).json({ error: 'Cannot view different couple dreams' });
+      }
+
+      const { data, error } = await supabaseAdmin
+        .from('Couples_shared_dreams')
+        .select('*')
+        .eq('couple_id', couple_id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      res.json(data);
+    } catch (error: any) {
+      console.error('Error fetching dreams:', error);
+      res.status(500).json({ error: error.message || 'Failed to fetch dreams' });
+    }
+  });
+
+  // PATCH /api/dreams/:id/honor - Partner honors a dream
+  app.patch("/api/dreams/:id/honor", async (req, res) => {
+    try {
+      const userAuth = await verifyUserSession(req);
+      if (!userAuth.success) {
+        return res.status(userAuth.status).json({ error: userAuth.error });
+      }
+
+      const { id } = req.params;
+
+      const { data, error } = await supabaseAdmin
+        .from('Couples_shared_dreams')
+        .update({ partner_honored: true })
+        .eq('id', id)
+        .eq('couple_id', userAuth.coupleId)
+        .select()
+        .single();
+
+      if (error) throw error;
+      res.json(data);
+    } catch (error: any) {
+      console.error('Error honoring dream:', error);
+      res.status(500).json({ error: error.message || 'Failed to honor dream' });
+    }
+  });
+
+  // POST /api/vision-board - Create a vision board item
+  app.post("/api/vision-board", async (req, res) => {
+    try {
+      const userAuth = await verifyUserSession(req);
+      if (!userAuth.success) {
+        return res.status(userAuth.status).json({ error: userAuth.error });
+      }
+
+      const { title, description, image_url, category, time_horizon } = req.body;
+
+      if (!title) {
+        return res.status(400).json({ error: 'title is required' });
+      }
+
+      const { data, error } = await supabaseAdmin
+        .from('Couples_vision_board_items')
+        .insert({
+          couple_id: userAuth.coupleId,
+          title,
+          description,
+          image_url,
+          category,
+          time_horizon,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      res.json(data);
+    } catch (error: any) {
+      console.error('Error creating vision board item:', error);
+      res.status(500).json({ error: error.message || 'Failed to create item' });
+    }
+  });
+
+  // GET /api/vision-board/:couple_id - Get vision board items
+  app.get("/api/vision-board/:couple_id", async (req, res) => {
+    try {
+      const userAuth = await verifyUserSession(req);
+      if (!userAuth.success) {
+        return res.status(userAuth.status).json({ error: userAuth.error });
+      }
+
+      const { couple_id } = req.params;
+
+      if (couple_id !== userAuth.coupleId) {
+        return res.status(403).json({ error: 'Cannot view different couple vision board' });
+      }
+
+      const { data, error } = await supabaseAdmin
+        .from('Couples_vision_board_items')
+        .select('*')
+        .eq('couple_id', couple_id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      res.json(data);
+    } catch (error: any) {
+      console.error('Error fetching vision board:', error);
+      res.status(500).json({ error: error.message || 'Failed to fetch vision board' });
+    }
+  });
+
+  // POST /api/core-values - Create a core value
+  app.post("/api/core-values", async (req, res) => {
+    try {
+      const userAuth = await verifyUserSession(req);
+      if (!userAuth.success) {
+        return res.status(userAuth.status).json({ error: userAuth.error });
+      }
+
+      const { value_name, definition } = req.body;
+
+      if (!value_name) {
+        return res.status(400).json({ error: 'value_name is required' });
+      }
+
+      const { data, error } = await supabaseAdmin
+        .from('Couples_core_values')
+        .insert({
+          couple_id: userAuth.coupleId,
+          value_name,
+          definition,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      res.json(data);
+    } catch (error: any) {
+      console.error('Error creating core value:', error);
+      res.status(500).json({ error: error.message || 'Failed to create value' });
+    }
+  });
+
+  // GET /api/core-values/:couple_id - Get core values
+  app.get("/api/core-values/:couple_id", async (req, res) => {
+    try {
+      const userAuth = await verifyUserSession(req);
+      if (!userAuth.success) {
+        return res.status(userAuth.status).json({ error: userAuth.error });
+      }
+
+      const { couple_id } = req.params;
+
+      if (couple_id !== userAuth.coupleId) {
+        return res.status(403).json({ error: 'Cannot view different couple values' });
+      }
+
+      const { data, error } = await supabaseAdmin
+        .from('Couples_core_values')
+        .select('*')
+        .eq('couple_id', couple_id)
+        .order('created_at', { ascending: false});
+
+      if (error) throw error;
+      res.json(data);
+    } catch (error: any) {
+      console.error('Error fetching core values:', error);
+      res.status(500).json({ error: error.message || 'Failed to fetch values' });
+    }
+  });
+
+  // ========================================
+  // PARENTING AS PARTNERS ROUTES
+  // ========================================
+
+  // POST /api/parenting/style - Create/update parenting style
+  app.post("/api/parenting/style", async (req, res) => {
+    try {
+      const userAuth = await verifyUserSession(req);
+      if (!userAuth.success) {
+        return res.status(userAuth.status).json({ error: userAuth.error });
+      }
+
+      const { style_type, discipline_approach, values_text, stress_areas } = req.body;
+
+      const { data, error } = await supabaseAdmin
+        .from('Couples_parenting_styles')
+        .upsert({
+          couple_id: userAuth.coupleId,
+          user_id: userAuth.userId,
+          style_type,
+          discipline_approach,
+          values_text,
+          stress_areas,
+          updated_at: new Date().toISOString(),
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      res.json(data);
+    } catch (error: any) {
+      console.error('Error saving parenting style:', error);
+      res.status(500).json({ error: error.message || 'Failed to save style' });
+    }
+  });
+
+  // GET /api/parenting/styles/:couple_id - Get parenting styles
+  app.get("/api/parenting/styles/:couple_id", async (req, res) => {
+    try {
+      const userAuth = await verifyUserSession(req);
+      if (!userAuth.success) {
+        return res.status(userAuth.status).json({ error: userAuth.error });
+      }
+
+      const { couple_id } = req.params;
+
+      if (couple_id !== userAuth.coupleId) {
+        return res.status(403).json({ error: 'Cannot view different couple parenting styles' });
+      }
+
+      const { data, error } = await supabaseAdmin
+        .from('Couples_parenting_styles')
+        .select('*')
+        .eq('couple_id', couple_id);
+
+      if (error) throw error;
+      res.json(data);
+    } catch (error: any) {
+      console.error('Error fetching parenting styles:', error);
+      res.status(500).json({ error: error.message || 'Failed to fetch styles' });
+    }
+  });
+
+  // POST /api/parenting/agreement - Create discipline agreement
+  app.post("/api/parenting/agreement", async (req, res) => {
+    try {
+      const userAuth = await verifyUserSession(req);
+      if (!userAuth.success) {
+        return res.status(userAuth.status).json({ error: userAuth.error });
+      }
+
+      const { scenario, agreed_approach } = req.body;
+
+      if (!scenario || !agreed_approach) {
+        return res.status(400).json({ error: 'scenario and agreed_approach are required' });
+      }
+
+      const { data, error } = await supabaseAdmin
+        .from('Couples_discipline_agreements')
+        .insert({
+          couple_id: userAuth.coupleId,
+          scenario,
+          agreed_approach,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      res.json(data);
+    } catch (error: any) {
+      console.error('Error creating discipline agreement:', error);
+      res.status(500).json({ error: error.message || 'Failed to create agreement' });
+    }
+  });
+
+  // GET /api/parenting/agreements/:couple_id - Get discipline agreements
+  app.get("/api/parenting/agreements/:couple_id", async (req, res) => {
+    try {
+      const userAuth = await verifyUserSession(req);
+      if (!userAuth.success) {
+        return res.status(userAuth.status).json({ error: userAuth.error });
+      }
+
+      const { couple_id } = req.params;
+
+      if (couple_id !== userAuth.coupleId) {
+        return res.status(403).json({ error: 'Cannot view different couple agreements' });
+      }
+
+      const { data, error } = await supabaseAdmin
+        .from('Couples_discipline_agreements')
+        .select('*')
+        .eq('couple_id', couple_id)
+        .eq('is_active', true)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      res.json(data);
+    } catch (error: any) {
+      console.error('Error fetching discipline agreements:', error);
+      res.status(500).json({ error: error.message || 'Failed to fetch agreements' });
+    }
+  });
+
+  // POST /api/parenting/couple-time - Schedule couple time
+  app.post("/api/parenting/couple-time", async (req, res) => {
+    try {
+      const userAuth = await verifyUserSession(req);
+      if (!userAuth.success) {
+        return res.status(userAuth.status).json({ error: userAuth.error });
+      }
+
+      const { scheduled_date, duration_minutes, activity } = req.body;
+
+      if (!scheduled_date) {
+        return res.status(400).json({ error: 'scheduled_date is required' });
+      }
+
+      const { data, error } = await supabaseAdmin
+        .from('Couples_couple_time_blocks')
+        .insert({
+          couple_id: userAuth.coupleId,
+          scheduled_date,
+          duration_minutes: duration_minutes || 60,
+          activity,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      res.json(data);
+    } catch (error: any) {
+      console.error('Error scheduling couple time:', error);
+      res.status(500).json({ error: error.message || 'Failed to schedule time' });
+    }
+  });
+
+  // GET /api/parenting/couple-time/:couple_id - Get couple time blocks
+  app.get("/api/parenting/couple-time/:couple_id", async (req, res) => {
+    try {
+      const userAuth = await verifyUserSession(req);
+      if (!userAuth.success) {
+        return res.status(userAuth.status).json({ error: userAuth.error });
+      }
+
+      const { couple_id } = req.params;
+
+      if (couple_id !== userAuth.coupleId) {
+        return res.status(403).json({ error: 'Cannot view different couple time blocks' });
+      }
+
+      const { data, error } = await supabaseAdmin
+        .from('Couples_couple_time_blocks')
+        .select('*')
+        .eq('couple_id', couple_id)
+        .order('scheduled_date', { ascending: true });
+
+      if (error) throw error;
+      res.json(data);
+    } catch (error: any) {
+      console.error('Error fetching couple time:', error);
+      res.status(500).json({ error: error.message || 'Failed to fetch couple time' });
+    }
+  });
+
+  // POST /api/parenting/stress-checkin - Submit parenting stress check-in
+  app.post("/api/parenting/stress-checkin", async (req, res) => {
+    try {
+      const userAuth = await verifyUserSession(req);
+      if (!userAuth.success) {
+        return res.status(userAuth.status).json({ error: userAuth.error });
+      }
+
+      const { stress_level, stressor_text, support_needed } = req.body;
+
+      if (!stress_level || stress_level < 1 || stress_level > 10) {
+        return res.status(400).json({ error: 'Valid stress_level (1-10) is required' });
+      }
+
+      const { data, error } = await supabaseAdmin
+        .from('Couples_parenting_stress_checkins')
+        .insert({
+          couple_id: userAuth.coupleId,
+          user_id: userAuth.userId,
+          stress_level,
+          stressor_text,
+          support_needed,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      res.json(data);
+    } catch (error: any) {
+      console.error('Error submitting stress check-in:', error);
+      res.status(500).json({ error: error.message || 'Failed to submit check-in' });
+    }
+  });
+
+  // GET /api/parenting/stress-checkins/:couple_id - Get parenting stress check-ins
+  app.get("/api/parenting/stress-checkins/:couple_id", async (req, res) => {
+    try {
+      const userAuth = await verifyUserSession(req);
+      if (!userAuth.success) {
+        return res.status(userAuth.status).json({ error: userAuth.error });
+      }
+
+      const { couple_id } = req.params;
+
+      if (couple_id !== userAuth.coupleId) {
+        return res.status(403).json({ error: 'Cannot view different couple stress check-ins' });
+      }
+
+      const { data, error } = await supabaseAdmin
+        .from('Couples_parenting_stress_checkins')
+        .select('*')
+        .eq('couple_id', couple_id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      res.json(data);
+    } catch (error: any) {
+      console.error('Error fetching stress check-ins:', error);
+      res.status(500).json({ error: error.message || 'Failed to fetch check-ins' });
+    }
+  });
+
   const httpServer = createServer(app);
 
   return httpServer;
