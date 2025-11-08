@@ -9,13 +9,15 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
 import { useAuth } from '@/lib/auth-context';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/hooks/use-toast';
-import { Users, Loader2, Heart, Send, MessageSquare } from 'lucide-react';
+import { Users, Loader2, Heart, Send, MessageSquare, CheckCircle2, XCircle } from 'lucide-react';
 import { Couple, Profile, WeeklyCheckin, LoveLanguage, GratitudeLog, SharedGoal, Ritual, Conversation, Message, CalendarEvent, EchoSession, EchoTurn, IfsExercise, IfsPart, PauseEvent } from '@shared/schema';
 import { formatDistanceToNow, format, parse, startOfWeek, getDay } from 'date-fns';
-import enUS from 'date-fns/locale/en-US';
+import { enUS } from 'date-fns/locale/en-US';
 import { Calendar, dateFnsLocalizer } from 'react-big-calendar';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import { useQuery, useMutation } from '@tanstack/react-query';
@@ -484,11 +486,11 @@ export default function AdminDashboard() {
           </TabsContent>
 
           <TabsContent value="ifs" className="space-y-4">
-            <IfsTab coupleId={selectedCouple.id} partnerId1={selectedCouple.partner1_id} partnerId2={selectedCouple.partner2_id} partner1Name={selectedCouple.partner1?.full_name} partner2Name={selectedCouple.partner2?.full_name} />
+            <IfsTab coupleId={selectedCouple.id} partnerId1={selectedCouple.partner1_id} partnerId2={selectedCouple.partner2_id} partner1Name={selectedCouple.partner1?.full_name || undefined} partner2Name={selectedCouple.partner2?.full_name || undefined} />
           </TabsContent>
 
           <TabsContent value="pause" className="space-y-4">
-            <PauseHistoryTab coupleId={selectedCouple.id} partnerId1={selectedCouple.partner1_id} partnerId2={selectedCouple.partner2_id} partner1Name={selectedCouple.partner1?.full_name} partner2Name={selectedCouple.partner2?.full_name} />
+            <PauseHistoryTab coupleId={selectedCouple.id} partnerId1={selectedCouple.partner1_id} partnerId2={selectedCouple.partner2_id} partner1Name={selectedCouple.partner1?.full_name || undefined} partner2Name={selectedCouple.partner2?.full_name || undefined} />
           </TabsContent>
         </Tabs>
       </div>
@@ -730,6 +732,12 @@ function CalendarTab({ coupleId }: { coupleId: string }) {
     title: event.title,
   }));
 
+  const handleViewChange = (newView: any) => {
+    if (newView === 'month' || newView === 'week' || newView === 'day' || newView === 'agenda') {
+      setView(newView);
+    }
+  };
+
   if (isLoading) {
     return (
       <Card>
@@ -756,7 +764,7 @@ function CalendarTab({ coupleId }: { coupleId: string }) {
             startAccessor="start"
             endAccessor="end"
             view={view}
-            onView={setView}
+            onView={handleViewChange}
             date={date}
             onNavigate={setDate}
             selectable={false}
@@ -1009,7 +1017,7 @@ function EchoEmpathyTab({ coupleId }: { coupleId: string }) {
                     <CardHeader>
                       <div className="flex items-center justify-between">
                         <CardTitle className="text-base">
-                          Session {formatDistanceToNow(new Date(session.created_at), { addSuffix: true })}
+                          Session {session.created_at ? formatDistanceToNow(new Date(session.created_at), { addSuffix: true }) : 'Recently'}
                         </CardTitle>
                         <Badge variant={session.status === 'completed' ? 'default' : 'secondary'}>
                           {session.status}
@@ -1051,8 +1059,8 @@ function EchoEmpathyTab({ coupleId }: { coupleId: string }) {
 
 function IfsTab({ coupleId, partnerId1, partnerId2, partner1Name, partner2Name }: { 
   coupleId: string; 
-  partnerId1: string; 
-  partnerId2: string;
+  partnerId1: string | null; 
+  partnerId2: string | null;
   partner1Name?: string;
   partner2Name?: string;
 }) {
@@ -1065,10 +1073,13 @@ function IfsTab({ coupleId, partnerId1, partnerId2, partner1Name, partner2Name }
 
   const fetchIfsParts = async () => {
     try {
+      const partnerIds = [partnerId1, partnerId2].filter(Boolean) as string[];
+      if (partnerIds.length === 0) return;
+
       const { data: parts, error } = await supabase
         .from('Couples_ifs_parts')
         .select('*')
-        .in('user_id', [partnerId1, partnerId2])
+        .in('user_id', partnerIds)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -1094,7 +1105,7 @@ function IfsTab({ coupleId, partnerId1, partnerId2, partner1Name, partner2Name }
                 <CardHeader>
                   <CardTitle className="text-base">{part.part_name}</CardTitle>
                   <CardDescription>
-                    Identified {formatDistanceToNow(new Date(part.created_at), { addSuffix: true })}
+                    Identified {part.created_at ? formatDistanceToNow(new Date(part.created_at), { addSuffix: true }) : 'Recently'}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -1140,8 +1151,8 @@ function IfsTab({ coupleId, partnerId1, partnerId2, partner1Name, partner2Name }
 
 function PauseHistoryTab({ coupleId, partnerId1, partnerId2, partner1Name, partner2Name }: { 
   coupleId: string;
-  partnerId1: string;
-  partnerId2: string;
+  partnerId1: string | null;
+  partnerId2: string | null;
   partner1Name?: string;
   partner2Name?: string;
 }) {
@@ -1185,7 +1196,7 @@ function PauseHistoryTab({ coupleId, partnerId1, partnerId2, partner1Name, partn
           {pauseEvents.length > 0 ? (
             <div className="space-y-4">
               {pauseEvents.map((pause) => {
-                const duration = pause.duration_minutes || (pause.ended_at ? 
+                const duration = pause.duration_minutes || (pause.ended_at && pause.started_at ? 
                   Math.round((new Date(pause.ended_at).getTime() - new Date(pause.started_at).getTime()) / 60000) : 
                   null
                 );
@@ -1199,7 +1210,7 @@ function PauseHistoryTab({ coupleId, partnerId1, partnerId2, partner1Name, partn
                             Initiated by {getInitiatorName(pause)}
                           </CardTitle>
                           <CardDescription>
-                            {format(new Date(pause.started_at), 'PPp')}
+                            {pause.started_at ? format(new Date(pause.started_at), 'PPp') : 'Unknown time'}
                           </CardDescription>
                         </div>
                         <div className="text-right">
