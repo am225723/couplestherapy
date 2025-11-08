@@ -234,19 +234,25 @@ Guidelines:
 - Include practical tips and conversation starters
 - Be inclusive of diverse relationship styles and needs`;
 
-    const userPrompt = `Generate a thoughtful date night idea based on these preferences:
+    const userPrompt = `Generate THREE thoughtful date night ideas based on these preferences:
 - Available Time: ${prefs.time}
 - Location Preference: ${prefs.location}
 - Budget: ${prefs.price}
 - Who's Participating: ${prefs.participants}
 - Energy Level: ${prefs.energy}
 
-Please provide:
-1. A creative date night activity title
-2. Detailed description of the activity
-3. Why this activity strengthens emotional connection (reference research)
-4. Specific conversation starters or prompts
-5. Tips to make it more meaningful`;
+IMPORTANT: Format each idea EXACTLY as follows, separated by the ✨ symbol:
+
+✨ [Creative Date Title]
+Description: [2-3 sentences describing the activity and why it strengthens connection]
+Connection Tip: [Specific conversation starter or tip based on Gottman/EFT research]
+
+Example format:
+✨ Gottman Love Maps Game Night
+Description: Create a cozy atmosphere at home and take turns asking each other deep questions from the Gottman Love Maps card deck. This activity builds friendship and intimacy by helping you learn new things about each other, even after years together. Based on Gottman research, couples who know each other's inner worlds have stronger relationships.
+Connection Tip: Start with lighter questions like favorite memories together, then gradually move to deeper topics like dreams and fears. Use the "I appreciate when you..." format to express gratitude during the conversation.
+
+Now generate THREE unique date night ideas in this exact format.`;
 
     const result = await analyzeWithPerplexity(systemPrompt, userPrompt);
 
