@@ -2,9 +2,13 @@ import { useEffect, useState } from 'react';
 import { Link } from 'wouter';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useAuth } from '@/lib/auth-context';
 import { supabase } from '@/lib/supabase';
-import { Heart, MessageCircle, Target, Sparkles, Coffee, ClipboardList, Mic, Loader2, ArrowRight, Calendar, TrendingUp, AlertTriangle, BookOpen, Activity, Compass, Baby } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { Heart, MessageCircle, Target, Sparkles, Coffee, ClipboardList, Mic, Loader2, ArrowRight, Calendar, TrendingUp, AlertTriangle, BookOpen, Activity, Compass, Baby, Lightbulb, ChevronDown } from 'lucide-react';
 import { LoveLanguage } from '@shared/schema';
 import clientHeroImage from '@assets/generated_images/Client_app_hero_image_9fd4eaf0.png';
 
@@ -12,6 +16,14 @@ export default function ClientDashboard() {
   const { profile } = useAuth();
   const [loveLanguages, setLoveLanguages] = useState<LoveLanguage[]>([]);
   const [loading, setLoading] = useState(true);
+  const [recommendationsOpen, setRecommendationsOpen] = useState(true);
+
+  // AI Exercise Recommendations query
+  const recommendationsQuery = useQuery({
+    queryKey: ['/api/ai/exercise-recommendations'],
+    enabled: !!profile?.couple_id,
+    staleTime: 1000 * 60 * 30, // 30 minutes
+  });
 
   useEffect(() => {
     if (profile?.couple_id) {
@@ -206,6 +218,86 @@ export default function ClientDashboard() {
             </CardHeader>
           </Card>
         </Link>
+
+        {recommendationsQuery.isSuccess && recommendationsQuery.data && (
+          <Card className="shadow-lg border-amber-500/20 bg-gradient-to-br from-amber-50/50 to-yellow-50/50 dark:from-amber-950/20 dark:to-yellow-950/20" data-testid="card-ai-recommendations">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    <Lightbulb className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+                    Personalized Therapy Tool Recommendations
+                  </CardTitle>
+                  <CardDescription>AI-powered suggestions based on your recent activity</CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="flex flex-wrap gap-2">
+                <Badge variant="outline" className="text-xs">
+                  {recommendationsQuery.data.activity_summary.not_started.length} Not Started
+                </Badge>
+                <Badge variant="outline" className="text-xs">
+                  {recommendationsQuery.data.activity_summary.underutilized.length} Underutilized
+                </Badge>
+                <Badge variant="secondary" className="text-xs">
+                  {recommendationsQuery.data.activity_summary.active.length} Active
+                </Badge>
+              </div>
+
+              <Collapsible open={recommendationsOpen} onOpenChange={setRecommendationsOpen}>
+                <CollapsibleTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-between"
+                    data-testid="button-toggle-recommendations"
+                  >
+                    <span className="flex items-center gap-2">
+                      <Sparkles className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                      {recommendationsQuery.data.recommendations.length} Recommendations for You
+                    </span>
+                    <ChevronDown className={`h-4 w-4 transition-transform ${recommendationsOpen ? 'rotate-180' : ''}`} />
+                  </Button>
+                </CollapsibleTrigger>
+                <CollapsibleContent className="space-y-4 pt-4" data-testid="container-recommendations">
+                  {recommendationsQuery.data.recommendations.map((rec: any, idx: number) => (
+                    <Card key={idx} className="border-amber-200/50 dark:border-amber-800/50">
+                      <CardHeader>
+                        <CardTitle className="text-lg">{rec.tool_name}</CardTitle>
+                        <CardDescription>{rec.rationale}</CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="flex items-center gap-2 text-sm text-amber-600 dark:text-amber-400 font-medium">
+                          <Lightbulb className="h-4 w-4" />
+                          {rec.suggested_action}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </CollapsibleContent>
+              </Collapsible>
+            </CardContent>
+          </Card>
+        )}
+
+        {recommendationsQuery.isLoading && (
+          <Card className="shadow-lg" data-testid="card-recommendations-loading">
+            <CardContent className="py-12 flex items-center justify-center">
+              <div className="flex items-center gap-3 text-muted-foreground">
+                <Loader2 className="h-5 w-5 animate-spin" />
+                <span>Getting personalized recommendations...</span>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {recommendationsQuery.isError && (
+          <Alert variant="destructive" data-testid="alert-recommendations-error">
+            <AlertDescription>
+              Failed to load recommendations. Please try refreshing the page.
+            </AlertDescription>
+          </Alert>
+        )}
 
         {!loading && loveLanguages.length > 0 && (
           <Card className="shadow-lg">

@@ -4,12 +4,13 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAuth } from '@/lib/auth-context';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/hooks/use-toast';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { queryClient, apiRequest } from '@/lib/queryClient';
-import { Mic, Square, Send, Play, Pause, Loader2, Volume2, Check } from 'lucide-react';
+import { Mic, Square, Send, Play, Pause, Loader2, Volume2, Check, Sparkles, Heart } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import type { VoiceMemo, Profile } from '@shared/schema';
 
@@ -490,7 +491,29 @@ function VoiceMemoCard({
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [isLoadingAudio, setIsLoadingAudio] = useState(false);
   const [hasPlayed, setHasPlayed] = useState(false);
+  const [sentimentData, setSentimentData] = useState<any>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
+
+  // AI Sentiment Analysis mutation
+  const sentimentMutation = useMutation({
+    mutationFn: async (memoId: string) => {
+      const response = await fetch('/api/ai/voice-memo-sentiment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ memo_id: memoId })
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to analyze tone');
+      }
+      
+      return response.json();
+    },
+    onSuccess: (data) => {
+      setSentimentData(data);
+    }
+  });
 
   // Load audio URL when card is rendered (for received memos)
   useEffect(() => {
@@ -588,6 +611,85 @@ function VoiceMemoCard({
                 </div>
               )}
               <audio ref={audioRef} src={audioUrl || undefined} style={{ display: 'none' }} />
+            </div>
+          )}
+
+          {!isReceived && (
+            <div className="space-y-4 pt-4 border-t">
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full gap-2"
+                onClick={() => sentimentMutation.mutate(memo.id)}
+                disabled={sentimentMutation.isPending}
+                data-testid="button-analyze-tone"
+              >
+                {sentimentMutation.isPending ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Analyzing Tone...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="h-4 w-4" />
+                    Analyze Tone with AI
+                  </>
+                )}
+              </Button>
+
+              {sentimentMutation.isError && (
+                <Alert variant="destructive" data-testid="alert-sentiment-error">
+                  <AlertDescription>
+                    {sentimentMutation.error instanceof Error ? sentimentMutation.error.message : 'Unable to analyze tone. Make sure this memo has a transcript.'}
+                  </AlertDescription>
+                </Alert>
+              )}
+
+              {sentimentData && (
+                <Card className="bg-gradient-to-br from-pink-50/50 to-rose-50/50 dark:from-pink-950/20 dark:to-rose-950/20 border-pink-200/50 dark:border-pink-800/50" data-testid="card-sentiment-results">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-lg">
+                      <Heart className="h-5 w-5 text-pink-600 dark:text-pink-400" />
+                      Tone Analysis: {sentimentData.tone} ({sentimentData.sentiment_score}/10)
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {sentimentData.whats_working && sentimentData.whats_working.length > 0 && (
+                      <div>
+                        <p className="text-sm font-semibold text-green-700 dark:text-green-300 mb-2">What's Working:</p>
+                        <ul className="space-y-1">
+                          {sentimentData.whats_working.map((item: string, idx: number) => (
+                            <li key={idx} className="text-sm flex items-start gap-2">
+                              <span className="text-green-600 dark:text-green-400 mt-0.5">✓</span>
+                              <span>{item}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                    {sentimentData.gentle_suggestions && sentimentData.gentle_suggestions.length > 0 && (
+                      <div>
+                        <p className="text-sm font-semibold text-amber-700 dark:text-amber-300 mb-2">Gentle Suggestions:</p>
+                        <ul className="space-y-1">
+                          {sentimentData.gentle_suggestions.map((item: string, idx: number) => (
+                            <li key={idx} className="text-sm flex items-start gap-2">
+                              <Sparkles className="h-4 w-4 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
+                              <span>{item}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                    {sentimentData.encouragement && (
+                      <div className="bg-background/50 p-3 rounded-md">
+                        <p className="text-sm italic text-pink-700 dark:text-pink-300">{sentimentData.encouragement}</p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
             </div>
           )}
         </div>

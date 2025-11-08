@@ -7,9 +7,10 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, MessageCircle, User, UserCheck, Check, X } from 'lucide-react';
+import { Loader2, MessageCircle, User, UserCheck, Check, X, Sparkles, TrendingUp, Lightbulb } from 'lucide-react';
 import { EchoSession, EchoTurn, Profile } from '@shared/schema';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -25,6 +26,31 @@ export default function EchoEmpathyPage() {
   const [listenerContent, setListenerContent] = useState('');
   const [confirmationFeedback, setConfirmationFeedback] = useState('');
   const [understood, setUnderstood] = useState<boolean | null>(null);
+  const [aiCoachingData, setAiCoachingData] = useState<any>(null);
+
+  // AI Echo Coaching mutation
+  const coachingMutation = useMutation({
+    mutationFn: async () => {
+      if (!activeSession || !speakerTurn || !listenerContent.trim()) return;
+      
+      const response = await fetch('/api/ai/echo-coaching', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          session_id: activeSession.id,
+          turn_id: speakerTurn.id,
+          speaker_message: speakerTurn.content,
+          listener_response: listenerContent
+        })
+      });
+
+      if (!response.ok) throw new Error('Failed to get coaching feedback');
+      return response.json();
+    },
+    onSuccess: (data) => {
+      setAiCoachingData(data);
+    }
+  });
 
   // Fetch partner profile
   const { data: partnerProfile } = useQuery<Profile>({
@@ -316,9 +342,85 @@ export default function EchoEmpathyPage() {
                   className="min-h-32 mb-4"
                   data-testid="input-listener-reflection"
                 />
+
+                <div className="space-y-4">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => coachingMutation.mutate()}
+                    disabled={!listenerContent.trim() || coachingMutation.isPending}
+                    className="w-full gap-2"
+                    data-testid="button-ai-coaching"
+                  >
+                    {coachingMutation.isPending ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Getting AI Feedback...
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="h-4 w-4" />
+                        Get AI Active Listening Feedback
+                      </>
+                    )}
+                  </Button>
+
+                  {coachingMutation.isError && (
+                    <Alert variant="destructive" data-testid="alert-coaching-error">
+                      <AlertDescription>Failed to get AI feedback. Please try again.</AlertDescription>
+                    </Alert>
+                  )}
+
+                  {aiCoachingData && (
+                    <Card className="bg-gradient-to-br from-green-50/50 to-teal-50/50 dark:from-green-950/20 dark:to-teal-950/20 border-green-200/50 dark:border-green-800/50" data-testid="card-ai-feedback">
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2 text-lg">
+                          <TrendingUp className="h-5 w-5 text-green-600 dark:text-green-400" />
+                          Active Listening Score: {aiCoachingData.overall_score}/10
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <div>
+                          <p className="text-sm font-semibold text-green-700 dark:text-green-300 mb-2">What Went Well:</p>
+                          <ul className="space-y-1">
+                            {aiCoachingData.feedback.what_went_well.map((item: string, idx: number) => (
+                              <li key={idx} className="text-sm flex items-start gap-2">
+                                <span className="text-green-600 dark:text-green-400 mt-0.5">✓</span>
+                                <span>{item}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                        
+                        {aiCoachingData.feedback.areas_to_improve.length > 0 && (
+                          <div>
+                            <p className="text-sm font-semibold text-amber-700 dark:text-amber-300 mb-2">Areas to Improve:</p>
+                            <ul className="space-y-1">
+                              {aiCoachingData.feedback.areas_to_improve.map((item: string, idx: number) => (
+                                <li key={idx} className="text-sm flex items-start gap-2">
+                                  <Lightbulb className="h-4 w-4 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
+                                  <span>{item}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+
+                        {aiCoachingData.feedback.suggested_response && (
+                          <div className="bg-background/50 p-3 rounded-md">
+                            <p className="text-sm font-semibold mb-2">Suggested Response:</p>
+                            <p className="text-sm italic">{aiCoachingData.feedback.suggested_response}</p>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  )}
+                </div>
+
                 <Button
                   onClick={handleSubmitStep2}
                   disabled={!listenerContent.trim() || submitTurnMutation.isPending}
+                  className="w-full mt-4"
                   data-testid="button-submit-step-2"
                 >
                   {submitTurnMutation.isPending && <Loader2 className="h-4 w-4 animate-spin mr-2" />}

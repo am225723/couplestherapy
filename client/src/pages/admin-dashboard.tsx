@@ -11,10 +11,11 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useAuth } from '@/lib/auth-context';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/hooks/use-toast';
-import { Users, Loader2, Heart, Send, MessageSquare, CheckCircle2, XCircle } from 'lucide-react';
+import { Users, Loader2, Heart, Send, MessageSquare, CheckCircle2, XCircle, Sparkles, TrendingUp, TrendingDown, Target, Lightbulb } from 'lucide-react';
 import { Couple, Profile, WeeklyCheckin, LoveLanguage, GratitudeLog, SharedGoal, Ritual, Conversation, Message, CalendarEvent, EchoSession, EchoTurn, IfsExercise, IfsPart, PauseEvent } from '@shared/schema';
 import { formatDistanceToNow, format, parse, startOfWeek, getDay } from 'date-fns';
 import { enUS } from 'date-fns/locale/en-US';
@@ -268,18 +269,180 @@ export default function AdminDashboard() {
     );
   }
 
+  // AI Session Prep mutation
+  const sessionPrepMutation = useMutation({
+    mutationFn: async (couple_id: string) => {
+      const response = await fetch(`/api/ai/session-prep/${couple_id}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to generate session prep');
+      }
+      return response.json();
+    }
+  });
+
   return (
     <div className="min-h-screen bg-background py-8 px-4">
       <div className="max-w-7xl mx-auto space-y-8">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between flex-wrap gap-4">
           <div className="flex items-center gap-4">
-            <Button variant="ghost" asChild>
+            <Button variant="ghost" asChild data-testid="button-back-to-couples">
               <Link href="/admin">← Back to Couples</Link>
             </Button>
             <h1 className="text-3xl font-bold">
               {selectedCouple.partner1?.full_name} & {selectedCouple.partner2?.full_name}
             </h1>
           </div>
+          
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button 
+                variant="default" 
+                className="gap-2"
+                onClick={() => sessionPrepMutation.mutate(selectedCouple.id)}
+                disabled={sessionPrepMutation.isPending}
+                data-testid="button-ai-session-prep"
+              >
+                {sessionPrepMutation.isPending ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Analyzing...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="h-4 w-4" />
+                    AI Session Prep
+                  </>
+                )}
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <Sparkles className="h-5 w-5 text-primary" />
+                  AI Session Preparation Summary
+                </DialogTitle>
+                <DialogDescription>
+                  AI-powered analysis of the last 4 weeks of couple activity
+                </DialogDescription>
+              </DialogHeader>
+              
+              {sessionPrepMutation.isPending && (
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                </div>
+              )}
+              
+              {sessionPrepMutation.isError && (
+                <Alert variant="destructive" data-testid="alert-session-prep-error">
+                  <AlertDescription>
+                    {sessionPrepMutation.error instanceof Error ? sessionPrepMutation.error.message : 'Failed to generate session prep'}
+                  </AlertDescription>
+                </Alert>
+              )}
+              
+              {sessionPrepMutation.isSuccess && sessionPrepMutation.data && (
+                <div className="space-y-6" data-testid="container-session-prep-results">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2 text-lg">
+                        <Heart className="h-5 w-5 text-primary" />
+                        Engagement Summary
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-sm text-muted-foreground" data-testid="text-engagement-summary">
+                        {sessionPrepMutation.data.engagement_summary}
+                      </p>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2 text-lg">
+                        <TrendingDown className="h-5 w-5 text-destructive" />
+                        Concerning Patterns
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <ul className="space-y-2">
+                        {sessionPrepMutation.data.concerning_patterns.map((pattern: string, idx: number) => (
+                          <li key={idx} className="flex items-start gap-2" data-testid={`text-concerning-pattern-${idx}`}>
+                            <span className="text-destructive mt-1">•</span>
+                            <span className="text-sm">{pattern}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2 text-lg">
+                        <TrendingUp className="h-5 w-5 text-green-600" />
+                        Positive Patterns
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <ul className="space-y-2">
+                        {sessionPrepMutation.data.positive_patterns.map((pattern: string, idx: number) => (
+                          <li key={idx} className="flex items-start gap-2" data-testid={`text-positive-pattern-${idx}`}>
+                            <span className="text-green-600 mt-1">•</span>
+                            <span className="text-sm">{pattern}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2 text-lg">
+                        <Target className="h-5 w-5 text-primary" />
+                        Session Focus Areas
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <ul className="space-y-2">
+                        {sessionPrepMutation.data.session_focus_areas.map((area: string, idx: number) => (
+                          <li key={idx} className="flex items-start gap-2" data-testid={`text-focus-area-${idx}`}>
+                            <span className="text-primary mt-1">•</span>
+                            <span className="text-sm font-medium">{area}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2 text-lg">
+                        <Lightbulb className="h-5 w-5 text-amber-500" />
+                        Recommended Interventions
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <ul className="space-y-2">
+                        {sessionPrepMutation.data.recommended_interventions.map((intervention: string, idx: number) => (
+                          <li key={idx} className="flex items-start gap-2" data-testid={`text-intervention-${idx}`}>
+                            <span className="text-amber-500 mt-1">•</span>
+                            <span className="text-sm">{intervention}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </CardContent>
+                  </Card>
+
+                  <div className="text-xs text-muted-foreground text-center pt-4 border-t">
+                    Generated {sessionPrepMutation.data.generated_at ? formatDistanceToNow(new Date(sessionPrepMutation.data.generated_at), { addSuffix: true }) : 'just now'}
+                  </div>
+                </div>
+              )}
+            </DialogContent>
+          </Dialog>
         </div>
 
         <Tabs defaultValue="checkins">

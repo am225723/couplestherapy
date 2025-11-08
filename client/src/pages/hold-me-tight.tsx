@@ -4,10 +4,13 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Progress } from '@/components/ui/progress';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAuth } from '@/lib/auth-context';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/hooks/use-toast';
-import { Heart, Loader2, MessageCircle, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useMutation } from '@tanstack/react-query';
+import { Heart, Loader2, MessageCircle, ChevronLeft, ChevronRight, Sparkles, ChevronDown } from 'lucide-react';
 
 type ConversationStep = 'initiate' | 'partner-reflect' | 'partner-respond' | 'complete';
 
@@ -25,9 +28,44 @@ export default function HoldMeTightPage() {
   const [partnerResponse, setPartnerResponse] = useState('');
   const [loading, setLoading] = useState(false);
   const [checkingExisting, setCheckingExisting] = useState(true);
+  const [aiSuggestionsOpen, setAiSuggestionsOpen] = useState(false);
   const { user, profile } = useAuth();
   const { toast } = useToast();
   const [, navigate] = useLocation();
+
+  // AI Empathy Prompts mutation
+  const empathyPromptMutation = useMutation({
+    mutationFn: async () => {
+      if (!conversationId) throw new Error('No conversation ID');
+      
+      // Combine all initiator responses for context
+      const userResponse = `
+        When this happens: ${initiatorSituation}
+        I feel: ${initiatorFeel}
+        I'm scared of: ${initiatorScaredOf}
+        I'm embarrassed about: ${initiatorEmbarrassedAbout}
+        My expectations: ${initiatorExpectations}
+        I need: ${initiatorNeed}
+      `.trim();
+
+      const response = await fetch('/api/ai/empathy-prompt', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          conversation_id: conversationId,
+          step_number: 1,
+          user_response: userResponse
+        })
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to get AI suggestions');
+      }
+
+      return response.json();
+    }
+  });
 
   useEffect(() => {
     checkForActiveConversation();
@@ -440,6 +478,74 @@ export default function HoldMeTightPage() {
                     data-testid="textarea-partner-reflection"
                   />
                 </div>
+
+                <div className="space-y-4">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full gap-2"
+                    onClick={() => {
+                      empathyPromptMutation.mutate();
+                      setAiSuggestionsOpen(true);
+                    }}
+                    disabled={empathyPromptMutation.isPending}
+                    data-testid="button-ai-empathy-suggestions"
+                  >
+                    {empathyPromptMutation.isPending ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Getting AI Suggestions...
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="h-4 w-4" />
+                        Get AI Empathy Suggestions
+                      </>
+                    )}
+                  </Button>
+
+                  {empathyPromptMutation.isError && (
+                    <Alert variant="destructive" data-testid="alert-empathy-error">
+                      <AlertDescription>
+                        {empathyPromptMutation.error instanceof Error ? empathyPromptMutation.error.message : 'Failed to get suggestions'}
+                      </AlertDescription>
+                    </Alert>
+                  )}
+
+                  {empathyPromptMutation.isSuccess && empathyPromptMutation.data && (
+                    <Collapsible open={aiSuggestionsOpen} onOpenChange={setAiSuggestionsOpen}>
+                      <CollapsibleTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          className="w-full justify-between"
+                          data-testid="button-toggle-suggestions"
+                        >
+                          <span className="flex items-center gap-2">
+                            <Sparkles className="h-4 w-4 text-primary" />
+                            AI Empathy Suggestions
+                          </span>
+                          <ChevronDown className={`h-4 w-4 transition-transform ${aiSuggestionsOpen ? 'rotate-180' : ''}`} />
+                        </Button>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent className="space-y-4 pt-4" data-testid="container-ai-suggestions">
+                        <p className="text-sm text-muted-foreground">
+                          Here are some empathetic ways to reflect what you heard. You can use these as inspiration or copy one to get started:
+                        </p>
+                        {empathyPromptMutation.data.suggested_responses.map((suggestion: string, idx: number) => (
+                          <Card key={idx} className="hover-elevate cursor-pointer" onClick={() => setPartnerReflection(suggestion)}>
+                            <CardContent className="p-4">
+                              <p className="text-sm" data-testid={`text-suggestion-${idx}`}>{suggestion}</p>
+                            </CardContent>
+                          </Card>
+                        ))}
+                        <p className="text-xs text-muted-foreground italic text-center">
+                          Click on any suggestion to use it, or write your own empathetic response
+                        </p>
+                      </CollapsibleContent>
+                    </Collapsible>
+                  )}
+                </div>
+
                 <Button type="submit" className="w-full" disabled={loading} data-testid="button-reflect">
                   {loading ? (
                     <>
