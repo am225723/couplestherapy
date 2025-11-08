@@ -4,6 +4,15 @@
 
 TADI is a multi-tenant platform designed for couples therapy, offering separate applications for clients and therapists. It aims to facilitate therapeutic interventions, improve couple communication, and track progress through various interactive exercises and tools. The platform leverages modern web technologies to provide a secure, real-time, and engaging experience. Key capabilities include assessments, shared activities, communication tools, and therapist oversight.
 
+## Recent Changes (January 2025)
+
+**Supabase Edge Functions Migration:**
+- Migrated AI endpoints from Express routes to Supabase Edge Functions for better performance and scalability
+- **Completed:** `ai-date-night` edge function with input validation and privacy-focused logging
+- **Frontend:** Updated date-night.tsx to use `supabase.functions.invoke()` instead of Express API
+- **Benefits:** Global edge deployment, pay-per-invocation pricing, simplified Vercel deployment
+- See `SUPABASE_EDGE_FUNCTIONS_GUIDE.md` for deployment instructions
+
 ## User Preferences
 
 I prefer iterative development with clear communication on progress and potential changes. Please ask before implementing major architectural changes or introducing new dependencies. I value a clean, readable codebase with consistent styling and well-documented components. For explanations, please use clear, concise language, focusing on the "why" behind decisions as much as the "what."
