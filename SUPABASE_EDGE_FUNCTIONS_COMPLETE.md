@@ -448,13 +448,26 @@ supabase functions deploy ai-date-night
 
 Then test from your frontend:
 ```typescript
-const { data, error } = await supabase.functions.invoke('ai-date-night', {
-  body: {
-    time: "2-3 hours",
-    location: "At home",
-    price: "Free or low-cost",
-    participants: "Just us two",
-    energy: "Relaxed and low-key"
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+const response = await fetch(
+  `${supabaseUrl}/functions/v1/ai-date-night`,
+  {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${supabaseAnonKey}`,
+    },
+    body: JSON.stringify({
+      time: "2-3 hours",
+      location: "At home",
+      price: "Free or low-cost",
+      participants: "Just us two",
+      energy: "Relaxed and low-key"
+    }),
   }
-});
+);
+
+const data = await response.json();
 ```

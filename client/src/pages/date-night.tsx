@@ -45,12 +45,27 @@ export default function DateNightPage() {
 
   const generateMutation = useMutation({
     mutationFn: async (prefs: DateNightPreferences) => {
-      const { data, error } = await supabase.functions.invoke('ai-date-night', {
-        body: prefs,
-      });
-      
-      if (error) throw error;
-      return data as DateNightResponse;
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+      const response = await fetch(
+        `${supabaseUrl}/functions/v1/ai-date-night`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${supabaseAnonKey}`,
+          },
+          body: JSON.stringify(prefs),
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to generate date night ideas');
+      }
+
+      return await response.json() as DateNightResponse;
     },
     onSuccess: (data) => {
       setGeneratedIdeas(data.content);
