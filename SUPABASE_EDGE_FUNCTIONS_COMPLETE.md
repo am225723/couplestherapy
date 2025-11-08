@@ -1,72 +1,35 @@
-# Complete Supabase Edge Functions Code
+# Complete Supabase Edge Functions Code (No Shared Imports)
 
-This document contains ALL code needed to add the edge functions to your Supabase project. Simply copy each file to the corresponding location in your Supabase project.
-
----
-
-## 📁 Directory Structure
-
-```
-supabase/
-└── functions/
-    ├── _shared/
-    │   ├── cors.ts
-    │   ├── perplexity.ts
-    │   ├── supabase-client.ts
-    │   └── validation.ts
-    └── ai-date-night/
-        └── index.ts
-```
+This document contains the complete edge function code with all utilities inlined. Simply copy the single file to Supabase - no shared imports needed!
 
 ---
 
-## 🔧 Shared Utilities
+## 🎯 Edge Function: ai-date-night
 
-### File: `supabase/functions/_shared/cors.ts`
+### File: `supabase/functions/ai-date-night/index.ts`
+
+Copy this entire file to your Supabase project at `supabase/functions/ai-date-night/index.ts`:
 
 ```typescript
-// CORS headers for edge functions
-export const corsHeaders = {
+// ========================================
+// CORS Headers
+// ========================================
+const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
-```
 
----
+// ========================================
+// Type Definitions
+// ========================================
+interface DateNightPreferences {
+  time: string;
+  location: string;
+  price: string;
+  participants: string;
+  energy: string;
+}
 
-### File: `supabase/functions/_shared/supabase-client.ts`
-
-```typescript
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-
-export const getSupabaseClient = (authHeader?: string) => {
-  const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-  const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
-
-  if (authHeader) {
-    return createClient(supabaseUrl, supabaseAnonKey, {
-      global: {
-        headers: { Authorization: authHeader },
-      },
-    });
-  }
-
-  return createClient(supabaseUrl, supabaseAnonKey);
-};
-
-export const getSupabaseServiceClient = () => {
-  const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-  const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-
-  return createClient(supabaseUrl, supabaseServiceKey);
-};
-```
-
----
-
-### File: `supabase/functions/_shared/perplexity.ts`
-
-```typescript
 interface PerplexityMessage {
   role: 'system' | 'user' | 'assistant';
   content: string;
@@ -98,66 +61,10 @@ interface PerplexityResponse {
   citations?: string[];
 }
 
-export async function analyzeCheckInsWithPerplexity(
-  systemPrompt: string,
-  userPrompt: string
-): Promise<{ content: string; citations?: string[] }> {
-  const apiKey = Deno.env.get('PERPLEXITY_API_KEY');
-
-  if (!apiKey) {
-    throw new Error('PERPLEXITY_API_KEY not configured');
-  }
-
-  const requestBody: PerplexityRequest = {
-    model: 'llama-3.1-sonar-large-128k-online',
-    messages: [
-      { role: 'system', content: systemPrompt },
-      { role: 'user', content: userPrompt },
-    ],
-    temperature: 0.7,
-    max_tokens: 2000,
-  };
-
-  const response = await fetch('https://api.perplexity.ai/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify(requestBody),
-  });
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`Perplexity API error: ${response.status} - ${errorText}`);
-  }
-
-  const data: PerplexityResponse = await response.json();
-
-  return {
-    content: data.choices[0]?.message?.content || '',
-    citations: data.citations,
-  };
-}
-```
-
----
-
-### File: `supabase/functions/_shared/validation.ts`
-
-```typescript
-// Simple validation helpers for edge functions
-// Using manual validation instead of Zod since Zod has Deno compatibility issues
-
-export interface DateNightPreferences {
-  time: string;
-  location: string;
-  price: string;
-  participants: string;
-  energy: string;
-}
-
-export function validateDateNightPreferences(data: any): { 
+// ========================================
+// Validation Functions
+// ========================================
+function validateDateNightPreferences(data: any): { 
   valid: boolean; 
   data?: DateNightPreferences; 
   error?: string;
@@ -198,7 +105,7 @@ export function validateDateNightPreferences(data: any): {
     };
   }
 
-  // Optional: Add max length validation to prevent abuse
+  // Max length validation to prevent abuse
   const maxLength = 500;
   const tooLongFields = Object.entries(trimmedData)
     .filter(([_, value]) => value.length > maxLength)
@@ -217,7 +124,7 @@ export function validateDateNightPreferences(data: any): {
   };
 }
 
-export function redactForLogging(data: any): string {
+function redactForLogging(data: any): string {
   // Redact ALL user inputs for production logging
   // This prevents accidentally logging extra fields that may contain sensitive data
   if (!data || typeof data !== 'object') {
@@ -243,20 +150,57 @@ export function redactForLogging(data: any): string {
 
   return JSON.stringify(redacted);
 }
-```
 
----
+// ========================================
+// Perplexity API Integration
+// ========================================
+async function analyzeWithPerplexity(
+  systemPrompt: string,
+  userPrompt: string
+): Promise<{ content: string; citations?: string[] }> {
+  const apiKey = Deno.env.get('PERPLEXITY_API_KEY');
 
-## 🎯 Edge Function: ai-date-night
+  if (!apiKey) {
+    throw new Error('PERPLEXITY_API_KEY not configured');
+  }
 
-### File: `supabase/functions/ai-date-night/index.ts`
+  const requestBody: PerplexityRequest = {
+    model: 'llama-3.1-sonar-large-128k-online',
+    messages: [
+      { role: 'system', content: systemPrompt },
+      { role: 'user', content: userPrompt },
+    ],
+    temperature: 0.7,
+    max_tokens: 2000,
+  };
 
-```typescript
-import { corsHeaders } from '../_shared/cors.ts';
-import { analyzeCheckInsWithPerplexity } from '../_shared/perplexity.ts';
-import { validateDateNightPreferences, redactForLogging } from '../_shared/validation.ts';
+  const response = await fetch('https://api.perplexity.ai/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify(requestBody),
+  });
 
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Perplexity API error: ${response.status} - ${errorText}`);
+  }
+
+  const data: PerplexityResponse = await response.json();
+
+  return {
+    content: data.choices[0]?.message?.content || '',
+    citations: data.citations,
+  };
+}
+
+// ========================================
+// Main Edge Function Handler
+// ========================================
 Deno.serve(async (req) => {
+  // Handle CORS preflight
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
   }
@@ -304,7 +248,7 @@ Please provide:
 4. Specific conversation starters or prompts
 5. Tips to make it more meaningful`;
 
-    const result = await analyzeCheckInsWithPerplexity(systemPrompt, userPrompt);
+    const result = await analyzeWithPerplexity(systemPrompt, userPrompt);
 
     return new Response(
       JSON.stringify({
@@ -336,33 +280,29 @@ Please provide:
 
 ## 🚀 Deployment Instructions
 
-### 1. Create the Files in Supabase
+### 1. Add to Supabase
 
-You can add these files directly through the Supabase Dashboard or using the CLI:
-
-#### Option A: Using Supabase CLI (Recommended)
+**Option A: Using Supabase CLI**
 
 ```bash
-# Navigate to your project
-cd your-project-directory
-
-# Create the directory structure
-mkdir -p supabase/functions/_shared
+# Create the function directory
 mkdir -p supabase/functions/ai-date-night
 
-# Copy each file from this document to the corresponding location
-# Then deploy:
+# Copy the code above into:
+# supabase/functions/ai-date-night/index.ts
+
+# Deploy
 supabase functions deploy ai-date-night
 ```
 
-#### Option B: Using Supabase Dashboard
+**Option B: Using Supabase Dashboard**
 
 1. Go to your Supabase project dashboard
 2. Navigate to **Edge Functions** in the left sidebar
 3. Click **"Create a new function"**
 4. Name it `ai-date-night`
-5. Copy the code from `ai-date-night/index.ts` above
-6. Create the `_shared` folder and add each utility file
+5. Paste the entire code from above
+6. Click **Deploy**
 
 ---
 
@@ -372,21 +312,26 @@ supabase functions deploy ai-date-night
 # Set the Perplexity API key
 supabase secrets set PERPLEXITY_API_KEY=pplx-xxxxxxxxxxxxxxxx
 
-# These are automatically provided by Supabase:
-# - SUPABASE_URL
-# - SUPABASE_ANON_KEY
-# - SUPABASE_SERVICE_ROLE_KEY
+# Verify it's set
+supabase secrets list
 ```
+
+**Note:** These are automatically provided by Supabase (no need to set):
+- `SUPABASE_URL`
+- `SUPABASE_ANON_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY`
 
 ---
 
 ### 3. Test the Function
 
+**View Logs:**
 ```bash
-# View logs
 supabase functions logs ai-date-night --follow
+```
 
-# Test with curl
+**Test with curl:**
+```bash
 curl -X POST 'https://YOUR_PROJECT_REF.supabase.co/functions/v1/ai-date-night' \
   -H 'Authorization: Bearer YOUR_ANON_KEY' \
   -H 'Content-Type: application/json' \
@@ -401,50 +346,32 @@ curl -X POST 'https://YOUR_PROJECT_REF.supabase.co/functions/v1/ai-date-night' \
 
 ---
 
-## 📝 Environment File Template
+## 📋 What This Code Does
 
-### File: `supabase/.env.example`
+### ✅ Features
 
-```bash
-# Supabase Edge Functions Environment Variables
-# Copy this file to .env.local for local development
+1. **CORS Support** - Allows frontend to call from any domain
+2. **Input Validation** - Validates all required fields, rejects empty/too long inputs
+3. **Privacy Protection** - Logs never contain actual user data (only field presence)
+4. **Error Handling** - Returns proper HTTP status codes:
+   - `400` for bad input (validation errors)
+   - `500` for server errors
+5. **Perplexity Integration** - Generates AI-powered date night suggestions
+6. **Type Safety** - TypeScript interfaces for all data structures
 
-# Perplexity AI API Key
-# Get your API key from: https://www.perplexity.ai/settings/api
-PERPLEXITY_API_KEY=pplx-xxxxxxxxxxxxxxxx
+### 🔒 Security
 
-# These are automatically provided by Supabase:
-# SUPABASE_URL=https://your-project.supabase.co
-# SUPABASE_ANON_KEY=your-anon-key
-# SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
-```
-
----
-
-## ✅ What This Does
-
-- **CORS Support**: Allows frontend to call the function from any domain
-- **Input Validation**: Validates all required fields, rejects empty/too long inputs
-- **Privacy Protection**: Logs never contain actual user data (only field presence)
-- **Error Handling**: Returns proper HTTP status codes (400 for bad input, 500 for server errors)
-- **Perplexity Integration**: Generates AI-powered date night suggestions
-- **Type Safety**: TypeScript interfaces for all data structures
+- **No Data Leakage**: Logging uses allowlist approach, never logs user values
+- **Input Sanitization**: Trims whitespace, validates length (max 500 chars), rejects malformed data
+- **Safe Error Messages**: Error responses don't expose sensitive information
+- **Extra Field Protection**: Unknown fields are counted but never logged
 
 ---
 
-## 🔒 Security Features
-
-1. **No Data Leakage**: Logging uses allowlist approach, never logs user values
-2. **Input Sanitization**: Trims whitespace, validates length, rejects malformed data
-3. **Safe Error Messages**: Error responses don't expose sensitive information
-4. **Extra Field Protection**: Unknown fields are counted but never logged
-
----
-
-## 📊 Testing Checklist
+## 🧪 Testing Checklist
 
 - [ ] Deploy function to Supabase
-- [ ] Set PERPLEXITY_API_KEY secret
+- [ ] Set `PERPLEXITY_API_KEY` secret
 - [ ] Test with valid input
 - [ ] Test with invalid input (missing fields)
 - [ ] Test with empty strings
@@ -454,17 +381,80 @@ PERPLEXITY_API_KEY=pplx-xxxxxxxxxxxxxxxx
 
 ---
 
+## 📊 Example Request/Response
+
+**Request:**
+```json
+{
+  "time": "2-3 hours",
+  "location": "At home",
+  "price": "Free or low-cost",
+  "participants": "Just us two",
+  "energy": "Relaxed and low-key"
+}
+```
+
+**Success Response (200):**
+```json
+{
+  "content": "# Cozy Connection Evening\n\n[AI-generated date night suggestion with research-backed relationship advice]",
+  "citations": ["https://www.gottman.com/...", "https://iceeft.com/..."]
+}
+```
+
+**Validation Error (400):**
+```json
+{
+  "error": "Missing or invalid required fields: time, location"
+}
+```
+
+**Server Error (500):**
+```json
+{
+  "error": "PERPLEXITY_API_KEY not configured"
+}
+```
+
+---
+
+## 📁 Directory Structure
+
+```
+supabase/
+└── functions/
+    └── ai-date-night/
+        └── index.ts    ← Copy the code here
+```
+
+**That's it!** No shared imports, no additional files needed. Everything is self-contained in one file.
+
+---
+
 ## 🎉 You're Done!
 
-All code is ready to copy directly into your Supabase project. The edge function will:
-- ✅ Run globally on Supabase's edge network
-- ✅ Scale automatically with demand
-- ✅ Protect user privacy with redacted logging
-- ✅ Validate all inputs before processing
-- ✅ Return clear error messages
+The edge function is ready to deploy. It includes:
+- ✅ All utilities inlined (no shared imports)
+- ✅ CORS support built-in
+- ✅ Privacy-focused logging
+- ✅ Comprehensive input validation
+- ✅ Perplexity AI integration
+- ✅ Production-ready error handling
 
-**Next Steps:**
-1. Copy all files to your Supabase project
-2. Set the PERPLEXITY_API_KEY secret
-3. Deploy with `supabase functions deploy ai-date-night`
-4. Test and celebrate! 🎊
+**Deploy it now:**
+```bash
+supabase functions deploy ai-date-night
+```
+
+Then test from your frontend:
+```typescript
+const { data, error } = await supabase.functions.invoke('ai-date-night', {
+  body: {
+    time: "2-3 hours",
+    location: "At home",
+    price: "Free or low-cost",
+    participants: "Just us two",
+    energy: "Relaxed and low-key"
+  }
+});
+```
