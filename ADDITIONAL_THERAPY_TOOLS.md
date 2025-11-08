@@ -37,7 +37,6 @@ Based on evidence-based therapeutic modalities, here are additional tools that w
 - Loving-kindness practice for partner
 - Body scan for couples (parallel practice)
 - Breathwork exercises during conflict
-
 ### Gratitude & Appreciation
 - Daily appreciation prompts (already have gratitude log)
 - Specific gratitude categories (Acts of Service, Words of Affirmation, etc.)
@@ -57,21 +56,6 @@ Based on evidence-based therapeutic modalities, here are additional tools that w
 - Post-date reflection questions
 - "Best moments" collection
 - Anniversary of first dates reminders
-
-## 5. **Conflict Resolution**
-
-### Fair Fighting Rules
-- Before-conflict agreement on "house rules"
-- During-conflict pause button with rules reminder
-- Post-conflict repair checklist
-- Success celebration when following rules
-
-### Speaker-Listener Technique (PREP)
-- Structured turn-taking with timer
-- "Floor" indicator showing who's speaking
-- Paraphrasing validation before responding
-- Recording for self-review (audio only, private)
-
 ## 6. **Values & Vision**
 
 ### Shared Dreams & Goals
@@ -87,6 +71,35 @@ Based on evidence-based therapeutic modalities, here are additional tools that w
 - Community contribution goals
 - Generativity planning (for older couples)
 
+## 9. **Parenting as Partners (if applicable)**
+
+### Co-Parenting Alignment
+- Parenting style assessment
+- Discipline approach agreement builder
+- United front practice scenarios
+- Parenting stress check-ins
+
+### Couple Time Protection
+- Child-free time scheduling
+- Intimacy despite kids reminder system
+- Energy management for romance
+- Reconnection after parenting conflicts
+
+
+## 5. **Conflict Resolution**
+
+### Fair Fighting Rules
+- Before-conflict agreement on "house rules"
+- During-conflict pause button with rules reminder
+- Post-conflict repair checklist
+- Success celebration when following rules
+
+### Speaker-Listener Technique (PREP)
+- Structured turn-taking with timer
+- "Floor" indicator showing who's speaking
+- Paraphrasing validation before responding
+- Recording for self-review (audio only, private)
+- 
 ## 7. **Sexual Intimacy (Therapeutic Focus)**
 
 ### Desire Discrepancy Navigator
@@ -115,19 +128,6 @@ Based on evidence-based therapeutic modalities, here are additional tools that w
 - Healing milestones tracking
 - Resilience building exercises
 
-## 9. **Parenting as Partners (if applicable)**
-
-### Co-Parenting Alignment
-- Parenting style assessment
-- Discipline approach agreement builder
-- United front practice scenarios
-- Parenting stress check-ins
-
-### Couple Time Protection
-- Child-free time scheduling
-- Intimacy despite kids reminder system
-- Energy management for romance
-- Reconnection after parenting conflicts
 
 ## 10. **Behavioral Activation**
 
