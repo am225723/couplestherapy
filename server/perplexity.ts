@@ -59,7 +59,7 @@ export async function analyzeCheckInsWithPerplexity(
   }
 
   const request: PerplexityRequest = {
-    model: 'sonar-pro',
+    model: 'sonar-medium-online',
     messages: [
       {
         role: 'system',
@@ -104,7 +104,7 @@ export async function analyzeCheckInsWithPerplexity(
     };
   } catch (error) {
     if (error instanceof Error) {
-      console.error('Perplexity API call failed:', error.message);
+      console.error('Perplexity API call failed:', error);
       throw error;
     }
     throw new Error('Unknown error calling Perplexity API');
