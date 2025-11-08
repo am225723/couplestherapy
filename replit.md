@@ -6,7 +6,27 @@ TADI is a multi-tenant platform designed for couples therapy, offering separate 
 
 ## Recent Changes (January 2025)
 
-**Bug Fixes & Security Improvements (January 8, 2025):**
+**Documentation & Planning Deliverables (January 8, 2025 - Evening):**
+- ✅ **SUPABASE_EDGE_FUNCTIONS_READY.md** - Production-ready Edge Functions
+  - Complete code for `ai-date-night` and `ai-insights` Edge Functions
+  - Uses environment variables for API keys (secure deployment)
+  - Includes deployment instructions and secret management guidance
+  - Privacy-focused: Allowlist logging, no user data exposure
+- ✅ **ADDITIONAL_THERAPY_TOOLS.md** - Evidence-Based Feature Roadmap
+  - 15 couples therapy tools organized into 4 priority phases
+  - Complete database schemas for Phase 1-3 tools (Gottman Four Horsemen, Fair Fighting Rules, Intimacy Mapping, etc.)
+  - API route specifications and frontend integration guidance
+  - Effort estimates and implementation timeline
+  - Leverages existing platform infrastructure (Realtime, Storage, AI integration)
+- ✅ **BUG_FIX_GUIDE.md** - Diagnostic & Troubleshooting Guide
+  - Detailed analysis of 9 reported feature issues
+  - Root cause diagnosis with specific code references
+  - SQL queries for database verification
+  - Step-by-step debugging process
+  - Testing recommendations for each feature
+  - **Note:** Many reported "bugs" may be user flow issues rather than code bugs - requires testing to confirm
+
+**Bug Fixes & Security Improvements (January 8, 2025 - Morning):**
 - ✅ Fixed Voice Memo API contract mismatch: Backend was returning `{memo_id, upload_url, storage_path}` but frontend was expecting `{id, uploadUrl}`
   - Updated frontend to correctly destructure `memo_id`, `upload_url`, and `storage_path` from create endpoint response
   - Fixed complete endpoint to properly pass `storage_path` and `duration_secs` in request body
