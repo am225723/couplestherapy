@@ -6,6 +6,19 @@ TADI is a multi-tenant platform designed for couples therapy, offering separate 
 
 ## Recent Changes (January 2025)
 
+**Bug Fixes & Security Improvements (January 8, 2025):**
+- ✅ Fixed Voice Memo API contract mismatch: Backend was returning `{memo_id, upload_url, storage_path}` but frontend was expecting `{id, uploadUrl}`
+  - Updated frontend to correctly destructure `memo_id`, `upload_url`, and `storage_path` from create endpoint response
+  - Fixed complete endpoint to properly pass `storage_path` and `duration_secs` in request body
+- ✅ Secured all therapist analytics endpoints with session-based authentication
+  - `/api/ai/analytics` - Now derives therapist_id from authenticated session via `verifyTherapistSession()`
+  - `/api/ai/insights` - Now derives therapist_id from authenticated session via `verifyTherapistSession()`
+  - `/api/therapist/export-couple-report` - Now derives therapist_id from authenticated session via `verifyTherapistSession()`
+  - Removed insecure `therapist_id` query parameters that allowed access-control bypass
+  - Updated frontend to remove therapist_id from all API calls (server derives from session)
+- **Impact:** Eliminated critical security vulnerability where malicious users could access other therapists' data by manipulating query parameters
+- **React Query Note:** Query keys no longer include therapist_id, which may require cache invalidation after therapist logout/login
+
 **Supabase Edge Functions Migration (COMPLETE):**
 - ✅ Migrated all AI endpoints from Express routes to Supabase Edge Functions for better performance and scalability
 - **Completed Functions:**
