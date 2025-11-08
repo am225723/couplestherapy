@@ -4200,6 +4200,279 @@ Be warm, creative, and encouraging. Emphasize connection, fun, and breaking rout
     }
   });
 
+  // ==============================================
+  // THERAPIST ENDPOINTS FOR NEW THERAPY TOOLS
+  // ==============================================
+
+  // FOUR HORSEMEN TRACKER - Get all incidents for a couple
+  app.get("/api/four-horsemen/couple/:couple_id", async (req, res) => {
+    try {
+      const therapistAuth = await verifyTherapistSession(req);
+      if (!therapistAuth.success) {
+        return res.status(therapistAuth.status).json({ error: therapistAuth.error });
+      }
+
+      const { couple_id } = req.params;
+
+      // Verify couple is assigned to this therapist
+      const { data: couple } = await supabaseAdmin
+        .from('Couples_couples')
+        .select('therapist_id')
+        .eq('id', couple_id)
+        .single();
+
+      if (!couple || couple.therapist_id !== therapistAuth.therapistId) {
+        return res.status(403).json({ error: 'Not authorized to view this couple' });
+      }
+
+      // Fetch all Four Horsemen incidents
+      const { data, error } = await supabaseAdmin
+        .from('Couples_four_horsemen')
+        .select('*')
+        .eq('couple_id', couple_id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      res.json(data);
+    } catch (error: any) {
+      console.error('Error fetching Four Horsemen data:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // DEMON DIALOGUES - Get all dialogues for a couple
+  app.get("/api/demon-dialogues/couple/:couple_id", async (req, res) => {
+    try {
+      const therapistAuth = await verifyTherapistSession(req);
+      if (!therapistAuth.success) {
+        return res.status(therapistAuth.status).json({ error: therapistAuth.error });
+      }
+
+      const { couple_id } = req.params;
+
+      // Verify couple is assigned to this therapist
+      const { data: couple } = await supabaseAdmin
+        .from('Couples_couples')
+        .select('therapist_id')
+        .eq('id', couple_id)
+        .single();
+
+      if (!couple || couple.therapist_id !== therapistAuth.therapistId) {
+        return res.status(403).json({ error: 'Not authorized to view this couple' });
+      }
+
+      // Fetch all Demon Dialogues
+      const { data, error } = await supabaseAdmin
+        .from('Couples_demon_dialogues')
+        .select('*')
+        .eq('couple_id', couple_id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      res.json(data);
+    } catch (error: any) {
+      console.error('Error fetching Demon Dialogues data:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // MEDITATION LIBRARY - Get all meditation sessions for a couple
+  app.get("/api/meditation/couple/:couple_id/sessions", async (req, res) => {
+    try {
+      const therapistAuth = await verifyTherapistSession(req);
+      if (!therapistAuth.success) {
+        return res.status(therapistAuth.status).json({ error: therapistAuth.error });
+      }
+
+      const { couple_id } = req.params;
+
+      // Verify couple is assigned to this therapist
+      const { data: couple } = await supabaseAdmin
+        .from('Couples_couples')
+        .select('therapist_id')
+        .eq('id', couple_id)
+        .single();
+
+      if (!couple || couple.therapist_id !== therapistAuth.therapistId) {
+        return res.status(403).json({ error: 'Not authorized to view this couple' });
+      }
+
+      // Fetch all meditation sessions
+      const { data, error } = await supabaseAdmin
+        .from('Couples_meditation_sessions')
+        .select('*')
+        .eq('couple_id', couple_id)
+        .order('session_date', { ascending: false });
+
+      if (error) throw error;
+      res.json(data);
+    } catch (error: any) {
+      console.error('Error fetching meditation sessions:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // INTIMACY MAPPING - Get all ratings and goals for a couple
+  app.get("/api/intimacy-mapping/couple/:couple_id", async (req, res) => {
+    try {
+      const therapistAuth = await verifyTherapistSession(req);
+      if (!therapistAuth.success) {
+        return res.status(therapistAuth.status).json({ error: therapistAuth.error });
+      }
+
+      const { couple_id } = req.params;
+
+      // Verify couple is assigned to this therapist
+      const { data: couple } = await supabaseAdmin
+        .from('Couples_couples')
+        .select('therapist_id')
+        .eq('id', couple_id)
+        .single();
+
+      if (!couple || couple.therapist_id !== therapistAuth.therapistId) {
+        return res.status(403).json({ error: 'Not authorized to view this couple' });
+      }
+
+      // Fetch ratings and goals in parallel
+      const [
+        { data: ratings, error: ratingsError },
+        { data: goals, error: goalsError }
+      ] = await Promise.all([
+        supabaseAdmin
+          .from('Couples_intimacy_ratings')
+          .select('*')
+          .eq('couple_id', couple_id)
+          .order('created_at', { ascending: false }),
+        supabaseAdmin
+          .from('Couples_intimacy_goals')
+          .select('*')
+          .eq('couple_id', couple_id)
+          .order('created_at', { ascending: false })
+      ]);
+
+      if (ratingsError) throw ratingsError;
+      if (goalsError) throw goalsError;
+
+      res.json({
+        ratings: ratings || [],
+        goals: goals || []
+      });
+    } catch (error: any) {
+      console.error('Error fetching intimacy mapping data:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // VALUES & VISION - Get dreams, values, and vision board items for a couple
+  app.get("/api/values-vision/couple/:couple_id", async (req, res) => {
+    try {
+      const therapistAuth = await verifyTherapistSession(req);
+      if (!therapistAuth.success) {
+        return res.status(therapistAuth.status).json({ error: therapistAuth.error });
+      }
+
+      const { couple_id } = req.params;
+
+      // Verify couple is assigned to this therapist
+      const { data: couple } = await supabaseAdmin
+        .from('Couples_couples')
+        .select('therapist_id')
+        .eq('id', couple_id)
+        .single();
+
+      if (!couple || couple.therapist_id !== therapistAuth.therapistId) {
+        return res.status(403).json({ error: 'Not authorized to view this couple' });
+      }
+
+      // Fetch dreams, values, and vision board items in parallel
+      const [
+        { data: dreams, error: dreamsError },
+        { data: values, error: valuesError },
+        { data: visionItems, error: visionError }
+      ] = await Promise.all([
+        supabaseAdmin
+          .from('Couples_shared_dreams')
+          .select('*')
+          .eq('couple_id', couple_id)
+          .order('created_at', { ascending: false }),
+        supabaseAdmin
+          .from('Couples_core_values')
+          .select('*')
+          .eq('couple_id', couple_id)
+          .order('created_at', { ascending: false }),
+        supabaseAdmin
+          .from('Couples_vision_board')
+          .select('*')
+          .eq('couple_id', couple_id)
+          .order('created_at', { ascending: false })
+      ]);
+
+      if (dreamsError) throw dreamsError;
+      if (valuesError) throw valuesError;
+      if (visionError) throw visionError;
+
+      res.json({
+        dreams: dreams || [],
+        values: values || [],
+        visionItems: visionItems || []
+      });
+    } catch (error: any) {
+      console.error('Error fetching Values & Vision data:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // PARENTING AS PARTNERS - Get agreements and stress check-ins for a couple
+  app.get("/api/parenting/couple/:couple_id", async (req, res) => {
+    try {
+      const therapistAuth = await verifyTherapistSession(req);
+      if (!therapistAuth.success) {
+        return res.status(therapistAuth.status).json({ error: therapistAuth.error });
+      }
+
+      const { couple_id } = req.params;
+
+      // Verify couple is assigned to this therapist
+      const { data: couple } = await supabaseAdmin
+        .from('Couples_couples')
+        .select('therapist_id')
+        .eq('id', couple_id)
+        .single();
+
+      if (!couple || couple.therapist_id !== therapistAuth.therapistId) {
+        return res.status(403).json({ error: 'Not authorized to view this couple' });
+      }
+
+      // Fetch agreements and stress check-ins in parallel
+      const [
+        { data: agreements, error: agreementsError },
+        { data: stressCheckins, error: checkinsError }
+      ] = await Promise.all([
+        supabaseAdmin
+          .from('Couples_parenting_agreements')
+          .select('*')
+          .eq('couple_id', couple_id)
+          .order('created_at', { ascending: false }),
+        supabaseAdmin
+          .from('Couples_parenting_stress_checkins')
+          .select('*')
+          .eq('couple_id', couple_id)
+          .order('created_at', { ascending: false })
+      ]);
+
+      if (agreementsError) throw agreementsError;
+      if (checkinsError) throw checkinsError;
+
+      res.json({
+        agreements: agreements || [],
+        stressCheckins: stressCheckins || []
+      });
+    } catch (error: any) {
+      console.error('Error fetching Parenting as Partners data:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   const httpServer = createServer(app);
 
   return httpServer;
