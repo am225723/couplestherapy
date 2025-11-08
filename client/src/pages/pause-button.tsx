@@ -33,14 +33,14 @@ export default function PauseButtonPage() {
 
   // Fetch active pause status
   const { data: activePauseData, isLoading } = useQuery<{ active: boolean; pauseEvent: PauseEvent | null }>({
-    queryKey: ['/api/pause/active', profile?.couple_id],
+    queryKey: [`/api/pause/active/${profile?.couple_id}`],
     enabled: !!profile?.couple_id,
     refetchInterval: 5000, // Refetch every 5 seconds as backup to realtime
   });
 
   // Fetch pause history
   const { data: pauseHistory } = useQuery<PauseEvent[]>({
-    queryKey: ['/api/pause/history', profile?.couple_id],
+    queryKey: [`/api/pause/history/${profile?.couple_id}`],
     enabled: !!profile?.couple_id,
   });
 
@@ -95,7 +95,7 @@ export default function PauseButtonPage() {
 
   // Update countdown timer
   useEffect(() => {
-    if (!activePauseData?.active || !activePauseData.pauseEvent) {
+    if (!activePauseData?.active || !activePauseData.pauseEvent || !activePauseData.pauseEvent.started_at) {
       setTimeRemaining(0);
       if (timerRef.current) {
         clearInterval(timerRef.current);
@@ -105,7 +105,7 @@ export default function PauseButtonPage() {
     }
 
     const calculateTimeRemaining = () => {
-      const startTime = new Date(activePauseData.pauseEvent!.started_at).getTime();
+      const startTime = new Date(activePauseData.pauseEvent!.started_at!).getTime();
       const endTime = startTime + PAUSE_DURATION_MS;
       const now = Date.now();
       const remaining = Math.max(0, endTime - now);
@@ -370,7 +370,7 @@ export default function PauseButtonPage() {
         {pauseHistory && pauseHistory.length > 0 ? (
           <div className="space-y-4">
             {pauseHistory.map((pause) => {
-              const duration = pause.duration_minutes || (pause.ended_at ? differenceInMinutes(new Date(pause.ended_at), new Date(pause.started_at)) : null);
+              const duration = pause.duration_minutes || (pause.ended_at && pause.started_at ? differenceInMinutes(new Date(pause.ended_at), new Date(pause.started_at)) : null);
               
               return (
                 <Card key={pause.id} data-testid={`card-pause-${pause.id}`}>
@@ -382,7 +382,7 @@ export default function PauseButtonPage() {
                           Pause by {getInitiatorName(pause)}
                         </CardTitle>
                         <CardDescription data-testid={`text-pause-date-${pause.id}`}>
-                          {format(new Date(pause.started_at), 'PPp')}
+                          {pause.started_at ? format(new Date(pause.started_at), 'PPp') : 'Unknown'}
                         </CardDescription>
                       </div>
                       <div className="text-right">
