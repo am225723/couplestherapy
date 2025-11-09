@@ -13,10 +13,12 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
+import { AdminSidebar } from '@/components/admin-sidebar';
 import { useAuth } from '@/lib/auth-context';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/hooks/use-toast';
-import { Users, Loader2, Heart, Send, MessageSquare, CheckCircle2, XCircle, Sparkles, TrendingUp, TrendingDown, Target, Lightbulb, Trash2 } from 'lucide-react';
+import { Users, Loader2, Heart, Send, MessageSquare, CheckCircle2, XCircle, Sparkles, TrendingUp, TrendingDown, Target, Lightbulb, Trash2, Menu } from 'lucide-react';
 import { Couple, Profile, WeeklyCheckin, LoveLanguage, GratitudeLog, SharedGoal, Ritual, Conversation, Message, CalendarEvent, EchoSession, EchoTurn, IfsExercise, IfsPart, PauseEvent } from '@shared/schema';
 import { formatDistanceToNow, format, parse, startOfWeek, getDay } from 'date-fns';
 import { enUS } from 'date-fns/locale/en-US';
@@ -48,8 +50,12 @@ type CoupleWithProfiles = Couple & {
 };
 
 export default function AdminDashboard() {
-  const [match, params] = useRoute('/admin/couple/:id');
+  const [match, params] = useRoute('/admin/couple/:id/:section?');
   const [, setLocation] = useLocation();
+  
+  // Valid sections - guard against malformed URLs (architect recommendation)
+  const validSections = ['overview', 'checkins', 'languages', 'lovemap', 'echo', 'ifs', 'pause', 'activity', 'messages', 'calendar', 'therapy-tools', 'analytics', 'conversations', 'goals', 'rituals'];
+  const currentSection = validSections.includes(params?.section || '') ? params.section : 'overview';
   const [couples, setCouples] = useState<CoupleWithProfiles[]>([]);
   const [selectedCouple, setSelectedCouple] = useState<CoupleWithProfiles | null>(null);
   const [checkins, setCheckins] = useState<(WeeklyCheckin & { author?: Profile })[]>([]);
@@ -116,6 +122,28 @@ export default function AdminDashboard() {
       });
     },
   });
+
+  // Helper function to navigate to section (architect-recommended)
+  const navigateToSection = (coupleId: string, section: string) => {
+    setLocation(`/admin/couple/${coupleId}/${section}`);
+  };
+
+  // Handle couple selection from sidebar
+  const handleSelectCouple = (coupleId: string) => {
+    const couple = couples.find(c => c.id === coupleId);
+    if (couple) {
+      navigateToSection(coupleId, 'overview');
+      setSelectedCouple(couple);
+      fetchCoupleData(couple);
+    }
+  };
+
+  // Handle section navigation from sidebar
+  const handleSelectSection = (section: string) => {
+    if (selectedCouple) {
+      navigateToSection(selectedCouple.id, section);
+    }
+  };
 
   useEffect(() => {
     if (profile?.role === 'therapist') {
@@ -324,22 +352,39 @@ export default function AdminDashboard() {
     );
   }
 
+  const sidebarStyle = {
+    "--sidebar-width": "20rem",
+    "--sidebar-width-icon": "4rem",
+  };
+
   return (
-    <div className="min-h-screen bg-background py-8 px-4">
-      <div className="max-w-7xl mx-auto space-y-8">
-        <div className="flex items-center justify-between flex-wrap gap-4">
-          <div className="flex items-center gap-4">
-            <Button 
-              variant="ghost" 
-              onClick={() => setLocation('/admin')} 
-              data-testid="button-back-to-couples"
-            >
-              ← Back to Couples
-            </Button>
-            <h1 className="text-3xl font-bold">
-              {selectedCouple.partner1?.full_name} & {selectedCouple.partner2?.full_name}
-            </h1>
-          </div>
+    <SidebarProvider style={sidebarStyle as React.CSSProperties}>
+      <div className="flex h-screen w-full">
+        <AdminSidebar
+          couples={couples}
+          selectedCoupleId={selectedCouple?.id || null}
+          onSelectCouple={handleSelectCouple}
+          currentSection={currentSection}
+          onSelectSection={handleSelectSection}
+        />
+        
+        <div className="flex flex-col flex-1">
+          <header className="flex items-center justify-between p-4 border-b gap-4">
+            <div className="flex items-center gap-4">
+              <SidebarTrigger data-testid="button-sidebar-toggle" />
+              <Button 
+                variant="ghost" 
+                onClick={() => setLocation('/admin')} 
+                data-testid="button-back-to-couples"
+              >
+                ← Back to Couples
+              </Button>
+              {selectedCouple && (
+                <h1 className="text-2xl font-bold">
+                  {selectedCouple.partner1?.full_name} & {selectedCouple.partner2?.full_name}
+                </h1>
+              )}
+            </div>
           
           <Dialog>
             <DialogTrigger asChild>
@@ -487,21 +532,71 @@ export default function AdminDashboard() {
               )}
             </DialogContent>
           </Dialog>
-        </div>
+        </header>
 
-        <Tabs defaultValue="checkins">
-          <TabsList className="grid w-full grid-cols-10 gap-2">
-            <TabsTrigger value="checkins">Weekly Check-ins</TabsTrigger>
-            <TabsTrigger value="languages">Love Languages</TabsTrigger>
-            <TabsTrigger value="lovemap">Love Map Quiz</TabsTrigger>
-            <TabsTrigger value="echo">Echo & Empathy</TabsTrigger>
-            <TabsTrigger value="ifs">IFS Exercises</TabsTrigger>
-            <TabsTrigger value="pause">Pause History</TabsTrigger>
-            <TabsTrigger value="activity">Activity Feed</TabsTrigger>
-            <TabsTrigger value="messages">Messages</TabsTrigger>
-            <TabsTrigger value="calendar">Calendar</TabsTrigger>
-            <TabsTrigger value="therapy-tools">Therapy Tools</TabsTrigger>
-          </TabsList>
+        <main className="flex-1 overflow-hidden">
+          <ScrollArea className="h-full">
+            <div className="p-6 space-y-6">
+              {/* Controlled Tabs - synced with URL section */}
+              <Tabs value={currentSection} onValueChange={handleSelectSection}>
+                {/* TabsList hidden - navigation via sidebar only */}
+                <div className="sr-only">
+                  <TabsList>
+                    <TabsTrigger value="overview">Overview</TabsTrigger>
+                    <TabsTrigger value="checkins">Weekly Check-ins</TabsTrigger>
+                    <TabsTrigger value="languages">Love Languages</TabsTrigger>
+                    <TabsTrigger value="lovemap">Love Map Quiz</TabsTrigger>
+                    <TabsTrigger value="echo">Echo & Empathy</TabsTrigger>
+                    <TabsTrigger value="ifs">IFS Exercises</TabsTrigger>
+                    <TabsTrigger value="pause">Pause History</TabsTrigger>
+                    <TabsTrigger value="activity">Activity Feed</TabsTrigger>
+                    <TabsTrigger value="messages">Messages</TabsTrigger>
+                    <TabsTrigger value="calendar">Calendar</TabsTrigger>
+                    <TabsTrigger value="therapy-tools">Therapy Tools</TabsTrigger>
+                  </TabsList>
+                </div>
+
+                {/* Overview tab - new default view */}
+                <TabsContent value="overview" className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <Card>
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-sm font-medium">Weekly Check-ins</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="text-2xl font-bold">{checkins.length}</div>
+                        <p className="text-xs text-muted-foreground">Total completed</p>
+                      </CardContent>
+                    </Card>
+                    <Card>
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-sm font-medium">Activities</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="text-2xl font-bold">{activities.length}</div>
+                        <p className="text-xs text-muted-foreground">Recent activities</p>
+                      </CardContent>
+                    </Card>
+                    <Card>
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-sm font-medium">Love Languages</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="text-2xl font-bold">{loveLanguages.length}/2</div>
+                        <p className="text-xs text-muted-foreground">Partners completed</p>
+                      </CardContent>
+                    </Card>
+                  </div>
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Quick Actions</CardTitle>
+                      <CardDescription>Navigate to different sections to view couple data</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-sm text-muted-foreground">Use the sidebar to navigate between different therapy tools and insights.</p>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
 
           <TabsContent value="checkins" className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -2208,5 +2303,13 @@ function ParentingPartnersTab({ coupleId }: { coupleId: string }) {
         </CardContent>
       </Card>
     </div>
+  </TabsContent>
+
+              </Tabs>
+            </div>
+          </ScrollArea>
+        </main>
+      </div>
+    </SidebarProvider>
   );
 }
