@@ -12,10 +12,11 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useAuth } from '@/lib/auth-context';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/hooks/use-toast';
-import { Users, Loader2, Heart, Send, MessageSquare, CheckCircle2, XCircle, Sparkles, TrendingUp, TrendingDown, Target, Lightbulb } from 'lucide-react';
+import { Users, Loader2, Heart, Send, MessageSquare, CheckCircle2, XCircle, Sparkles, TrendingUp, TrendingDown, Target, Lightbulb, Trash2 } from 'lucide-react';
 import { Couple, Profile, WeeklyCheckin, LoveLanguage, GratitudeLog, SharedGoal, Ritual, Conversation, Message, CalendarEvent, EchoSession, EchoTurn, IfsExercise, IfsPart, PauseEvent } from '@shared/schema';
 import { formatDistanceToNow, format, parse, startOfWeek, getDay } from 'date-fns';
 import { enUS } from 'date-fns/locale/en-US';
@@ -90,6 +91,30 @@ export default function AdminDashboard() {
       // Parse successful response
       return JSON.parse(text);
     }
+  });
+
+  // Love Language deletion mutation
+  const deleteLoveLanguageMutation = useMutation({
+    mutationFn: async (loveLanguageId: string) => {
+      return apiRequest(`/api/love-languages/${loveLanguageId}`, 'DELETE');
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Success',
+        description: 'Love language result deleted successfully',
+      });
+      // Refresh couple data
+      if (selectedCouple) {
+        fetchCoupleData(selectedCouple);
+      }
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to delete love language result',
+        variant: 'destructive',
+      });
+    },
   });
 
   useEffect(() => {
@@ -555,7 +580,38 @@ export default function AdminDashboard() {
                 return (
                   <Card key={lang.id}>
                     <CardHeader>
-                      <CardTitle>{partner?.full_name || 'Unknown'}</CardTitle>
+                      <div className="flex items-center justify-between gap-4">
+                        <CardTitle>{partner?.full_name || 'Unknown'}</CardTitle>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button 
+                              variant="ghost" 
+                              size="icon"
+                              data-testid={`button-delete-love-language-${lang.id}`}
+                            >
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Delete Love Language Result?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                This will permanently delete {partner?.full_name || 'this partner'}'s love language quiz result. They will need to retake the quiz.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel data-testid="button-cancel-delete-love-language">Cancel</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => deleteLoveLanguageMutation.mutate(lang.id)}
+                                disabled={deleteLoveLanguageMutation.isPending}
+                                data-testid="button-confirm-delete-love-language"
+                              >
+                                {deleteLoveLanguageMutation.isPending ? 'Deleting...' : 'Delete'}
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
                     </CardHeader>
                     <CardContent className="space-y-4">
                       <div className="space-y-2">
