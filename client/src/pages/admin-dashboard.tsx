@@ -69,11 +69,25 @@ export default function AdminDashboard() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' }
       });
+      
+      // Read response as text first (body can only be read once)
+      const text = await response.text();
+      
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Failed to generate session prep');
+        // Try to parse as JSON error, fall back to raw text
+        let errorMessage = 'Failed to generate session prep';
+        try {
+          const error = JSON.parse(text);
+          errorMessage = error.error || error.message || errorMessage;
+        } catch (e) {
+          // Response wasn't JSON, use raw text
+          errorMessage = text || `Server error (${response.status})`;
+        }
+        throw new Error(errorMessage);
       }
-      return response.json();
+      
+      // Parse successful response
+      return JSON.parse(text);
     }
   });
 

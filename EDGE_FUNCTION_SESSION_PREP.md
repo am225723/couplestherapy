@@ -169,14 +169,13 @@ Deno.serve(async (req) => {
 
     const therapistId = authResult.therapistId;
 
-    // Get couple_id from URL path
-    const url = new URL(req.url);
-    const pathParts = url.pathname.split('/');
-    const coupleId = pathParts[pathParts.length - 1];
+    // Get couple_id from request body
+    const body = await req.json();
+    const coupleId = body.couple_id;
 
-    if (!coupleId) {
+    if (!coupleId || typeof coupleId !== 'string') {
       return new Response(
-        JSON.stringify({ error: 'couple_id is required' }),
+        JSON.stringify({ error: 'couple_id is required in request body' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
