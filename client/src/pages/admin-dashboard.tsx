@@ -102,7 +102,7 @@ export default function AdminDashboard() {
   // Love Language deletion mutation
   const deleteLoveLanguageMutation = useMutation({
     mutationFn: async (loveLanguageId: string) => {
-      return apiRequest(`/api/love-languages/${loveLanguageId}`, 'DELETE');
+      return apiRequest('DELETE', `/api/love-languages/${loveLanguageId}`);
     },
     onSuccess: () => {
       toast({
@@ -368,8 +368,8 @@ export default function AdminDashboard() {
           onSelectSection={handleSelectSection}
         />
         
-        <div className="flex flex-col flex-1">
-          <header className="flex items-center justify-between p-4 border-b gap-4">
+        <div className="flex flex-col flex-1 overflow-hidden">
+          <header className="flex items-center justify-between p-4 border-b gap-4 shrink-0">
             <div className="flex items-center gap-4">
               <SidebarTrigger data-testid="button-sidebar-toggle" />
               <Button 
@@ -535,8 +535,8 @@ export default function AdminDashboard() {
         </header>
 
         <main className="flex-1 overflow-hidden">
-          <ScrollArea className="h-full">
-            <div className="p-6 space-y-6">
+          <ScrollArea className="flex-1">
+            <div className="p-8 space-y-6 max-w-7xl mx-auto">
               {/* Controlled Tabs - synced with URL section */}
               <Tabs value={currentSection} onValueChange={handleSelectSection}>
                 {/* TabsList hidden - navigation via sidebar only */}
