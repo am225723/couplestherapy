@@ -224,6 +224,7 @@ function AuthenticatedApp() {
               {profile.role === 'therapist' ? (
                 <>
                   <Route path="/admin" component={AdminDashboard} />
+                  <Route path="/admin/couple/:id/:section" component={AdminDashboard} />
                   <Route path="/admin/couple/:id" component={AdminDashboard} />
                   <Route path="/admin/analytics" component={AnalyticsPage} />
                   <Route path="/admin/invitation-codes" component={InvitationCodesPage} />
