@@ -55,7 +55,7 @@ export default function AdminDashboard() {
   
   // Valid sections - guard against malformed URLs (architect recommendation)
   const validSections = ['overview', 'checkins', 'languages', 'lovemap', 'echo', 'ifs', 'pause', 'activity', 'messages', 'calendar', 'therapy-tools', 'analytics', 'conversations', 'goals', 'rituals'];
-  const currentSection = validSections.includes(params?.section || '') ? params.section : 'overview';
+  const currentSection = validSections.includes(params?.section || '') ? (params?.section || 'overview') : 'overview';
   const [couples, setCouples] = useState<CoupleWithProfiles[]>([]);
   const [selectedCouple, setSelectedCouple] = useState<CoupleWithProfiles | null>(null);
   const [checkins, setCheckins] = useState<(WeeklyCheckin & { author?: Profile })[]>([]);
@@ -874,8 +874,12 @@ export default function AdminDashboard() {
             </Card>
           </TabsContent>
         </Tabs>
+            </div>
+          </ScrollArea>
+        </main>
       </div>
     </div>
+  </SidebarProvider>
   );
 }
 
@@ -2303,13 +2307,5 @@ function ParentingPartnersTab({ coupleId }: { coupleId: string }) {
         </CardContent>
       </Card>
     </div>
-  </TabsContent>
-
-              </Tabs>
-            </div>
-          </ScrollArea>
-        </main>
-      </div>
-    </SidebarProvider>
   );
 }

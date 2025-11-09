@@ -17,11 +17,15 @@ interface Couple {
   id: string;
   partner1?: {
     id: string;
-    full_name: string;
+    full_name: string | null;
+    couple_id?: string | null;
+    role?: string;
   };
   partner2?: {
     id: string;
-    full_name: string;
+    full_name: string | null;
+    couple_id?: string | null;
+    role?: string;
   };
 }
 
@@ -97,8 +101,8 @@ export function AdminSidebar({
             <ScrollArea className="h-[200px]">
               <SidebarMenu>
                 {couples.map((couple) => {
-                  const partner1Name = couple.partner1?.full_name || 'Partner 1';
-                  const partner2Name = couple.partner2?.full_name || 'Partner 2';
+                  const partner1Name = couple.partner1?.full_name ?? 'Partner 1';
+                  const partner2Name = couple.partner2?.full_name ?? 'Partner 2';
                   const isSelected = couple.id === selectedCoupleId;
 
                   return (

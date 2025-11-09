@@ -1,0 +1,90 @@
+14:39:41.083 Running build in Washington, D.C., USA (East) – iad1
+14:39:41.083 Build machine configuration: 4 cores, 8 GB
+14:39:41.202 Cloning github.com/am225723/couplestherapy (Branch: main, Commit: 4eeef11)
+14:39:41.644 Cloning completed: 442.000ms
+14:39:41.745 Found .vercelignore
+14:39:41.761 Removed 28 ignored files defined in .vercelignore
+14:39:41.761   /.env
+14:39:41.761   /.git/config
+14:39:41.762   /.git/description
+14:39:41.762   /.git/FETCH_HEAD
+14:39:41.762   /.git/HEAD
+14:39:41.762   /.git/hooks/applypatch-msg.sample
+14:39:41.762   /.git/hooks/commit-msg.sample
+14:39:41.762   /.git/hooks/fsmonitor-watchman.sample
+14:39:41.762   /.git/hooks/post-update.sample
+14:39:41.762   /.git/hooks/pre-applypatch.sample
+14:39:41.907 Restored build cache from previous deployment (wpyQtiZZQa6n5Ku59hHZJrkygCbK)
+14:39:42.618 Running "vercel build"
+14:39:43.059 Vercel CLI 48.9.0
+14:39:43.850 Running "install" command: `npm install`...
+14:39:46.117 
+14:39:46.117 up to date, audited 520 packages in 2s
+14:39:46.117 
+14:39:46.117 65 packages are looking for funding
+14:39:46.117   run `npm fund` for details
+14:39:46.141 
+14:39:46.141 8 vulnerabilities (3 low, 5 moderate)
+14:39:46.142 
+14:39:46.142 To address issues that do not require attention, run:
+14:39:46.142   npm audit fix
+14:39:46.142 
+14:39:46.142 To address all issues (including breaking changes), run:
+14:39:46.142   npm audit fix --force
+14:39:46.142 
+14:39:46.142 Run `npm audit` for details.
+14:39:46.414 
+14:39:46.415 > rest-express@1.0.0 vercel-build
+14:39:46.415 > vite build
+14:39:46.415 
+14:39:46.733 [36mvite v5.4.20 [32mbuilding for production...[36m[39m
+14:39:46.792 transforming...
+14:39:47.112 Browserslist: browsers data (caniuse-lite) is 13 months old. Please run:
+14:39:47.113   npx update-browserslist-db@latest
+14:39:47.113   Why you should do it regularly: https://github.com/browserslist/update-db#readme
+14:39:48.247 
+14:39:48.247 A PostCSS plugin did not pass the `from` option to `postcss.parse`. This may cause imported assets to be incorrectly transformed. If you've recently added a PostCSS plugin that raised this warning, please contact the package author to fix the issue.
+14:39:48.742 [32m✓[39m 48 modules transformed.
+14:39:48.745 [31mx[39m Build failed in 1.98s
+14:39:48.745 [31merror during build:
+14:39:48.746 [31m[vite:esbuild] Transform failed with 3 errors:
+14:39:48.746 /vercel/path0/client/src/pages/admin-dashboard.tsx:878:6: ERROR: Unexpected closing "div" tag does not match opening "ScrollArea" tag
+14:39:48.746 /vercel/path0/client/src/pages/admin-dashboard.tsx:880:0: ERROR: The character "}" is not valid inside a JSX element
+14:39:48.746 /vercel/path0/client/src/pages/admin-dashboard.tsx:890:10: ERROR: Expected "}" but found ":"[31m
+14:39:48.746 file: [36m/vercel/path0/client/src/pages/admin-dashboard.tsx:878:6[31m
+14:39:48.746 [33m
+14:39:48.747 [33mUnexpected closing "div" tag does not match opening "ScrollArea" tag[33m
+14:39:48.747 876|          </Tabs>
+14:39:48.747 877|        </div>
+14:39:48.747 878|      </div>
+14:39:48.747    |        ^
+14:39:48.747 879|    );
+14:39:48.747 880|  }
+14:39:48.747 
+14:39:48.747 [33mThe character "}" is not valid inside a JSX element[33m
+14:39:48.747 878|      </div>
+14:39:48.747 879|    );
+14:39:48.747 880|  }
+14:39:48.747    |  ^
+14:39:48.747 881|  
+14:39:48.747 882|  function MessagesTab({ 
+14:39:48.747 
+14:39:48.747 [33mExpected "}" but found ":"[33m
+14:39:48.747 888|    messagesEndRef
+14:39:48.747 889|  }: {
+14:39:48.747 890|    coupleId: string;
+14:39:48.747    |            ^
+14:39:48.747 891|    therapistId: string;
+14:39:48.747 892|    userId: string;
+14:39:48.747 [31m
+14:39:48.748     at failureErrorWithLog (/vercel/path0/node_modules/vite/node_modules/esbuild/lib/main.js:1472:15)
+14:39:48.748     at /vercel/path0/node_modules/vite/node_modules/esbuild/lib/main.js:755:50
+14:39:48.748     at responseCallbacks.<computed> (/vercel/path0/node_modules/vite/node_modules/esbuild/lib/main.js:622:9)
+14:39:48.748     at handleIncomingPacket (/vercel/path0/node_modules/vite/node_modules/esbuild/lib/main.js:677:12)
+14:39:48.748     at Socket.readFromStdout (/vercel/path0/node_modules/vite/node_modules/esbuild/lib/main.js:600:7)
+14:39:48.748     at Socket.emit (node:events:519:28)
+14:39:48.748     at addChunk (node:internal/streams/readable:561:12)
+14:39:48.748     at readableAddChunkPushByteMode (node:internal/streams/readable:512:3)
+14:39:48.748     at Readable.push (node:internal/streams/readable:392:5)
+14:39:48.748     at Pipe.onStreamRead (node:internal/stream_base_commons:189:23)[39m
+14:39:48.771 Error: Command "npm run vercel-build" exited with 1
