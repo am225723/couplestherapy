@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
-import { useRoute, Link } from 'wouter';
+import { useRoute, Link, useLocation } from 'wouter';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -48,6 +48,7 @@ type CoupleWithProfiles = Couple & {
 
 export default function AdminDashboard() {
   const [match, params] = useRoute('/admin/couple/:id');
+  const [, setLocation] = useLocation();
   const [couples, setCouples] = useState<CoupleWithProfiles[]>([]);
   const [selectedCouple, setSelectedCouple] = useState<CoupleWithProfiles | null>(null);
   const [checkins, setCheckins] = useState<(WeeklyCheckin & { author?: Profile })[]>([]);
@@ -303,8 +304,12 @@ export default function AdminDashboard() {
       <div className="max-w-7xl mx-auto space-y-8">
         <div className="flex items-center justify-between flex-wrap gap-4">
           <div className="flex items-center gap-4">
-            <Button variant="ghost" asChild data-testid="button-back-to-couples">
-              <Link href="/admin">← Back to Couples</Link>
+            <Button 
+              variant="ghost" 
+              onClick={() => setLocation('/admin')} 
+              data-testid="button-back-to-couples"
+            >
+              ← Back to Couples
             </Button>
             <h1 className="text-3xl font-bold">
               {selectedCouple.partner1?.full_name} & {selectedCouple.partner2?.full_name}
