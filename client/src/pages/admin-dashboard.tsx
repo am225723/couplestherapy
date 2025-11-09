@@ -62,6 +62,21 @@ export default function AdminDashboard() {
   const { profile, user } = useAuth();
   const { toast } = useToast();
 
+  // AI Session Prep mutation
+  const sessionPrepMutation = useMutation({
+    mutationFn: async (couple_id: string) => {
+      const response = await fetch(`/api/ai/session-prep/${couple_id}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to generate session prep');
+      }
+      return response.json();
+    }
+  });
+
   useEffect(() => {
     if (profile?.role === 'therapist') {
       fetchCouples();
@@ -268,21 +283,6 @@ export default function AdminDashboard() {
       </div>
     );
   }
-
-  // AI Session Prep mutation
-  const sessionPrepMutation = useMutation({
-    mutationFn: async (couple_id: string) => {
-      const response = await fetch(`/api/ai/session-prep/${couple_id}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
-      });
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Failed to generate session prep');
-      }
-      return response.json();
-    }
-  });
 
   return (
     <div className="min-h-screen bg-background py-8 px-4">
