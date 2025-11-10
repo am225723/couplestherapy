@@ -93,7 +93,7 @@ export default function AuthPage() {
                   <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-accent/20 to-secondary/20 rounded-full blur-3xl" />
                   <img 
                     src={coupleArt} 
-                    alt="ALEIX - Couple Connection" 
+                    alt="ALEIC - Couple Connection" 
                     className="relative h-32 w-auto drop-shadow-2xl"
                     data-testid="img-logo"
                   />
@@ -101,7 +101,7 @@ export default function AuthPage() {
               </div>
               <div>
                 <h1 className="text-6xl font-bold bg-gradient-to-r from-primary via-accent to-secondary bg-clip-text text-transparent mb-3 tracking-tight">
-                  ALEIX
+                  ALEIC
                 </h1>
                 <div className="space-y-2 max-w-sm mx-auto">
                   <p className="text-sm font-medium text-muted-foreground/90">

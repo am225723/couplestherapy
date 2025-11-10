@@ -213,7 +213,7 @@ export default function UserManagementPage() {
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2">User Management</h1>
         <p className="text-muted-foreground">
-          Create new couples and therapist accounts for the ALEIX platform.
+          Create new couples and therapist accounts for the ALEIC platform.
         </p>
       </div>
 

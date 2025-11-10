@@ -1,4 +1,4 @@
-# Design Guidelines: ALEIX - Assisted Learning for Empathetic and Insightful Couples
+# Design Guidelines: ALEIC - Assisted Learning for Empathetic and Insightful Couples
 
 ## Design Approach
 
@@ -15,7 +15,7 @@
 
 ## Branding & Color Philosophy
 
-**Brand Name: ALEIX**
+**Brand Name: ALEIC**
 - **A**ssisted
 - **L**earning (for)
 - **E**mpathetic (and)
@@ -23,7 +23,7 @@
 - **C**ouples
 
 **Logo & Visual Identity:**
-The ALEIX brand embraces minimalist line art that symbolizes connection, intimacy, and emotional intelligence. The design aesthetic uses flowing, organic lines reminiscent of two people in intimate connection, evoking both the delicate nature of relationships and the thoughtful therapeutic approach.
+The ALEIC brand embraces minimalist line art that symbolizes connection, intimacy, and emotional intelligence. The design aesthetic uses flowing, organic lines reminiscent of two people in intimate connection, evoking both the delicate nature of relationships and the thoughtful therapeutic approach.
 
 **Logo Usage:**
 - Primary placement: Navigation header (h-10 to h-12)
@@ -36,7 +36,7 @@ The ALEIX brand embraces minimalist line art that symbolizes connection, intimac
 
 **NEW: Vibrant Multi-Color System**
 
-The ALEIX color scheme uses a vibrant, energetic palette that conveys hope, growth, connection, and joy—essential qualities for relationship building. Unlike traditional healthcare blues, ALEIX embraces warmth and vitality through strategic use of complementary colors.
+The ALEIC color scheme uses a vibrant, energetic palette that conveys hope, growth, connection, and joy—essential qualities for relationship building. Unlike traditional healthcare blues, ALEIC embraces warmth and vitality through strategic use of complementary colors.
 
 **Primary Color Spectrum:**
 

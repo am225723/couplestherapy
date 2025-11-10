@@ -88,11 +88,11 @@ function AppSidebar() {
         <Link href={homeUrl} className="flex items-center gap-3 hover-elevate active-elevate-2 p-2 rounded-md -m-2" data-testid="link-home">
           <img 
             src={coupleArt} 
-            alt="ALEIX - Couple Connection" 
+            alt="ALEIC - Couple Connection" 
             className="h-10 w-auto"
             data-testid="img-sidebar-logo"
           />
-          <span className="text-xl font-bold bg-gradient-to-r from-primary via-accent to-secondary bg-clip-text text-transparent">ALEIX</span>
+          <span className="text-xl font-bold bg-gradient-to-r from-primary via-accent to-secondary bg-clip-text text-transparent">ALEIC</span>
         </Link>
       </SidebarHeader>
       <SidebarContent>

@@ -1,27 +1,27 @@
-# ALEIX - Assisted Learning for Empathetic and Insightful Couples
+# ALEIC - Assisted Learning for Empathetic and Insightful Couples
 
 ## Overview
 
-ALEIX is a multi-tenant platform designed for couples therapy, offering separate applications for clients and therapists. It aims to facilitate therapeutic interventions, improve couple communication, and track progress through various interactive exercises and tools. The platform leverages modern web technologies to provide a secure, real-time, and engaging experience. Key capabilities include assessments, shared activities, communication tools, and therapist oversight.
+ALEIC is a multi-tenant platform designed for couples therapy, offering separate applications for clients and therapists. It aims to facilitate therapeutic interventions, improve couple communication, and track progress through various interactive exercises and tools. The platform leverages modern web technologies to provide a secure, real-time, and engaging experience. Key capabilities include assessments, shared activities, communication tools, and therapist oversight.
 
-**Brand Name:** ALEIX (Assisted Learning for Empathetic and Insightful Couples)
+**Brand Name:** ALEIC (Assisted Learning for Empathetic and Insightful Couples)
 
 ## Recent Changes (January 2025)
 
-**Complete Brand Refresh to ALEIX (January 10, 2025):**
-- ✅ **Rebrand from TADI to ALEIX** - Complete visual and naming rebrand
+**Complete Brand Refresh to ALEIC (January 10, 2025):**
+- ✅ **Rebrand from TADI to ALEIC** - Complete visual and naming rebrand
   - Updated logo to minimalist couple line art symbolizing connection
   - New vibrant multi-color palette: Teal (primary), Coral (secondary), Purple (accent), Pink (tertiary)
   - Colorful gradient backgrounds throughout login page and hero sections
   - Updated all user-facing text: page titles, descriptions, navigation
-- ✅ **Design System Overhaul** - design_guidelines.md updated with ALEIX aesthetic
+- ✅ **Design System Overhaul** - design_guidelines.md updated with ALEIC aesthetic
   - Vibrant, energetic color scheme (vs previous calm teal-only palette)
   - Gradient applications for depth and visual interest
   - Minimalist line art visual identity
 - ✅ **Login Page Redesign** - Modern, colorful auth experience
   - Large minimalist couple artwork
   - Colorful gradient backgrounds and trust badges
-  - Multi-color ALEIX acronym breakdown
+  - Multi-color ALEIC acronym breakdown
   - Hero section with vibrant teal-to-coral-to-purple gradient
 
 **AI Features Implementation (January 8, 2025 - Night):**
