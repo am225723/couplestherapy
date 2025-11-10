@@ -71,15 +71,40 @@ export default function AuthPage() {
   };
 
   return (
-    <div className="min-h-screen relative overflow-hidden">
-      {/* Vibrant gradient background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-accent/5 to-secondary/10" />
-      
-      {/* Colorful geometric shapes for visual interest */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-25">
-        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-gradient-to-br from-secondary/30 via-accent/20 to-transparent rounded-full blur-3xl transform translate-x-1/2 -translate-y-1/2" />
-        <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-gradient-to-tr from-accent/30 via-primary/20 to-transparent rounded-full blur-3xl transform -translate-x-1/2 translate-y-1/2" />
-        <div className="absolute top-1/2 left-1/2 w-[400px] h-[400px] bg-gradient-to-br from-tertiary/20 to-transparent rounded-full blur-3xl transform -translate-x-1/2 -translate-y-1/2" />
+    <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-primary/5 via-background to-accent/5">
+      {/* Refined couple-themed background - minimalist approach */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {/* Soft radial gradients for depth (subtle, calming) */}
+        <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-gradient-radial from-secondary/8 via-accent/5 to-transparent rounded-full blur-3xl transform translate-x-1/3 -translate-y-1/3" />
+        <div className="absolute bottom-0 left-0 w-[700px] h-[700px] bg-gradient-radial from-primary/8 via-tertiary/5 to-transparent rounded-full blur-3xl transform -translate-x-1/3 translate-y-1/3" />
+        
+        {/* Minimalist line art - intertwined paths (partnership journey) */}
+        <svg className="absolute top-1/4 right-10 w-48 h-48 text-primary/6" viewBox="0 0 200 200">
+          <path d="M40,100 Q70,50 100,100 T160,100" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+          <path d="M40,100 Q70,150 100,100 T160,100" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+          <circle cx="40" cy="100" r="4" fill="currentColor" />
+          <circle cx="160" cy="100" r="4" fill="currentColor" />
+        </svg>
+        
+        {/* Balanced connection nodes (emotional balance) */}
+        <svg className="absolute bottom-1/3 left-16 w-40 h-40 text-accent/7" viewBox="0 0 100 100">
+          <line x1="30" y1="50" x2="70" y2="50" stroke="currentColor" strokeWidth="1.5" />
+          <circle cx="30" cy="50" r="8" fill="none" stroke="currentColor" strokeWidth="1.5" />
+          <circle cx="70" cy="50" r="8" fill="none" stroke="currentColor" strokeWidth="1.5" />
+          <circle cx="50" cy="50" r="3" fill="currentColor" opacity="0.5" />
+        </svg>
+        
+        {/* Partnership rings (overlapping, unity) */}
+        <svg className="absolute top-1/2 left-1/3 w-56 h-56 -translate-x-1/2 -translate-y-1/2 text-secondary/6" viewBox="0 0 120 120">
+          <circle cx="45" cy="60" r="25" fill="none" stroke="currentColor" strokeWidth="1.5" />
+          <circle cx="75" cy="60" r="25" fill="none" stroke="currentColor" strokeWidth="1.5" />
+        </svg>
+        
+        {/* Subtle couple silhouettes (therapy context) */}
+        <svg className="absolute bottom-20 right-20 w-32 h-32 text-tertiary/5" viewBox="0 0 100 100">
+          <path d="M35,40 Q35,30 40,30 Q45,30 45,40 L45,60 Q45,70 40,75 Q35,70 35,60 Z" fill="currentColor" />
+          <path d="M55,40 Q55,30 60,30 Q65,30 65,40 L65,60 Q65,70 60,75 Q55,70 55,60 Z" fill="currentColor" />
+        </svg>
       </div>
 
       <div className="relative z-10 min-h-screen flex">
@@ -252,14 +277,42 @@ export default function AuthPage() {
           </div>
         </div>
 
-        {/* Right side - Hero with colorful gradient */}
-        <div className="hidden lg:flex flex-1 relative items-center justify-center p-12">
-          {/* Vibrant gradient background */}
-          <div className="absolute inset-0 bg-gradient-to-br from-primary via-accent to-secondary" />
-          <div className="absolute inset-0 bg-gradient-to-tr from-secondary/60 via-tertiary/40 to-transparent" />
+        {/* Right side - Hero with couple-themed art */}
+        <div className="hidden lg:flex flex-1 relative items-center justify-center p-12 overflow-hidden">
+          {/* Layered gradient background with softer blending */}
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/95 via-accent/90 to-secondary/95" />
+          <div className="absolute inset-0 bg-gradient-to-tr from-secondary/40 via-tertiary/30 to-transparent" />
           
-          {/* Content */}
-          <div className="relative z-10 max-w-lg space-y-8 text-white">
+          {/* Couple-themed decorative art overlay */}
+          <div className="absolute inset-0 overflow-hidden opacity-15">
+            {/* Large focal illustration - intertwined infinity paths (endless partnership) */}
+            <svg className="absolute top-1/2 left-1/2 w-[600px] h-[600px] -translate-x-1/2 -translate-y-1/2 text-white" viewBox="0 0 400 400">
+              <path d="M100,200 Q150,100 200,200 Q250,300 300,200" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" opacity="0.4" />
+              <path d="M100,200 Q150,300 200,200 Q250,100 300,200" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" opacity="0.4" />
+              <circle cx="100" cy="200" r="8" fill="currentColor" opacity="0.6" />
+              <circle cx="300" cy="200" r="8" fill="currentColor" opacity="0.6" />
+              <circle cx="200" cy="200" r="12" fill="currentColor" opacity="0.3" />
+            </svg>
+            
+            {/* Compass overlay (guided journey) */}
+            <svg className="absolute top-16 right-16 w-32 h-32 text-white/30" viewBox="0 0 100 100">
+              <circle cx="50" cy="50" r="40" fill="none" stroke="currentColor" strokeWidth="1" />
+              <line x1="50" y1="15" x2="50" y2="35" stroke="currentColor" strokeWidth="2" />
+              <line x1="50" y1="65" x2="50" y2="85" stroke="currentColor" strokeWidth="2" />
+              <line x1="15" y1="50" x2="35" y2="50" stroke="currentColor" strokeWidth="2" />
+              <line x1="65" y1="50" x2="85" y2="50" stroke="currentColor" strokeWidth="2" />
+            </svg>
+            
+            {/* Holding hands silhouette (connection) */}
+            <svg className="absolute bottom-16 left-16 w-48 h-48 text-white/20" viewBox="0 0 200 200">
+              <path d="M60,100 L70,90 Q75,85 80,90 L90,100 L100,90 Q105,85 110,90 L120,100" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" />
+              <ellipse cx="75" cy="85" rx="6" ry="8" fill="currentColor" />
+              <ellipse cx="105" cy="85" rx="6" ry="8" fill="currentColor" />
+            </svg>
+          </div>
+          
+          {/* Content with improved readability */}
+          <div className="relative z-10 max-w-lg space-y-8 text-white drop-shadow-2xl">
             <div className="space-y-6">
               <h2 className="text-5xl font-bold leading-tight drop-shadow-lg">
                 Strengthen Your Bond Together
