@@ -1,4 +1,4 @@
-# Deploying ALEIC Edge Functions to Supabase
+m# Deploying ALEIC Edge Functions to Supabase
 
 This guide explains how to deploy all 8 Edge Functions to your Supabase project.
 

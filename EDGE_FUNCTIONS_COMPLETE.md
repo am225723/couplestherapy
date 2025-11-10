@@ -15,38 +15,7 @@ All 5 missing Supabase Edge Functions have been created and are ready for deploy
 
 ## 📋 Functions Created
 
-### 1. **ai-exercise-recommendations**
-**Location**: `supabase/functions/ai-exercise-recommendations/index.ts`
-
-**Purpose**: Analyze couple's therapy tool usage and recommend next steps
-
-**Features**:
-- ✅ JWT authentication required
-- ✅ Queries 13 therapy tools for activity counts
-- ✅ Classifies tools as Not Started / Underutilized / Active
-- ✅ Provides 2-3 personalized recommendations
-- ✅ Returns structured JSON with rationale and suggested actions
-
-**Response**:
-```json
-{
-  "couple_id": "abc123",
-  "generated_at": "2025-01-10T...",
-  "activity_summary": {
-    "not_started": ["tool1", "tool2"],
-    "underutilized": ["tool3"],
-    "active": ["tool4", "tool5"]
-  },
-  "recommendations": [
-    {
-      "tool_name": "Weekly Check-ins",
-      "rationale": "Would help track progress...",
-      "suggested_action": "Start with 5-minute check-ins..."
-    }
-  ],
-  "ai_full_response": "...",
-  "usage": {...}
-}
+#
 ```
 
 ---

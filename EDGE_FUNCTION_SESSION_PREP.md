@@ -5,7 +5,7 @@ Copy this entire file to Supabase at `supabase/functions/ai-session-prep/index.t
 **Note:** This is the most complex Edge Function, aggregating data from 13 therapy tools. Therapist-only access.
 
 ```typescript
-// ========================================
+pop/ ========================================
 // CORS Headers
 // ========================================
 const corsHeaders = {
