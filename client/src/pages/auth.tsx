@@ -97,7 +97,7 @@ export default function AuthPage() {
         <img
           src={coupleArt}
           alt=""
-          className="w-96 md:w-[600px] h-auto opacity-[0.15] object-contain"
+          className="w-96 md:w-[900px] h-auto opacity-[0.35] object-contain"
         />
       </div>
 
