@@ -1,16 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Heart, MessageCircle, Sparkles, ArrowRight, Shield } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
-import heroImage1 from '@assets/stock_images/couple_holding_hands_ae5c3006.jpg';
-import heroImage2 from '@assets/stock_images/couple_smiling_toget_3b915229.jpg';
-import heroImage3 from '@assets/stock_images/couple_holding_hands_21b95250.jpg';
-
-const heroImages = [heroImage1, heroImage2, heroImage3];
+import { Loader2, Heart, Sparkles, ArrowRight, Shield, Lock } from 'lucide-react';
+import { motion } from 'framer-motion';
+import aleicLogo from '@assets/1762758450973_1762758574241.png';
 
 export default function AuthPage() {
   const [email, setEmail] = useState('');
@@ -18,15 +14,7 @@ export default function AuthPage() {
   const [fullName, setFullName] = useState('');
   const [isSignUp, setIsSignUp] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const { toast } = useToast();
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentImageIndex((prev) => (prev + 1) % heroImages.length);
-    }, 5000);
-    return () => clearInterval(interval);
-  }, []);
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
