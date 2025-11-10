@@ -7,6 +7,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAuth } from '@/lib/auth-context';
 import { supabase } from '@/lib/supabase';
+import { authenticatedFetch } from '@/lib/authenticated-fetch';
 import { useToast } from '@/hooks/use-toast';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { queryClient, apiRequest } from '@/lib/queryClient';
@@ -497,7 +498,7 @@ function VoiceMemoCard({
   // AI Sentiment Analysis mutation
   const sentimentMutation = useMutation({
     mutationFn: async (memoId: string) => {
-      const response = await fetch('/api/ai/voice-memo-sentiment', {
+      const response = await authenticatedFetch('/api/ai/voice-memo-sentiment', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ memo_id: memoId })

@@ -158,6 +158,42 @@ async function verifyUserSession(req: Request): Promise<{ success: false; error:
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // ==============================================
+  // PROFILE ENDPOINTS
+  // ==============================================
+
+  // GET /api/profile/partner - Get partner's profile for authenticated user
+  app.get("/api/profile/partner", async (req, res) => {
+    try {
+      const authResult = await verifyUserSession(req);
+      if (!authResult.success) {
+        return res.status(authResult.status).json({ error: authResult.error });
+      }
+
+      const { partnerId } = authResult;
+
+      // Fetch partner's profile
+      const { data: partnerProfile, error } = await supabaseAdmin
+        .from('Couples_profiles')
+        .select('*')
+        .eq('id', partnerId)
+        .single();
+
+      if (error) {
+        throw error;
+      }
+
+      if (!partnerProfile) {
+        return res.status(404).json({ error: 'Partner profile not found' });
+      }
+
+      res.json(partnerProfile);
+    } catch (error: any) {
+      console.error('Error fetching partner profile:', error);
+      res.status(500).json({ error: error.message || 'Failed to fetch partner profile' });
+    }
+  });
+
+  // ==============================================
   // AI ENDPOINTS
   // ==============================================
 

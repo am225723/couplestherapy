@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useAuth } from '@/lib/auth-context';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { queryClient, apiRequest } from '@/lib/queryClient';
+import { authenticatedFetch } from '@/lib/authenticated-fetch';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -33,7 +34,7 @@ export default function EchoEmpathyPage() {
     mutationFn: async () => {
       if (!activeSession || !speakerTurn || !listenerContent.trim()) return;
       
-      const response = await fetch('/api/ai/echo-coaching', {
+      const response = await authenticatedFetch('/api/ai/echo-coaching', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -537,7 +538,7 @@ export default function EchoEmpathyPage() {
                           {speakerIsUser ? 'You' : partnerProfile?.full_name} as Speaker
                         </CardTitle>
                         <CardDescription data-testid={`text-session-date-${session.id}`}>
-                          {formatDistanceToNow(new Date(session.created_at), { addSuffix: true })}
+                          {session.created_at && formatDistanceToNow(new Date(session.created_at), { addSuffix: true })}
                         </CardDescription>
                       </div>
                       <Badge

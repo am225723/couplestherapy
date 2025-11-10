@@ -8,6 +8,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAuth } from '@/lib/auth-context';
 import { supabase } from '@/lib/supabase';
+import { authenticatedFetch } from '@/lib/authenticated-fetch';
 import { useToast } from '@/hooks/use-toast';
 import { useMutation } from '@tanstack/react-query';
 import { Heart, Loader2, MessageCircle, ChevronLeft, ChevronRight, Sparkles, ChevronDown } from 'lucide-react';
@@ -48,7 +49,7 @@ export default function HoldMeTightPage() {
         I need: ${initiatorNeed}
       `.trim();
 
-      const response = await fetch('/api/ai/empathy-prompt', {
+      const response = await authenticatedFetch('/api/ai/empathy-prompt', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -177,6 +178,16 @@ export default function HoldMeTightPage() {
       if (error) throw error;
 
       setConversationId(data.id);
+      
+      // Clear all initiator fields
+      setInitiatorSituation('');
+      setInitiatorFeel('');
+      setInitiatorScaredOf('');
+      setInitiatorEmbarrassedAbout('');
+      setInitiatorExpectations('');
+      setInitiatorNeed('');
+      setInitiatorStep(1);
+      
       toast({
         title: 'Conversation started',
         description: 'Your partner will be prompted to respond.',
@@ -208,6 +219,8 @@ export default function HoldMeTightPage() {
 
       if (error) throw error;
 
+      // Clear reflection field and move to next step
+      setPartnerReflection('');
       setStep('partner-respond');
     } catch (error: any) {
       toast({
@@ -234,6 +247,9 @@ export default function HoldMeTightPage() {
 
       if (error) throw error;
 
+      // Clear response field
+      setPartnerResponse('');
+      
       toast({
         title: 'Conversation complete',
         description: 'Thank you for sharing openly with each other.',
