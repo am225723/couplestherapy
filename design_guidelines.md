@@ -1,4 +1,4 @@
-# Design Guidelines: Therapist-Assisted Couples Therapy Platform (TADI)
+# Design Guidelines: ALEIX - Assisted Learning for Empathetic and Insightful Couples
 
 ## Design Approach
 
@@ -15,49 +15,89 @@
 
 ## Branding & Color Philosophy
 
-**Logo:**
-The TADI logo features a tree/brain design that symbolizes growth, connection, and emotional intelligence. The design evokes both the organic nature of relationships and the thoughtful therapeutic approach.
+**Brand Name: ALEIX**
+- **A**ssisted
+- **L**earning (for)
+- **E**mpathetic (and)
+- **I**nsightful
+- **C**ouples
+
+**Logo & Visual Identity:**
+The ALEIX brand embraces minimalist line art that symbolizes connection, intimacy, and emotional intelligence. The design aesthetic uses flowing, organic lines reminiscent of two people in intimate connection, evoking both the delicate nature of relationships and the thoughtful therapeutic approach.
 
 **Logo Usage:**
 - Primary placement: Navigation header (h-10 to h-12)
-- Authentication pages: Larger size (h-16)
+- Authentication pages: Larger size (h-16 to h-24)
 - Always maintain aspect ratio
 - Works on both light and dark backgrounds
 - Clickable logo returns to dashboard/home
 
 **Color Palette:**
 
-The color scheme centers around teal/green hues that convey calmness, growth, trust, and healing—essential qualities for a therapeutic environment.
+**NEW: Vibrant Multi-Color System**
 
-**Primary Colors:**
-- **Primary (Teal):** 
-  - Light mode: `hsl(175, 60%, 45%)` - A balanced, professional teal
-  - Dark mode: `hsl(175, 55%, 50%)` - Slightly lighter for visibility
+The ALEIX color scheme uses a vibrant, energetic palette that conveys hope, growth, connection, and joy—essential qualities for relationship building. Unlike traditional healthcare blues, ALEIX embraces warmth and vitality through strategic use of complementary colors.
+
+**Primary Color Spectrum:**
+
+- **Primary (Vibrant Teal):** 
+  - Light mode: `hsl(175, 70%, 45%)` - A bright, confident teal
+  - Dark mode: `hsl(175, 65%, 50%)` - Slightly lighter for visibility
   - Use for: Primary actions, active states, key interactive elements
 
-**Supporting Colors:**
-- **Secondary (Mint):**
-  - Light mode: `hsl(180, 45%, 92%)` - Soft, calming mint background
-  - Dark mode: `hsl(180, 30%, 20%)` - Deeper mint for contrast
-  - Use for: Secondary actions, subtle backgrounds
+- **Secondary (Coral/Orange):**
+  - Light mode: `hsl(15, 85%, 60%)` - Warm, energetic coral
+  - Dark mode: `hsl(15, 75%, 55%)` - Softer coral for dark UI
+  - Use for: Secondary actions, warmth accents, call-to-action elements
 
-- **Accent (Light Teal):**
-  - Light mode: `hsl(180, 60%, 90%)` - Very light teal for highlights
-  - Dark mode: `hsl(180, 40%, 22%)` - Muted teal for dark UI
+- **Accent (Purple):**
+  - Light mode: `hsl(270, 60%, 60%)` - Creative, thoughtful purple
+  - Dark mode: `hsl(270, 55%, 65%)` - Lighter purple for contrast
+  - Use for: Highlighting, special features, accent elements
+
+- **Tertiary (Pink):**
+  - Light mode: `hsl(330, 70%, 65%)` - Soft, loving pink
+  - Dark mode: `hsl(330, 60%, 60%)` - Muted pink for dark mode
+  - Use for: Emotional content, love languages, gratitude features
+
+**Supporting Colors:**
+
+- **Mint Green:**
+  - Light mode: `hsl(150, 50%, 92%)` - Fresh, calming mint background
+  - Dark mode: `hsl(150, 30%, 20%)` - Deeper mint for contrast
+  - Use for: Subtle backgrounds, secondary sections
+
+- **Light Background Accents:**
+  - Light mode: `hsl(180, 60%, 95%)` - Very light teal for highlights
+  - Dark mode: `hsl(180, 40%, 18%)` - Muted teal for dark UI
   - Use for: Hover states, emphasized content areas
 
+**Gradient Applications:**
+- Hero sections: Blend primary (teal) → secondary (coral) → accent (purple)
+- Cards: Subtle teal → purple gradients for depth
+- Backgrounds: Multi-stop gradients (teal/coral/pink/purple) at low opacity
+
 **Sidebar Colors:**
-- Light mode: Very light teal (`hsl(175, 50%, 97%)`)
+- Light mode: Very light teal with subtle gradient (`hsl(175, 50%, 97%)`)
 - Dark mode: Deep teal (`hsl(175, 40%, 12%)`)
 - Creates a distinct navigation zone while maintaining brand cohesion
 
 **Color Philosophy:**
-The teal/green palette:
-- Evokes nature, growth, and renewal
-- Conveys trust and professionalism
-- Creates a calming atmosphere conducive to emotional work
-- Provides sufficient contrast for accessibility
+The vibrant multi-color palette:
+- Evokes energy, hope, and vitality in relationships
+- Conveys warmth and emotional connection through coral/pink tones
+- Balances professionalism (teal) with creativity (purple)
+- Creates visual interest and engagement
+- Provides clear color-coding for different feature categories
 - Works harmoniously in both light and dark modes
+- Maintains accessibility standards with sufficient contrast
+
+**Color Usage Guidelines:**
+- Primary (Teal): Navigation, primary buttons, key actions
+- Secondary (Coral): Secondary buttons, warm accents, encouragement
+- Accent (Purple): Special features, highlights, creative exercises
+- Tertiary (Pink): Love/gratitude features, emotional content
+- Use gradients sparingly but purposefully for hero sections and key visual moments
 
 ---
 
@@ -103,7 +143,7 @@ The teal/green palette:
 ### Navigation & Layout
 
 **Client App - Primary Navigation:**
-- Fixed top navigation bar with app logo, user profile, logout
+- Fixed top navigation bar with ALEIX logo, user profile, logout
 - Sidebar navigation (left, 240px) with icon + label format
 - Navigation items: Dashboard, Weekly Check-in, Gratitude Log, Shared Goals, Rituals, Conversations
 - Mobile: Bottom tab bar with icons only
@@ -121,10 +161,10 @@ The teal/green palette:
 ### Forms & Inputs
 
 **Text Inputs:**
-- Height: h-12 for standard inputs
-- Padding: px-4
+- Use Shadcn Input component (no manual height overrides)
+- Padding: Already configured in component
 - Border radius: rounded-md
-- Focus state: ring-2 ring-offset-2 (no color specified)
+- Focus state: ring-2 ring-offset-2
 - Labels: text-sm font-medium mb-2
 
 **Sliders (for 1-10 scales):**
@@ -134,15 +174,15 @@ The teal/green palette:
 - Labels on both ends (1, 10)
 
 **Text Areas:**
-- Minimum height: h-32
+- Use Shadcn Textarea component (no manual padding overrides)
 - Auto-expand for longer content
 - Character count shown below (when relevant)
 
 **Buttons:**
-- Primary: px-6 py-3, rounded-md, font-medium
-- Secondary: px-6 py-3, rounded-md, border-2
-- Text button: px-4 py-2, font-medium
-- Icon buttons: w-10 h-10, rounded-full
+- Always use Shadcn Button component with size variants
+- Primary: size="default" or size="lg"
+- Never manually control height/padding on buttons
+- Icon buttons: size="icon"
 
 ### Data Display
 
@@ -204,12 +244,19 @@ The teal/green palette:
 
 ---
 
-## Images
+## Images & Visual Assets
+
+**Minimalist Line Art:**
+- ALEIX brand aesthetic uses flowing, organic line drawings
+- Subject matter: Couples in intimate connection, faces close together, intertwined forms
+- Style: Single continuous line, minimal detail, elegant simplicity
+- Color: Can be monochrome or colored with brand gradient
+- Use cases: Hero sections, empty states, feature illustrations
 
 **Hero Section (Both Apps):**
-- Client App Landing/Dashboard: Large hero image (h-96) showing supportive couples imagery - abstract, warm, inclusive
-- Position: Top of dashboard after login
-- Overlay: Semi-transparent gradient for text readability
+- Client App Landing/Dashboard: Large hero with minimalist couple line art
+- Position: Top of dashboard after login or full-screen on auth page
+- Overlay: Gradient overlays for text readability
 - CTA buttons: Backdrop-blur for visibility
 
 **Gratitude Log:**
@@ -219,14 +266,15 @@ The teal/green palette:
 - Click to expand in modal
 
 **Empty States:**
-- Illustrative images for empty boards/feeds - simple, encouraging line art
+- Illustrative line art images for empty boards/feeds - simple, encouraging
 - Size: w-48 centered
 - Below: Encouraging text + primary action button
 
 **Profile Avatars:**
-- User avatars: w-10 h-10, rounded-full throughout
+- User avatars: Use Shadcn Avatar component
+- Standard size: w-10 h-10, rounded-full
 - Larger in profile view: w-24 h-24
-- Fallback: Initials in geometric shape
+- Always include AvatarFallback with initials
 
 ---
 
@@ -238,6 +286,8 @@ The teal/green palette:
 - Form validation: Shake animation on error (200ms)
 - Loading states: Skeleton screens (no spinners)
 - Navigation transitions: None - instant
+- NO background animations or floating orbs
+- NO hover scale/transform effects on buttons (use Shadcn defaults)
 
 ---
 
@@ -249,6 +299,7 @@ The teal/green palette:
 - Private content clearly indicated with aria-label
 - Keyboard navigation throughout
 - Focus indicators visible on all interactive elements
+- All interactive elements must have data-testid attributes
 
 ---
 
@@ -259,6 +310,7 @@ The teal/green palette:
 - Weekly check-in: Emphasize confidentiality with visual cues
 - Gratitude log: Celebrate positive moments with generous image display
 - Progress indicators showing engagement over time
+- Colorful, energetic design encourages engagement
 
 **Admin App Focus:**
 - Data density and comparison tools
@@ -266,3 +318,4 @@ The teal/green palette:
 - Efficient navigation between couples
 - Clear distinction between observation and intervention
 - Comment system prioritizing context and privacy toggle
+- Professional color scheme maintains credibility

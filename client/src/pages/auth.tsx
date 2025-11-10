@@ -5,9 +5,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Heart, Users, Shield, Lock, Check } from 'lucide-react';
-import clientHeroImage from '@assets/generated_images/Client_app_hero_image_9fd4eaf0.png';
-import tadiLogo from '@assets/logo_1762363277396.png';
+import { Loader2, Heart, Users, Shield, Lock, Check, Sparkles } from 'lucide-react';
+import coupleArt from '@assets/Screenshot_20251109_193551_Chrome Beta_1762734968356.jpg';
 
 export default function AuthPage() {
   const [email, setEmail] = useState('');
@@ -73,13 +72,14 @@ export default function AuthPage() {
 
   return (
     <div className="min-h-screen relative overflow-hidden">
-      {/* Subtle gradient background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-background via-accent/5 to-primary/10" />
+      {/* Vibrant gradient background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-accent/5 to-secondary/10" />
       
-      {/* Soft geometric shapes for visual interest */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-30">
-        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-gradient-to-br from-primary/20 to-transparent rounded-full blur-3xl transform translate-x-1/2 -translate-y-1/2" />
-        <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-gradient-to-tr from-accent/20 to-transparent rounded-full blur-3xl transform -translate-x-1/2 translate-y-1/2" />
+      {/* Colorful geometric shapes for visual interest */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-25">
+        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-gradient-to-br from-secondary/30 via-accent/20 to-transparent rounded-full blur-3xl transform translate-x-1/2 -translate-y-1/2" />
+        <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-gradient-to-tr from-accent/30 via-primary/20 to-transparent rounded-full blur-3xl transform -translate-x-1/2 translate-y-1/2" />
+        <div className="absolute top-1/2 left-1/2 w-[400px] h-[400px] bg-gradient-to-br from-tertiary/20 to-transparent rounded-full blur-3xl transform -translate-x-1/2 -translate-y-1/2" />
       </div>
 
       <div className="relative z-10 min-h-screen flex">
@@ -90,44 +90,50 @@ export default function AuthPage() {
             <div className="text-center space-y-6">
               <div className="flex items-center justify-center">
                 <div className="relative">
-                  <div className="absolute inset-0 bg-primary/10 rounded-full blur-2xl" />
+                  <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-accent/20 to-secondary/20 rounded-full blur-3xl" />
                   <img 
-                    src={tadiLogo} 
-                    alt="TADI Logo" 
-                    className="relative h-24 w-auto drop-shadow-xl"
+                    src={coupleArt} 
+                    alt="ALEIX - Couple Connection" 
+                    className="relative h-32 w-auto drop-shadow-2xl"
                     data-testid="img-logo"
                   />
                 </div>
               </div>
               <div>
-                <h1 className="text-5xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent mb-3">
-                  TADI
+                <h1 className="text-6xl font-bold bg-gradient-to-r from-primary via-accent to-secondary bg-clip-text text-transparent mb-3 tracking-tight">
+                  ALEIX
                 </h1>
-                <p className="text-muted-foreground text-base max-w-sm mx-auto">
-                  Therapist-Assisted Digital Intervention
-                </p>
-                <p className="text-sm text-muted-foreground/70 mt-2">
-                  Evidence-based tools for stronger relationships
-                </p>
+                <div className="space-y-2 max-w-sm mx-auto">
+                  <p className="text-sm font-medium text-muted-foreground/90">
+                    <span className="text-primary font-semibold">A</span>ssisted{' '}
+                    <span className="text-accent font-semibold">L</span>earning for{' '}
+                    <span className="text-secondary font-semibold">E</span>mpathetic and{' '}
+                    <span className="text-tertiary font-semibold">I</span>nsightful{' '}
+                    <span className="text-primary font-semibold">C</span>ouples
+                  </p>
+                  <p className="text-sm text-muted-foreground/70 mt-2">
+                    Evidence-based tools for stronger relationships
+                  </p>
+                </div>
               </div>
             </div>
 
             {/* Trust indicators */}
             <div className="grid grid-cols-3 gap-3">
-              <div className="text-center space-y-2 p-3 rounded-lg bg-card/50 border border-primary/10" data-testid="badge-trust-connection">
-                <div className="inline-flex p-2 rounded-full bg-primary/10 text-primary">
+              <div className="text-center space-y-2 p-3 rounded-lg bg-card/50 border border-primary/20" data-testid="badge-trust-connection">
+                <div className="inline-flex p-2 rounded-full bg-gradient-to-br from-primary/20 to-accent/10 text-primary">
                   <Heart className="h-5 w-5" />
                 </div>
                 <p className="text-xs font-medium text-muted-foreground">Connection</p>
               </div>
-              <div className="text-center space-y-2 p-3 rounded-lg bg-card/50 border border-primary/10" data-testid="badge-trust-growth">
-                <div className="inline-flex p-2 rounded-full bg-primary/10 text-primary">
-                  <Users className="h-5 w-5" />
+              <div className="text-center space-y-2 p-3 rounded-lg bg-card/50 border border-accent/20" data-testid="badge-trust-growth">
+                <div className="inline-flex p-2 rounded-full bg-gradient-to-br from-accent/20 to-secondary/10 text-accent">
+                  <Sparkles className="h-5 w-5" />
                 </div>
                 <p className="text-xs font-medium text-muted-foreground">Growth</p>
               </div>
-              <div className="text-center space-y-2 p-3 rounded-lg bg-card/50 border border-primary/10" data-testid="badge-trust-privacy">
-                <div className="inline-flex p-2 rounded-full bg-primary/10 text-primary">
+              <div className="text-center space-y-2 p-3 rounded-lg bg-card/50 border border-secondary/20" data-testid="badge-trust-privacy">
+                <div className="inline-flex p-2 rounded-full bg-gradient-to-br from-secondary/20 to-primary/10 text-secondary">
                   <Shield className="h-5 w-5" />
                 </div>
                 <p className="text-xs font-medium text-muted-foreground">Privacy</p>
@@ -246,18 +252,11 @@ export default function AuthPage() {
           </div>
         </div>
 
-        {/* Right side - Hero with overlay */}
+        {/* Right side - Hero with colorful gradient */}
         <div className="hidden lg:flex flex-1 relative items-center justify-center p-12">
-          {/* Image */}
-          <img
-            src={clientHeroImage}
-            alt="Couples connecting"
-            className="absolute inset-0 w-full h-full object-cover"
-          />
-          
-          {/* Gradient overlay */}
-          <div className="absolute inset-0 bg-gradient-to-br from-primary/40 via-primary/20 to-transparent" />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+          {/* Vibrant gradient background */}
+          <div className="absolute inset-0 bg-gradient-to-br from-primary via-accent to-secondary" />
+          <div className="absolute inset-0 bg-gradient-to-tr from-secondary/60 via-tertiary/40 to-transparent" />
           
           {/* Content */}
           <div className="relative z-10 max-w-lg space-y-8 text-white">

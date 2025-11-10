@@ -11,7 +11,7 @@ import { SidebarProvider, Sidebar, SidebarContent, SidebarGroup, SidebarGroupCon
 import { Button } from './components/ui/button';
 import { Home, ClipboardList, Sparkles, Target, Coffee, MessageCircle, Mic, Users, LogOut, Loader2, BarChart3, UserPlus, Heart, MessageSquare, Calendar as CalendarIcon, Map, Volume2, User, PauseCircle, AlertTriangle, BookOpen, Activity, Compass, Baby } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
-import tadiLogo from '@assets/logo_1762363277396.png';
+import coupleArt from '@assets/Screenshot_20251109_193551_Chrome Beta_1762734968356.jpg';
 
 import AuthPage from './pages/auth';
 import TherapistSignup from './pages/therapist-signup';
@@ -87,12 +87,12 @@ function AppSidebar() {
       <SidebarHeader className="p-6 border-b">
         <Link href={homeUrl} className="flex items-center gap-3 hover-elevate active-elevate-2 p-2 rounded-md -m-2" data-testid="link-home">
           <img 
-            src={tadiLogo} 
-            alt="TADI Logo" 
+            src={coupleArt} 
+            alt="ALEIX - Couple Connection" 
             className="h-10 w-auto"
             data-testid="img-sidebar-logo"
           />
-          <span className="text-xl font-bold">TADI</span>
+          <span className="text-xl font-bold bg-gradient-to-r from-primary via-accent to-secondary bg-clip-text text-transparent">ALEIX</span>
         </Link>
       </SidebarHeader>
       <SidebarContent>
