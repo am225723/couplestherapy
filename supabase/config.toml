@@ -34,3 +34,18 @@ verify_jwt = true
 
 [functions.ai-insights]
 verify_jwt = true
+
+[functions.ai-exercise-recommendations]
+verify_jwt = true
+
+[functions.ai-empathy-prompt]
+verify_jwt = true
+
+[functions.ai-echo-coaching]
+verify_jwt = true
+
+[functions.ai-voice-memo-sentiment]
+verify_jwt = true
+
+[functions.ai-session-prep]
+verify_jwt = true
