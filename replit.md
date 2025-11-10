@@ -12,21 +12,40 @@ ALEIC is a multi-tenant platform designed for couples therapy, offering separate
 - ✅ **Rebrand from TADI to ALEIC** - Complete visual and naming rebrand
   - Updated logo to minimalist couple line art symbolizing connection
   - New vibrant multi-color palette: Teal (primary), Coral (secondary), Purple (accent), Pink (tertiary)
-  - Colorful gradient backgrounds throughout login page and hero sections
+  - Modern, sophisticated design aesthetic
   - Updated all user-facing text: page titles, descriptions, navigation
 - ✅ **Design System Overhaul** - design_guidelines.md updated with ALEIC aesthetic
   - Vibrant, energetic color scheme (vs previous calm teal-only palette)
   - Gradient applications for depth and visual interest
   - Minimalist line art visual identity
-- ✅ **Login Page Complete Redesign** - Centered Glass-Morphism Layout (January 10, 2025)
-  - **Layout:** Full-screen vibrant gradient background (primary → accent → secondary) with centered glass-morphism card
-  - **Glass Card:** Backdrop-blur-2xl with white/10 background, white/20 border, rounded-3xl corners
-  - **Content Structure:** Logo, ALEIC wordmark, acronym breakdown, dynamic form, 3 trust indicators, security footer
-  - **Form Design:** White text with drop-shadows, white/90 input backgrounds for contrast, white CTA button with arrow icon
-  - **Ambient Art:** Couple-themed SVG line art at 10% opacity (infinity paths, compass, partnership rings)
-  - **Trust Indicators:** 19+ Therapy Tools (Heart), AI-Powered Insights (Sparkles), HIPAA Compliant (MessageCircle)
-  - **Mobile Responsive:** Centered card (max-w-md) with proper margins, works across all devices
-  - **Architect Approved:** Meets all design requirements for conversion, trust-building, and ALEIC brand alignment
+- ✅ **Login Page - Modern Split-Screen Design** (January 10, 2025)
+  - **Layout Architecture:** Professional split-screen layout (50/50 on desktop, form-only on mobile)
+  - **Left Hero Section (Desktop):**
+    - Full-height rotating carousel featuring 3 couples therapy stock photographs
+    - Auto-rotating every 5 seconds with smooth Framer Motion crossfade animations
+    - Dark gradient overlay for text legibility (black/60 → black/20 → transparent)
+    - Headline "Strengthen Your Bond" with descriptive subheadline
+    - Interactive carousel indicators for manual image selection
+  - **Right Form Section:**
+    - Clean, modern form layout with standard Shadcn components
+    - ALEIC gradient badge (primary → accent) with Heart icon
+    - Dynamic headline based on sign-up/in mode ("Begin Your Journey" / "Welcome Back")
+    - Email, password, and full name (signup) inputs
+    - Primary CTA button with arrow icon
+    - Toggle link for switching between modes
+  - **Trust Badges:**
+    - 3-column grid layout: 19+ Tools (Heart), AI Insights (Sparkles), HIPAA (Shield)
+    - Brand-colored icon containers with tinted backgrounds
+    - Compact, credible presentation
+  - **Animations:**
+    - Subtle Framer Motion effects: image crossfade (1s), form fade-in (0.6s)
+    - Full name field height/opacity animation when toggling
+    - Carousel scale effect (1.1 → 1 → 0.95) for sophisticated transitions
+  - **Responsive Design:**
+    - Mobile/Tablet: Hero hidden, full-width form for focused experience
+    - Desktop (lg+): 50/50 split-screen
+    - XL screens: 40/60 split for optimal form emphasis
+  - **Architect Approved:** Meets conversion optimization, professional credibility, and ALEIC brand alignment goals
 
 **AI Features Implementation (January 8, 2025 - Night):**
 - ✅ **5 Production-Ready AI Features** - All architect-approved and security-reviewed
