@@ -6,6 +6,7 @@ import type { TherapistAnalytics, CoupleAnalytics, AIInsight, SessionPrepResult,
 import { insertVoiceMemoSchema, insertCalendarEventSchema } from "../shared/schema.ts";
 import { analyzeCheckInsWithPerplexity } from "./perplexity.js";
 import { generateCoupleReport } from "./csv-export.js";
+import { safeJsonParse } from "./_shared/safe-json-parse.js";
 import { generateVoiceMemoUploadUrl, generateVoiceMemoDownloadUrl, deleteVoiceMemo } from "./storage-helpers.js";
 import { z } from "zod";
 import crypto from "crypto";
@@ -48,6 +49,7 @@ async function verifyTherapistSession(req: Request): Promise<{ success: false; e
   const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(accessToken);
 
   if (authError || !user) {
+    console.error('Therapist session verification failed:', authError?.message);
     return {
       success: false,
       error: 'Invalid or expired session. Please log in again.',
@@ -100,6 +102,7 @@ async function verifyUserSession(req: Request): Promise<{ success: false; error:
   const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(accessToken);
 
   if (authError || !user) {
+    console.error('User session verification failed:', authError?.message);
     return {
       success: false,
       error: 'Invalid or expired session. Please log in again.',
@@ -188,7 +191,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.json(partnerProfile);
     } catch (error: any) {
-      console.error('Error fetching partner profile:', error);
+      console.error('Error fetching partner profile:', error.message, error.stack);
       res.status(500).json({ error: error.message || 'Failed to fetch partner profile' });
     }
   });
@@ -513,65 +516,19 @@ Be precise, evidence-based, and therapeutically sensitive. Format your response 
 
       // 5. Parse and structure the response
       const rawAnalysis = analysisResult.content;
-      
-      // Simple parsing - extract sections (this is a basic implementation)
-      // In a production system, you might want more sophisticated parsing
-      const lines = rawAnalysis.split('\n').filter(line => line.trim());
-      
-      let summary = '';
-      const discrepancies: string[] = [];
-      const patterns: string[] = [];
-      const recommendations: string[] = [];
-      
-      let currentSection = '';
-      
-      lines.forEach(line => {
-        const lowerLine = line.toLowerCase();
-        
-        if (lowerLine.includes('summary') || lowerLine.includes('dynamic')) {
-          currentSection = 'summary';
-        } else if (lowerLine.includes('discrepanc')) {
-          currentSection = 'discrepancies';
-        } else if (lowerLine.includes('pattern') || lowerLine.includes('trend')) {
-          currentSection = 'patterns';
-        } else if (lowerLine.includes('recommendation') || lowerLine.includes('therapeutic')) {
-          currentSection = 'recommendations';
-        } else if (line.trim().match(/^[\d\-\*•]/)) {
-          // This is a list item
-          const cleanedLine = line.trim().replace(/^[\d\-\*•.)\s]+/, '');
-          if (currentSection === 'discrepancies') {
-            discrepancies.push(cleanedLine);
-          } else if (currentSection === 'patterns') {
-            patterns.push(cleanedLine);
-          } else if (currentSection === 'recommendations') {
-            recommendations.push(cleanedLine);
-          }
-        } else if (currentSection === 'summary' && line.trim()) {
-          summary += line.trim() + ' ';
-        }
-      });
+      const parsed = safeJsonParse(rawAnalysis);
 
-      // If parsing didn't work well, provide fallback
-      if (!summary) {
-        summary = rawAnalysis.substring(0, 300) + '...';
-      }
-      if (discrepancies.length === 0) {
-        discrepancies.push('Analysis completed - see raw analysis for details');
-      }
-      if (patterns.length === 0) {
-        patterns.push('Analysis completed - see raw analysis for details');
-      }
-      if (recommendations.length === 0) {
-        recommendations.push('Analysis completed - see raw analysis for details');
+      if (!parsed) {
+        return res.status(500).json({ error: 'Failed to parse AI response' });
       }
 
       const insights: AIInsight = {
         couple_id: coupleId,
         generated_at: new Date().toISOString(),
-        summary: summary.trim(),
-        discrepancies,
-        patterns,
-        recommendations,
+        summary: parsed.summary || rawAnalysis.substring(0, 300) + '...',
+        discrepancies: parsed.discrepancies || ['Analysis completed - see raw analysis for details'],
+        patterns: parsed.patterns || ['Analysis completed - see raw analysis for details'],
+        recommendations: parsed.recommendations || ['Analysis completed - see raw analysis for details'],
         raw_analysis: rawAnalysis,
         citations: analysisResult.citations,
       };
@@ -896,70 +853,20 @@ Format your response with clear section headings.`;
 
       // 5. Parse and structure the response
       const rawAnalysis = analysisResult.content;
-      const lines = rawAnalysis.split('\n').filter(line => line.trim());
-      
-      let engagementSummary = '';
-      const concerningPatterns: string[] = [];
-      const positivePatterns: string[] = [];
-      const sessionFocusAreas: string[] = [];
-      const recommendedInterventions: string[] = [];
-      
-      let currentSection = '';
-      
-      lines.forEach(line => {
-        const lowerLine = line.toLowerCase();
-        
-        if (lowerLine.includes('engagement') && lowerLine.includes('summary')) {
-          currentSection = 'engagement';
-        } else if (lowerLine.includes('concerning') || lowerLine.includes('concern')) {
-          currentSection = 'concerning';
-        } else if (lowerLine.includes('positive') || lowerLine.includes('strength')) {
-          currentSection = 'positive';
-        } else if (lowerLine.includes('session focus') || lowerLine.includes('focus area')) {
-          currentSection = 'focus';
-        } else if (lowerLine.includes('intervention') || lowerLine.includes('recommend')) {
-          currentSection = 'interventions';
-        } else if (line.trim().match(/^[\d\-\*•]/)) {
-          const cleanedLine = line.trim().replace(/^[\d\-\*•.)\s]+/, '');
-          if (currentSection === 'concerning') {
-            concerningPatterns.push(cleanedLine);
-          } else if (currentSection === 'positive') {
-            positivePatterns.push(cleanedLine);
-          } else if (currentSection === 'focus') {
-            sessionFocusAreas.push(cleanedLine);
-          } else if (currentSection === 'interventions') {
-            recommendedInterventions.push(cleanedLine);
-          }
-        } else if (currentSection === 'engagement' && line.trim() && !lowerLine.includes('engagement')) {
-          engagementSummary += line.trim() + ' ';
-        }
-      });
+      const parsed = safeJsonParse(rawAnalysis);
 
-      // Provide fallbacks if parsing didn't work well
-      if (!engagementSummary) {
-        engagementSummary = rawAnalysis.substring(0, 200) + '...';
-      }
-      if (concerningPatterns.length === 0) {
-        concerningPatterns.push('See full analysis for details');
-      }
-      if (positivePatterns.length === 0) {
-        positivePatterns.push('See full analysis for details');
-      }
-      if (sessionFocusAreas.length === 0) {
-        sessionFocusAreas.push('See full analysis for details');
-      }
-      if (recommendedInterventions.length === 0) {
-        recommendedInterventions.push('See full analysis for details');
+      if (!parsed) {
+        return res.status(500).json({ error: 'Failed to parse AI response' });
       }
 
       const sessionPrep: SessionPrepResult = {
         couple_id: coupleId,
         generated_at: new Date().toISOString(),
-        engagement_summary: engagementSummary.trim(),
-        concerning_patterns: concerningPatterns,
-        positive_patterns: positivePatterns,
-        session_focus_areas: sessionFocusAreas,
-        recommended_interventions: recommendedInterventions,
+        engagement_summary: parsed.engagement_summary || rawAnalysis.substring(0, 200) + '...',
+        concerning_patterns: parsed.concerning_patterns || ['See full analysis for details'],
+        positive_patterns: parsed.positive_patterns || ['See full analysis for details'],
+        session_focus_areas: parsed.session_focus_areas || ['See full analysis for details'],
+        recommended_interventions: parsed.recommended_interventions || ['See full analysis for details'],
         ai_analysis: rawAnalysis,
         usage: analysisResult.usage,
       };
@@ -1074,27 +981,14 @@ Format as a numbered list of suggested responses.`;
       });
 
       const aiFullResponse = analysisResult.content;
+      const parsed = safeJsonParse(aiFullResponse);
+
+      if (!parsed) {
+        return res.status(500).json({ error: 'Failed to parse AI response' });
+      }
 
       // Parse AI response to extract numbered suggestions
-      const suggestedResponses: string[] = [];
-      const lines = aiFullResponse.split('\n');
-      
-      for (const line of lines) {
-        const trimmedLine = line.trim();
-        // Match lines starting with numbers (1., 2., 3., etc.) or bullet points
-        const match = trimmedLine.match(/^[\d]+[\.\)]\s*(.+)$/);
-        if (match && match[1]) {
-          suggestedResponses.push(match[1].trim());
-          if (suggestedResponses.length >= 3) {
-            break; // Limit to 3 suggestions
-          }
-        }
-      }
-
-      // If parsing failed, return full response as single item
-      if (suggestedResponses.length === 0) {
-        suggestedResponses.push(aiFullResponse);
-      }
+      const suggestedResponses: string[] = parsed.suggested_responses || [aiFullResponse];
 
       // Build response
       const response = {
@@ -1271,85 +1165,18 @@ Format as a numbered list of suggested responses.`;
       });
 
       const aiFullResponse = analysisResult.content;
+      const parsed = safeJsonParse(aiFullResponse);
+
+      if (!parsed) {
+        return res.status(500).json({ error: 'Failed to parse AI response' });
+      }
 
       // Parse AI response to extract recommendations
       const recommendations: Array<{
         tool_name: string;
         rationale: string;
         suggested_action: string;
-      }> = [];
-
-      const lines = aiFullResponse.split('\n');
-      let currentRecommendation: any = null;
-      let currentSection = '';
-
-      for (const line of lines) {
-        const trimmedLine = line.trim();
-        
-        // Match numbered recommendations (1., 2., etc.)
-        const numberMatch = trimmedLine.match(/^(\d+)[\.\)]\s*(.+)$/);
-        if (numberMatch) {
-          // Save previous recommendation if exists
-          if (currentRecommendation && currentRecommendation.tool_name) {
-            recommendations.push(currentRecommendation);
-          }
-          
-          // Start new recommendation
-          currentRecommendation = {
-            tool_name: numberMatch[2].trim(),
-            rationale: '',
-            suggested_action: '',
-          };
-          currentSection = '';
-          
-          if (recommendations.length >= 5) {
-            break; // Limit to 5 recommendations
-          }
-          continue;
-        }
-
-        // Match section headers
-        if (trimmedLine.toLowerCase().includes('rationale') || trimmedLine.toLowerCase().includes('why')) {
-          currentSection = 'rationale';
-          continue;
-        }
-        if (trimmedLine.toLowerCase().includes('action') || trimmedLine.toLowerCase().includes('this week')) {
-          currentSection = 'action';
-          continue;
-        }
-
-        // Add content to current section
-        if (currentRecommendation && trimmedLine && !trimmedLine.match(/^[\d]+[\.\)]/)) {
-          if (currentSection === 'rationale') {
-            currentRecommendation.rationale += (currentRecommendation.rationale ? ' ' : '') + trimmedLine;
-          } else if (currentSection === 'action') {
-            currentRecommendation.suggested_action += (currentRecommendation.suggested_action ? ' ' : '') + trimmedLine;
-          } else if (!currentRecommendation.rationale) {
-            // If no section specified, assume it's rationale
-            currentRecommendation.rationale += (currentRecommendation.rationale ? ' ' : '') + trimmedLine;
-          }
-        }
-      }
-
-      // Save last recommendation
-      if (currentRecommendation && currentRecommendation.tool_name) {
-        recommendations.push(currentRecommendation);
-      }
-
-      // If parsing failed to extract structured recommendations, create simple ones from the response
-      if (recommendations.length === 0) {
-        const numberMatches = aiFullResponse.match(/^\d+[\.\)]\s*(.+)$/gm);
-        if (numberMatches) {
-          numberMatches.slice(0, 5).forEach(match => {
-            const content = match.replace(/^\d+[\.\)]\s*/, '').trim();
-            recommendations.push({
-              tool_name: content.substring(0, 50), // First 50 chars as tool name
-              rationale: content,
-              suggested_action: 'Try this exercise this week',
-            });
-          });
-        }
-      }
+      }> = parsed.recommendations || [];
 
       // Build response
       const response = {
@@ -1488,86 +1315,16 @@ Be encouraging and constructive. Focus on growth.`;
       });
 
       const aiFullResponse = analysisResult.content;
+      const parsed = safeJsonParse(aiFullResponse);
+
+      if (!parsed) {
+        return res.status(500).json({ error: 'Failed to parse AI response' });
+      }
 
       // Parse AI response to extract structured feedback
-      const whatWentWell: string[] = [];
-      const areasToImprove: string[] = [];
-      let suggestedResponse = "";
-
-      const lines = aiFullResponse.split('\n');
-      let currentSection = '';
-
-      for (const line of lines) {
-        const trimmedLine = line.trim();
-        
-        // Detect sections
-        if (trimmedLine.match(/^1\.|WHAT WENT WELL/i)) {
-          currentSection = 'what_went_well';
-          continue;
-        }
-        if (trimmedLine.match(/^2\.|AREAS TO IMPROVE/i)) {
-          currentSection = 'areas_to_improve';
-          continue;
-        }
-        if (trimmedLine.match(/^3\.|SUGGESTED (BETTER )?RESPONSE/i)) {
-          currentSection = 'suggested_response';
-          continue;
-        }
-
-        // Extract content based on current section
-        if (trimmedLine && !trimmedLine.match(/^[\d]+[\.\)]/)) {
-          // Match bullet points or numbered sub-items
-          const bulletMatch = trimmedLine.match(/^[-•*]\s*(.+)$/);
-          const subNumberMatch = trimmedLine.match(/^[a-z]\)|^\d+\)\s*(.+)$/);
-          
-          if (currentSection === 'what_went_well') {
-            if (bulletMatch || subNumberMatch) {
-              const content = bulletMatch ? bulletMatch[1] : (subNumberMatch ? subNumberMatch[1] : trimmedLine);
-              whatWentWell.push(content.trim());
-            } else if (whatWentWell.length === 0 || trimmedLine.length > 30) {
-              whatWentWell.push(trimmedLine);
-            }
-          } else if (currentSection === 'areas_to_improve') {
-            if (bulletMatch || subNumberMatch) {
-              const content = bulletMatch ? bulletMatch[1] : (subNumberMatch ? subNumberMatch[1] : trimmedLine);
-              areasToImprove.push(content.trim());
-            } else if (areasToImprove.length === 0 || trimmedLine.length > 30) {
-              areasToImprove.push(trimmedLine);
-            }
-          } else if (currentSection === 'suggested_response') {
-            if (trimmedLine.startsWith('"') || trimmedLine.includes('could say') || trimmedLine.includes('might respond')) {
-              suggestedResponse += (suggestedResponse ? ' ' : '') + trimmedLine;
-            } else if (!suggestedResponse) {
-              suggestedResponse = trimmedLine;
-            }
-          }
-        }
-      }
-
-      // Fallback parsing if sections not found
-      if (whatWentWell.length === 0 && areasToImprove.length === 0 && !suggestedResponse) {
-        // Try simpler extraction
-        const allBullets = aiFullResponse.match(/[-•*]\s*(.+)/g);
-        if (allBullets && allBullets.length >= 3) {
-          whatWentWell.push(allBullets[0].replace(/^[-•*]\s*/, '').trim());
-          whatWentWell.push(allBullets[1].replace(/^[-•*]\s*/, '').trim());
-          if (allBullets.length > 2) {
-            areasToImprove.push(allBullets[2].replace(/^[-•*]\s*/, '').trim());
-          }
-          if (allBullets.length > 3) {
-            suggestedResponse = allBullets[3].replace(/^[-•*]\s*/, '').trim();
-          }
-        } else {
-          // Ultimate fallback
-          whatWentWell.push("You showed effort in responding to your partner.");
-          areasToImprove.push("Continue practicing active listening techniques.");
-          suggestedResponse = "Try incorporating more reflective statements like 'It sounds like you're feeling...'";
-        }
-      }
-
-      // Limit arrays to specified lengths
-      const finalWhatWentWell = whatWentWell.slice(0, 3);
-      const finalAreasToImprove = areasToImprove.slice(0, 2);
+      const whatWentWell: string[] = parsed.what_went_well || ["You showed effort in responding to your partner."];
+      const areasToImprove: string[] = parsed.areas_to_improve || ["Continue practicing active listening techniques."];
+      let suggestedResponse = parsed.suggested_response || "Try incorporating more reflective statements like 'It sounds like you're feeling...'";
 
       // Calculate overall score (1-10) based on positive indicators
       // Count positive indicators mentioned in the response
@@ -1715,119 +1472,20 @@ Be very gentle. Focus on the positive. Only suggest improvements if truly needed
       });
 
       const aiFullResponse = analysisResult.content;
+      const parsed = safeJsonParse(aiFullResponse);
 
-      // Parse AI response to extract structured feedback
-      let tone = "neutral";
-      let sentimentScore = 7;
-      const whatsWorking: string[] = [];
-      const gentleSuggestions: string[] = [];
-      let encouragement = "Keep expressing yourself authentically!";
-
-      const lines = aiFullResponse.split('\n');
-      let currentSection = '';
-
-      for (const line of lines) {
-        const trimmedLine = line.trim();
-        
-        // Detect sections
-        if (trimmedLine.match(/^1\.|OVERALL TONE/i)) {
-          currentSection = 'tone';
-          // Extract tone from same line or next
-          const toneMatch = trimmedLine.match(/OVERALL TONE[:\s]+(\w+)/i);
-          if (toneMatch) {
-            tone = toneMatch[1].toLowerCase();
-          }
-          continue;
-        }
-        if (trimmedLine.match(/^2\.|SENTIMENT SCORE/i)) {
-          currentSection = 'sentiment';
-          // Extract score from same line or next
-          const scoreMatch = trimmedLine.match(/SENTIMENT SCORE[:\s]+(\d+)/i);
-          if (scoreMatch) {
-            sentimentScore = parseInt(scoreMatch[1], 10);
-          }
-          continue;
-        }
-        if (trimmedLine.match(/^3\.|WHAT'S WORKING/i)) {
-          currentSection = 'whats_working';
-          continue;
-        }
-        if (trimmedLine.match(/^4\.|GENTLE SUGGESTIONS/i)) {
-          currentSection = 'gentle_suggestions';
-          continue;
-        }
-        if (trimmedLine.match(/^5\.|ENCOURAGEMENT/i)) {
-          currentSection = 'encouragement';
-          continue;
-        }
-
-        // Extract content based on current section
-        if (trimmedLine) {
-          // Match bullet points or numbered sub-items
-          const bulletMatch = trimmedLine.match(/^[-•*]\s*(.+)$/);
-          const subNumberMatch = trimmedLine.match(/^[a-z]\)|^\d+\)\s*(.+)$/);
-          
-          if (currentSection === 'tone' && !tone.match(/neutral|loving|appreciative|concerned|frustrated/i)) {
-            // Try to extract tone word from this line
-            const words = trimmedLine.toLowerCase().split(/\s+/);
-            const toneWords = ['loving', 'appreciative', 'neutral', 'concerned', 'frustrated', 'warm', 'caring', 'supportive', 'anxious', 'tense'];
-            for (const word of words) {
-              if (toneWords.includes(word)) {
-                tone = word;
-                break;
-              }
-            }
-          } else if (currentSection === 'sentiment' && sentimentScore === 7) {
-            // Try to extract score from this line
-            const scoreMatch = trimmedLine.match(/(\d+)/);
-            if (scoreMatch) {
-              const parsed = parseInt(scoreMatch[1], 10);
-              if (parsed >= 1 && parsed <= 10) {
-                sentimentScore = parsed;
-              }
-            }
-          } else if (currentSection === 'whats_working') {
-            if (bulletMatch || subNumberMatch) {
-              const content = bulletMatch ? bulletMatch[1] : (subNumberMatch ? subNumberMatch[1] : trimmedLine);
-              whatsWorking.push(content.trim());
-            } else if (whatsWorking.length === 0 && trimmedLine.length > 20) {
-              whatsWorking.push(trimmedLine);
-            }
-          } else if (currentSection === 'gentle_suggestions') {
-            if (bulletMatch || subNumberMatch) {
-              const content = bulletMatch ? bulletMatch[1] : (subNumberMatch ? subNumberMatch[1] : trimmedLine);
-              gentleSuggestions.push(content.trim());
-            } else if (gentleSuggestions.length === 0 && trimmedLine.length > 20 && !trimmedLine.toLowerCase().includes('none')) {
-              gentleSuggestions.push(trimmedLine);
-            }
-          } else if (currentSection === 'encouragement') {
-            if (!trimmedLine.match(/^[\d]+[\.\)]/)) {
-              encouragement = trimmedLine;
-            }
-          }
-        }
+      if (!parsed) {
+        return res.status(500).json({ error: 'Failed to parse AI response' });
       }
-
-      // Fallback parsing if sections not found
-      if (whatsWorking.length === 0) {
-        whatsWorking.push("Your message shows genuine effort to connect with your partner.");
-      }
-
-      // Limit arrays to specified lengths
-      const finalWhatsWorking = whatsWorking.slice(0, 2);
-      const finalGentleSuggestions = gentleSuggestions.slice(0, 1);
-
-      // Ensure sentiment score is in valid range
-      sentimentScore = Math.max(1, Math.min(10, sentimentScore));
 
       // Build response
       const response = {
         memo_id,
-        tone,
-        sentiment_score: sentimentScore,
-        whats_working: finalWhatsWorking,
-        gentle_suggestions: finalGentleSuggestions,
-        encouragement,
+        tone: parsed.tone || "neutral",
+        sentiment_score: Math.max(1, Math.min(10, parsed.sentiment_score || 7)),
+        whats_working: parsed.whats_working || ["Your message shows genuine effort to connect with your partner."],
+        gentle_suggestions: parsed.gentle_suggestions || [],
+        encouragement: parsed.encouragement || "Keep expressing yourself authentically!",
         ai_full_response: aiFullResponse,
         usage: analysisResult.usage,
       };
@@ -2650,7 +2308,7 @@ Be very gentle. Focus on the positive. Only suggest improvements if truly needed
         storage_path: path,
       });
     } catch (error: any) {
-      console.error('Create voice memo error:', error);
+      console.error('Create voice memo error:', error.message, error.stack);
       res.status(500).json({ error: error.message || 'Failed to create voice memo' });
     }
   });
@@ -2703,7 +2361,7 @@ Be very gentle. Focus on the positive. Only suggest improvements if truly needed
 
       res.json({ success: true });
     } catch (error: any) {
-      console.error('Complete voice memo error:', error);
+      console.error('Complete voice memo error:', error.message, error.stack);
       res.status(500).json({ error: error.message || 'Failed to complete voice memo' });
     }
   });
@@ -2748,7 +2406,7 @@ Be very gentle. Focus on the positive. Only suggest improvements if truly needed
 
       res.json({ success: true });
     } catch (error: any) {
-      console.error('Mark listened error:', error);
+      console.error('Mark listened error:', error.message, error.stack);
       res.status(500).json({ error: error.message || 'Failed to mark voice memo as listened' });
     }
   });
@@ -2822,7 +2480,7 @@ Be very gentle. Focus on the positive. Only suggest improvements if truly needed
 
       res.json(memosWithUrls);
     } catch (error: any) {
-      console.error('Get voice memos error:', error);
+      console.error('Get voice memos error:', error.message, error.stack);
       res.status(500).json({ error: error.message || 'Failed to get voice memos' });
     }
   });
@@ -2890,7 +2548,7 @@ Be very gentle. Focus on the positive. Only suggest improvements if truly needed
 
       res.json(metadata);
     } catch (error: any) {
-      console.error('Error fetching voice memo metadata:', error);
+      console.error('Error fetching voice memo metadata:', error.message, error.stack);
       res.status(500).json({ error: error.message || 'Failed to fetch voice memo metadata' });
     }
   });
@@ -2969,7 +2627,7 @@ Be very gentle. Focus on the positive. Only suggest improvements if truly needed
 
       res.json(messagesWithSenders);
     } catch (error: any) {
-      console.error('Get messages error:', error);
+      console.error('Get messages error:', error.message, error.stack);
       res.status(500).json({ error: error.message || 'Failed to get messages' });
     }
   });
@@ -3049,7 +2707,7 @@ Be very gentle. Focus on the positive. Only suggest improvements if truly needed
         sender: sender || { id: user.id, full_name: 'Unknown', role: 'client' }
       });
     } catch (error: any) {
-      console.error('Send message error:', error);
+      console.error('Send message error:', error.message, error.stack);
       res.status(500).json({ error: error.message || 'Failed to send message' });
     }
   });
@@ -3121,7 +2779,7 @@ Be very gentle. Focus on the positive. Only suggest improvements if truly needed
 
       res.json({ success: true, message: 'Message marked as read' });
     } catch (error: any) {
-      console.error('Mark message as read error:', error);
+      console.error('Mark message as read error:', error.message, error.stack);
       res.status(500).json({ error: error.message || 'Failed to mark message as read' });
     }
   });
@@ -3430,9 +3088,12 @@ Be warm, creative, and encouraging. Emphasize connection, fun, and breaking rout
         throw new Error('Perplexity API returned no choices');
       }
 
+      const content = data.choices[0].message.content;
+      const parsed = safeJsonParse(content);
+
       // Return the generated content
       res.json({
-        content: data.choices[0].message.content,
+        content: parsed || content,
         citations: data.citations,
       });
     } catch (error: any) {
@@ -3516,7 +3177,7 @@ Be warm, creative, and encouraging. Emphasize connection, fun, and breaking rout
 
       res.json(questions || []);
     } catch (error: any) {
-      console.error('Error fetching Love Map questions:', error);
+      console.error('Error fetching Love Map questions:', error.message, error.stack);
       res.status(500).json({ error: error.message || 'Failed to fetch questions' });
     }
   });
@@ -3564,7 +3225,7 @@ Be warm, creative, and encouraging. Emphasize connection, fun, and breaking rout
 
       res.json(newSession);
     } catch (error: any) {
-      console.error('Error getting/creating Love Map session:', error);
+      console.error('Error getting/creating Love Map session:', error.message, error.stack);
       res.status(500).json({ error: error.message || 'Failed to get session' });
     }
   });
@@ -4256,7 +3917,7 @@ Be warm, creative, and encouraging. Emphasize connection, fun, and breaking rout
       if (error) throw error;
       res.json(data);
     } catch (error: any) {
-      console.error('Error creating IFS exercise:', error);
+      console.error('Error creating IFS exercise:', error.message, error.stack);
       res.status(500).json({ error: error.message || 'Failed to create exercise' });
     }
   });
@@ -4300,7 +3961,7 @@ Be warm, creative, and encouraging. Emphasize connection, fun, and breaking rout
       if (error) throw error;
       res.json(data);
     } catch (error: any) {
-      console.error('Error creating IFS part:', error);
+      console.error('Error creating IFS part:', error.message, error.stack);
       res.status(500).json({ error: error.message || 'Failed to create part' });
     }
   });
@@ -4341,7 +4002,7 @@ Be warm, creative, and encouraging. Emphasize connection, fun, and breaking rout
       if (error) throw error;
       res.json(data);
     } catch (error: any) {
-      console.error('Error updating IFS part:', error);
+      console.error('Error updating IFS part:', error.message, error.stack);
       res.status(500).json({ error: error.message || 'Failed to update part' });
     }
   });
@@ -4379,7 +4040,7 @@ Be warm, creative, and encouraging. Emphasize connection, fun, and breaking rout
       if (error) throw error;
       res.json({ success: true });
     } catch (error: any) {
-      console.error('Error deleting IFS part:', error);
+      console.error('Error deleting IFS part:', error.message, error.stack);
       res.status(500).json({ error: error.message || 'Failed to delete part' });
     }
   });
@@ -4425,7 +4086,7 @@ Be warm, creative, and encouraging. Emphasize connection, fun, and breaking rout
 
       res.json(exercisesWithParts);
     } catch (error: any) {
-      console.error('Error fetching IFS exercises:', error);
+      console.error('Error fetching IFS exercises:', error.message, error.stack);
       res.status(500).json({ error: error.message || 'Failed to fetch exercises' });
     }
   });
@@ -4488,7 +4149,7 @@ Be warm, creative, and encouraging. Emphasize connection, fun, and breaking rout
 
       res.json(pauseEvent);
     } catch (error: any) {
-      console.error('Error activating pause:', error);
+      console.error('Error activating pause:', error.message, error.stack);
       res.status(500).json({ error: error.message || 'Failed to activate pause' });
     }
   });
@@ -4542,7 +4203,7 @@ Be warm, creative, and encouraging. Emphasize connection, fun, and breaking rout
 
       res.json(data);
     } catch (error: any) {
-      console.error('Error ending pause:', error);
+      console.error('Error ending pause:', error.message, error.stack);
       res.status(500).json({ error: error.message || 'Failed to end pause' });
     }
   });
@@ -4585,7 +4246,7 @@ Be warm, creative, and encouraging. Emphasize connection, fun, and breaking rout
 
       res.json({ active: true, pauseEvent });
     } catch (error: any) {
-      console.error('Error checking active pause:', error);
+      console.error('Error checking active pause:', error.message, error.stack);
       res.status(500).json({ error: error.message || 'Failed to check pause status' });
     }
   });
@@ -4614,7 +4275,7 @@ Be warm, creative, and encouraging. Emphasize connection, fun, and breaking rout
       if (error) throw error;
       res.json(data);
     } catch (error: any) {
-      console.error('Error fetching pause history:', error);
+      console.error('Error fetching pause history:', error.message, error.stack);
       res.status(500).json({ error: error.message || 'Failed to fetch pause history' });
     }
   });
