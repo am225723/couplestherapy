@@ -36,12 +36,15 @@ export default function AuthPage() {
     setLoading(true);
 
     try {
+      console.log('Attempting authentication...', { isSignUp, supabaseUrl: import.meta.env.VITE_SUPABASE_URL });
+      
       if (isSignUp) {
         const { data: authData, error: authError } = await supabase.auth.signUp({
           email,
           password,
         });
 
+        console.log('SignUp response:', { data: authData, error: authError });
         if (authError) throw authError;
 
         if (authData.user) {
@@ -67,6 +70,7 @@ export default function AuthPage() {
           password,
         });
 
+        console.log('SignIn response:', { error });
         if (error) throw error;
 
         toast({
@@ -75,9 +79,11 @@ export default function AuthPage() {
         });
       }
     } catch (error: any) {
+      console.error('Authentication error:', error);
+      const errorMessage = error.message || 'Failed to connect. Please check your internet connection.';
       toast({
         title: 'Error',
-        description: error.message,
+        description: errorMessage,
         variant: 'destructive',
       });
     } finally {
