@@ -222,6 +222,7 @@ export default function HoldMeTightPage() {
       // Clear reflection field and move to next step
       setPartnerReflection('');
       setStep('partner-respond');
+      setPartnerResponse(''); // Also clear this for a clean slate
     } catch (error: any) {
       toast({
         title: 'Error',
@@ -247,7 +248,8 @@ export default function HoldMeTightPage() {
 
       if (error) throw error;
 
-      // Clear response field
+      // Clear all fields
+      setPartnerReflection('');
       setPartnerResponse('');
       
       toast({
