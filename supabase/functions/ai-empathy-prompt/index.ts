@@ -7,6 +7,7 @@ const corsHeaders = {
 };
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
+import { safeJsonParse } from '../_shared/safe-json-parse.ts';
 
 // ========================================
 // Supabase Client Setup
@@ -212,7 +213,14 @@ Generate 3 empathetic, vulnerable responses that the listening partner could use
     const result = await analyzeWithPerplexity(systemPrompt, userPrompt);
     
     // Parse JSON from AI response
-    const parsed = JSON.parse(result.content);
+    const parsed = safeJsonParse(result.content);
+
+    if (!parsed) {
+      return new Response(
+        JSON.stringify({ error: 'Failed to parse AI response' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+      );
+    }
 
     return new Response(
       JSON.stringify({
