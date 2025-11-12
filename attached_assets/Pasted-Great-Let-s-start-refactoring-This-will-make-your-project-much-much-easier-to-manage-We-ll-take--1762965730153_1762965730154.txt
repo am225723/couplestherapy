@@ -1,0 +1,462 @@
+Great. Let's start refactoring. This will make your project much, much easier to manage.
+We'll take it one feature at a time. First, we'll move all your helper functions into one file, then we'll move all the AI routes into their own dedicated router file.
+1. Helpers File
+First, let's create a new file to hold your reusable helper functions.
+Create this file: src/helpers.ts
+(Or helpers.js if you are not using a src directory)
+This file will contain your getAccessToken, verifyTherapistSession, and verifyUserSession functions.
+// src/helpers.ts
+import type { Request } from "express";
+import { supabaseAdmin } from "./supabase.js"; // Make sure this path is correct
+
+// Helper function to extract access token from request (Authorization header or cookies)
+export function getAccessToken(req: Request): string | null {
+  // First, try to get token from Authorization header
+  const authHeader = req.headers.authorization;
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    return authHeader.substring(7);
+  }
+
+  // Fallback to cookies
+  const cookies = req.headers.cookie;
+  if (!cookies) return null;
+
+  const cookieArray = cookies.split(';');
+  for (const cookie of cookieArray) {
+    const [name, value] = cookie.trim().split('=');
+    if (name === 'sb-access-token' || name.includes('access-token')) {
+      return value;
+    }
+  }
+  return null;
+}
+
+// Helper function to verify session and check if user is a therapist
+export async function verifyTherapistSession(req: Request): Promise<{ success: false; error: string; status: number } | { success: true; therapistId: string }> {
+  const accessToken = getAccessToken(req);
+
+  if (!accessToken) {
+    return {
+      success: false,
+      error: 'No session found. Please log in.',
+      status: 401
+    };
+  }
+
+  // Verify the access token with Supabase
+  const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(accessToken);
+
+  if (authError || !user) {
+    console.error('Therapist session verification failed:', authError?.message);
+    return {
+      success: false,
+      error: 'Invalid or expired session. Please log in again.',
+      status: 401
+    };
+  }
+
+  // Verify user has therapist role
+  const { data: profile, error: profileError } = await supabaseAdmin
+    .from('Couples_profiles')
+    .select('role')
+    .eq('id', user.id)
+    .single();
+
+  if (profileError || !profile) {
+    return {
+      success: false,
+      error: 'User profile not found.',
+      status: 403
+    };
+  }
+
+  if (profile.role !== 'therapist') {
+    return {
+      success: false,
+      error: 'Access denied. Only therapists can perform this action.',
+      status: 403
+    };
+  }
+
+  return {
+    success: true,
+    therapistId: user.id
+  };
+}
+
+// Helper function to verify session for regular client users
+export async function verifyUserSession(req: Request): Promise<{ success: false; error: string; status: number } | { success: true; userId: string; coupleId: string; partnerId: string }> {
+  const accessToken = getAccessToken(req);
+
+  if (!accessToken) {
+    return {
+      success: false,
+      error: 'No session found. Please log in.',
+      status: 401
+    };
+  }
+
+  // Verify the access token with Supabase
+  const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(accessToken);
+
+  if (authError || !user) {
+    console.error('User session verification failed:', authError?.message);
+    return {
+      success: false,
+      error: 'Invalid or expired session. Please log in again.',
+      status: 401
+    };
+  }
+
+  // Get user profile and couple information
+  const { data: profile, error: profileError } = await supabaseAdmin
+    .from('Couples_profiles')
+    .select('role, couple_id')
+    .eq('id', user.id)
+    .single();
+
+  if (profileError || !profile) {
+    return {
+      success: false,
+      error: 'User profile not found.',
+      status: 403
+    };
+  }
+
+  if (!profile.couple_id) {
+    return {
+      success: false,
+      error: 'User is not part of a couple.',
+      status: 403
+    };
+  }
+
+  // Get couple details to find partner
+  const { data: couple, error: coupleError } = await supabaseAdmin
+    .from('Couples_couples')
+    .select('partner1_id, partner2_id')
+    .eq('id', profile.couple_id)
+    .single();
+
+  if (coupleError || !couple) {
+    return {
+      success: false,
+      error: 'Couple not found.',
+      status: 404
+    };
+  }
+
+  // Determine partner ID
+  const partnerId = couple.partner1_id === user.id ? couple.partner2_id : couple.partner1_id;
+
+  return {
+    success: true,
+    userId: user.id,
+    coupleId: profile.couple_id,
+    partnerId: partnerId
+  };
+}
+
+2. AI Router File
+Next, create a new folder src/routes and add this file for all your AI logic.
+Create this file: src/routes/ai.ts
+// src/routes/ai.ts
+import { Router } from "express";
+import { z } from "zod";
+import { supabaseAdmin } from "../supabase.js"; // Make sure this path is correct
+import { analyzeCheckInsWithPerplexity } from "../perplexity.js"; // Make sure this path is correct
+import { safeJsonParse } from "../_shared/safe-json-parse.js"; // Make sure this path is correct
+import { verifyTherapistSession, verifyUserSession } from "../helpers.js"; // Import from our new helpers file
+import type { AIInsight, SessionPrepResult } from "../../shared/schema"; // Adjust path as needed
+
+const aiRouter = Router();
+
+// === AI CACHES ===
+// Caches are now local to this router, which is great!
+const aiInsightsCache = new Map<string, { data: AIInsight; timestamp: number }>();
+const sessionPrepCache = new Map<string, { data: SessionPrepResult; timestamp: number }>();
+const empathyPromptCache = new Map<string, { data: any; timestamp: number }>();
+const recommendationsCache = new Map<string, { data: any; timestamp: number }>();
+const echoCoachingCache = new Map<string, { data: any; timestamp: number }>();
+const voiceSentimentCache = new Map<string, { data: any; timestamp: number }>();
+const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+const EMPATHY_CACHE_TTL_MS = 10 * 60 * 1000; // 10 minutes
+const RECOMMENDATIONS_CACHE_TTL_MS = 30 * 60 * 1000; // 30 minutes
+const ECHO_COACHING_CACHE_TTL_MS = 60 * 60 * 1000; // 60 minutes
+const VOICE_SENTIMENT_CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
+
+// === AI ROUTES ===
+// Note: The path is now "/" instead of "/api/ai/analytics"
+// The main routes.ts file will handle the "/api/ai" prefix.
+
+// THERAPIST ANALYTICS (AI-Powered)
+aiRouter.get("/analytics", async (req, res) => {
+  try {
+    // Verify therapist session and get therapist ID from authenticated session
+    const authResult = await verifyTherapistSession(req);
+    if (!authResult.success) {
+      return res.status(authResult.status).json({ error: authResult.error });
+    }
+    // ... [COPY ALL LOGIC FROM THE "/api/ai/analytics" ROUTE HERE] ...
+    // ... [...from "const therapistId = authResult.therapistId;"...] ...
+    // ... [...down to "res.json(analytics);"...] ...
+    
+    // TEMPORARY: Placeholder for your logic
+    res.json({ message: "Analytics logic goes here" });
+
+  } catch (error: any) {
+    console.error('Analytics error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// AI INSIGHTS (Clinical Insights from Check-ins)
+aiRouter.get("/insights", async (req, res) => {
+  try {
+    const authResult = await verifyTherapistSession(req);
+    if (!authResult.success) {
+      return res.status(authResult.status).json({ error: authResult.error });
+    }
+    
+    // ... [COPY ALL LOGIC FROM THE "/api/ai/insights" ROUTE HERE] ...
+    
+    // TEMPORARY: Placeholder for your logic
+    res.json({ message: "Insights logic goes here" });
+
+  } catch (error: any) {
+    console.error('AI Insights error:', error);
+    res.status(500).json({ 
+      error: error.message || 'Failed to generate AI insights' 
+    });
+  }
+});
+
+// AI SESSION PREP (Comprehensive Weekly Summary for Therapists)
+aiRouter.post("/session-prep/:couple_id", async (req, res) => {
+  try {
+    const authResult = await verifyTherapistSession(req);
+    if (!authResult.success) {
+      return res.status(authResult.status).json({ error: authResult.error });
+    }
+
+    // ... [COPY ALL LOGIC FROM THE "/api/ai/session-prep/:couple_id" ROUTE HERE] ...
+
+    // TEMPORARY: Placeholder for your logic
+    res.json({ message: "Session prep logic goes here" });
+
+  } catch (error: any) {
+    console.error('AI Session Prep error:', error);
+    res.status(500).json({ 
+      error: error.message || 'Failed to generate session preparation summary' 
+    });
+  }
+});
+
+// AI EMPATHY PROMPT (EFT-powered response suggestions for Hold Me Tight conversations)
+aiRouter.post("/empathy-prompt", async (req, res) => {
+  try {
+    const authResult = await verifyUserSession(req);
+    if (!authResult.success) {
+      return res.status(authResult.status).json({ error: authResult.error });
+    }
+
+    // ... [COPY ALL LOGIC FROM THE "/api/ai/empathy-prompt" ROUTE HERE] ...
+
+    // TEMPORARY: Placeholder for your logic
+    res.json({ message: "Empathy prompt logic goes here" });
+
+  } catch (error: any) {
+    console.error('AI Empathy Prompt error:', error);
+    res.status(500).json({ 
+      error: error.message || 'Failed to generate empathy prompts' 
+    });
+  }
+});
+
+// AI EXERCISE RECOMMENDATIONS (Personalized therapy tool suggestions)
+aiRouter.get("/exercise-recommendations", async (req, res) => {
+  try {
+    const authResult = await verifyUserSession(req);
+    if (!authResult.success) {
+      return res.status(authResult.status).json({ error: authResult.error });
+    }
+
+    // ... [COPY ALL LOGIC FROM THE "/api/ai/exercise-recommendations" ROUTE HERE] ...
+
+    // TEMPORARY: Placeholder for your logic
+    res.json({ message: "Exercise recommendations logic goes here" });
+
+  } catch (error: any) {
+    console.error('AI Exercise Recommendations error:', error);
+    res.status(500).json({ 
+      error: error.message || 'Failed to generate exercise recommendations' 
+    });
+  }
+});
+
+// AI ECHO & EMPATHY COACHING (Real-time active listening feedback)
+aiRouter.post("/echo-coaching", async (req, res) => {
+  try {
+    const authResult = await verifyUserSession(req);
+    if (!authResult.success) {
+      return res.status(authResult.status).json({ error: authResult.error });
+    }
+
+    // ... [COPY ALL LOGIC FROM THE "/api/ai/echo-coaching" ROUTE HERE] ...
+
+    // TEMPORARY: Placeholder for your logic
+    res.json({ message: "Echo coaching logic goes here" });
+
+  } catch (error: any) {
+    console.error('AI Echo Coaching error:', error);
+    res.status(500).json({ 
+      error: error.message || 'Failed to generate coaching feedback' 
+    });
+  }
+});
+
+// AI VOICE MEMO SENTIMENT ANALYSIS
+aiRouter.post("/voice-memo-sentiment", async (req, res) => {
+  try {
+    const authResult = await verifyUserSession(req);
+    if (!authResult.success) {
+      return res.status(authResult.status).json({ error: authResult.error });
+    }
+
+    // ... [COPY ALL LOGIC FROM THE "/api/ai/voice-memo-sentiment" ROUTE HERE] ...
+    
+    // TEMPORARY: Placeholder for your logic
+    res.json({ message: "Voice memo sentiment logic goes here" });
+
+  } catch (error: any) {
+    console.error('AI Voice Memo Sentiment error:', error);
+    res.status(500).json({ 
+      error: error.message || 'Failed to analyze voice memo sentiment' 
+    });
+  }
+});
+
+// DATE NIGHT GENERATOR (Connection Concierge)
+const dateNightPreferencesSchema = z.object({
+  time: z.string().min(1, "Time preference is required"),
+  location: z.string().min(1, "Location preference is required"),
+  price: z.string().min(1, "Price preference is required"),
+  participants: z.string().min(1, "Participants preference is required"),
+  energy: z.string().min(1, "Energy level preference is required"),
+});
+
+aiRouter.post("/date-night", async (req, res) => {
+  try {
+    const authResult = await verifyUserSession(req);
+    if (!authResult.success) {
+      return res.status(authResult.status).json({ error: authResult.error });
+    }
+
+    // ... [COPY ALL LOGIC FROM THE "/api/ai/date-night" ROUTE HERE] ...
+    
+    // TEMPORARY: Placeholder for your logic
+    res.json({ message: "Date night logic goes here" });
+    
+  } catch (error: any) {
+    console.error('Date night generation error:', error);
+    res.status(500).json({ 
+      error: error.message || 'Failed to generate date night ideas' 
+    });
+  }
+});
+
+
+export default aiRouter;
+
+(Note: I've left placeholders for you to copy/paste your existing logic into the try...catch blocks. The most important change is that the paths are now relative, e.g., "/analytics".)
+3. Updated Main Routes File
+Finally, your main src/routes.ts file becomes much simpler. You'll remove all the helper functions (we moved them) and all the AI routes (we moved them) and just import the new router.
+Update your file: src/routes.ts
+// src/routes.ts
+import type { Express, Request } from "express";
+import { createServer, type Server } from "http";
+import { storage } from "./storage.js";
+import { supabaseAdmin } from "./supabase.js";
+import type { TherapistAnalytics, CoupleAnalytics, AIInsight, SessionPrepResult, InsertVoiceMemo, VoiceMemo } from "../shared/schema";
+import { insertVoiceMemoSchema, insertCalendarEventSchema } from "../shared/schema";
+import { generateCoupleReport } from "./csv-export.js";
+import { generateVoiceMemoUploadUrl, generateVoiceMemoDownloadUrl, deleteVoiceMemo } from "./storage-helpers.js";
+import { z } from "zod";
+import crypto from "crypto";
+
+// Import our new router
+import aiRouter from "./routes/ai.js";
+
+// Import our moved helpers
+import { verifyTherapistSession, verifyUserSession } from "./helpers.js";
+
+
+export async function registerRoutes(app: Express): Promise<Server> {
+  // ==============================================
+  // REGISTER ROUTERS
+  // ==============================================
+  
+  // All AI routes are now handled by aiRouter
+  app.use("/api/ai", aiRouter);
+  
+
+  // ==============================================
+  // PROFILE ENDPOINTS (To be refactored next)
+  // ==============================================
+
+  // GET /api/profile/partner - Get partner's profile for authenticated user
+  app.get("/api/profile/partner", async (req, res) => {
+    try {
+      const authResult = await verifyUserSession(req);
+      if (!authResult.success) {
+        return res.status(authResult.status).json({ error: authResult.error });
+      }
+
+      const { partnerId } = authResult;
+
+      // Fetch partner's profile
+      const { data: partnerProfile, error } = await supabaseAdmin
+        .from('Couples_profiles')
+        .select('*')
+        .eq('id', partnerId)
+        .single();
+
+      if (error) {
+        throw error;
+      }
+
+      if (!partnerProfile) {
+        return res.status(404).json({ error: 'Partner profile not found' });
+      }
+
+      res.json(partnerProfile);
+    } catch (error: any) {
+      console.error('Error fetching partner profile:', error.message, error.stack);
+      res.status(500).json({ error: error.message || 'Failed to fetch partner profile' });
+    }
+  });
+
+  // ==============================================
+  // AI ENDPOINTS (REMOVED - NOW IN ai.ts)
+  // ==============================================
+  
+  // [ALL THE AI ROUTE LOGIC FROM HERE IS NOW DELETED]
+
+
+  // ==============================================
+  // ALL OTHER ROUTES (To be refactored)
+  // ==============================================
+
+  // [ALL YOUR OTHER ROUTES (CSV, THERAPIST, VOICE MEMOS, ETC.) STAY HERE FOR NOW]
+  
+  // ...
+  // ... (all other routes) ...
+  // ...
+
+  const httpServer = createServer(app);
+
+  return httpServer;
+}
+
+This is the general pattern. We create a new file, move all the related logic and routes, and then tell the main routes.ts file to use that new router.
+How does that look for a first step? We can move on to the "Therapist" or "Voice Memos" routes next.
