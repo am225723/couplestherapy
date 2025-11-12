@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { Switch, Route, Redirect } from 'wouter';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from './lib/queryClient';
@@ -7,10 +7,27 @@ import { ThemeProvider } from './components/theme-provider';
 import { ThemeToggle } from './components/theme-toggle';
 import { Toaster } from '@/components/ui/toaster';
 import { TooltipProvider } from '@/components/ui/tooltip';
-import { SidebarProvider, Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarTrigger, SidebarHeader } from '@/components/ui/sidebar';
+import { 
+  SidebarProvider, 
+  Sidebar, 
+  SidebarContent, 
+  SidebarGroup, 
+  SidebarGroupContent, 
+  SidebarGroupLabel, 
+  SidebarMenu, 
+  SidebarMenuButton, 
+  SidebarMenuItem, 
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubItem,
+  SidebarTrigger, 
+  SidebarHeader 
+} from '@/components/ui/sidebar';
 import { Button } from './components/ui/button';
-import { Home, ClipboardList, Sparkles, Target, Coffee, MessageCircle, Mic, Users, LogOut, Loader2, BarChart3, UserPlus, Heart, MessageSquare, Calendar as CalendarIcon, Map, Volume2, User, PauseCircle, AlertTriangle, BookOpen, Activity, Compass, Baby } from 'lucide-react';
+import { Users, LogOut, Loader2, BarChart3, UserPlus, ChevronDown } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { clientMenuConfig } from './config/clientMenuConfig';
 import coupleArt from '@assets/Screenshot_20251109_193551_Chrome Beta_1762734968356.jpg';
 
 import AuthPage from './pages/auth';
@@ -48,29 +65,55 @@ function AppSidebar() {
   const { profile, signOut } = useAuth();
   const [location] = useLocation();
 
-  const clientMenuItems = [
-    { title: 'Dashboard', url: '/dashboard', icon: Home },
-    { title: 'Weekly Check-In', url: '/weekly-checkin', icon: ClipboardList },
-    { title: 'Love Language Quiz', url: '/quiz', icon: Heart },
-    { title: 'Love Map Quiz', url: '/love-map', icon: Map },
-    { title: 'Echo & Empathy', url: '/echo-empathy', icon: Volume2 },
-    { title: 'IFS Introduction', url: '/ifs-intro', icon: User },
-    { title: 'Pause Button', url: '/pause', icon: PauseCircle },
-    { title: 'Four Horsemen', url: '/four-horsemen', icon: AlertTriangle },
-    { title: 'Demon Dialogues', url: '/demon-dialogues', icon: MessageCircle },
-    { title: 'Meditation Library', url: '/meditation-library', icon: BookOpen },
-    { title: 'Intimacy Mapping', url: '/intimacy-mapping', icon: Activity },
-    { title: 'Values & Vision', url: '/values-vision', icon: Compass },
-    { title: 'Parenting Partners', url: '/parenting-partners', icon: Baby },
-    { title: 'Messages', url: '/messages', icon: MessageSquare },
-    { title: 'Calendar', url: '/calendar', icon: CalendarIcon },
-    { title: 'Date Night Generator', url: '/date-night', icon: Sparkles },
-    { title: 'Gratitude Log', url: '/gratitude', icon: Heart },
-    { title: 'Shared Goals', url: '/goals', icon: Target },
-    { title: 'Rituals', url: '/rituals', icon: Coffee },
-    { title: 'Hold Me Tight', url: '/conversation', icon: MessageCircle },
-    { title: 'Voice Memos', url: '/voice-memos', icon: Mic },
-  ];
+  // Manage category open/close state with localStorage persistence
+  const STORAGE_KEY = 'aleic-sidebar-categories';
+  
+  const [openCategories, setOpenCategories] = useState<Record<string, boolean>>(() => {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        return JSON.parse(stored);
+      }
+    } catch (e) {
+      console.error('Failed to load sidebar state:', e);
+    }
+    // Initialize with default states from config
+    return clientMenuConfig.reduce((acc, category) => {
+      acc[category.id] = category.defaultOpen;
+      return acc;
+    }, {} as Record<string, boolean>);
+  });
+
+  // Persist category state to localStorage
+  const toggleCategory = (categoryId: string) => {
+    setOpenCategories(prev => {
+      const updated = { ...prev, [categoryId]: !prev[categoryId] };
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+      } catch (e) {
+        console.error('Failed to save sidebar state:', e);
+      }
+      return updated;
+    });
+  };
+
+  // Auto-expand category if it contains the active route
+  useEffect(() => {
+    clientMenuConfig.forEach(category => {
+      const hasActiveRoute = category.routes.some(route => route.url === location);
+      if (hasActiveRoute && !openCategories[category.id]) {
+        setOpenCategories(prev => {
+          const updated = { ...prev, [category.id]: true };
+          try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+          } catch (e) {
+            console.error('Failed to save sidebar state:', e);
+          }
+          return updated;
+        });
+      }
+    });
+  }, [location]);
 
   const adminMenuItems = [
     { title: 'Couples', url: '/admin', icon: Users },
@@ -78,9 +121,8 @@ function AppSidebar() {
     { title: 'Invitation Codes', url: '/admin/invitation-codes', icon: UserPlus },
   ];
 
-  const menuItems = profile?.role === 'therapist' ? adminMenuItems : clientMenuItems;
-
   const homeUrl = profile?.role === 'therapist' ? '/admin' : '/dashboard';
+  const isTherapist = profile?.role === 'therapist';
 
   return (
     <Sidebar>
@@ -96,30 +138,96 @@ function AppSidebar() {
         </Link>
       </SidebarHeader>
       <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel>
-            {profile?.role === 'therapist' ? 'Therapist Portal' : 'Your Journey'}
-          </SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {menuItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild isActive={location === item.url}>
-                    <Link href={item.url}>
-                      <item.icon className="h-4 w-4" />
-                      <span>{item.title}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        {isTherapist ? (
+          <SidebarGroup>
+            <SidebarGroupLabel>Therapist Portal</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {adminMenuItems.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton asChild isActive={location === item.url}>
+                      <Link href={item.url} data-testid={`nav-${item.title.toLowerCase().replace(/\s+/g, '-')}`}>
+                        <item.icon className="h-4 w-4" />
+                        <span>{item.title}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        ) : (
+          <>
+            {clientMenuConfig.map((category) => {
+              // Special handling for dashboard - render directly without collapsible
+              if (category.id === 'dashboard') {
+                return (
+                  <SidebarGroup key={category.id}>
+                    <SidebarMenu>
+                      {category.routes.map((route) => (
+                        <SidebarMenuItem key={route.url}>
+                          <SidebarMenuButton asChild isActive={location === route.url}>
+                            <Link href={route.url} data-testid={route.testId}>
+                              <route.icon className="h-4 w-4" />
+                              <span>{route.title}</span>
+                            </Link>
+                          </SidebarMenuButton>
+                        </SidebarMenuItem>
+                      ))}
+                    </SidebarMenu>
+                  </SidebarGroup>
+                );
+              }
+
+              // Render collapsible categories for all other groups
+              const isOpen = openCategories[category.id] ?? category.defaultOpen;
+              const hasActiveRoute = category.routes.some(route => route.url === location);
+
+              return (
+                <Collapsible
+                  key={category.id}
+                  open={isOpen}
+                  onOpenChange={() => toggleCategory(category.id)}
+                  className="group/collapsible"
+                >
+                  <SidebarGroup>
+                    <SidebarGroupLabel asChild>
+                      <CollapsibleTrigger className="flex w-full items-center gap-2 hover-elevate active-elevate-2 p-2 rounded-md -m-2">
+                        {category.icon && <category.icon className="h-4 w-4" />}
+                        <span className="flex-1 text-left">{category.label}</span>
+                        <ChevronDown className={`h-4 w-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                      </CollapsibleTrigger>
+                    </SidebarGroupLabel>
+                    <CollapsibleContent>
+                      <SidebarGroupContent>
+                        <SidebarMenu>
+                          <SidebarMenuSub>
+                            {category.routes.map((route) => (
+                              <SidebarMenuSubItem key={route.url}>
+                                <SidebarMenuSubButton asChild isActive={location === route.url}>
+                                  <Link href={route.url} data-testid={route.testId}>
+                                    <route.icon className="h-4 w-4" />
+                                    <span>{route.title}</span>
+                                  </Link>
+                                </SidebarMenuSubButton>
+                              </SidebarMenuSubItem>
+                            ))}
+                          </SidebarMenuSub>
+                        </SidebarMenu>
+                      </SidebarGroupContent>
+                    </CollapsibleContent>
+                  </SidebarGroup>
+                </Collapsible>
+              );
+            })}
+          </>
+        )}
+        
         <SidebarGroup className="mt-auto">
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
-                <SidebarMenuButton onClick={signOut}>
+                <SidebarMenuButton onClick={signOut} data-testid="button-signout">
                   <LogOut className="h-4 w-4" />
                   <span>Sign Out</span>
                 </SidebarMenuButton>
