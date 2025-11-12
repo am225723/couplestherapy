@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/components/ui/label';
 import { BookOpen, Plus, Heart, Lock, Users, Eye, Calendar } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { PrototypeNotice } from '@/components/prototype-notice';
 
 interface JournalEntry {
   id: string;
@@ -79,6 +80,7 @@ export default function CoupleJournalPage() {
   return (
     <div className="min-h-screen bg-background p-6">
       <div className="max-w-5xl mx-auto py-12 space-y-6">
+        <PrototypeNotice />
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <BookOpen className="h-10 w-10 text-primary" />

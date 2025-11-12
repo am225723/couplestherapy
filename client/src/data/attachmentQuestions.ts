@@ -21,8 +21,8 @@ export const attachmentQuestions: AttachmentQuestion[] = [
   {
     id: 3,
     question_text: "I am comfortable without close emotional relationships.",
-    attachment_category: "avoidant",
-    reverse_scored: false
+    attachment_category: "secure",
+    reverse_scored: true
   },
   {
     id: 4,
@@ -39,8 +39,8 @@ export const attachmentQuestions: AttachmentQuestion[] = [
   {
     id: 6,
     question_text: "I prefer not to depend on others or have others depend on me.",
-    attachment_category: "avoidant",
-    reverse_scored: false
+    attachment_category: "secure",
+    reverse_scored: true
   },
   {
     id: 7,
@@ -63,8 +63,8 @@ export const attachmentQuestions: AttachmentQuestion[] = [
   {
     id: 10,
     question_text: "I prefer not to show others how I feel deep down.",
-    attachment_category: "avoidant",
-    reverse_scored: false
+    attachment_category: "secure",
+    reverse_scored: true
   },
   {
     id: 11,
@@ -75,8 +75,8 @@ export const attachmentQuestions: AttachmentQuestion[] = [
   {
     id: 12,
     question_text: "I get uncomfortable when people want to be very close emotionally.",
-    attachment_category: "avoidant",
-    reverse_scored: false
+    attachment_category: "secure",
+    reverse_scored: true
   },
   {
     id: 13,
@@ -105,8 +105,8 @@ export const attachmentQuestions: AttachmentQuestion[] = [
   {
     id: 17,
     question_text: "I am nervous when anyone gets too close to me emotionally.",
-    attachment_category: "avoidant",
-    reverse_scored: false
+    attachment_category: "secure",
+    reverse_scored: true
   },
   {
     id: 18,
@@ -129,8 +129,8 @@ export const attachmentQuestions: AttachmentQuestion[] = [
   {
     id: 21,
     question_text: "I try to avoid getting too close to my partner.",
-    attachment_category: "avoidant",
-    reverse_scored: false
+    attachment_category: "secure",
+    reverse_scored: true
   },
   {
     id: 22,
@@ -171,8 +171,8 @@ export const attachmentQuestions: AttachmentQuestion[] = [
   {
     id: 28,
     question_text: "I prefer to keep my independence in relationships.",
-    attachment_category: "avoidant",
-    reverse_scored: false
+    attachment_category: "secure",
+    reverse_scored: true
   },
   {
     id: 29,
@@ -196,19 +196,27 @@ export function calculateAttachmentStyle(responses: { [questionId: number]: numb
     disorganized: 0
   };
 
+  const categoryCounts = {
+    secure: 0,
+    anxious: 0,
+    avoidant: 0,
+    disorganized: 0
+  };
+
   attachmentQuestions.forEach(question => {
     const response = responses[question.id];
-    if (response) {
+    if (response !== undefined && response !== null) {
       const score = question.reverse_scored ? (6 - response) : response;
       scores[question.attachment_category] += score;
+      categoryCounts[question.attachment_category]++;
     }
   });
 
   const normalizedScores = {
-    secure: Math.round((scores.secure / (attachmentQuestions.filter(q => q.attachment_category === 'secure').length * 5)) * 100),
-    anxious: Math.round((scores.anxious / (attachmentQuestions.filter(q => q.attachment_category === 'anxious').length * 5)) * 100),
-    avoidant: Math.round((scores.avoidant / (attachmentQuestions.filter(q => q.attachment_category === 'avoidant').length * 5)) * 100),
-    disorganized: Math.round((scores.disorganized / (attachmentQuestions.filter(q => q.attachment_category === 'disorganized').length * 5)) * 100)
+    secure: categoryCounts.secure > 0 ? Math.round((scores.secure / (categoryCounts.secure * 5)) * 100) : 0,
+    anxious: categoryCounts.anxious > 0 ? Math.round((scores.anxious / (categoryCounts.anxious * 5)) * 100) : 0,
+    avoidant: categoryCounts.avoidant > 0 ? Math.round((scores.avoidant / (categoryCounts.avoidant * 5)) * 100) : 0,
+    disorganized: categoryCounts.disorganized > 0 ? Math.round((scores.disorganized / (categoryCounts.disorganized * 5)) * 100) : 0
   };
 
   const primaryStyle = Object.entries(normalizedScores).reduce((a, b) => 

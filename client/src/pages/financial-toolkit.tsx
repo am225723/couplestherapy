@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DollarSign, TrendingUp, Target, PiggyBank, Plus, Trash2 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
+import { PrototypeNotice } from '@/components/prototype-notice';
 
 interface BudgetCategory {
   id: string;
@@ -85,6 +86,15 @@ export default function FinancialToolkitPage() {
   };
 
   const handleDeleteCategory = (id: string) => {
+    const category = budgetCategories.find(c => c.id === id);
+    if (category && category.spent > 0) {
+      toast({
+        title: 'Cannot Delete',
+        description: 'Cannot delete a category with expenses. Set spent to $0 first.',
+        variant: 'destructive',
+      });
+      return;
+    }
     setBudgetCategories(prev => prev.filter(c => c.id !== id));
     toast({ title: 'Category Deleted' });
   };
@@ -97,6 +107,7 @@ export default function FinancialToolkitPage() {
   return (
     <div className="min-h-screen bg-background p-6">
       <div className="max-w-6xl mx-auto py-12 space-y-6">
+        <PrototypeNotice />
         <div className="flex items-center gap-3">
           <DollarSign className="h-10 w-10 text-primary" />
           <div>
@@ -124,7 +135,7 @@ export default function FinancialToolkitPage() {
               <CardContent className="space-y-6">
                 <div className="space-y-4">
                   {budgetCategories.map((category) => {
-                    const percentage = (category.spent / category.budgeted) * 100;
+                    const percentage = category.budgeted > 0 ? (category.spent / category.budgeted) * 100 : 0;
                     const isOverBudget = percentage > 100;
 
                     return (
@@ -149,6 +160,7 @@ export default function FinancialToolkitPage() {
                         <Progress
                           value={Math.min(percentage, 100)}
                           className={`h-2 ${isOverBudget ? '[&>div]:bg-destructive' : ''}`}
+                          data-testid={`progress-${category.id}`}
                         />
                       </div>
                     );

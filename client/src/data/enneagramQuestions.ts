@@ -44,22 +44,36 @@ export const enneagramQuestions: EnneagramQuestion[] = [
 ];
 
 export function calculateEnneagramType(responses: { [questionId: number]: number }) {
-  const scores: { [type: number]: number } = {
+  const rawScores: { [type: number]: number } = {
+    1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0
+  };
+
+  const typeCounts: { [type: number]: number } = {
     1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0
   };
 
   enneagramQuestions.forEach(question => {
     const response = responses[question.id];
-    if (response) {
-      scores[question.enneagram_type] += response;
+    if (response !== undefined && response !== null) {
+      rawScores[question.enneagram_type] += response;
+      typeCounts[question.enneagram_type]++;
     }
   });
 
-  const dominantType = Object.entries(scores).reduce((a, b) => scores[parseInt(a[0])] > scores[parseInt(b[0])] ? a : b)[0];
+  const normalizedScores: { [type: number]: number } = {};
+  Object.keys(rawScores).forEach(type => {
+    const typeNum = parseInt(type);
+    const count = typeCounts[typeNum];
+    normalizedScores[typeNum] = count > 0 ? Math.round((rawScores[typeNum] / (count * 5)) * 100) : 0;
+  });
+
+  const dominantTypeEntry = Object.entries(normalizedScores).reduce((a, b) => 
+    normalizedScores[parseInt(a[0])] >= normalizedScores[parseInt(b[0])] ? a : b
+  );
 
   return {
-    dominantType: parseInt(dominantType),
-    scores,
+    dominantType: parseInt(dominantTypeEntry[0]),
+    scores: normalizedScores,
   };
 }
 
