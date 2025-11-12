@@ -10,6 +10,11 @@ I prefer iterative development with clear communication on progress and potentia
 
 ## Recent Changes (November 2025)
 
+**Navigation & UX Improvements:**
+1. **Client Sidebar Reorganization**: Implemented config-driven sidebar architecture with 21+ tools organized into 6 collapsible categories (Dashboard, Assessments & Check-ins, Communication Tools, Personal Growth, Connection & Fun, Planning & Organization).
+2. **Admin Sidebar Enhancement**: Added collapsible section groups to therapist dashboard (Core Insights, Communication Tools, Planning & Goals, Support Resources) with Love Map Quiz integration.
+3. **Persistent Navigation State**: Both sidebars now save category open/closed state to localStorage with auto-expansion when navigating to routes within collapsed categories.
+
 **Quality & Reliability Improvements:**
 1. **AI Error Handling**: Added robust try/catch with schema validation for AI exercise recommendations endpoint to prevent crash loops from malformed responses.
 2. **Love Language Deletion**: Implemented optimistic UI updates for deleting love language results with proper cache management.
@@ -17,6 +22,10 @@ I prefer iterative development with clear communication on progress and potentia
 4. **Documentation Cleanup**: Removed emojis from FUTURE_FEATURES_ROADMAP.md per project style guidelines.
 
 **Technical Details:**
+- Client sidebar config defined in `client/src/config/clientMenuConfig.ts` with typed category/route definitions
+- Admin sidebar sections use same collapsible pattern with separate localStorage key (`aleic-admin-sidebar-sections`)
+- Both sidebars use Shadcn Collapsible + SidebarMenuSub primitives for consistent UX
+- Auto-expansion logic detects active routes and expands containing categories on mount
 - Love Map now uses `useMemo` for phase-specific question filtering, ensuring pagination bounds match filtered datasets
 - Added automatic page clamping when datasets shrink to prevent out-of-bounds indices
 - Submission validation now aligns with phase-specific question counts
