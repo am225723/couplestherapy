@@ -8,6 +8,20 @@ ALEIC is a multi-tenant platform for couples therapy, offering distinct applicat
 
 I prefer iterative development with clear communication on progress and potential changes. Please ask before implementing major architectural changes or introducing new dependencies. I value a clean, readable codebase with consistent styling and well-documented components. For explanations, please use clear, concise language, focusing on the "why" behind decisions as much as the "what."
 
+## Recent Changes (November 2025)
+
+**Quality & Reliability Improvements:**
+1. **AI Error Handling**: Added robust try/catch with schema validation for AI exercise recommendations endpoint to prevent crash loops from malformed responses.
+2. **Love Language Deletion**: Implemented optimistic UI updates for deleting love language results with proper cache management.
+3. **Love Map Pagination**: Implemented phase-scoped pagination system that properly filters questions per phase (truths/guesses/results), preventing UI glitches during phase transitions.
+4. **Documentation Cleanup**: Removed emojis from FUTURE_FEATURES_ROADMAP.md per project style guidelines.
+
+**Technical Details:**
+- Love Map now uses `useMemo` for phase-specific question filtering, ensuring pagination bounds match filtered datasets
+- Added automatic page clamping when datasets shrink to prevent out-of-bounds indices
+- Submission validation now aligns with phase-specific question counts
+- All UI counts and progress indicators derive from filtered phaseQuestions array
+
 ## System Architecture
 
 The platform uses a React 18 frontend with Vite, Wouter for routing, and Tailwind CSS (with a custom therapeutic teal/green palette) and Shadcn UI for styling. TanStack Query v5 manages server state. The backend leverages Supabase PostgreSQL with Row Level Security (RLS), Supabase Authentication, Realtime for live updates, and Storage for media.

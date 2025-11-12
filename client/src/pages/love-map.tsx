@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useAuth } from '@/lib/auth-context';
 import { queryClient, apiRequest } from '@/lib/queryClient';
@@ -146,15 +146,45 @@ export default function LoveMapQuiz() {
     }
   }, [session, user, isPartner1]);
 
-  // Calculate paginated questions
+  // Get questions for current phase with phase-specific filtering
+  const phaseQuestions = useMemo(() => {
+    if (currentPhase === 'truths') {
+      // Truths phase: All questions
+      return questions || [];
+    } else if (currentPhase === 'guesses') {
+      // Guesses phase: Only show questions if partner has completed truths
+      const partnerTruthsCompleted = isPartner1 
+        ? session?.partner2_truths_completed 
+        : session?.partner1_truths_completed;
+      
+      if (!partnerTruthsCompleted || !questions) {
+        return []; // Partner hasn't completed truths yet
+      }
+      return questions;
+    } else if (currentPhase === 'results') {
+      // Results phase: Use comparison results array
+      return resultsData?.results || [];
+    }
+    return [];
+  }, [currentPhase, questions, session, isPartner1, resultsData]);
+  
+  // Clamp page number when dataset shrinks
+  useEffect(() => {
+    const maxPage = phaseQuestions.length > 0 ? Math.ceil(phaseQuestions.length / QUESTIONS_PER_PAGE) - 1 : 0;
+    if (currentPage > maxPage) {
+      setPageByPhase(prev => ({ ...prev, [currentPhase]: maxPage }));
+    }
+  }, [phaseQuestions.length, currentPage, currentPhase, QUESTIONS_PER_PAGE]);
+  
+  // Calculate paginated questions for current phase
   const getCurrentPageQuestions = () => {
-    if (!questions) return [];
     const startIndex = currentPage * QUESTIONS_PER_PAGE;
     const endIndex = startIndex + QUESTIONS_PER_PAGE;
-    return questions.slice(startIndex, endIndex);
+    return phaseQuestions.slice(startIndex, endIndex);
   };
 
-  const totalPages = questions ? Math.ceil(questions.length / QUESTIONS_PER_PAGE) : 0;
+  // Calculate pagination bounds per phase
+  const totalPages = phaseQuestions.length > 0 ? Math.ceil(phaseQuestions.length / QUESTIONS_PER_PAGE) : 0;
   const isLastPage = currentPage === totalPages - 1;
   const isFirstPage = currentPage === 0;
 
@@ -218,7 +248,7 @@ export default function LoveMapQuiz() {
 
   const handleTruthsSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!questions || Object.keys(truthAnswers).length !== questions.length) {
+    if (phaseQuestions.length === 0 || Object.keys(truthAnswers).length !== phaseQuestions.length) {
       toast({
         title: 'Incomplete',
         description: 'Please answer all questions before submitting.',
@@ -231,7 +261,7 @@ export default function LoveMapQuiz() {
 
   const handleGuessesSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!questions || Object.keys(guessAnswers).length !== questions.length) {
+    if (phaseQuestions.length === 0 || Object.keys(guessAnswers).length !== phaseQuestions.length) {
       toast({
         title: 'Incomplete',
         description: 'Please answer all questions before submitting.',
@@ -340,10 +370,10 @@ export default function LoveMapQuiz() {
               <CardContent className="space-y-6">
                 <div className="mb-4 flex items-center justify-between">
                   <p className="text-sm text-muted-foreground">
-                    Page {currentPage + 1} of {totalPages} • {Object.keys(truthAnswers).length} of {questions.length} answered
+                    Page {currentPage + 1} of {totalPages} • {Object.keys(truthAnswers).length} of {phaseQuestions.length} answered
                   </p>
                   <Badge variant="outline" data-testid="badge-question-page">
-                    Questions {currentPage * QUESTIONS_PER_PAGE + 1}-{Math.min((currentPage + 1) * QUESTIONS_PER_PAGE, questions.length)}
+                    Questions {currentPage * QUESTIONS_PER_PAGE + 1}-{Math.min((currentPage + 1) * QUESTIONS_PER_PAGE, phaseQuestions.length)}
                   </Badge>
                 </div>
                 
@@ -444,10 +474,10 @@ export default function LoveMapQuiz() {
               <CardContent className="space-y-6">
                 <div className="mb-4 flex items-center justify-between">
                   <p className="text-sm text-muted-foreground">
-                    Page {currentPage + 1} of {totalPages} • {Object.keys(guessAnswers).length} of {questions.length} answered
+                    Page {currentPage + 1} of {totalPages} • {Object.keys(guessAnswers).length} of {phaseQuestions.length} answered
                   </p>
                   <Badge variant="outline" data-testid="badge-guess-page">
-                    Questions {currentPage * QUESTIONS_PER_PAGE + 1}-{Math.min((currentPage + 1) * QUESTIONS_PER_PAGE, questions.length)}
+                    Questions {currentPage * QUESTIONS_PER_PAGE + 1}-{Math.min((currentPage + 1) * QUESTIONS_PER_PAGE, phaseQuestions.length)}
                   </Badge>
                 </div>
                 
