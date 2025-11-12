@@ -59,6 +59,10 @@ import ClientDashboard from './pages/client-dashboard';
 import AdminDashboard from './pages/admin-dashboard';
 import AnalyticsPage from './pages/analytics';
 import InvitationCodesPage from './pages/invitation-codes';
+import AttachmentAssessmentPage from './pages/attachment-assessment';
+import EnneagramAssessmentPage from './pages/enneagram-assessment';
+import CoupleJournalPage from './pages/couple-journal';
+import FinancialToolkitPage from './pages/financial-toolkit';
 import NotFound from './pages/not-found';
 
 function AppSidebar() {
@@ -365,6 +369,10 @@ function AuthenticatedApp() {
                   <Route path="/intimacy-mapping" component={IntimacyMappingPage} />
                   <Route path="/values-vision" component={ValuesVisionPage} />
                   <Route path="/parenting-partners" component={ParentingPartnersPage} />
+                  <Route path="/attachment-assessment" component={AttachmentAssessmentPage} />
+                  <Route path="/enneagram-assessment" component={EnneagramAssessmentPage} />
+                  <Route path="/couple-journal" component={CoupleJournalPage} />
+                  <Route path="/financial-toolkit" component={FinancialToolkitPage} />
                   <Route path="/">
                     {profile.couple_id ? <Redirect to="/dashboard" /> : <Redirect to="/couple-setup" />}
                   </Route>

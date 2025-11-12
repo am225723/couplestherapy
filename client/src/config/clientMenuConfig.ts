@@ -22,7 +22,9 @@ import {
   CheckSquare,
   Lightbulb,
   Smile,
-  FolderKanban
+  FolderKanban,
+  DollarSign,
+  Link2
 } from 'lucide-react';
 
 export interface MenuRoute {
@@ -59,6 +61,8 @@ export const clientMenuConfig: MenuCategory[] = [
       { title: 'Weekly Check-In', url: '/weekly-checkin', icon: ClipboardList, testId: 'nav-checkin' },
       { title: 'Love Language Quiz', url: '/quiz', icon: Heart, testId: 'nav-love-language' },
       { title: 'Love Map Quiz', url: '/love-map', icon: Map, testId: 'nav-love-map' },
+      { title: 'Attachment Assessment', url: '/attachment-assessment', icon: Link2, testId: 'nav-attachment' },
+      { title: 'Enneagram Assessment', url: '/enneagram-assessment', icon: Compass, testId: 'nav-enneagram' },
       { title: 'Four Horsemen', url: '/four-horsemen', icon: AlertTriangle, testId: 'nav-four-horsemen' },
       { title: 'Demon Dialogues', url: '/demon-dialogues', icon: MessageCircle, testId: 'nav-demon-dialogues' },
     ],
@@ -94,6 +98,7 @@ export const clientMenuConfig: MenuCategory[] = [
     defaultOpen: false,
     routes: [
       { title: 'Date Night Generator', url: '/date-night', icon: Sparkles, testId: 'nav-date-night' },
+      { title: 'Couple Journal', url: '/couple-journal', icon: BookOpen, testId: 'nav-journal' },
       { title: 'Gratitude Log', url: '/gratitude', icon: Heart, testId: 'nav-gratitude' },
       { title: 'Intimacy Mapping', url: '/intimacy-mapping', icon: Activity, testId: 'nav-intimacy' },
       { title: 'Parenting Partners', url: '/parenting-partners', icon: Baby, testId: 'nav-parenting' },
@@ -107,6 +112,7 @@ export const clientMenuConfig: MenuCategory[] = [
     routes: [
       { title: 'Calendar', url: '/calendar', icon: Calendar, testId: 'nav-calendar' },
       { title: 'Shared Goals', url: '/goals', icon: Target, testId: 'nav-goals' },
+      { title: 'Financial Toolkit', url: '/financial-toolkit', icon: DollarSign, testId: 'nav-financial' },
       { title: 'Rituals', url: '/rituals', icon: Coffee, testId: 'nav-rituals' },
     ],
   },
