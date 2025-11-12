@@ -1,0 +1,54 @@
+import { Router } from "express";
+import { supabaseAdmin } from "../supabase.js";
+import { verifyTherapistSession } from "../helpers.js";
+
+const router = Router();
+
+// DELETE /:id - Delete a love language result (therapist only)
+router.delete("/:id", async (req, res) => {
+  try {
+    const therapistAuth = await verifyTherapistSession(req);
+    if (!therapistAuth.success) {
+      return res.status(therapistAuth.status).json({ error: therapistAuth.error });
+    }
+
+    const { id } = req.params;
+
+    // Get the love language result to verify ownership
+    const { data: loveLanguage, error: fetchError } = await supabaseAdmin
+      .from('Couples_love_languages')
+      .select('user_id')
+      .eq('id', id)
+      .single();
+
+    if (fetchError || !loveLanguage) {
+      return res.status(404).json({ error: 'Love language result not found' });
+    }
+
+    // Get the user's couple to verify therapist is assigned
+    const { data: couples, error: coupleError } = await supabaseAdmin
+      .from('Couples_couples')
+      .select('id')
+      .eq('therapist_id', therapistAuth.therapistId)
+      .or(`partner1_id.eq.${loveLanguage.user_id},partner2_id.eq.${loveLanguage.user_id}`);
+
+    if (coupleError || !couples || couples.length === 0) {
+      return res.status(403).json({ error: 'Access denied to this love language result' });
+    }
+
+    // Delete the love language result
+    const { error: deleteError } = await supabaseAdmin
+      .from('Couples_love_languages')
+      .delete()
+      .eq('id', id);
+
+    if (deleteError) throw deleteError;
+
+    res.json({ success: true });
+  } catch (error: any) {
+    console.error('Error deleting love language:', error);
+    res.status(500).json({ error: error.message || 'Failed to delete love language' });
+  }
+});
+
+export default router;
