@@ -1,4 +1,4 @@
-import { supabaseAdmin } from './supabase';
+import { supabaseAdmin } from './supabase.js';
 
 /**
  * Generate a signed upload URL for a new voice memo
