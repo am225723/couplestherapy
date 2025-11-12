@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { supabaseAdmin } from "../supabase.js";
-import type { TherapistAnalytics, CoupleAnalytics, AIInsight, SessionPrepResult } from "../../shared/schema";
+import type { TherapistAnalytics, CoupleAnalytics, AIInsight, SessionPrepResult } from "../../shared/schema.js";
 import { analyzeCheckInsWithPerplexity } from "../perplexity.js";
 import { safeJsonParse } from "../_shared/safe-json-parse.js";
 import { verifyTherapistSession, verifyUserSession } from "../helpers.js";
