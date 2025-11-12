@@ -1,4 +1,5 @@
-import { Heart, Users, MessageSquare, Calendar, Target, Book, Brain, Pause, TrendingUp, Home } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Heart, Users, MessageSquare, Calendar, Target, Book, Brain, Pause, TrendingUp, Home, Map, ChevronDown } from 'lucide-react';
 import {
   Sidebar,
   SidebarContent,
@@ -8,10 +9,14 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubItem,
 } from '@/components/ui/sidebar';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 interface Couple {
   id: string;
@@ -39,16 +44,21 @@ interface AdminSidebarProps {
 
 const sectionGroups = [
   {
+    id: 'core-insights',
     label: 'Core Insights',
+    defaultOpen: true,
     sections: [
       { id: 'overview', label: 'Overview', icon: Home },
       { id: 'checkins', label: 'Weekly Check-ins', icon: TrendingUp },
       { id: 'languages', label: 'Love Languages', icon: Heart },
+      { id: 'lovemap', label: 'Love Map Quiz', icon: Map },
       { id: 'analytics', label: 'AI Analytics', icon: Brain },
     ],
   },
   {
+    id: 'communication',
     label: 'Communication Tools',
+    defaultOpen: true,
     sections: [
       { id: 'messages', label: 'Messages', icon: MessageSquare },
       { id: 'echo', label: 'Echo & Empathy', icon: Users },
@@ -57,7 +67,9 @@ const sectionGroups = [
     ],
   },
   {
+    id: 'planning',
     label: 'Planning & Goals',
+    defaultOpen: false,
     sections: [
       { id: 'goals', label: 'Shared Goals', icon: Target },
       { id: 'calendar', label: 'Calendar', icon: Calendar },
@@ -65,7 +77,9 @@ const sectionGroups = [
     ],
   },
   {
+    id: 'support',
     label: 'Support Resources',
+    defaultOpen: false,
     sections: [
       { id: 'activity', label: 'Activity Feed', icon: TrendingUp },
       { id: 'ifs', label: 'IFS Exercises', icon: Brain },
@@ -82,6 +96,58 @@ export function AdminSidebar({
   onSelectSection,
 }: AdminSidebarProps) {
   const selectedCouple = couples.find((c) => c.id === selectedCoupleId);
+
+  // Manage category open/close state with localStorage persistence
+  const STORAGE_KEY = 'aleic-admin-sidebar-sections';
+  
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>(() => {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        return JSON.parse(stored);
+      }
+    } catch (e) {
+      console.error('Failed to load admin sidebar state:', e);
+    }
+    // Initialize with default states from config
+    return sectionGroups.reduce((acc, group) => {
+      acc[group.id] = group.defaultOpen;
+      return acc;
+    }, {} as Record<string, boolean>);
+  });
+
+  // Persist section state to localStorage
+  const toggleSection = (sectionId: string) => {
+    setOpenSections(prev => {
+      const updated = { ...prev, [sectionId]: !prev[sectionId] };
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+      } catch (e) {
+        console.error('Failed to save admin sidebar state:', e);
+      }
+      return updated;
+    });
+  };
+
+  // Auto-expand section if it contains the active route
+  useEffect(() => {
+    if (currentSection) {
+      sectionGroups.forEach(group => {
+        const hasActiveSection = group.sections.some(section => section.id === currentSection);
+        if (hasActiveSection && !openSections[group.id]) {
+          setOpenSections(prev => {
+            const updated = { ...prev, [group.id]: true };
+            try {
+              localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+            } catch (e) {
+              console.error('Failed to save admin sidebar state:', e);
+            }
+            return updated;
+          });
+        }
+      });
+    }
+  }, [currentSection]);
 
   const getInitials = (name: string) => {
     return name
@@ -138,45 +204,66 @@ export function AdminSidebar({
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {selectedCouple && onSelectSection && (
+        {selectedCouple && onSelectSection ? (
           <>
-            {sectionGroups.map((group) => (
-              <SidebarGroup key={group.label}>
-                <SidebarGroupLabel>{group.label}</SidebarGroupLabel>
-                <SidebarGroupContent>
-                  <SidebarMenu>
-                    {group.sections.map((section) => {
-                      const Icon = section.icon;
-                      const isActive = currentSection === section.id;
+            {sectionGroups.map((group) => {
+              const isOpen = openSections[group.id] ?? group.defaultOpen;
+              const hasActiveSection = group.sections.some(section => section.id === currentSection);
 
-                      return (
-                        <SidebarMenuItem key={section.id}>
-                          <SidebarMenuButton
-                            onClick={() => onSelectSection(section.id)}
-                            className={isActive ? 'bg-sidebar-accent' : ''}
-                            data-testid={`sidebar-section-${section.id}`}
-                          >
-                            <Icon className="h-4 w-4" />
-                            <span>{section.label}</span>
-                          </SidebarMenuButton>
-                        </SidebarMenuItem>
-                      );
-                    })}
-                  </SidebarMenu>
-                </SidebarGroupContent>
-              </SidebarGroup>
-            ))}
+              return (
+                <Collapsible
+                  key={group.id}
+                  open={isOpen}
+                  onOpenChange={() => toggleSection(group.id)}
+                  className="group/collapsible"
+                >
+                  <SidebarGroup>
+                    <SidebarGroupLabel asChild>
+                      <CollapsibleTrigger className="flex w-full items-center gap-2 hover-elevate active-elevate-2 p-2 rounded-md -m-2">
+                        <span className="flex-1 text-left">{group.label}</span>
+                        <ChevronDown className={`h-4 w-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                      </CollapsibleTrigger>
+                    </SidebarGroupLabel>
+                    <CollapsibleContent>
+                      <SidebarGroupContent>
+                        <SidebarMenu>
+                          <SidebarMenuSub>
+                            {group.sections.map((section) => {
+                              const Icon = section.icon;
+                              const isActive = currentSection === section.id;
+
+                              return (
+                                <SidebarMenuSubItem key={section.id}>
+                                  <SidebarMenuSubButton
+                                    onClick={() => onSelectSection(section.id)}
+                                    isActive={isActive}
+                                    data-testid={`sidebar-section-${section.id}`}
+                                  >
+                                    <Icon className="h-4 w-4" />
+                                    <span>{section.label}</span>
+                                  </SidebarMenuSubButton>
+                                </SidebarMenuSubItem>
+                              );
+                            })}
+                          </SidebarMenuSub>
+                        </SidebarMenu>
+                      </SidebarGroupContent>
+                    </CollapsibleContent>
+                  </SidebarGroup>
+                </Collapsible>
+              );
+            })}
           </>
-        )}
-
-        {!selectedCouple && (
-          <SidebarGroup>
-            <SidebarGroupContent>
-              <div className="p-4 text-sm text-muted-foreground text-center">
-                Select a couple to view sections
-              </div>
-            </SidebarGroupContent>
-          </SidebarGroup>
+        ) : (
+          !selectedCouple && (
+            <SidebarGroup>
+              <SidebarGroupContent>
+                <div className="p-4 text-sm text-muted-foreground text-center">
+                  Select a couple to view sections
+                </div>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          )
         )}
       </SidebarContent>
     </Sidebar>
