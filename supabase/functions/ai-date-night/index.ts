@@ -10,6 +10,7 @@ const corsHeaders = {
 // Type Definitions
 // ========================================
 interface DateNightPreferences {
+  interests: string[];
   time: string;
   location: string;
   price: string;
@@ -60,6 +61,25 @@ function validateDateNightPreferences(data: any): {
     return { valid: false, error: 'Request body must be an object' };
   }
 
+  // Validate interests array
+  if (!data.interests || !Array.isArray(data.interests)) {
+    return { valid: false, error: 'interests must be an array' };
+  }
+
+  if (data.interests.length === 0) {
+    return { valid: false, error: 'At least one interest must be selected' };
+  }
+
+  if (data.interests.length > 20) {
+    return { valid: false, error: 'Too many interests selected (max 20)' };
+  }
+
+  // Validate each interest is a string
+  const invalidInterests = data.interests.filter((i: any) => typeof i !== 'string' || i.trim().length === 0);
+  if (invalidInterests.length > 0) {
+    return { valid: false, error: 'All interests must be non-empty strings' };
+  }
+
   const requiredFields = ['time', 'location', 'price', 'participants', 'energy'];
   
   // Check for missing or invalid fields
@@ -73,6 +93,7 @@ function validateDateNightPreferences(data: any): {
 
   // Trim all fields and validate they're not empty
   const trimmedData = {
+    interests: data.interests.map((i: string) => i.trim()),
     time: data.time.trim(),
     location: data.location.trim(),
     price: data.price.trim(),
@@ -82,7 +103,7 @@ function validateDateNightPreferences(data: any): {
 
   // Check for empty fields after trimming
   const emptyFields = Object.entries(trimmedData)
-    .filter(([_, value]) => value.length === 0)
+    .filter(([key, value]) => key !== 'interests' && typeof value === 'string' && value.length === 0)
     .map(([key, _]) => key);
 
   if (emptyFields.length > 0) {
@@ -95,7 +116,7 @@ function validateDateNightPreferences(data: any): {
   // Max length validation to prevent abuse
   const maxLength = 500;
   const tooLongFields = Object.entries(trimmedData)
-    .filter(([_, value]) => value.length > maxLength)
+    .filter(([key, value]) => key !== 'interests' && typeof value === 'string' && value.length > maxLength)
     .map(([key, _]) => key);
 
   if (tooLongFields.length > 0) {
@@ -120,12 +141,16 @@ function redactForLogging(data: any): string {
 
   // Only log field presence, never actual values
   // Use an allowlist approach - only log known safe metadata
-  const knownFields = ['time', 'location', 'price', 'participants', 'energy'];
+  const knownFields = ['interests', 'time', 'location', 'price', 'participants', 'energy'];
   const redacted: Record<string, string> = {};
 
   for (const field of knownFields) {
     if (field in data) {
-      redacted[field] = '[REDACTED]';
+      if (field === 'interests' && Array.isArray(data[field])) {
+        redacted[field] = `[REDACTED - ${data[field].length} items]`;
+      } else {
+        redacted[field] = '[REDACTED]';
+      }
     }
   }
 
@@ -221,12 +246,17 @@ Guidelines:
 - Include practical tips and conversation starters
 - Be inclusive of diverse relationship styles and needs`;
 
+    const interestsText = prefs.interests.map(i => i.replace(/-/g, ' ')).join(', ');
+    
     const userPrompt = `Generate THREE thoughtful date night ideas based on these preferences:
+- Shared Interests: ${interestsText}
 - Available Time: ${prefs.time}
 - Location Preference: ${prefs.location}
 - Budget: ${prefs.price}
 - Who's Participating: ${prefs.participants}
 - Energy Level: ${prefs.energy}
+
+Focus on activities that align with their shared interests (${interestsText}) while meeting their practical constraints.
 
 IMPORTANT: Format each idea EXACTLY as follows, separated by the ✨ symbol:
 

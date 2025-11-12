@@ -6,8 +6,11 @@ import { useMutation } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/hooks/use-toast';
 import { useLocation } from 'wouter';
+import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
 
 interface DateNightPreferences {
+  interests: string[];
   time: string;
   location: string;
   price: string;
@@ -22,17 +25,34 @@ interface DateNightResponse {
 
 const STEPS = {
   GREETING: 0,
-  TIME: 1,
-  LOCATION: 2,
-  PRICE: 3,
-  PARTICIPANTS: 4,
-  ENERGY: 5,
-  RESULTS: 6,
+  INTERESTS: 1,
+  TIME: 2,
+  LOCATION: 3,
+  PRICE: 4,
+  PARTICIPANTS: 5,
+  ENERGY: 6,
+  RESULTS: 7,
 };
+
+const INTEREST_OPTIONS = [
+  { label: 'Cooking & Food', value: 'cooking-food' },
+  { label: 'Movies & TV Shows', value: 'movies-tv' },
+  { label: 'Outdoor Adventures', value: 'outdoor-adventures' },
+  { label: 'Art & Creativity', value: 'art-creativity' },
+  { label: 'Music & Concerts', value: 'music-concerts' },
+  { label: 'Sports & Fitness', value: 'sports-fitness' },
+  { label: 'Games & Puzzles', value: 'games-puzzles' },
+  { label: 'Learning & Education', value: 'learning-education' },
+  { label: 'Reading & Writing', value: 'reading-writing' },
+  { label: 'Dancing', value: 'dancing' },
+  { label: 'Travel & Exploration', value: 'travel-exploration' },
+  { label: 'Wellness & Relaxation', value: 'wellness-relaxation' },
+];
 
 export default function DateNightPage() {
   const [currentStep, setCurrentStep] = useState(STEPS.GREETING);
   const [preferences, setPreferences] = useState<DateNightPreferences>({
+    interests: [],
     time: '',
     location: '',
     price: '',
@@ -99,6 +119,7 @@ export default function DateNightPage() {
   const handleReset = () => {
     setCurrentStep(STEPS.GREETING);
     setPreferences({
+      interests: [],
       time: '',
       location: '',
       price: '',
@@ -106,6 +127,27 @@ export default function DateNightPage() {
       energy: '',
     });
     setGeneratedIdeas('');
+  };
+
+  const handleInterestToggle = (value: string) => {
+    setPreferences((prev) => {
+      const newInterests = prev.interests.includes(value)
+        ? prev.interests.filter((i) => i !== value)
+        : [...prev.interests, value];
+      return { ...prev, interests: newInterests };
+    });
+  };
+
+  const handleInterestsContinue = () => {
+    if (preferences.interests.length === 0) {
+      toast({
+        title: 'Select at least one interest',
+        description: 'Please choose what you both enjoy to get personalized ideas',
+        variant: 'destructive',
+      });
+      return;
+    }
+    setCurrentStep(STEPS.TIME);
   };
 
   const handleAddToCalendar = (title: string, description: string) => {
@@ -128,6 +170,8 @@ export default function DateNightPage() {
     switch (currentStep) {
       case STEPS.GREETING:
         return 'Welcome to the Connection Concierge';
+      case STEPS.INTERESTS:
+        return 'What do you both enjoy?';
       case STEPS.TIME:
         return 'How much time can you set aside?';
       case STEPS.LOCATION:
@@ -147,8 +191,8 @@ export default function DateNightPage() {
     if (currentStep === STEPS.GREETING || currentStep === STEPS.RESULTS) {
       return null;
     }
-    const step = currentStep;
-    return `Step ${step} of 5`;
+    const step = currentStep - 1;
+    return `Step ${step} of 6`;
   };
 
   const renderGreeting = () => (
@@ -164,7 +208,7 @@ export default function DateNightPage() {
       </CardHeader>
       <CardContent>
         <Button
-          onClick={() => setCurrentStep(STEPS.TIME)}
+          onClick={() => setCurrentStep(STEPS.INTERESTS)}
           className="w-full"
           size="lg"
           data-testid="button-start"
@@ -206,7 +250,7 @@ export default function DateNightPage() {
           ))}
         </div>
         
-        {currentStep > STEPS.TIME && (
+        {currentStep > STEPS.INTERESTS && (
           <div className="flex justify-start mt-6">
             <Button
               onClick={handlePrevious}
@@ -312,10 +356,80 @@ export default function DateNightPage() {
     );
   };
 
+  const renderInterests = () => (
+    <Card className="max-w-2xl mx-auto" data-testid="card-interests">
+      <CardHeader>
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-sm font-medium text-muted-foreground" data-testid="text-progress">
+            Step 1 of 6
+          </span>
+          <Heart className="h-5 w-5 text-primary" />
+        </div>
+        <CardTitle className="text-2xl">{getStepTitle()}</CardTitle>
+        <CardDescription>Select all the activities and interests you share (or want to explore together)</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        <div className="grid grid-cols-2 gap-3">
+          {INTEREST_OPTIONS.map((option) => {
+            const isSelected = preferences.interests.includes(option.value);
+            return (
+              <Button
+                key={option.value}
+                onClick={() => handleInterestToggle(option.value)}
+                variant={isSelected ? 'default' : 'outline'}
+                className="h-auto py-4 justify-start hover-elevate active-elevate-2"
+                data-testid={`button-interest-${option.value}`}
+              >
+                {option.label}
+              </Button>
+            );
+          })}
+        </div>
+
+        {preferences.interests.length > 0 && (
+          <div className="space-y-2">
+            <p className="text-sm font-medium text-muted-foreground">Selected interests:</p>
+            <div className="flex flex-wrap gap-2">
+              {preferences.interests.map((interest) => {
+                const option = INTEREST_OPTIONS.find(o => o.value === interest);
+                return (
+                  <Badge key={interest} variant="secondary" data-testid={`badge-${interest}`}>
+                    {option?.label}
+                  </Badge>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        <div className="flex justify-between items-center pt-4">
+          <Button
+            onClick={handlePrevious}
+            variant="ghost"
+            data-testid="button-previous"
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Previous
+          </Button>
+          <Button
+            onClick={handleInterestsContinue}
+            disabled={preferences.interests.length === 0}
+            data-testid="button-continue"
+          >
+            Continue
+            <ArrowRight className="ml-2 h-4 w-4" />
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+
   return (
     <div className="min-h-screen bg-background p-6">
       <div className="py-12">
         {currentStep === STEPS.GREETING && renderGreeting()}
+        
+        {currentStep === STEPS.INTERESTS && renderInterests()}
         
         {currentStep === STEPS.TIME && renderQuestion('time', [
           { label: '1-2 hours', value: '1-2 hours' },
