@@ -49,6 +49,15 @@ export default function LoveMapQuiz() {
   const [currentPhase, setCurrentPhase] = useState<Phase>('truths');
   const [truthAnswers, setTruthAnswers] = useState<TruthAnswers>({});
   const [guessAnswers, setGuessAnswers] = useState<GuessAnswers>({});
+  const [pageByPhase, setPageByPhase] = useState<Record<Phase, number>>({
+    truths: 0,
+    guesses: 0,
+    results: 0,
+  });
+  const QUESTIONS_PER_PAGE = 10;
+  
+  // Get current page for active phase
+  const currentPage = pageByPhase[currentPhase];
 
   // Fetch questions
   const { data: questions, isLoading: questionsLoading } = useQuery<LoveMapQuestion[]>({
@@ -136,6 +145,18 @@ export default function LoveMapQuiz() {
       setCurrentPhase('results');
     }
   }, [session, user, isPartner1]);
+
+  // Calculate paginated questions
+  const getCurrentPageQuestions = () => {
+    if (!questions) return [];
+    const startIndex = currentPage * QUESTIONS_PER_PAGE;
+    const endIndex = startIndex + QUESTIONS_PER_PAGE;
+    return questions.slice(startIndex, endIndex);
+  };
+
+  const totalPages = questions ? Math.ceil(questions.length / QUESTIONS_PER_PAGE) : 0;
+  const isLastPage = currentPage === totalPages - 1;
+  const isFirstPage = currentPage === 0;
 
   // Submit truths mutation
   const submitTruthsMutation = useMutation({
@@ -317,47 +338,77 @@ export default function LoveMapQuiz() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-                {questions.map((question, index) => (
-                  <div key={question.id} className="space-y-2">
-                    <Label htmlFor={`truth-${question.id}`} className="text-base">
-                      {index + 1}. {question.question_text}
-                      {question.category && (
-                        <Badge variant="secondary" className="ml-2" data-testid={`badge-category-${index}`}>
-                          {question.category}
-                        </Badge>
-                      )}
-                    </Label>
-                    <Textarea
-                      id={`truth-${question.id}`}
-                      data-testid={`textarea-truth-${index}`}
-                      placeholder="Your answer..."
-                      value={truthAnswers[question.id] || ''}
-                      onChange={(e) =>
-                        setTruthAnswers({ ...truthAnswers, [question.id]: e.target.value })
-                      }
-                      className="min-h-20 resize-none"
-                      required
-                    />
-                  </div>
-                ))}
-                <div className="flex items-center justify-between pt-4">
+                <div className="mb-4 flex items-center justify-between">
                   <p className="text-sm text-muted-foreground">
-                    {Object.keys(truthAnswers).length} of {questions.length} answered
+                    Page {currentPage + 1} of {totalPages} • {Object.keys(truthAnswers).length} of {questions.length} answered
                   </p>
+                  <Badge variant="outline" data-testid="badge-question-page">
+                    Questions {currentPage * QUESTIONS_PER_PAGE + 1}-{Math.min((currentPage + 1) * QUESTIONS_PER_PAGE, questions.length)}
+                  </Badge>
+                </div>
+                
+                {getCurrentPageQuestions().map((question, index) => {
+                  const globalIndex = currentPage * QUESTIONS_PER_PAGE + index;
+                  return (
+                    <div key={question.id} className="space-y-2">
+                      <Label htmlFor={`truth-${question.id}`} className="text-base">
+                        {globalIndex + 1}. {question.question_text}
+                        {question.category && (
+                          <Badge variant="secondary" className="ml-2" data-testid={`badge-category-${globalIndex}`}>
+                            {question.category}
+                          </Badge>
+                        )}
+                      </Label>
+                      <Textarea
+                        id={`truth-${question.id}`}
+                        data-testid={`textarea-truth-${globalIndex}`}
+                        placeholder="Your answer..."
+                        value={truthAnswers[question.id] || ''}
+                        onChange={(e) =>
+                          setTruthAnswers({ ...truthAnswers, [question.id]: e.target.value })
+                        }
+                        className="min-h-20 resize-none"
+                        required
+                      />
+                    </div>
+                  );
+                })}
+                
+                <div className="flex items-center justify-between gap-4 pt-4">
                   <Button
-                    type="submit"
-                    disabled={submitTruthsMutation.isPending}
-                    data-testid="button-submit-truths"
+                    type="button"
+                    variant="outline"
+                    onClick={() => setPageByPhase(prev => ({ ...prev, [currentPhase]: prev[currentPhase] - 1 }))}
+                    disabled={isFirstPage}
+                    data-testid="button-prev-page"
                   >
-                    {submitTruthsMutation.isPending ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Saving...
-                      </>
-                    ) : (
-                      'Submit Your Answers'
-                    )}
+                    Previous
                   </Button>
+                  
+                  {!isLastPage ? (
+                    <Button
+                      type="button"
+                      onClick={() => setPageByPhase(prev => ({ ...prev, [currentPhase]: prev[currentPhase] + 1 }))}
+                      data-testid="button-next-page"
+                    >
+                      Next Page
+                    </Button>
+                  ) : (
+                    <Button
+                      type="submit"
+                      disabled={submitTruthsMutation.isPending}
+                      data-testid="button-submit-truths"
+                    >
+                      {submitTruthsMutation.isPending ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Saving...
+                        </>
+                      ) : (
+                        'Submit Your Answers'
+                      )}
+                    </Button>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -391,47 +442,77 @@ export default function LoveMapQuiz() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-                {questions.map((question, index) => (
-                  <div key={question.id} className="space-y-2">
-                    <Label htmlFor={`guess-${question.id}`} className="text-base">
-                      {index + 1}. {question.question_text}
-                      {question.category && (
-                        <Badge variant="secondary" className="ml-2" data-testid={`badge-guess-category-${index}`}>
-                          {question.category}
-                        </Badge>
-                      )}
-                    </Label>
-                    <Textarea
-                      id={`guess-${question.id}`}
-                      data-testid={`textarea-guess-${index}`}
-                      placeholder="What did your partner say?"
-                      value={guessAnswers[question.id] || ''}
-                      onChange={(e) =>
-                        setGuessAnswers({ ...guessAnswers, [question.id]: e.target.value })
-                      }
-                      className="min-h-20 resize-none"
-                      required
-                    />
-                  </div>
-                ))}
-                <div className="flex items-center justify-between pt-4">
+                <div className="mb-4 flex items-center justify-between">
                   <p className="text-sm text-muted-foreground">
-                    {Object.keys(guessAnswers).length} of {questions.length} answered
+                    Page {currentPage + 1} of {totalPages} • {Object.keys(guessAnswers).length} of {questions.length} answered
                   </p>
+                  <Badge variant="outline" data-testid="badge-guess-page">
+                    Questions {currentPage * QUESTIONS_PER_PAGE + 1}-{Math.min((currentPage + 1) * QUESTIONS_PER_PAGE, questions.length)}
+                  </Badge>
+                </div>
+                
+                {getCurrentPageQuestions().map((question, index) => {
+                  const globalIndex = currentPage * QUESTIONS_PER_PAGE + index;
+                  return (
+                    <div key={question.id} className="space-y-2">
+                      <Label htmlFor={`guess-${question.id}`} className="text-base">
+                        {globalIndex + 1}. {question.question_text}
+                        {question.category && (
+                          <Badge variant="secondary" className="ml-2" data-testid={`badge-guess-category-${globalIndex}`}>
+                            {question.category}
+                          </Badge>
+                        )}
+                      </Label>
+                      <Textarea
+                        id={`guess-${question.id}`}
+                        data-testid={`textarea-guess-${globalIndex}`}
+                        placeholder="What did your partner say?"
+                        value={guessAnswers[question.id] || ''}
+                        onChange={(e) =>
+                          setGuessAnswers({ ...guessAnswers, [question.id]: e.target.value })
+                        }
+                        className="min-h-20 resize-none"
+                        required
+                      />
+                    </div>
+                  );
+                })}
+                
+                <div className="flex items-center justify-between gap-4 pt-4">
                   <Button
-                    type="submit"
-                    disabled={submitGuessesMutation.isPending}
-                    data-testid="button-submit-guesses"
+                    type="button"
+                    variant="outline"
+                    onClick={() => setPageByPhase(prev => ({ ...prev, [currentPhase]: prev[currentPhase] - 1 }))}
+                    disabled={isFirstPage}
+                    data-testid="button-guess-prev-page"
                   >
-                    {submitGuessesMutation.isPending ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Saving...
-                      </>
-                    ) : (
-                      'Submit Your Guesses'
-                    )}
+                    Previous
                   </Button>
+                  
+                  {!isLastPage ? (
+                    <Button
+                      type="button"
+                      onClick={() => setPageByPhase(prev => ({ ...prev, [currentPhase]: prev[currentPhase] + 1 }))}
+                      data-testid="button-guess-next-page"
+                    >
+                      Next Page
+                    </Button>
+                  ) : (
+                    <Button
+                      type="submit"
+                      disabled={submitGuessesMutation.isPending}
+                      data-testid="button-submit-guesses"
+                    >
+                      {submitGuessesMutation.isPending ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Saving...
+                        </>
+                      ) : (
+                        'Submit Your Guesses'
+                      )}
+                    </Button>
+                  )}
                 </div>
               </CardContent>
             </Card>

@@ -932,7 +932,7 @@ aiRouter.get("/exercise-recommendations", async (req, res) => {
     });
 
     // Build Perplexity prompts
-    const systemPrompt = "You are an expert couples therapist recommending therapeutic exercises and activities. Based on a couple's activity patterns, suggest 3-5 specific therapy tools they should try next to strengthen their relationship.";
+    const systemPrompt = "You are an expert couples therapist recommending therapeutic exercises and activities. Based on a couple's activity patterns, suggest 3-5 specific therapy tools they should try next to strengthen their relationship. Always respond with valid JSON only.";
 
     let userPrompt = `Analyze this couple's therapy tool usage over the last 30 days:\n\n`;
 
@@ -964,7 +964,17 @@ aiRouter.get("/exercise-recommendations", async (req, res) => {
     userPrompt += `1. Recommend 3-5 specific therapy tools they should try or use more\n`;
     userPrompt += `2. For each recommendation, explain WHY it would benefit them based on their current patterns\n`;
     userPrompt += `3. Suggest a specific action they can take this week\n\n`;
-    userPrompt += `Format as numbered recommendations with tool name, rationale, and suggested action.`;
+    userPrompt += `IMPORTANT: Respond with ONLY valid JSON in this exact format:\n`;
+    userPrompt += `{\n`;
+    userPrompt += `  "recommendations": [\n`;
+    userPrompt += `    {\n`;
+    userPrompt += `      "tool_name": "name of the therapy tool",\n`;
+    userPrompt += `      "rationale": "why this tool would benefit them",\n`;
+    userPrompt += `      "suggested_action": "specific action to take this week"\n`;
+    userPrompt += `    }\n`;
+    userPrompt += `  ]\n`;
+    userPrompt += `}\n`;
+    userPrompt += `Return ONLY the JSON, no additional text or markdown formatting.`;
 
     // Call Perplexity AI
     const analysisResult = await analyzeCheckInsWithPerplexity({
@@ -973,10 +983,20 @@ aiRouter.get("/exercise-recommendations", async (req, res) => {
     });
 
     const aiFullResponse = analysisResult.content;
-    const parsed = safeJsonParse(aiFullResponse);
-
-    if (!parsed) {
-      return res.status(500).json({ error: 'Failed to parse AI response' });
+    
+    let parsed;
+    try {
+      parsed = safeJsonParse(aiFullResponse);
+      
+      if (!parsed || !parsed.recommendations || !Array.isArray(parsed.recommendations)) {
+        throw new Error('Invalid AI response structure');
+      }
+    } catch (parseError: any) {
+      console.error('Failed to parse AI exercise recommendations:', parseError.message, aiFullResponse);
+      return res.status(500).json({ 
+        error: 'Failed to parse AI response. Please try again.',
+        details: parseError.message 
+      });
     }
 
     // Parse AI response to extract recommendations
@@ -984,7 +1004,7 @@ aiRouter.get("/exercise-recommendations", async (req, res) => {
       tool_name: string;
       rationale: string;
       suggested_action: string;
-    }> = parsed.recommendations || [];
+    }> = parsed.recommendations;
 
     // Build response
     const response = {

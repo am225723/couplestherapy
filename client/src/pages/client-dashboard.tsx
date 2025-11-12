@@ -5,24 +5,53 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useAuth } from '@/lib/auth-context';
 import { supabase } from '@/lib/supabase';
-import { useQuery } from '@tanstack/react-query';
-import { Heart, MessageCircle, Target, Sparkles, Coffee, ClipboardList, Mic, Loader2, ArrowRight, Calendar, TrendingUp, AlertTriangle, BookOpen, Activity, Compass, Baby, Lightbulb, ChevronDown } from 'lucide-react';
+import { useQuery, useMutation } from '@tanstack/react-query';
+import { Heart, MessageCircle, Target, Sparkles, Coffee, ClipboardList, Mic, Loader2, ArrowRight, Calendar, TrendingUp, AlertTriangle, BookOpen, Activity, Compass, Baby, Lightbulb, ChevronDown, Trash2 } from 'lucide-react';
 import { LoveLanguage } from '@shared/schema';
 import clientHeroImage from '@assets/generated_images/Client_app_hero_image_9fd4eaf0.png';
+import { apiRequest, queryClient } from '@/lib/queryClient';
+import { useToast } from '@/hooks/use-toast';
 
 export default function ClientDashboard() {
   const { profile } = useAuth();
   const [loveLanguages, setLoveLanguages] = useState<LoveLanguage[]>([]);
   const [loading, setLoading] = useState(true);
   const [recommendationsOpen, setRecommendationsOpen] = useState(true);
+  const { toast } = useToast();
 
   // AI Exercise Recommendations query
   const recommendationsQuery = useQuery({
     queryKey: ['/api/ai/exercise-recommendations'],
     enabled: !!profile?.couple_id,
     staleTime: 1000 * 60 * 30, // 30 minutes
+  });
+
+  // Delete love language mutation
+  const deleteLoveLanguageMutation = useMutation({
+    mutationFn: async (id: number) => {
+      return await apiRequest(`/api/love-languages/user/${id}`, {
+        method: 'DELETE',
+      });
+    },
+    onSuccess: async (_data, deletedId) => {
+      // Optimistically update local state
+      setLoveLanguages(prev => prev.filter(lang => lang.id !== deletedId));
+      
+      toast({
+        title: 'Deleted',
+        description: 'Your love language result has been deleted. You can retake the quiz anytime.',
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to delete love language result',
+        variant: 'destructive',
+      });
+    },
   });
 
   useEffect(() => {
@@ -312,9 +341,50 @@ export default function ClientDashboard() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {loveLanguages.map((lang) => (
                   <div key={lang.id} className="space-y-3">
-                    <p className="font-semibold text-lg">
-                      {lang.user_id === profile?.id ? 'You' : 'Your Partner'}
-                    </p>
+                    <div className="flex items-center justify-between">
+                      <p className="font-semibold text-lg">
+                        {lang.user_id === profile?.id ? 'You' : 'Your Partner'}
+                      </p>
+                      {lang.user_id === profile?.id && (
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              data-testid={`button-delete-love-language-${lang.id}`}
+                              disabled={deleteLoveLanguageMutation.isPending}
+                            >
+                              <Trash2 className="h-4 w-4 text-muted-foreground hover:text-destructive" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Delete Love Language Result?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                This will permanently delete your love language quiz result. You can always retake the quiz to generate new results.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel data-testid="button-cancel-delete">Cancel</AlertDialogCancel>
+                              <AlertDialogAction
+                                data-testid="button-confirm-delete"
+                                onClick={() => deleteLoveLanguageMutation.mutate(lang.id)}
+                                className="bg-destructive hover:bg-destructive/90"
+                              >
+                                {deleteLoveLanguageMutation.isPending ? (
+                                  <>
+                                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                                    Deleting...
+                                  </>
+                                ) : (
+                                  'Delete'
+                                )}
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      )}
+                    </div>
                     <div className="space-y-2">
                       <div className="flex items-center gap-2">
                         <span className="text-sm text-muted-foreground">Primary:</span>
