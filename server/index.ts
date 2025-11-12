@@ -49,9 +49,17 @@ app.use((req, res, next) => {
 (async () => {
   const server = await registerRoutes(app);
 
-  app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-    const status = err.status || err.statusCode || 500;
-    const message = err.message || "Internal Server Error";
+// Corrected Error Handler
+app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+  const status = err.status || err.statusCode || 500;
+  const message = err.message || "Internal Server Error";
+
+  // You might want to log the full error here for debugging
+  console.error(err.stack); 
+
+  res.status(status).json({ message });
+  // Do not re-throw the error. The request is now handled.
+});
 
     res.status(status).json({ message });
     throw err;
