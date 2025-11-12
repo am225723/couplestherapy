@@ -1354,8 +1354,8 @@ Be encouraging and constructive. Focus on growth.`;
         session_id,
         turn_id,
         feedback: {
-          what_went_well: finalWhatWentWell,
-          areas_to_improve: finalAreasToImprove,
+          what_went_well: whatWentWell,
+          areas_to_improve: areasToImprove,
           suggested_response: suggestedResponse || "Continue practicing empathetic responses.",
         },
         overall_score: overallScore,
