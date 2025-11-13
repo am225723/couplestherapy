@@ -10,6 +10,20 @@ I prefer iterative development with clear communication on progress and potentia
 
 ## Recent Changes (November 2025)
 
+**New Features - Backend Infrastructure Complete (November 2025):**
+1. **Attachment Style Assessment**: 30-question assessment with automated scoring, couple dynamics analysis, triggers tracking, and repair scripts library. Full backend API and database schema ready for frontend integration.
+2. **Enneagram Couple Dynamics**: 36-question assessment identifying dominant/secondary types with couple compatibility reports. Complete backend infrastructure with SQL tables and API endpoints.
+3. **Shared Couple Journal**: Multi-mode entries with 3 privacy levels, media attachments via Supabase Storage, milestones tracking, and journal prompts. Full CRUD API with RLS policies implemented.
+4. **Financial Communication Toolkit**: Values alignment, budget tracking, shared goals, and discussion logs. Complete backend with proper validation and security.
+5. **Date Night Generator Enhancement**: Added interests selection step with 12 curated categories for more personalized AI recommendations.
+
+**Backend Implementation Details:**
+- Created 21 new database tables with comprehensive RLS policies (46 policies total)
+- Implemented 4 new Express routers with full CRUD operations (1,372 lines of validated API code)
+- Added attachment storage bucket for journal media with privacy-aware policies
+- Seeded 30 attachment questions, 36 enneagram questions, and 10 journal prompts
+- All endpoints secured with couple-id verification and role-based access control
+
 **Navigation & UX Improvements:**
 1. **Client Sidebar Reorganization**: Implemented config-driven sidebar architecture with 21+ tools organized into 6 collapsible categories (Dashboard, Assessments & Check-ins, Communication Tools, Personal Growth, Connection & Fun, Planning & Organization).
 2. **Admin Sidebar Enhancement**: Added collapsible section groups to therapist dashboard (Core Insights, Communication Tools, Planning & Goals, Support Resources) with Love Map Quiz integration.
@@ -47,8 +61,8 @@ The design emphasizes a warm, compassionate feel using the Inter font, generous 
 
 **Feature Specifications:**
 
-*   **Client App (for Couples)**: Assessments (Love Language, Love Map, Weekly Check-Ins), Shared Activities (Gratitude Log, Shared Goals, Rituals of Connection, Hold Me Tight Conversation, Echo & Empathy), Communication & Interaction (Voice Memos, Connection Concierge, secure Messages, Shared Calendar, Shared Pause Button, Realtime Therapist Comments), Individual Exercises (IFS Introduction).
-*   **Admin App (for Therapists)**: Management (Secure Login, User Management, Client Roster), Couple Dashboard (side-by-side comparison of Weekly Check-ins, Love Languages, Activity Feed), Intervention Tools (Contextual Commenting, secure Messages, Read-only Calendar, Love Map Quiz Results, Echo & Empathy History, IFS Exercises view, Pause History tracking, AI-powered Analytics).
+*   **Client App (for Couples)**: Assessments (Love Language, Love Map, Weekly Check-Ins, Attachment Style NEW, Enneagram NEW), Shared Activities (Gratitude Log, Shared Goals, Rituals of Connection, Hold Me Tight Conversation, Echo & Empathy, Couple Journal NEW, Financial Toolkit NEW), Communication & Interaction (Voice Memos, Connection Concierge, secure Messages, Shared Calendar, Shared Pause Button, Realtime Therapist Comments), Individual Exercises (IFS Introduction).
+*   **Admin App (for Therapists)**: Management (Secure Login, User Management, Client Roster), Couple Dashboard (side-by-side comparison of Weekly Check-ins, Love Languages, Activity Feed), Intervention Tools (Contextual Commenting, secure Messages, Read-only Calendar, Love Map Quiz Results, Echo & Empathy History, IFS Exercises view, Pause History tracking, AI-powered Analytics, Attachment Results NEW, Enneagram Results NEW, Journal View NEW, Financial Overview NEW).
 
 ## External Dependencies
 
