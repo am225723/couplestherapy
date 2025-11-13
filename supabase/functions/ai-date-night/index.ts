@@ -12,7 +12,9 @@ const corsHeaders = {
 interface DateNightPreferences {
   interests: string[];
   time: string;
-  location: string;
+  zipCode: string;
+  travelDistance: string;
+  activityLocation: string;
   price: string;
   participants: string;
   energy: string;
@@ -80,7 +82,7 @@ function validateDateNightPreferences(data: any): {
     return { valid: false, error: 'All interests must be non-empty strings' };
   }
 
-  const requiredFields = ['time', 'location', 'price', 'participants', 'energy'];
+  const requiredFields = ['time', 'zipCode', 'travelDistance', 'activityLocation', 'price', 'participants', 'energy'];
   
   // Check for missing or invalid fields
   const missingFields = requiredFields.filter(field => !data[field] || typeof data[field] !== 'string');
@@ -95,7 +97,9 @@ function validateDateNightPreferences(data: any): {
   const trimmedData = {
     interests: data.interests.map((i: string) => i.trim()),
     time: data.time.trim(),
-    location: data.location.trim(),
+    zipCode: data.zipCode.trim(),
+    travelDistance: data.travelDistance.trim(),
+    activityLocation: data.activityLocation.trim(),
     price: data.price.trim(),
     participants: data.participants.trim(),
     energy: data.energy.trim(),
@@ -141,7 +145,7 @@ function redactForLogging(data: any): string {
 
   // Only log field presence, never actual values
   // Use an allowlist approach - only log known safe metadata
-  const knownFields = ['interests', 'time', 'location', 'price', 'participants', 'energy'];
+  const knownFields = ['interests', 'time', 'zipCode', 'travelDistance', 'activityLocation', 'price', 'participants', 'energy'];
   const redacted: Record<string, string> = {};
 
   for (const field of knownFields) {
@@ -251,12 +255,16 @@ Guidelines:
     const userPrompt = `Generate THREE thoughtful date night ideas based on these preferences:
 - Shared Interests: ${interestsText}
 - Available Time: ${prefs.time}
-- Location Preference: ${prefs.location}
+- Location: ${prefs.zipCode}
+- Travel Distance: ${prefs.travelDistance}
+- Activity Setting: ${prefs.activityLocation}
 - Budget: ${prefs.price}
 - Who's Participating: ${prefs.participants}
 - Energy Level: ${prefs.energy}
 
-Focus on activities that align with their shared interests (${interestsText}) while meeting their practical constraints.
+IMPORTANT: Provide location-specific recommendations for the ${prefs.zipCode} area. If they want to go out, suggest actual places, restaurants, venues, or activities available within ${prefs.travelDistance} of ${prefs.zipCode}. If they prefer staying at home, suggest activities they can do at home.
+
+Focus on activities that align with their shared interests (${interestsText}) while meeting their practical constraints and location preferences.
 
 IMPORTANT: Format each idea EXACTLY as follows, separated by the ✨ symbol:
 

@@ -12,7 +12,9 @@ import { Badge } from '@/components/ui/badge';
 interface DateNightPreferences {
   interests: string[];
   time: string;
-  location: string;
+  zipCode: string;
+  travelDistance: string;
+  activityLocation: string;
   price: string;
   participants: string;
   energy: string;
@@ -27,11 +29,13 @@ const STEPS = {
   GREETING: 0,
   INTERESTS: 1,
   TIME: 2,
-  LOCATION: 3,
-  PRICE: 4,
-  PARTICIPANTS: 5,
-  ENERGY: 6,
-  RESULTS: 7,
+  ZIP_CODE: 3,
+  TRAVEL_DISTANCE: 4,
+  ACTIVITY_LOCATION: 5,
+  PRICE: 6,
+  PARTICIPANTS: 7,
+  ENERGY: 8,
+  RESULTS: 9,
 };
 
 const INTEREST_OPTIONS = [
@@ -54,7 +58,9 @@ export default function DateNightPage() {
   const [preferences, setPreferences] = useState<DateNightPreferences>({
     interests: [],
     time: '',
-    location: '',
+    zipCode: '',
+    travelDistance: '',
+    activityLocation: '',
     price: '',
     participants: '',
     energy: '',
@@ -121,7 +127,9 @@ export default function DateNightPage() {
     setPreferences({
       interests: [],
       time: '',
-      location: '',
+      zipCode: '',
+      travelDistance: '',
+      activityLocation: '',
       price: '',
       participants: '',
       energy: '',
@@ -174,7 +182,11 @@ export default function DateNightPage() {
         return 'What do you both enjoy?';
       case STEPS.TIME:
         return 'How much time can you set aside?';
-      case STEPS.LOCATION:
+      case STEPS.ZIP_CODE:
+        return 'Where are you located?';
+      case STEPS.TRAVEL_DISTANCE:
+        return 'How far are you willing to travel?';
+      case STEPS.ACTIVITY_LOCATION:
         return 'At-home or out of the house?';
       case STEPS.PRICE:
         return "What's the ideal price point?";
@@ -192,7 +204,7 @@ export default function DateNightPage() {
       return null;
     }
     const step = currentStep - 1;
-    return `Step ${step} of 6`;
+    return `Step ${step} of 8`;
   };
 
   const renderGreeting = () => (
@@ -356,12 +368,72 @@ export default function DateNightPage() {
     );
   };
 
+  const [zipCodeInput, setZipCodeInput] = useState('');
+
+  const handleZipCodeContinue = () => {
+    if (!zipCodeInput.trim()) {
+      toast({
+        title: 'Location required',
+        description: 'Please enter your ZIP code or city',
+        variant: 'destructive',
+      });
+      return;
+    }
+    setPreferences((prev) => ({ ...prev, zipCode: zipCodeInput.trim() }));
+    setCurrentStep(STEPS.TRAVEL_DISTANCE);
+  };
+
+  const renderZipCode = () => (
+    <Card className="max-w-2xl mx-auto" data-testid="card-zipcode">
+      <CardHeader>
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-sm font-medium text-muted-foreground" data-testid="text-progress">
+            Step 3 of 8
+          </span>
+          <Heart className="h-5 w-5 text-primary" />
+        </div>
+        <CardTitle className="text-2xl">{getStepTitle()}</CardTitle>
+        <CardDescription>Enter your ZIP code or city to get local recommendations</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        <div>
+          <Textarea
+            placeholder="Enter ZIP code or city (e.g., 90210 or Los Angeles, CA)"
+            value={zipCodeInput}
+            onChange={(e) => setZipCodeInput(e.target.value)}
+            className="min-h-[60px]"
+            data-testid="input-zipcode"
+          />
+        </div>
+
+        <div className="flex justify-between items-center pt-4">
+          <Button
+            onClick={handlePrevious}
+            variant="ghost"
+            data-testid="button-previous"
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Previous
+          </Button>
+          <Button
+            onClick={handleZipCodeContinue}
+            disabled={!zipCodeInput.trim()}
+            data-testid="button-continue"
+          >
+            Continue
+            <ArrowRight className="ml-2 h-4 w-4" />
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+
   const renderInterests = () => (
     <Card className="max-w-2xl mx-auto" data-testid="card-interests">
       <CardHeader>
         <div className="flex items-center justify-between mb-2">
           <span className="text-sm font-medium text-muted-foreground" data-testid="text-progress">
-            Step 1 of 6
+            Step 1 of 8
           </span>
           <Heart className="h-5 w-5 text-primary" />
         </div>
@@ -436,8 +508,18 @@ export default function DateNightPage() {
           { label: 'Full evening', value: 'Full evening' },
           { label: 'Whole afternoon', value: 'Whole afternoon' },
         ])}
+
+        {currentStep === STEPS.ZIP_CODE && renderZipCode()}
+
+        {currentStep === STEPS.TRAVEL_DISTANCE && renderQuestion('travelDistance', [
+          { label: 'Within 5 miles', value: 'Within 5 miles' },
+          { label: 'Within 10 miles', value: 'Within 10 miles' },
+          { label: 'Within 15 miles', value: 'Within 15 miles' },
+          { label: 'Within 20 miles', value: 'Within 20 miles' },
+          { label: '30+ miles / anywhere', value: '30+ miles' },
+        ])}
         
-        {currentStep === STEPS.LOCATION && renderQuestion('location', [
+        {currentStep === STEPS.ACTIVITY_LOCATION && renderQuestion('activityLocation', [
           { label: 'At home', value: 'At home' },
           { label: 'Out of the house', value: 'Out of the house' },
         ])}

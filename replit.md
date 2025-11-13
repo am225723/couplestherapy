@@ -15,7 +15,7 @@ I prefer iterative development with clear communication on progress and potentia
 2. **Enneagram Couple Dynamics**: 36-question assessment identifying dominant/secondary types with couple compatibility reports. Complete backend infrastructure with SQL tables and API endpoints.
 3. **Shared Couple Journal**: Multi-mode entries with 3 privacy levels, media attachments via Supabase Storage, milestones tracking, and journal prompts. Full CRUD API with RLS policies implemented.
 4. **Financial Communication Toolkit**: Values alignment, budget tracking, shared goals, and discussion logs. Complete backend with proper validation and security.
-5. **Date Night Generator Enhancement**: Added interests selection step with 12 curated categories for more personalized AI recommendations.
+5. **Date Night Generator Enhancement**: Added interests selection step with 12 curated categories, zip code/city location input, and travel distance preferences (5-30+ miles) for geographically-personalized AI recommendations using Perplexity API.
 
 **Backend Implementation Details:**
 - Created 21 new database tables with comprehensive RLS policies (46 policies total)
