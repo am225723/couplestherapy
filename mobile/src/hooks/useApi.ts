@@ -1,12 +1,11 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { api } from '../services/api';
+import { apiClient } from '../services/api';
 
 export function useApi<T>(endpoint: string, options?: any) {
   return useQuery<T>({
     queryKey: [endpoint],
     queryFn: async () => {
-      const response = await api.get(endpoint);
-      return response.data;
+      return await apiClient.get<T>(endpoint);
     },
     ...options,
   });
@@ -21,12 +20,14 @@ export function useApiMutation<TData = any, TVariables = any>(
 
   return useMutation<TData, Error, TVariables>({
     mutationFn: async (data: TVariables) => {
-      const response = await api[method](endpoint, data);
-      return response.data;
+      return await apiClient[method]<TData>(endpoint, data);
     },
-    onSuccess: () => {
+    onSuccess: (data, variables, context) => {
       if (options?.invalidateQueries) {
         queryClient.invalidateQueries({ queryKey: options.invalidateQueries });
+      }
+      if (options?.onSuccess) {
+        options.onSuccess(data, variables, context);
       }
     },
     ...options,
