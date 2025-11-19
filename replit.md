@@ -10,6 +10,22 @@ I prefer iterative development with clear communication on progress and potentia
 
 ## Recent Changes (November 2025)
 
+**Mobile App Added (November 2025):**
+1. **Expo React Native Application**: Complete mobile app structure created in `mobile/` directory with iOS and Android support via Expo.
+2. **Cross-Platform Architecture**: Mobile app shares the same backend (Express.js + Supabase) as the web app, ensuring data consistency.
+3. **Full Navigation System**: Tab + Stack navigators for both client and therapist roles with 30+ screens.
+4. **Authentication Integration**: Supabase Auth with SecureStore for token persistence on mobile devices.
+5. **All Features Structured**: Placeholder screens created for all existing web features ready for implementation.
+6. **Separate Dependencies**: Mobile app has its own package.json and can be developed/deployed independently.
+
+**Mobile App Details:**
+- Located in `mobile/` directory with complete Expo setup
+- 30+ screen files (auth, client, therapist) with navigation
+- Supabase integration with expo-secure-store
+- API client configured to use existing backend
+- TypeScript configuration and theme system matching web app
+- See `MOBILE_APP_GUIDE.md` for complete setup instructions
+
 **New Features - Backend Infrastructure Complete (November 2025):**
 1. **Attachment Style Assessment**: 30-question assessment with automated scoring, couple dynamics analysis, triggers tracking, and repair scripts library. Full backend API and database schema ready for frontend integration.
 2. **Enneagram Couple Dynamics**: 36-question assessment identifying dominant/secondary types with couple compatibility reports. Complete backend infrastructure with SQL tables and API endpoints.
@@ -47,7 +63,25 @@ I prefer iterative development with clear communication on progress and potentia
 
 ## System Architecture
 
-The platform uses a React 18 frontend with Vite, Wouter for routing, and Tailwind CSS (with a custom therapeutic teal/green palette) and Shadcn UI for styling. TanStack Query v5 manages server state. The backend leverages Supabase PostgreSQL with Row Level Security (RLS), Supabase Authentication, Realtime for live updates, and Storage for media.
+The platform now supports **both web and mobile** applications:
+
+**Web Application:**
+- React 18 frontend with Vite
+- Wouter for routing
+- Tailwind CSS with custom therapeutic teal/green palette
+- Shadcn UI for components
+- TanStack Query v5 for server state management
+
+**Mobile Application (NEW):**
+- React Native with Expo framework
+- React Navigation (Tab + Stack navigators)
+- Same Tailwind-inspired theme via React Native StyleSheet
+- Native components for iOS and Android
+- TanStack Query v5 for data fetching
+- Expo modules for camera, audio, notifications
+
+**Shared Backend:**
+Both platforms use the same Express.js backend with Supabase PostgreSQL, Row Level Security (RLS), Supabase Authentication, Realtime for live updates, and Storage for media.
 
 **UI/UX Decisions:**
 The design emphasizes a warm, compassionate feel using the Inter font, generous spacing, subtle shadows, rounded corners, and card-based content grouping. It supports both light and dark modes. The login page features a modern split-screen design with a rotating carousel and dynamic form elements, optimized for various screen sizes. The brand refresh incorporated a new logo, a vibrant multi-color palette (Teal, Coral, Purple, Pink), and a minimalist line art visual identity.
@@ -72,8 +106,8 @@ The design emphasizes a warm, compassionate feel using the Inter font, generous 
 *   **Storage**: Supabase Storage
 *   **AI**: Perplexity AI (for Connection Concierge and Therapist Analytics)
 *   **UI Libraries**: Tailwind CSS, Shadcn UI (Radix primitives)
-*   **Frontend Framework**: React 18, Vite
-*   **Routing**: Wouter
-*   **State Management**: TanStack Query v5
-*   **Calendar Component**: react-big-calendar
-*   **Drag-and-Drop**: React Beautiful DnD
+*   **Web Frontend**: React 18, Vite, Wouter routing
+*   **Mobile Frontend**: React Native, Expo, React Navigation
+*   **State Management**: TanStack Query v5 (both platforms)
+*   **Web Components**: react-big-calendar, React Beautiful DnD
+*   **Mobile Components**: expo-image-picker, expo-av, expo-notifications, react-native-calendars

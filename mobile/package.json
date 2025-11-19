@@ -1,0 +1,45 @@
+{
+  "name": "aleic-mobile",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web"
+  },
+  "dependencies": {
+    "expo": "~52.0.0",
+    "expo-status-bar": "~2.0.0",
+    "react": "18.3.1",
+    "react-native": "0.76.5",
+    "@react-navigation/native": "^7.0.13",
+    "@react-navigation/stack": "^7.2.3",
+    "@react-navigation/bottom-tabs": "^7.2.1",
+    "@react-navigation/drawer": "^7.2.3",
+    "react-native-screens": "^4.3.0",
+    "react-native-safe-area-context": "^5.1.0",
+    "react-native-gesture-handler": "~2.20.2",
+    "react-native-reanimated": "~3.16.4",
+    "@react-native-async-storage/async-storage": "^2.1.0",
+    "expo-image-picker": "~16.0.4",
+    "expo-av": "~15.0.2",
+    "expo-notifications": "~0.29.15",
+    "expo-constants": "~17.0.3",
+    "expo-device": "~7.0.1",
+    "expo-file-system": "~18.0.5",
+    "react-native-calendars": "^1.1309.0",
+    "@tanstack/react-query": "^5.62.11",
+    "@supabase/supabase-js": "^2.48.1",
+    "expo-secure-store": "~14.0.0",
+    "zod": "^3.24.1",
+    "date-fns": "^4.1.0",
+    "react-native-paper": "^5.14.0",
+    "@react-native-community/datetimepicker": "^8.3.3"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.25.2",
+    "@types/react": "~18.3.12"
+  },
+  "private": true
+}
