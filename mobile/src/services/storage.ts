@@ -11,19 +11,14 @@ export class StorageService {
    */
   async uploadImage(uri: string, bucket: string, path: string): Promise<string> {
     try {
-      // Read file as base64
-      const base64 = await FileSystem.readAsStringAsync(uri, {
-        encoding: FileSystem.EncodingType.Base64,
-      });
-
-      // Convert base64 to blob
-      const arrayBuffer = Uint8Array.from(atob(base64), c => c.charCodeAt(0));
-      const blob = new Blob([arrayBuffer], { type: 'image/jpeg' });
-
-      // Upload to Supabase
+      // Use Expo FileSystem to upload directly
       const { data, error } = await supabase.storage
         .from(bucket)
-        .upload(path, blob, {
+        .upload(path, {
+          uri,
+          type: 'image/jpeg',
+          name: path.split('/').pop() || 'image.jpg',
+        } as any, {
           contentType: 'image/jpeg',
           upsert: false,
         });
@@ -68,19 +63,14 @@ export class StorageService {
    */
   async uploadAudio(uri: string, bucket: string, path: string): Promise<string> {
     try {
-      // Read file as base64
-      const base64 = await FileSystem.readAsStringAsync(uri, {
-        encoding: FileSystem.EncodingType.Base64,
-      });
-
-      // Convert base64 to blob
-      const arrayBuffer = Uint8Array.from(atob(base64), c => c.charCodeAt(0));
-      const blob = new Blob([arrayBuffer], { type: 'audio/m4a' });
-
-      // Upload to Supabase
+      // Use Expo FileSystem to upload directly
       const { data, error } = await supabase.storage
         .from(bucket)
-        .upload(path, blob, {
+        .upload(path, {
+          uri,
+          type: 'audio/m4a',
+          name: path.split('/').pop() || 'audio.m4a',
+        } as any, {
           contentType: 'audio/m4a',
           upsert: false,
         });
