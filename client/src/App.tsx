@@ -57,6 +57,7 @@ import ValuesVisionPage from './pages/values-vision';
 import ParentingPartnersPage from './pages/parenting-partners';
 import ClientDashboard from './pages/client-dashboard';
 import AdminDashboard from './pages/admin-dashboard';
+import TherapistDashboard from './pages/therapist-dashboard';
 import AnalyticsPage from './pages/analytics';
 import InvitationCodesPage from './pages/invitation-codes';
 import AttachmentAssessmentPage from './pages/attachment-assessment';
@@ -336,9 +337,9 @@ function AuthenticatedApp() {
             <Switch>
               {profile.role === 'therapist' ? (
                 <>
-                  <Route path="/admin" component={AdminDashboard} />
+                  <Route path="/admin" component={TherapistDashboard} />
+                  <Route path="/admin/couple/:id" component={TherapistDashboard} />
                   <Route path="/admin/couple/:id/:section" component={AdminDashboard} />
-                  <Route path="/admin/couple/:id" component={AdminDashboard} />
                   <Route path="/admin/analytics" component={AnalyticsPage} />
                   <Route path="/admin/invitation-codes" component={InvitationCodesPage} />
                   <Route path="/therapist-thoughts" component={AdminDashboard} />
