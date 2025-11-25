@@ -175,7 +175,7 @@ export default function CoupleCompatibility() {
   return (
     <div className="max-w-6xl mx-auto p-6 space-y-6">
       <div>
-        <h1 className="text-3xl font-bold mb-2">Your Compatibility Profile</h1>
+        <h1 className="text-3xl font-bold mb-2">Couples Compatibility</h1>
         <p className="text-muted-foreground">
           Understanding how you and your partner work together based on assessments
         </p>

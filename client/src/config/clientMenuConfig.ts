@@ -50,7 +50,8 @@ export const clientMenuConfig: MenuCategory[] = [
     defaultOpen: true,
     routes: [
       { title: 'Dashboard', url: '/dashboard', icon: Home, testId: 'nav-dashboard' },
-      { title: 'Couple Compatibility', url: '/couple-compatibility', icon: Heart, testId: 'nav-compatibility' },
+      { title: 'Therapist Thoughts', url: '/therapist-thoughts', icon: MessageSquare, testId: 'nav-therapist-thoughts' },
+      { title: 'Couples Compatibility', url: '/couple-compatibility', icon: Heart, testId: 'nav-compatibility' },
     ],
   },
   {

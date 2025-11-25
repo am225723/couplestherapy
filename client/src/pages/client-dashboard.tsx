@@ -253,7 +253,7 @@ export default function ClientDashboard() {
                 <div>
                   <CardTitle className="flex items-center gap-2">
                     <Lightbulb className="h-5 w-5 text-amber-600 dark:text-amber-400" />
-                    Personalized Therapy Tool Recommendations
+                    Personalized Therapy Tool Recommendations for You and Your Partner
                   </CardTitle>
                   <CardDescription>AI-powered suggestions based on your recent activity</CardDescription>
                 </div>
