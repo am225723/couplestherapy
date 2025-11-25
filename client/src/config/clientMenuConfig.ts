@@ -99,6 +99,7 @@ export const clientMenuConfig: MenuCategory[] = [
     icon: Smile,
     defaultOpen: false,
     routes: [
+      { title: 'Mood Tracker', url: '/mood-tracker', icon: Heart, testId: 'nav-mood-tracker' },
       { title: 'Date Night Generator', url: '/date-night', icon: Sparkles, testId: 'nav-date-night' },
       { title: 'Couple Journal', url: '/couple-journal', icon: BookOpen, testId: 'nav-journal' },
       { title: 'Gratitude Log', url: '/gratitude', icon: Heart, testId: 'nav-gratitude' },

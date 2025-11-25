@@ -17,6 +17,7 @@ import loveLanguagesRouter from "./routes/loveLanguages.js";
 import loveMapRouter from "./routes/loveMap.js";
 import meditationRouter from "./routes/meditation.js";
 import messagesRouter from "./routes/messages.js";
+import moodTrackerRouter from "./routes/moodTracker.js";
 import parentingRouter from "./routes/parenting.js";
 import pauseRouter from "./routes/pause.js";
 import profileRouter from "./routes/profile.js";
@@ -48,6 +49,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use("/api/meditation", meditationRouter);
   app.use("/api/meditations", meditationRouter); // Alternative path for consistency
   app.use("/api/messages", messagesRouter);
+  app.use("/api/mood-tracker", moodTrackerRouter);
   app.use("/api/parenting", parentingRouter);
   app.use("/api/pause", pauseRouter);
   app.use("/api/profile", profileRouter);

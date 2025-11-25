@@ -64,6 +64,7 @@ import AttachmentAssessmentPage from './pages/attachment-assessment';
 import EnneagramAssessmentPage from './pages/enneagram-assessment';
 import CoupleJournalPage from './pages/couple-journal';
 import FinancialToolkitPage from './pages/financial-toolkit';
+import MoodTrackerPage from './pages/mood-tracker';
 import CoupleCompatibility from './pages/couple-compatibility';
 import NotFound from './pages/not-found';
 
@@ -377,6 +378,7 @@ function AuthenticatedApp() {
                   <Route path="/couple-compatibility" component={CoupleCompatibility} />
                   <Route path="/couple-journal" component={CoupleJournalPage} />
                   <Route path="/financial-toolkit" component={FinancialToolkitPage} />
+                  <Route path="/mood-tracker" component={MoodTrackerPage} />
                   <Route path="/">
                     {profile.couple_id ? <Redirect to="/dashboard" /> : <Redirect to="/couple-setup" />}
                   </Route>
