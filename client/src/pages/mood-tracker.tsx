@@ -256,12 +256,11 @@ export default function MoodTracker() {
 
               <div>
                 <Label className="text-sm mb-2 block">Secondary Emotion (Optional)</Label>
-                <Select value={newEntry.emotion_secondary} onValueChange={(value) => setNewEntry({ ...newEntry, emotion_secondary: value })}>
+                <Select value={newEntry.emotion_secondary || ''} onValueChange={(value) => setNewEntry({ ...newEntry, emotion_secondary: value || '' })}>
                   <SelectTrigger data-testid="select-emotion-secondary">
                     <SelectValue placeholder="None" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">None</SelectItem>
                     {EMOTIONS.map(emotion => (
                       <SelectItem key={emotion} value={emotion}>{emotion}</SelectItem>
                     ))}
