@@ -9,12 +9,13 @@ import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { useAuth } from '@/lib/auth-context';
 import { supabase } from '@/lib/supabase';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
-import { Loader2, Users, MessageSquare, Plus, Trash2, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Loader2, Users, MessageSquare, Plus, Trash2, CheckCircle2, AlertCircle, Menu, X } from 'lucide-react';
 
 interface CoupleData {
   id: string;
@@ -42,6 +43,7 @@ export default function TherapistDashboard() {
   const [selectedCouple, setSelectedCouple] = useState<CoupleData | null>(null);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [panelOpen, setPanelOpen] = useState(false);
 
   useEffect(() => {
     if (profile?.id) {
@@ -89,75 +91,146 @@ export default function TherapistDashboard() {
   );
 
   return (
-    <div className="w-full space-y-4 p-4 md:p-6">
-      {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-2xl md:text-3xl font-bold">Therapist Dashboard</h1>
-        <p className="text-sm md:text-base text-muted-foreground">Manage your couples and their therapy sessions</p>
-      </div>
-
-      {/* Main Content - Responsive Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Couples List - Left Column (or Full Width on Mobile) */}
-        <div className="lg:col-span-1 space-y-4">
-          <div>
-            <h2 className="text-lg font-semibold mb-3">My Couples</h2>
-            <Input
-              placeholder="Search couples..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="mb-3"
-              data-testid="input-search-couples"
+    <div className="w-full h-full flex flex-col md:flex-row">
+      {/* Mobile/Tablet: Drawer Panel */}
+      {panelOpen && (
+        <div className="fixed inset-0 z-40 md:hidden">
+          <div className="absolute inset-0 bg-black/50" onClick={() => setPanelOpen(false)} />
+          <div className="absolute left-0 top-0 bottom-0 w-80 bg-background shadow-lg flex flex-col">
+            <div className="flex items-center justify-between p-4 border-b">
+              <h2 className="text-lg font-semibold">My Couples</h2>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setPanelOpen(false)}
+                data-testid="button-close-panel"
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+            <CouplesList
+              loading={loading}
+              searchTerm={searchTerm}
+              setSearchTerm={setSearchTerm}
+              filteredCouples={filteredCouples}
+              selectedCouple={selectedCouple}
+              onSelectCouple={() => setPanelOpen(false)}
             />
           </div>
+        </div>
+      )}
 
+      {/* Desktop: Sidebar Panel (always visible) */}
+      <div className="hidden md:flex md:w-80 md:flex-col md:border-r md:bg-muted/30">
+        <div className="flex items-center justify-between p-4 border-b">
+          <h2 className="text-lg font-semibold">My Couples</h2>
+        </div>
+        <CouplesList
+          loading={loading}
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          filteredCouples={filteredCouples}
+          selectedCouple={selectedCouple}
+        />
+      </div>
+
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Mobile Toggle Button */}
+        <div className="md:hidden flex items-center justify-between p-4 border-b">
+          <h1 className="text-xl font-bold">Therapist Dashboard</h1>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setPanelOpen(true)}
+            data-testid="button-open-panel"
+          >
+            <Menu className="w-4 h-4" />
+          </Button>
+        </div>
+
+        {/* Main Content */}
+        <div className="flex-1 overflow-y-auto">
+          <div className="p-4 md:p-6 space-y-4">
+            {selectedCouple ? (
+              <CoupleDetails couple={selectedCouple} />
+            ) : (
+              <Card className="h-64 flex items-center justify-center">
+                <CardContent className="text-center">
+                  <Users className="w-8 h-8 mx-auto mb-3 text-muted-foreground" />
+                  <p className="text-muted-foreground">Select a couple to view details</p>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function CouplesList({
+  loading,
+  searchTerm,
+  setSearchTerm,
+  filteredCouples,
+  selectedCouple,
+  onSelectCouple,
+}: {
+  loading: boolean;
+  searchTerm: string;
+  setSearchTerm: (term: string) => void;
+  filteredCouples: CoupleData[];
+  selectedCouple: CoupleData | null;
+  onSelectCouple?: () => void;
+}) {
+  return (
+    <div className="flex flex-col h-full">
+      <div className="p-4 border-b space-y-2">
+        <Input
+          placeholder="Search..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="text-sm"
+          data-testid="input-search-couples"
+        />
+        <p className="text-xs text-muted-foreground">{filteredCouples.length} couples</p>
+      </div>
+
+      <ScrollArea className="flex-1">
+        <div className="p-2 space-y-1">
           {loading ? (
             <div className="flex justify-center py-8">
               <Loader2 className="w-4 h-4 animate-spin" />
             </div>
           ) : filteredCouples.length === 0 ? (
-            <Alert>
+            <Alert className="m-2">
               <AlertCircle className="h-4 w-4" />
-              <AlertDescription>
-                {searchTerm ? 'No couples found matching your search' : 'No couples assigned yet'}
+              <AlertDescription className="text-xs">
+                {searchTerm ? 'No matches' : 'No couples'}
               </AlertDescription>
             </Alert>
           ) : (
-            <div className="space-y-2 max-h-96 lg:max-h-[600px] overflow-y-auto">
-              {filteredCouples.map(couple => (
-                <Link key={couple.id} href={`/admin/couple/${couple.id}`}>
-                  <Card
-                    className={`cursor-pointer transition-all hover-elevate ${
-                      selectedCouple?.id === couple.id ? 'ring-2 ring-primary' : ''
-                    }`}
-                    data-testid={`card-couple-${couple.id}`}
-                  >
-                    <CardContent className="pt-4">
-                      <p className="font-semibold text-sm">{couple.partner1?.full_name}</p>
-                      <p className="text-xs text-muted-foreground">&</p>
-                      <p className="font-semibold text-sm">{couple.partner2?.full_name}</p>
-                    </CardContent>
-                  </Card>
-                </Link>
-              ))}
-            </div>
+            filteredCouples.map(couple => (
+              <Link key={couple.id} href={`/admin/couple/${couple.id}`}>
+                <div
+                  className={`p-3 rounded-lg cursor-pointer transition-all hover-elevate ${
+                    selectedCouple?.id === couple.id
+                      ? 'bg-primary/10 ring-1 ring-primary'
+                      : 'hover:bg-muted'
+                  }`}
+                  onClick={onSelectCouple}
+                  data-testid={`card-couple-${couple.id}`}
+                >
+                  <p className="font-semibold text-sm truncate">{couple.partner1?.full_name}</p>
+                  <p className="text-xs text-muted-foreground">&</p>
+                  <p className="font-semibold text-sm truncate">{couple.partner2?.full_name}</p>
+                </div>
+              </Link>
+            ))
           )}
         </div>
-
-        {/* Main Content - Right Column(s) (or Full Width on Mobile after list) */}
-        <div className="lg:col-span-2">
-          {selectedCouple ? (
-            <CoupleDetails couple={selectedCouple} />
-          ) : (
-            <Card className="h-full">
-              <CardContent className="py-12 text-center">
-                <Users className="w-8 h-8 mx-auto mb-3 text-muted-foreground" />
-                <p className="text-muted-foreground">Select a couple to view details</p>
-              </CardContent>
-            </Card>
-          )}
-        </div>
-      </div>
+      </ScrollArea>
     </div>
   );
 }
@@ -179,46 +252,46 @@ function CoupleDetails({ couple }: { couple: CoupleData }) {
     <div className="space-y-4">
       {/* Couple Header */}
       <Card>
-        <CardHeader>
-          <CardTitle>{couple.partner1?.full_name} & {couple.partner2?.full_name}</CardTitle>
-          <CardDescription>Couple ID: {couple.id}</CardDescription>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-lg md:text-xl">{couple.partner1?.full_name} & {couple.partner2?.full_name}</CardTitle>
+          <CardDescription className="text-xs">ID: {couple.id}</CardDescription>
         </CardHeader>
       </Card>
 
       {/* Tabs */}
       <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 md:grid-cols-3">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="thoughts" className="relative">
+        <TabsList className="grid w-full grid-cols-2 md:grid-cols-3 h-9">
+          <TabsTrigger value="overview" className="text-xs md:text-sm">Overview</TabsTrigger>
+          <TabsTrigger value="thoughts" className="text-xs md:text-sm relative">
             Thoughts
             {incompleteTodos.length > 0 && (
-              <Badge variant="destructive" className="ml-2 h-5 w-5 p-0 flex items-center justify-center text-xs">
+              <Badge variant="destructive" className="ml-1 h-5 w-5 p-0 flex items-center justify-center text-xs flex-shrink-0">
                 {incompleteTodos.length}
               </Badge>
             )}
           </TabsTrigger>
-          <TabsTrigger value="tools" className="hidden md:inline-flex">Tools</TabsTrigger>
+          <TabsTrigger value="tools" className="hidden md:inline-flex text-xs md:text-sm">Tools</TabsTrigger>
         </TabsList>
 
         {/* Overview Tab */}
-        <TabsContent value="overview" className="space-y-4">
+        <TabsContent value="overview" className="space-y-3 mt-4">
           <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Quick Links</CardTitle>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm">Quick Links</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
               <Link href={`/admin/couple/${couple.id}/checkins`}>
-                <Button variant="outline" className="w-full justify-start" data-testid="button-view-checkins">
+                <Button variant="outline" className="w-full justify-start text-xs md:text-sm h-8 md:h-9" data-testid="button-view-checkins">
                   Weekly Check-ins
                 </Button>
               </Link>
               <Link href={`/admin/couple/${couple.id}/languages`}>
-                <Button variant="outline" className="w-full justify-start" data-testid="button-view-languages">
+                <Button variant="outline" className="w-full justify-start text-xs md:text-sm h-8 md:h-9" data-testid="button-view-languages">
                   Love Languages
                 </Button>
               </Link>
               <Link href={`/admin/couple/${couple.id}/analytics`}>
-                <Button variant="outline" className="w-full justify-start" data-testid="button-view-analytics">
+                <Button variant="outline" className="w-full justify-start text-xs md:text-sm h-8 md:h-9" data-testid="button-view-analytics">
                   Analytics
                 </Button>
               </Link>
@@ -226,46 +299,46 @@ function CoupleDetails({ couple }: { couple: CoupleData }) {
           </Card>
 
           <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Session Info</CardTitle>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm">Session Info</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-2">
+            <CardContent className="space-y-3 text-sm">
               <div>
-                <p className="text-sm text-muted-foreground">Partner 1</p>
-                <p className="font-semibold">{couple.partner1?.full_name}</p>
+                <p className="text-xs text-muted-foreground">Partner 1</p>
+                <p className="font-semibold text-sm">{couple.partner1?.full_name}</p>
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Partner 2</p>
-                <p className="font-semibold">{couple.partner2?.full_name}</p>
+                <p className="text-xs text-muted-foreground">Partner 2</p>
+                <p className="font-semibold text-sm">{couple.partner2?.full_name}</p>
               </div>
             </CardContent>
           </Card>
         </TabsContent>
 
         {/* Thoughts Tab */}
-        <TabsContent value="thoughts" className="space-y-4">
+        <TabsContent value="thoughts" className="mt-4">
           <TherapistThoughtsPanel coupleId={couple.id} />
         </TabsContent>
 
         {/* Tools Tab */}
-        <TabsContent value="tools" className="space-y-4">
+        <TabsContent value="tools" className="space-y-3 mt-4">
           <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Communication Tools</CardTitle>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm">Communication Tools</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
               <Link href={`/admin/couple/${couple.id}/echo`}>
-                <Button variant="outline" className="w-full justify-start">
+                <Button variant="outline" className="w-full justify-start text-xs md:text-sm h-8 md:h-9">
                   Echo & Empathy
                 </Button>
               </Link>
               <Link href={`/admin/couple/${couple.id}/conversations`}>
-                <Button variant="outline" className="w-full justify-start">
+                <Button variant="outline" className="w-full justify-start text-xs md:text-sm h-8 md:h-9">
                   Hold Me Tight
                 </Button>
               </Link>
               <Link href={`/admin/couple/${couple.id}/calendar`}>
-                <Button variant="outline" className="w-full justify-start">
+                <Button variant="outline" className="w-full justify-start text-xs md:text-sm h-8 md:h-9">
                   Calendar
                 </Button>
               </Link>
@@ -335,25 +408,25 @@ function TherapistThoughtsPanel({ coupleId }: { coupleId: string }) {
   const messages = thoughts.filter(t => t.type === 'message');
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       <div className="flex justify-end">
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
           <DialogTrigger asChild>
-            <Button gap-2 data-testid="button-add-thought">
+            <Button size="sm" className="text-xs md:text-sm h-8 md:h-9" data-testid="button-add-thought">
               <Plus className="w-4 h-4" />
-              Add Thought
+              <span className="hidden sm:inline ml-1">Add Thought</span>
             </Button>
           </DialogTrigger>
-          <DialogContent className="w-full max-w-md">
+          <DialogContent className="w-full max-w-sm">
             <DialogHeader>
-              <DialogTitle>Add Therapist Thought</DialogTitle>
-              <DialogDescription>Create a to-do, message, or file reference</DialogDescription>
+              <DialogTitle className="text-base">Add Therapist Thought</DialogTitle>
+              <DialogDescription className="text-xs">Create a to-do, message, or file reference</DialogDescription>
             </DialogHeader>
-            <div className="space-y-4">
+            <div className="space-y-3">
               <div>
-                <label className="text-sm font-medium mb-2 block">Type</label>
+                <label className="text-xs font-medium mb-1 block">Type</label>
                 <Select value={newThought.type} onValueChange={(value: any) => setNewThought({ ...newThought, type: value })}>
-                  <SelectTrigger data-testid="select-thought-type">
+                  <SelectTrigger className="h-8 text-xs" data-testid="select-thought-type">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -365,30 +438,31 @@ function TherapistThoughtsPanel({ coupleId }: { coupleId: string }) {
               </div>
 
               <div>
-                <label className="text-sm font-medium mb-2 block">Title</label>
+                <label className="text-xs font-medium mb-1 block">Title</label>
                 <Input
                   placeholder="Title..."
                   value={newThought.title}
                   onChange={(e) => setNewThought({ ...newThought, title: e.target.value })}
+                  className="h-8 text-xs"
                   data-testid="input-thought-title"
                 />
               </div>
 
               <div>
-                <label className="text-sm font-medium mb-2 block">Content (Optional)</label>
+                <label className="text-xs font-medium mb-1 block">Content (Optional)</label>
                 <Textarea
-                  placeholder="Add any details..."
+                  placeholder="Add details..."
                   value={newThought.content}
                   onChange={(e) => setNewThought({ ...newThought, content: e.target.value })}
-                  className="resize-none"
+                  className="resize-none text-xs min-h-16"
                   data-testid="textarea-thought-content"
                 />
               </div>
 
               <div>
-                <label className="text-sm font-medium mb-2 block">Priority</label>
+                <label className="text-xs font-medium mb-1 block">Priority</label>
                 <Select value={newThought.priority} onValueChange={(value: any) => setNewThought({ ...newThought, priority: value })}>
-                  <SelectTrigger data-testid="select-thought-priority">
+                  <SelectTrigger className="h-8 text-xs" data-testid="select-thought-priority">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -402,7 +476,7 @@ function TherapistThoughtsPanel({ coupleId }: { coupleId: string }) {
               <Button
                 onClick={() => createMutation.mutate()}
                 disabled={!newThought.title || createMutation.isPending}
-                className="w-full"
+                className="w-full text-xs h-8"
                 data-testid="button-submit-thought"
               >
                 {createMutation.isPending ? 'Adding...' : 'Add Thought'}
@@ -417,29 +491,29 @@ function TherapistThoughtsPanel({ coupleId }: { coupleId: string }) {
           <Loader2 className="w-4 h-4 animate-spin" />
         </div>
       ) : thoughts.length === 0 ? (
-        <Alert>
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>No therapist thoughts yet. Add one to get started.</AlertDescription>
+        <Alert className="text-xs">
+          <AlertCircle className="h-3 w-3" />
+          <AlertDescription className="text-xs">No therapist thoughts yet.</AlertDescription>
         </Alert>
       ) : (
         <>
           {todos.length > 0 && (
             <Card>
-              <CardHeader>
-                <CardTitle className="text-base">To-Do Items</CardTitle>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm">To-Do Items</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
                 {todos.map(thought => (
-                  <div key={thought.id} className="flex items-start gap-3 p-3 bg-muted rounded-lg group">
-                    <CheckCircle2 className="w-4 h-4 mt-1 flex-shrink-0" />
+                  <div key={thought.id} className="flex items-start gap-2 p-2 bg-muted rounded text-xs group">
+                    <CheckCircle2 className="w-3 h-3 mt-0.5 flex-shrink-0" />
                     <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-sm break-words">{thought.title}</p>
+                      <p className="font-semibold break-words">{thought.title}</p>
                       {thought.content && (
-                        <p className="text-xs text-muted-foreground mt-1 break-words">{thought.content}</p>
+                        <p className="text-muted-foreground break-words line-clamp-2">{thought.content}</p>
                       )}
                       {thought.priority && (
                         <Badge
-                          className="mt-2"
+                          className="mt-1 text-xs"
                           variant={thought.priority === 'high' ? 'destructive' : thought.priority === 'medium' ? 'secondary' : 'outline'}
                         >
                           {thought.priority}
@@ -450,10 +524,10 @@ function TherapistThoughtsPanel({ coupleId }: { coupleId: string }) {
                       variant="ghost"
                       size="icon"
                       onClick={() => deleteMutation.mutate(thought.id)}
-                      className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                      className="h-6 w-6 flex-shrink-0 opacity-0 group-hover:opacity-100"
                       data-testid={`button-delete-thought-${thought.id}`}
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <Trash2 className="w-3 h-3" />
                     </Button>
                   </div>
                 ))}
@@ -463,27 +537,27 @@ function TherapistThoughtsPanel({ coupleId }: { coupleId: string }) {
 
           {messages.length > 0 && (
             <Card>
-              <CardHeader>
-                <CardTitle className="text-base">Messages to Clients</CardTitle>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm">Messages to Clients</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
                 {messages.map(thought => (
-                  <div key={thought.id} className="flex items-start gap-3 p-3 bg-muted rounded-lg group">
-                    <MessageSquare className="w-4 h-4 mt-1 flex-shrink-0" />
+                  <div key={thought.id} className="flex items-start gap-2 p-2 bg-muted rounded text-xs group">
+                    <MessageSquare className="w-3 h-3 mt-0.5 flex-shrink-0" />
                     <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-sm break-words">{thought.title}</p>
+                      <p className="font-semibold break-words">{thought.title}</p>
                       {thought.content && (
-                        <p className="text-xs text-muted-foreground mt-1 break-words">{thought.content}</p>
+                        <p className="text-muted-foreground break-words line-clamp-2">{thought.content}</p>
                       )}
                     </div>
                     <Button
                       variant="ghost"
                       size="icon"
                       onClick={() => deleteMutation.mutate(thought.id)}
-                      className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                      className="h-6 w-6 flex-shrink-0 opacity-0 group-hover:opacity-100"
                       data-testid={`button-delete-thought-${thought.id}`}
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <Trash2 className="w-3 h-3" />
                     </Button>
                   </div>
                 ))}
