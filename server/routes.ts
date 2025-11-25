@@ -22,6 +22,7 @@ import pauseRouter from "./routes/pause.js";
 import profileRouter from "./routes/profile.js";
 import publicRouter from "./routes/public.js";
 import therapistRouter from "./routes/therapist.js";
+import therapistThoughtsRouter from "./routes/therapistThoughts.js";
 import valuesVisionRouter from "./routes/valuesVision.js";
 import voiceMemosRouter from "./routes/voiceMemos.js";
 
@@ -52,6 +53,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use("/api/profile", profileRouter);
   app.use("/api/public", publicRouter);
   app.use("/api/therapist", therapistRouter);
+  app.use("/api/therapist-thoughts", therapistThoughtsRouter);
   app.use("/api/values-vision", valuesVisionRouter);
   app.use("/api/voice-memos", voiceMemosRouter);
 

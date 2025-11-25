@@ -10,6 +10,13 @@ I prefer iterative development with clear communication on progress and potentia
 
 ## Recent Changes (November 2025)
 
+**Major Feature Implementations - November 25, 2025:**
+1. **Couple Compatibility Module**: New page (`/couple-compatibility`) showing both partners' assessment results (Love Language, Attachment Style, Enneagram) with compatibility analysis and personalized connection suggestions for each partner.
+2. **Therapist Thoughts System**: New section replacing Messages with to-dos, messages to clients, and file references. Includes priority levels, completion tracking, and therapist-scoped access control. API: `GET/POST/PATCH/DELETE /api/therapist-thoughts/couple/:coupleId`
+3. **Bug Fixes**: Fixed Love Language deletion error (apiRequest method signature). Changed from `apiRequest(url, { method: 'DELETE' })` to correct `apiRequest('DELETE', url)` format.
+4. **Navigation Updates**: Added new routes, menu items, and improved role-based routing.
+5. **Database Setup**: Created `Couples_therapist_thoughts` table with RLS policies in `supabase-therapist-thoughts-migration.sql`.
+
 **Mobile App Added (November 2025):**
 1. **Expo React Native Application**: Complete mobile app structure created in `mobile/` directory with iOS and Android support via Expo.
 2. **Cross-Platform Architecture**: Mobile app shares the same backend (Express.js + Supabase) as the web app, ensuring data consistency.
@@ -95,8 +102,8 @@ The design emphasizes a warm, compassionate feel using the Inter font, generous 
 
 **Feature Specifications:**
 
-*   **Client App (for Couples)**: Assessments (Love Language, Love Map, Weekly Check-Ins, Attachment Style NEW, Enneagram NEW), Shared Activities (Gratitude Log, Shared Goals, Rituals of Connection, Hold Me Tight Conversation, Echo & Empathy, Couple Journal NEW, Financial Toolkit NEW), Communication & Interaction (Voice Memos, Connection Concierge, secure Messages, Shared Calendar, Shared Pause Button, Realtime Therapist Comments), Individual Exercises (IFS Introduction).
-*   **Admin App (for Therapists)**: Management (Secure Login, User Management, Client Roster), Couple Dashboard (side-by-side comparison of Weekly Check-ins, Love Languages, Activity Feed), Intervention Tools (Contextual Commenting, secure Messages, Read-only Calendar, Love Map Quiz Results, Echo & Empathy History, IFS Exercises view, Pause History tracking, AI-powered Analytics, Attachment Results NEW, Enneagram Results NEW, Journal View NEW, Financial Overview NEW).
+*   **Client App (for Couples)**: Assessments (Love Language, Love Map, Weekly Check-Ins, Attachment Style, Enneagram), Assessment Insights (Couple Compatibility Module NEW), Shared Activities (Gratitude Log, Shared Goals, Rituals of Connection, Hold Me Tight Conversation, Echo & Empathy, Couple Journal, Financial Toolkit), Communication & Interaction (Voice Memos, Connection Concierge, secure Messages, Shared Calendar, Shared Pause Button, Realtime Therapist Comments), Individual Exercises (IFS Introduction).
+*   **Admin App (for Therapists)**: Management (Secure Login, User Management, Client Roster), Couple Dashboard (side-by-side comparison of Weekly Check-ins, Love Languages, Activity Feed), Intervention Tools (Therapist Thoughts NEW, Contextual Commenting, Read-only Calendar, Love Map Quiz Results, Echo & Empathy History, IFS Exercises view, Pause History tracking, AI-powered Analytics, Attachment Results, Enneagram Results, Journal View, Financial Overview).
 
 ## External Dependencies
 

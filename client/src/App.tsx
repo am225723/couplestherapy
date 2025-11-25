@@ -63,6 +63,7 @@ import AttachmentAssessmentPage from './pages/attachment-assessment';
 import EnneagramAssessmentPage from './pages/enneagram-assessment';
 import CoupleJournalPage from './pages/couple-journal';
 import FinancialToolkitPage from './pages/financial-toolkit';
+import CoupleCompatibility from './pages/couple-compatibility';
 import NotFound from './pages/not-found';
 
 function AppSidebar() {
@@ -252,8 +253,8 @@ function AuthenticatedApp() {
   // This prevents 404 errors when therapists sign in while on client routes (or vice versa)
   useEffect(() => {
     if (!loading && user && profile) {
-      const therapistRoutes = ['/admin', '/admin/analytics', '/admin/invitation-codes'];
-      const clientRoutes = ['/dashboard', '/couple-setup', '/quiz', '/love-map', '/weekly-checkin', '/checkin-history', '/gratitude', '/goals', '/rituals', '/conversation', '/voice-memos', '/date-night', '/messages', '/calendar', '/echo-empathy', '/ifs-intro', '/pause', '/four-horsemen', '/demon-dialogues', '/meditation-library', '/intimacy-mapping', '/values-vision', '/parenting-partners'];
+      const therapistRoutes = ['/admin', '/admin/analytics', '/admin/invitation-codes', '/therapist-thoughts'];
+      const clientRoutes = ['/dashboard', '/couple-setup', '/quiz', '/love-map', '/weekly-checkin', '/checkin-history', '/gratitude', '/goals', '/rituals', '/conversation', '/voice-memos', '/date-night', '/messages', '/calendar', '/echo-empathy', '/ifs-intro', '/pause', '/four-horsemen', '/demon-dialogues', '/meditation-library', '/intimacy-mapping', '/values-vision', '/parenting-partners', '/couple-compatibility', '/attachment-assessment', '/enneagram-assessment', '/couple-journal', '/financial-toolkit'];
       
       const isTherapist = profile.role === 'therapist';
       const isOnTherapistRoute = location.startsWith('/admin');
@@ -340,6 +341,7 @@ function AuthenticatedApp() {
                   <Route path="/admin/couple/:id" component={AdminDashboard} />
                   <Route path="/admin/analytics" component={AnalyticsPage} />
                   <Route path="/admin/invitation-codes" component={InvitationCodesPage} />
+                  <Route path="/therapist-thoughts" component={AdminDashboard} />
                   <Route path="/">
                     <Redirect to="/admin" />
                   </Route>
@@ -371,6 +373,7 @@ function AuthenticatedApp() {
                   <Route path="/parenting-partners" component={ParentingPartnersPage} />
                   <Route path="/attachment-assessment" component={AttachmentAssessmentPage} />
                   <Route path="/enneagram-assessment" component={EnneagramAssessmentPage} />
+                  <Route path="/couple-compatibility" component={CoupleCompatibility} />
                   <Route path="/couple-journal" component={CoupleJournalPage} />
                   <Route path="/financial-toolkit" component={FinancialToolkitPage} />
                   <Route path="/">

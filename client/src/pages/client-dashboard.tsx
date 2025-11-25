@@ -31,10 +31,8 @@ export default function ClientDashboard() {
 
   // Delete love language mutation
   const deleteLoveLanguageMutation = useMutation({
-    mutationFn: async (id: number) => {
-      return await apiRequest(`/api/love-languages/user/${id}`, {
-        method: 'DELETE',
-      });
+    mutationFn: async (id: string) => {
+      return await apiRequest('DELETE', `/api/love-languages/user/${id}`);
     },
     onSuccess: async (_data, deletedId) => {
       // Optimistically update local state
