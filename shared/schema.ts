@@ -123,854 +123,560 @@ export const couplesTherapistComments = pgTable("Couples_therapist_comments", {
   therapist_id: uuid("therapist_id").notNull(),
   created_at: timestamp("created_at").defaultNow(),
   comment_text: text("comment_text").notNull(),
-  is_private_note: boolean("is_private_note").default(false),
-  related_activity_type: text("related_activity_type"),
-  related_activity_id: uuid("related_activity_id"),
+  private_note: boolean("private_note").default(false),
+  category: text("category"), // 'general', 'followup', 'alert'
 });
 
 export const insertTherapistCommentSchema = createInsertSchema(couplesTherapistComments).omit({
   id: true,
   created_at: true,
 }).extend({
-  comment_text: z.string().min(1, "Comment is required"),
+  comment_text: z.string().min(1),
 });
 export type InsertTherapistComment = z.infer<typeof insertTherapistCommentSchema>;
 export type TherapistComment = typeof couplesTherapistComments.$inferSelect;
 
-// 8. CONVERSATIONS (Hold Me Tight)
-export const couplesConversations = pgTable("Couples_conversations", {
+// 8. LOVE MAP QUIZ COMPONENTS
+export const couplesLoveMapQuizzes = pgTable("Couples_love_map_quizzes", {
   id: uuid("id").primaryKey(),
   couple_id: uuid("couple_id").notNull(),
   created_at: timestamp("created_at").defaultNow(),
-  initiator_id: uuid("initiator_id"),
-  initiator_situation: text("initiator_situation"),
-  initiator_statement_feel: text("initiator_statement_feel"),
-  initiator_scared_of: text("initiator_scared_of"),
-  initiator_embarrassed_about: text("initiator_embarrassed_about"),
-  initiator_expectations: text("initiator_expectations"),
-  initiator_statement_need: text("initiator_statement_need"),
-  partner_reflection: text("partner_reflection"),
-  partner_response: text("partner_response"),
+  status: text("status").default("active"), // 'active', 'completed'
 });
 
-export const insertConversationSchema = createInsertSchema(couplesConversations).omit({
-  id: true,
-  created_at: true,
-});
-export type InsertConversation = z.infer<typeof insertConversationSchema>;
-export type Conversation = typeof couplesConversations.$inferSelect;
+export type LoveMapQuiz = typeof couplesLoveMapQuizzes.$inferSelect;
 
-// 9. RITUALS OF CONNECTION
-export const couplesRituals = pgTable("Couples_rituals", {
+// 9. LOVE MAP QUESTIONS
+export const couplesLoveMapQuestions = pgTable("Couples_love_map_questions", {
   id: uuid("id").primaryKey(),
-  couple_id: uuid("couple_id").notNull(),
-  category: text("category").notNull(), // 'Mornings', 'Reuniting', 'Mealtimes', 'Going to Sleep'
-  description: text("description").notNull(),
-  created_by: uuid("created_by"),
+  quiz_id: uuid("quiz_id").notNull(),
+  question_text: text("question_text").notNull(),
+  phase: text("phase").notNull(), // 'truths', 'guesses', 'results'
+  question_order: integer("question_order"),
 });
 
-export const insertRitualSchema = createInsertSchema(couplesRituals).omit({ id: true }).extend({
-  description: z.string().min(1, "Ritual description is required"),
-});
-export type InsertRitual = z.infer<typeof insertRitualSchema>;
-export type Ritual = typeof couplesRituals.$inferSelect;
+export type LoveMapQuestion = typeof couplesLoveMapQuestions.$inferSelect;
 
-// 10. VOICE MEMOS
+// 10. LOVE MAP RESPONSES
+export const couplesLoveMapResponses = pgTable("Couples_love_map_responses", {
+  id: uuid("id").primaryKey(),
+  question_id: uuid("question_id").notNull(),
+  respondent_id: uuid("respondent_id").notNull(),
+  response_text: text("response_text"),
+  guess_from_partner: text("guess_from_partner"),
+});
+
+export type LoveMapResponse = typeof couplesLoveMapResponses.$inferSelect;
+
+// 11. VOICE MEMOS
 export const couplesVoiceMemos = pgTable("Couples_voice_memos", {
   id: uuid("id").primaryKey(),
   couple_id: uuid("couple_id").notNull(),
-  sender_id: uuid("sender_id").notNull(),
-  recipient_id: uuid("recipient_id").notNull(),
-  storage_path: text("storage_path"),
-  duration_secs: numeric("duration_secs", { precision: 10, scale: 2 }),
-  transcript_text: text("transcript_text"),
-  is_listened: boolean("is_listened").default(false),
+  created_by: uuid("created_by").notNull(),
   created_at: timestamp("created_at").defaultNow(),
+  audio_url: text("audio_url"), // Supabase Storage path
+  duration_seconds: integer("duration_seconds"),
+  transcript: text("transcript"),
+  sentiment_score: numeric("sentiment_score"), // -1 to 1 (negative to positive)
+  sentiment_label: text("sentiment_label"), // 'negative', 'neutral', 'positive'
 });
 
 export const insertVoiceMemoSchema = createInsertSchema(couplesVoiceMemos).omit({
   id: true,
   created_at: true,
+  transcript: true,
+  sentiment_score: true,
+  sentiment_label: true,
 }).extend({
-  storage_path: z.string().min(1, "Storage path is required"),
-  duration_secs: z.string().optional(),
-  transcript_text: z.string().optional(),
+  audio_url: z.string().min(1),
 });
 export type InsertVoiceMemo = z.infer<typeof insertVoiceMemoSchema>;
 export type VoiceMemo = typeof couplesVoiceMemos.$inferSelect;
 
-// 11. MESSAGES
+// 12. MESSAGES (SECURE)
 export const couplesMessages = pgTable("Couples_messages", {
   id: uuid("id").primaryKey(),
   couple_id: uuid("couple_id").notNull(),
   sender_id: uuid("sender_id").notNull(),
   message_text: text("message_text").notNull(),
   created_at: timestamp("created_at").defaultNow(),
-  is_read: boolean("is_read").default(false),
 });
 
 export const insertMessageSchema = createInsertSchema(couplesMessages).omit({
   id: true,
   created_at: true,
-  is_read: true,
 }).extend({
-  message_text: z.string().min(1, "Message cannot be empty"),
+  message_text: z.string().min(1),
 });
 export type InsertMessage = z.infer<typeof insertMessageSchema>;
 export type Message = typeof couplesMessages.$inferSelect;
 
-// 12. CALENDAR EVENTS
+// 13. SHARED CALENDAR EVENTS
 export const couplesCalendarEvents = pgTable("Couples_calendar_events", {
   id: uuid("id").primaryKey(),
   couple_id: uuid("couple_id").notNull(),
   created_by: uuid("created_by").notNull(),
-  title: text("title").notNull(),
-  description: text("description"),
-  start_at: timestamp("start_at").notNull(),
-  end_at: timestamp("end_at").notNull(),
-  is_all_day: boolean("is_all_day").default(false),
   created_at: timestamp("created_at").defaultNow(),
-  updated_at: timestamp("updated_at").defaultNow(),
+  event_title: text("event_title").notNull(),
+  event_date: timestamp("event_date").notNull(),
+  description: text("description"),
+  location: text("location"),
 });
 
 export const insertCalendarEventSchema = createInsertSchema(couplesCalendarEvents).omit({
   id: true,
   created_at: true,
-  updated_at: true,
 }).extend({
-  title: z.string().min(1, "Event title is required"),
-  start_at: z.date(),
-  end_at: z.date(),
+  event_title: z.string().min(1),
+  event_date: z.date().or(z.string()),
 });
 export type InsertCalendarEvent = z.infer<typeof insertCalendarEventSchema>;
 export type CalendarEvent = typeof couplesCalendarEvents.$inferSelect;
 
-// Love Language Quiz Types
-export const LOVE_LANGUAGES = [
-  "Words of Affirmation",
-  "Quality Time",
-  "Receiving Gifts",
-  "Acts of Service",
-  "Physical Touch",
-] as const;
-
-export type LoveLanguageType = typeof LOVE_LANGUAGES[number];
-
-export interface QuizQuestion {
-  id: number;
-  optionA: { text: string; language: LoveLanguageType };
-  optionB: { text: string; language: LoveLanguageType };
-}
-
-// Ritual Categories
-export const RITUAL_CATEGORIES = [
-  "Mornings",
-  "Reuniting",
-  "Mealtimes",
-  "Going to Sleep",
-] as const;
-
-export type RitualCategory = typeof RITUAL_CATEGORIES[number];
-
-// ANALYTICS TYPES
-export interface CoupleAnalytics {
-  couple_id: string;
-  partner1_name: string;
-  partner2_name: string;
-  total_checkins: number;
-  checkins_this_month: number;
-  checkin_completion_rate: number; // percentage 0-100
-  gratitude_count: number;
-  goals_total: number;
-  goals_completed: number;
-  conversations_count: number;
-  rituals_count: number;
-  avg_connectedness: number; // 1-10
-  avg_conflict: number; // 1-10
-  last_activity_date: string | null;
-  engagement_score: number; // 0-100 composite score
-}
-
-export interface TherapistAnalytics {
-  therapist_id: string;
-  total_couples: number;
-  active_couples: number; // active in last 30 days
-  overall_checkin_rate: number;
-  total_gratitude_logs: number;
-  total_comments_given: number;
-  couples: CoupleAnalytics[];
-}
-
-export interface ActivityTimelinePoint {
-  date: string; // ISO date
-  checkins: number;
-  gratitude_logs: number;
-  goals_completed: number;
-  conversations: number;
-}
-
-export interface WeeklyCompletionData {
-  week_number: number;
-  year: number;
-  partner1_completed: boolean;
-  partner2_completed: boolean;
-  both_completed: boolean;
-}
-
-// AI INSIGHTS TYPE
-export type AIInsight = {
-  couple_id: string;
-  generated_at: string; // ISO timestamp
-  summary: string;
-  discrepancies: string[];
-  patterns: string[];
-  recommendations: string[];
-  raw_analysis: string; // Full Perplexity response
-  citations?: string[]; // If Perplexity provides citations
-};
-
-// AI SESSION PREP TYPE
-export type SessionPrepResult = {
-  couple_id: string;
-  generated_at: string;
-  engagement_summary: string;
-  concerning_patterns: string[];
-  positive_patterns: string[];
-  session_focus_areas: string[];
-  recommended_interventions: string[];
-  ai_analysis: string;
-  usage: {
-    prompt_tokens: number;
-    completion_tokens: number;
-    total_tokens: number;
-  };
-};
-
-// ==============================================
-// LOVE MAP QUIZ TABLES (Gottman Methodology)
-// ==============================================
-
-// 13. LOVE MAP QUESTIONS
-export const couplesLoveMapQuestions = pgTable("Couples_love_map_questions", {
+// 14. PAUSE BUTTON (SHARED PAUSE BUTTON)
+export const couplesPauseButtons = pgTable("Couples_pause_buttons", {
   id: uuid("id").primaryKey(),
-  question_text: text("question_text").notNull(),
-  category: text("category"),
-  is_active: boolean("is_active").default(true),
+  couple_id: uuid("couple_id").notNull(),
+  activated_by: uuid("activated_by").notNull(),
   created_at: timestamp("created_at").defaultNow(),
+  ended_at: timestamp("ended_at"),
+  reason: text("reason"),
 });
 
-export type LoveMapQuestion = typeof couplesLoveMapQuestions.$inferSelect;
+export const insertPauseButtonSchema = createInsertSchema(couplesPauseButtons).omit({
+  id: true,
+  created_at: true,
+  ended_at: true,
+});
+export type InsertPauseButton = z.infer<typeof insertPauseButtonSchema>;
+export type PauseButton = typeof couplesPauseButtons.$inferSelect;
 
-// 14. LOVE MAP SESSIONS
-export const couplesLoveMapSessions = pgTable("Couples_love_map_sessions", {
+// 15. ECHO & EMPATHY SESSIONS
+export const couplesEchoEmpathySessions = pgTable("Couples_echo_empathy_sessions", {
   id: uuid("id").primaryKey(),
   couple_id: uuid("couple_id").notNull(),
   created_at: timestamp("created_at").defaultNow(),
-  completed_at: timestamp("completed_at"),
-  partner1_truths_completed: boolean("partner1_truths_completed").default(false),
-  partner2_truths_completed: boolean("partner2_truths_completed").default(false),
-  partner1_guesses_completed: boolean("partner1_guesses_completed").default(false),
-  partner2_guesses_completed: boolean("partner2_guesses_completed").default(false),
-  partner1_score: numeric("partner1_score", { precision: 5, scale: 2 }),
-  partner2_score: numeric("partner2_score", { precision: 5, scale: 2 }),
-});
-
-export const insertLoveMapSessionSchema = createInsertSchema(couplesLoveMapSessions).omit({
-  id: true,
-  created_at: true,
-  completed_at: true,
-  partner1_truths_completed: true,
-  partner2_truths_completed: true,
-  partner1_guesses_completed: true,
-  partner2_guesses_completed: true,
-  partner1_score: true,
-  partner2_score: true,
-});
-export type InsertLoveMapSession = z.infer<typeof insertLoveMapSessionSchema>;
-export type LoveMapSession = typeof couplesLoveMapSessions.$inferSelect;
-
-// 15. LOVE MAP TRUTHS (Self-answers)
-export const couplesLoveMapTruths = pgTable("Couples_love_map_truths", {
-  id: uuid("id").primaryKey(),
-  session_id: uuid("session_id").notNull(),
-  question_id: uuid("question_id").notNull(),
-  author_id: uuid("author_id").notNull(),
-  answer_text: text("answer_text").notNull(),
-  created_at: timestamp("created_at").defaultNow(),
-});
-
-export const insertLoveMapTruthSchema = createInsertSchema(couplesLoveMapTruths).omit({
-  id: true,
-  created_at: true,
-}).extend({
-  answer_text: z.string().min(1, "Answer is required"),
-});
-export type InsertLoveMapTruth = z.infer<typeof insertLoveMapTruthSchema>;
-export type LoveMapTruth = typeof couplesLoveMapTruths.$inferSelect;
-
-// 16. LOVE MAP GUESSES (Partner guesses)
-export const couplesLoveMapGuesses = pgTable("Couples_love_map_guesses", {
-  id: uuid("id").primaryKey(),
-  session_id: uuid("session_id").notNull(),
-  question_id: uuid("question_id").notNull(),
-  guesser_id: uuid("guesser_id").notNull(),
-  truth_id: uuid("truth_id").notNull(),
-  guess_text: text("guess_text").notNull(),
-  is_correct: boolean("is_correct"),
-  created_at: timestamp("created_at").defaultNow(),
-});
-
-export const insertLoveMapGuessSchema = createInsertSchema(couplesLoveMapGuesses).omit({
-  id: true,
-  created_at: true,
-  is_correct: true,
-}).extend({
-  guess_text: z.string().min(1, "Guess is required"),
-});
-export type InsertLoveMapGuess = z.infer<typeof insertLoveMapGuessSchema>;
-export type LoveMapGuess = typeof couplesLoveMapGuesses.$inferSelect;
-
-// ==============================================
-// ECHO & EMPATHY FEATURE - Active Listening Communication Skill Builder
-// ==============================================
-
-// 17. ECHO SESSIONS
-export const couplesEchoSessions = pgTable("Couples_echo_sessions", {
-  id: uuid("id").primaryKey(),
-  couple_id: uuid("couple_id").notNull(),
   speaker_id: uuid("speaker_id").notNull(),
   listener_id: uuid("listener_id").notNull(),
-  current_step: integer("current_step").notNull().default(1), // 1-3
-  status: text("status").notNull().default("in_progress"), // 'in_progress', 'completed'
-  created_at: timestamp("created_at").defaultNow(),
-  completed_at: timestamp("completed_at"),
+  speaker_statement: text("speaker_statement"),
+  listener_echo: text("listener_echo"),
+  listener_validation: text("listener_validation"),
+  listener_empathy: text("listener_empathy"),
+  speaker_reflection: text("speaker_reflection"),
 });
 
-export const insertEchoSessionSchema = createInsertSchema(couplesEchoSessions).omit({
+export const insertEchoEmpathySessionSchema = createInsertSchema(couplesEchoEmpathySessions).omit({
   id: true,
   created_at: true,
-  completed_at: true,
-}).extend({
-  speaker_id: z.string().uuid(),
-  listener_id: z.string().uuid(),
-  current_step: z.number().min(1).max(3).default(1),
-  status: z.enum(["in_progress", "completed"]).default("in_progress"),
 });
-export type InsertEchoSession = z.infer<typeof insertEchoSessionSchema>;
-export type EchoSession = typeof couplesEchoSessions.$inferSelect;
+export type InsertEchoEmpathySession = z.infer<typeof insertEchoEmpathySessionSchema>;
+export type EchoEmpathySession = typeof couplesEchoEmpathySessions.$inferSelect;
 
-// 18. ECHO TURNS
-export const couplesEchoTurns = pgTable("Couples_echo_turns", {
-  id: uuid("id").primaryKey(),
-  session_id: uuid("session_id").notNull(),
-  step: integer("step").notNull(), // 1-3
-  author_id: uuid("author_id").notNull(),
-  content: text("content").notNull(),
-  created_at: timestamp("created_at").defaultNow(),
-});
-
-export const insertEchoTurnSchema = createInsertSchema(couplesEchoTurns).omit({
-  id: true,
-  created_at: true,
-}).extend({
-  step: z.number().min(1).max(3),
-  content: z.string().min(1, "Content is required"),
-});
-export type InsertEchoTurn = z.infer<typeof insertEchoTurnSchema>;
-export type EchoTurn = typeof couplesEchoTurns.$inferSelect;
-
-// ==============================================
-// IFS INTRODUCTION FEATURE - Inner Family Systems Exercise
-// ==============================================
-
-// 19. IFS EXERCISES
-export const couplesIfsExercises = pgTable("Couples_ifs_exercises", {
-  id: uuid("id").primaryKey(),
-  user_id: uuid("user_id").notNull(),
-  couple_id: uuid("couple_id").notNull(),
-  status: text("status").notNull().default("in_progress"), // 'in_progress', 'completed'
-  created_at: timestamp("created_at").defaultNow(),
-  completed_at: timestamp("completed_at"),
-});
-
-export const insertIfsExerciseSchema = createInsertSchema(couplesIfsExercises).omit({
-  id: true,
-  created_at: true,
-  completed_at: true,
-}).extend({
-  status: z.enum(["in_progress", "completed"]).default("in_progress"),
-});
-export type InsertIfsExercise = z.infer<typeof insertIfsExerciseSchema>;
-export type IfsExercise = typeof couplesIfsExercises.$inferSelect;
-
-// 20. IFS PARTS (Protective Parts)
-export const couplesIfsParts = pgTable("Couples_ifs_parts", {
-  id: uuid("id").primaryKey(),
-  exercise_id: uuid("exercise_id").notNull(),
-  user_id: uuid("user_id").notNull(),
-  part_name: text("part_name").notNull(),
-  when_appears: text("when_appears").notNull(),
-  letter_content: text("letter_content").notNull(),
-  created_at: timestamp("created_at").defaultNow(),
-});
-
-export const insertIfsPartSchema = createInsertSchema(couplesIfsParts).omit({
-  id: true,
-  created_at: true,
-}).extend({
-  part_name: z.string().min(1, "Part name is required"),
-  when_appears: z.string().min(1, "Please describe when this part appears"),
-  letter_content: z.string().min(1, "Letter content is required"),
-});
-export type InsertIfsPart = z.infer<typeof insertIfsPartSchema>;
-export type IfsPart = typeof couplesIfsParts.$inferSelect;
-
-// ==============================================
-// SHARED PAUSE BUTTON FEATURE - Real-time De-escalation Tool
-// ==============================================
-
-// 21. PAUSE EVENTS
-export const couplesPauseEvents = pgTable("Couples_pause_events", {
+// 16. IFS EXERCISES
+export const couplesIFSExercises = pgTable("Couples_ifs_exercises", {
   id: uuid("id").primaryKey(),
   couple_id: uuid("couple_id").notNull(),
-  initiated_by: uuid("initiated_by").notNull(),
-  started_at: timestamp("started_at").defaultNow(),
-  ended_at: timestamp("ended_at"),
-  duration_minutes: integer("duration_minutes"),
-  reflection: text("reflection"),
-});
-
-export const insertPauseEventSchema = createInsertSchema(couplesPauseEvents).omit({
-  id: true,
-  started_at: true,
-  ended_at: true,
-  duration_minutes: true,
-}).extend({
-  reflection: z.string().optional(),
-});
-export type InsertPauseEvent = z.infer<typeof insertPauseEventSchema>;
-export type PauseEvent = typeof couplesPauseEvents.$inferSelect;
-
-// ==============================================
-// INVITATION CODES - For Therapist-Couple Linking
-// ==============================================
-
-// 22. INVITATION CODES
-export const couplesInvitationCodes = pgTable("Couples_invitation_codes", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  code: text("code").notNull().unique(),
-  therapist_id: uuid("therapist_id").notNull(),
+  user_id: uuid("user_id").notNull(),
   created_at: timestamp("created_at").defaultNow(),
-  expires_at: timestamp("expires_at"),
-  used_at: timestamp("used_at"),
-  used_by_couple_id: uuid("used_by_couple_id"),
+  exercise_type: text("exercise_type"), // 'introduction', 'part_identification', 'dialogue'
+  parts_identified: jsonb("parts_identified"), // Array of identified parts
+  insights_captured: text("insights_captured"),
+});
+
+export const insertIFSExerciseSchema = createInsertSchema(couplesIFSExercises).omit({
+  id: true,
+  created_at: true,
+});
+export type InsertIFSExercise = z.infer<typeof insertIFSExerciseSchema>;
+export type IFSExercise = typeof couplesIFSExercises.$inferSelect;
+
+// 17. RITUALS OF CONNECTION
+export const couplesRitualsOfConnection = pgTable("Couples_rituals_of_connection", {
+  id: uuid("id").primaryKey(),
+  couple_id: uuid("couple_id").notNull(),
+  created_at: timestamp("created_at").defaultNow(),
+  ritual_title: text("ritual_title").notNull(),
+  description: text("description"),
+  frequency: text("frequency"), // 'daily', 'weekly', 'monthly'
+  last_performed: timestamp("last_performed"),
+});
+
+export const insertRitualOfConnectionSchema = createInsertSchema(couplesRitualsOfConnection).omit({
+  id: true,
+  created_at: true,
+}).extend({
+  ritual_title: z.string().min(1),
+});
+export type InsertRitualOfConnection = z.infer<typeof insertRitualOfConnectionSchema>;
+export type RitualOfConnection = typeof couplesRitualsOfConnection.$inferSelect;
+
+// 18. HOLD ME TIGHT - EFT STRUCTURED CONVERSATIONS
+export const couplesHoldMeTightConversations = pgTable("Couples_hold_me_tight_conversations", {
+  id: uuid("id").primaryKey(),
+  couple_id: uuid("couple_id").notNull(),
+  created_at: timestamp("created_at").defaultNow(),
+  status: text("status").default("active"), // 'active', 'completed'
+  speaker_id: uuid("speaker_id"),
+  round: integer("round"), // Which round (1-3)
+});
+
+export type HoldMeTightConversation = typeof couplesHoldMeTightConversations.$inferSelect;
+
+// 19. DAILY RITUALS
+export const couplesDailyRituals = pgTable("Couples_daily_rituals", {
+  id: uuid("id").primaryKey(),
+  couple_id: uuid("couple_id").notNull(),
+  ritual_name: text("ritual_name").notNull(),
+  time_of_day: text("time_of_day"),
+  description: text("description"),
   is_active: boolean("is_active").default(true),
 });
 
-export const insertInvitationCodeSchema = createInsertSchema(couplesInvitationCodes).omit({
+export const insertDailyRitualSchema = createInsertSchema(couplesDailyRituals).omit({
+  id: true,
+}).extend({
+  ritual_name: z.string().min(1),
+});
+export type InsertDailyRitual = z.infer<typeof insertDailyRitualSchema>;
+export type DailyRitual = typeof couplesDailyRituals.$inferSelect;
+
+// 20. LOVE MAP QUIZ - V2
+export const couplesLoveMapQuizzesV2 = pgTable("Couples_love_map_quizzes_v2", {
+  id: uuid("id").primaryKey(),
+  couple_id: uuid("couple_id").notNull(),
+  created_at: timestamp("created_at").defaultNow(),
+  phase: text("phase").notNull(), // 'truths', 'guesses', 'results'
+  current_question_index: integer("current_question_index").default(0),
+  is_completed: boolean("is_completed").default(false),
+});
+
+export const insertLoveMapQuizV2Schema = createInsertSchema(couplesLoveMapQuizzesV2).omit({
   id: true,
   created_at: true,
-  used_at: true,
-  used_by_couple_id: true,
 });
-export type InsertInvitationCode = z.infer<typeof insertInvitationCodeSchema>;
-export type InvitationCode = typeof couplesInvitationCodes.$inferSelect;
+export type InsertLoveMapQuizV2 = z.infer<typeof insertLoveMapQuizV2Schema>;
+export type LoveMapQuizV2 = typeof couplesLoveMapQuizzesV2.$inferSelect;
 
-// ==============================================
-// ATTACHMENT STYLE ASSESSMENT - Foundation for Relationship Patterns
-// ==============================================
-
-// 23. ATTACHMENT QUESTIONS
-export const couplesAttachmentQuestions = pgTable("Couples_attachment_questions", {
-  id: integer("id").primaryKey(),
-  question_text: text("question_text").notNull(),
-  attachment_category: text("attachment_category").notNull(), // 'secure', 'anxious', 'avoidant', 'disorganized'
-  reverse_scored: boolean("reverse_scored").default(false),
+// 21. LOVE MAP ANSWERS - V2
+export const couplesLoveMapAnswersV2 = pgTable("Couples_love_map_answers_v2", {
+  id: uuid("id").primaryKey(),
+  quiz_id: uuid("quiz_id").notNull(),
+  question_id: uuid("question_id").notNull(),
+  respondent_id: uuid("respondent_id").notNull(),
+  answer_text: text("answer_text"),
+  answer_index: integer("answer_index"),
+  is_guess: boolean("is_guess").default(false),
 });
 
-export type AttachmentQuestion = typeof couplesAttachmentQuestions.$inferSelect;
+export type LoveMapAnswerV2 = typeof couplesLoveMapAnswersV2.$inferSelect;
 
-// 24. ATTACHMENT SESSIONS
-export const couplesAttachmentSessions = pgTable("Couples_attachment_sessions", {
+// 22. MOOD TRACKER
+export const couplesMoodEntries = pgTable("Couples_mood_entries", {
   id: uuid("id").primaryKey(),
   couple_id: uuid("couple_id").notNull(),
   user_id: uuid("user_id").notNull(),
   created_at: timestamp("created_at").defaultNow(),
+  mood_level: integer("mood_level").notNull(), // 1-10
+  emotion_primary: text("emotion_primary"),
+  emotion_secondary: text("emotion_secondary"),
+  notes: text("notes"),
+});
+
+export const insertMoodEntrySchema = createInsertSchema(couplesMoodEntries).omit({
+  id: true,
+  created_at: true,
+}).extend({
+  mood_level: z.number().min(1).max(10),
+  emotion_primary: z.string().min(1),
+  emotion_secondary: z.string().optional(),
+  notes: z.string().optional(),
+});
+export type InsertMoodEntry = z.infer<typeof insertMoodEntrySchema>;
+export type MoodEntry = typeof couplesMoodEntries.$inferSelect;
+
+// 23. DAILY TIPS
+export const couplesDailyTips = pgTable("Couples_daily_tips", {
+  id: uuid("id").primaryKey(),
+  couple_id: uuid("couple_id").notNull(),
+  tip_text: text("tip_text").notNull(),
+  category: text("category").notNull(), // 'communication', 'intimacy', 'conflict', 'gratitude', 'connection', 'growth'
+  created_at: timestamp("created_at").defaultNow(),
+});
+
+export const insertDailyTipSchema = createInsertSchema(couplesDailyTips).omit({
+  id: true,
+  created_at: true,
+}).extend({
+  tip_text: z.string().min(1),
+  category: z.enum(['communication', 'intimacy', 'conflict', 'gratitude', 'connection', 'growth']),
+});
+export type InsertDailyTip = z.infer<typeof insertDailyTipSchema>;
+export type DailyTip = typeof couplesDailyTips.$inferSelect;
+
+// 24. NOTIFICATION PREFERENCES
+export const couplesNotificationPreferences = pgTable("Couples_notification_preferences", {
+  id: uuid("id").primaryKey(),
+  couple_id: uuid("couple_id").notNull(),
+  tips_enabled: boolean("tips_enabled").default(true),
+  tips_frequency: text("tips_frequency").default('daily'), // 'daily', 'weekly'
+  tips_time: text("tips_time").default('09:00'),
+  push_enabled: boolean("push_enabled").default(true),
+  email_enabled: boolean("email_enabled").default(false),
+  created_at: timestamp("created_at").defaultNow(),
+});
+
+export const insertNotificationPreferencesSchema = createInsertSchema(couplesNotificationPreferences).omit({
+  id: true,
+  created_at: true,
+});
+export type InsertNotificationPreferences = z.infer<typeof insertNotificationPreferencesSchema>;
+export type NotificationPreferences = typeof couplesNotificationPreferences.$inferSelect;
+
+// 25. NOTIFICATION HISTORY
+export const couplesNotificationHistory = pgTable("Couples_notification_history", {
+  id: uuid("id").primaryKey(),
+  couple_id: uuid("couple_id").notNull(),
+  tip_id: uuid("tip_id"),
+  sent_at: timestamp("sent_at").defaultNow(),
+  notification_type: text("notification_type"), // 'push', 'email'
+});
+
+export type NotificationHistory = typeof couplesNotificationHistory.$inferSelect;
+
+// 26. CHORE CHART
+export const couplesChores = pgTable("Couples_chores", {
+  id: uuid("id").primaryKey(),
+  couple_id: uuid("couple_id").notNull(),
+  title: text("title").notNull(),
+  assigned_to: uuid("assigned_to").notNull(),
+  recurrence: text("recurrence").notNull(), // 'daily', 'weekly', 'monday', 'tuesday', etc.
+  created_at: timestamp("created_at").defaultNow(),
+  is_completed: boolean("is_completed").default(false),
+  completed_by: uuid("completed_by"),
   completed_at: timestamp("completed_at"),
-  status: text("status").notNull().default("in_progress"), // 'in_progress', 'completed'
 });
 
-export const insertAttachmentSessionSchema = createInsertSchema(couplesAttachmentSessions).omit({
+export const insertChoreSchema = createInsertSchema(couplesChores).omit({
   id: true,
   created_at: true,
+  is_completed: true,
+  completed_by: true,
   completed_at: true,
-});
-export type InsertAttachmentSession = z.infer<typeof insertAttachmentSessionSchema>;
-export type AttachmentSession = typeof couplesAttachmentSessions.$inferSelect;
-
-// 25. ATTACHMENT RESPONSES
-export const couplesAttachmentResponses = pgTable("Couples_attachment_responses", {
-  id: uuid("id").primaryKey(),
-  session_id: uuid("session_id").notNull(),
-  question_id: integer("question_id").notNull(),
-  response_value: integer("response_value").notNull(), // 1-5 Likert scale
-  created_at: timestamp("created_at").defaultNow(),
-});
-
-export const insertAttachmentResponseSchema = createInsertSchema(couplesAttachmentResponses).omit({
-  id: true,
-  created_at: true,
 }).extend({
-  response_value: z.number().min(1).max(5),
+  title: z.string().min(1, "Chore title is required"),
+  recurrence: z.enum(['daily', 'weekly', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']),
 });
-export type InsertAttachmentResponse = z.infer<typeof insertAttachmentResponseSchema>;
-export type AttachmentResponse = typeof couplesAttachmentResponses.$inferSelect;
+export type InsertChore = z.infer<typeof insertChoreSchema>;
+export type Chore = typeof couplesChores.$inferSelect;
 
-// 26. ATTACHMENT RESULTS
-export const couplesAttachmentResults = pgTable("Couples_attachment_results", {
+// ============ LOVE LANGUAGE RESULTS ============
+export const couplesLoveLanguageResults = pgTable("Couples_love_language_results", {
   id: uuid("id").primaryKey(),
-  session_id: uuid("session_id").notNull(),
   user_id: uuid("user_id").notNull(),
-  primary_style: text("primary_style").notNull(), // 'secure', 'anxious', 'avoidant', 'disorganized'
-  attachment_scores: jsonb("attachment_scores").notNull(), // { secure: 75, anxious: 45, avoidant: 30, disorganized: 15 }
-  resilience_metrics: jsonb("resilience_metrics"), // { self_awareness: 7, coping_strategies: 5 }
+  couple_id: uuid("couple_id"),
   created_at: timestamp("created_at").defaultNow(),
+  primary_language: text("primary_language"),
+  secondary_language: text("secondary_language"),
+  all_scores: jsonb("all_scores"), // All 5 languages
 });
 
-export const insertAttachmentResultSchema = createInsertSchema(couplesAttachmentResults).omit({
-  id: true,
-  created_at: true,
-}).extend({
-  primary_style: z.enum(["secure", "anxious", "avoidant", "disorganized"]),
-  attachment_scores: z.record(z.number()),
-  resilience_metrics: z.record(z.number()).optional(),
-});
-export type InsertAttachmentResult = z.infer<typeof insertAttachmentResultSchema>;
-export type AttachmentResult = typeof couplesAttachmentResults.$inferSelect;
+export type LoveLanguageResult = typeof couplesLoveLanguageResults.$inferSelect;
 
-// 27. ATTACHMENT DYNAMICS (Couple-level)
-export const couplesAttachmentDynamics = pgTable("Couples_attachment_dynamics", {
-  id: uuid("id").primaryKey(),
-  couple_id: uuid("couple_id").notNull(),
-  partner1_style: text("partner1_style").notNull(),
-  partner2_style: text("partner2_style").notNull(),
-  dynamic_pattern: text("dynamic_pattern"), // e.g., "anxious-avoidant dance"
-  conflict_triggers: jsonb("conflict_triggers"), // Common triggers for this pairing
-  growth_opportunities: jsonb("growth_opportunities"),
-  therapist_notes: text("therapist_notes"),
-  created_at: timestamp("created_at").defaultNow(),
-});
-
-export const insertAttachmentDynamicsSchema = createInsertSchema(couplesAttachmentDynamics).omit({
-  id: true,
-  created_at: true,
-});
-export type InsertAttachmentDynamics = z.infer<typeof insertAttachmentDynamicsSchema>;
-export type AttachmentDynamics = typeof couplesAttachmentDynamics.$inferSelect;
-
-// 28. ATTACHMENT TRIGGERS (Moments tracker)
-export const couplesAttachmentTriggers = pgTable("Couples_attachment_triggers", {
-  id: uuid("id").primaryKey(),
-  couple_id: uuid("couple_id").notNull(),
-  user_id: uuid("user_id").notNull(),
-  trigger_context: text("trigger_context").notNull(),
-  intensity: integer("intensity").notNull(), // 1-10
-  partner_role: text("partner_role"), // What partner did/said
-  my_reaction: text("my_reaction"),
-  created_at: timestamp("created_at").defaultNow(),
-});
-
-export const insertAttachmentTriggerSchema = createInsertSchema(couplesAttachmentTriggers).omit({
-  id: true,
-  created_at: true,
-}).extend({
-  trigger_context: z.string().min(1),
-  intensity: z.number().min(1).max(10),
-});
-export type InsertAttachmentTrigger = z.infer<typeof insertAttachmentTriggerSchema>;
-export type AttachmentTrigger = typeof couplesAttachmentTriggers.$inferSelect;
-
-// 29. ATTACHMENT REPAIR SCRIPTS
-export const couplesAttachmentRepairScripts = pgTable("Couples_attachment_repair_scripts", {
-  id: uuid("id").primaryKey(),
-  attachment_style: text("attachment_style").notNull(),
-  script_title: text("script_title").notNull(),
-  script_content: text("script_content").notNull(),
-  audience: text("audience").notNull(), // 'self', 'partner', 'couple'
-  therapist_curated: boolean("therapist_curated").default(true),
-});
-
-export type AttachmentRepairScript = typeof couplesAttachmentRepairScripts.$inferSelect;
-
-// ==============================================
-// ENNEAGRAM COUPLE DYNAMICS - Personality-Based Insights
-// ==============================================
-
-// 30. ENNEAGRAM QUESTIONS
-export const couplesEnneagramQuestions = pgTable("Couples_enneagram_questions", {
-  id: integer("id").primaryKey(),
-  question_text: text("question_text").notNull(),
-  enneagram_type: integer("enneagram_type"), // 1-9, null for multi-type questions
-  reverse_scored: boolean("reverse_scored").default(false),
-});
-
-export type EnneagramQuestion = typeof couplesEnneagramQuestions.$inferSelect;
-
-// 31. ENNEAGRAM SESSIONS
-export const couplesEnneagramSessions = pgTable("Couples_enneagram_sessions", {
+// ATTACHMENT STYLE ASSESSMENT
+export const couplesAttachmentAssessments = pgTable("Couples_attachment_assessments", {
   id: uuid("id").primaryKey(),
   couple_id: uuid("couple_id").notNull(),
   user_id: uuid("user_id").notNull(),
   created_at: timestamp("created_at").defaultNow(),
-  completed_at: timestamp("completed_at"),
-  status: text("status").notNull().default("in_progress"),
+  attachment_style: text("attachment_style"), // 'secure', 'anxious', 'avoidant', 'fearful-avoidant'
+  score: integer("score"),
+  dynamics_with_partner: text("dynamics_with_partner"),
+  triggers: jsonb("triggers"), // Array of common triggers
+  repair_strategies: jsonb("repair_strategies"), // Array of recommended repair strategies
 });
 
-export const insertEnneagramSessionSchema = createInsertSchema(couplesEnneagramSessions).omit({
-  id: true,
-  created_at: true,
-  completed_at: true,
-});
-export type InsertEnneagramSession = z.infer<typeof insertEnneagramSessionSchema>;
-export type EnneagramSession = typeof couplesEnneagramSessions.$inferSelect;
+export type AttachmentAssessment = typeof couplesAttachmentAssessments.$inferSelect;
 
-// 32. ENNEAGRAM RESPONSES
-export const couplesEnneagramResponses = pgTable("Couples_enneagram_responses", {
-  id: uuid("id").primaryKey(),
-  session_id: uuid("session_id").notNull(),
-  question_id: integer("question_id").notNull(),
-  response_value: integer("response_value").notNull(), // 1-5 Likert scale
-  created_at: timestamp("created_at").defaultNow(),
-});
-
-export const insertEnneagramResponseSchema = createInsertSchema(couplesEnneagramResponses).omit({
-  id: true,
-  created_at: true,
-}).extend({
-  response_value: z.number().min(1).max(5),
-});
-export type InsertEnneagramResponse = z.infer<typeof insertEnneagramResponseSchema>;
-export type EnneagramResponse = typeof couplesEnneagramResponses.$inferSelect;
-
-// 33. ENNEAGRAM RESULTS
-export const couplesEnneagramResults = pgTable("Couples_enneagram_results", {
-  id: uuid("id").primaryKey(),
-  session_id: uuid("session_id").notNull(),
-  user_id: uuid("user_id").notNull(),
-  dominant_type: integer("dominant_type").notNull(), // 1-9
-  wing: integer("wing"), // e.g., 1w2 or 1w9
-  stress_number: integer("stress_number"), // Disintegration
-  growth_number: integer("growth_number"), // Integration
-  tritype_detail: jsonb("tritype_detail"), // { head: 6, heart: 2, gut: 1 }
-  enneagram_scores: jsonb("enneagram_scores").notNull(), // { 1: 65, 2: 45, ... 9: 30 }
-  reliability_score: integer("reliability_score"), // Confidence in results
-  created_at: timestamp("created_at").defaultNow(),
-});
-
-export const insertEnneagramResultSchema = createInsertSchema(couplesEnneagramResults).omit({
-  id: true,
-  created_at: true,
-}).extend({
-  dominant_type: z.number().min(1).max(9),
-  wing: z.number().min(1).max(9).nullable().optional(),
-  enneagram_scores: z.record(z.number()),
-});
-export type InsertEnneagramResult = z.infer<typeof insertEnneagramResultSchema>;
-export type EnneagramResult = typeof couplesEnneagramResults.$inferSelect;
-
-// 34. ENNEAGRAM COUPLE REPORTS
-export const couplesEnneagramCoupleReports = pgTable("Couples_enneagram_couple_reports", {
+// ENNEAGRAM ASSESSMENT
+export const couplesEnneagramAssessments = pgTable("Couples_enneagram_assessments", {
   id: uuid("id").primaryKey(),
   couple_id: uuid("couple_id").notNull(),
-  partner1_type: integer("partner1_type").notNull(),
-  partner2_type: integer("partner2_type").notNull(),
-  type_pair: text("type_pair").notNull(), // e.g., "3-9"
-  conflict_patterns: jsonb("conflict_patterns"),
-  growth_paths: jsonb("growth_paths"),
-  communication_tips: jsonb("communication_tips"),
-  generated_at: timestamp("generated_at").defaultNow(),
+  user_id: uuid("user_id").notNull(),
+  created_at: timestamp("created_at").defaultNow(),
+  primary_type: integer("primary_type"), // 1-9
+  secondary_type: integer("secondary_type"),
+  primary_score: integer("primary_score"),
+  secondary_score: integer("secondary_score"),
+  couple_dynamics: text("couple_dynamics"),
 });
 
-export const insertEnneagramCoupleReportSchema = createInsertSchema(couplesEnneagramCoupleReports).omit({
-  id: true,
-  generated_at: true,
-});
-export type InsertEnneagramCoupleReport = z.infer<typeof insertEnneagramCoupleReportSchema>;
-export type EnneagramCoupleReport = typeof couplesEnneagramCoupleReports.$inferSelect;
+export type EnneagramAssessment = typeof couplesEnneagramAssessments.$inferSelect;
 
-// ==============================================
-// SHARED COUPLE JOURNAL - Relationship Documentation
-// ==============================================
-
-// 35. JOURNAL ENTRIES
+// COUPLE JOURNAL
 export const couplesJournalEntries = pgTable("Couples_journal_entries", {
   id: uuid("id").primaryKey(),
   couple_id: uuid("couple_id").notNull(),
   created_by: uuid("created_by").notNull(),
-  mode: text("mode").notNull(), // 'joint', 'individual'
-  visibility: text("visibility").notNull(), // 'private', 'shared_with_partner', 'shared_with_therapist'
-  entry_content: text("entry_content").notNull(),
-  is_locked: boolean("is_locked").default(false), // For collaborative editing
-  joint_lock_expires: timestamp("joint_lock_expires"),
   created_at: timestamp("created_at").defaultNow(),
-  updated_at: timestamp("updated_at").defaultNow(),
+  entry_type: text("entry_type"), // 'reflection', 'milestone', 'memory', 'moment'
+  title: text("title"),
+  content: text("content"),
+  privacy_level: text("privacy_level").default("couple"), // 'private', 'couple', 'therapist'
+  media_urls: jsonb("media_urls"), // Array of storage paths
+  mood: text("mood"),
+  tags: jsonb("tags"), // Array of tags
+  is_milestone: boolean("is_milestone").default(false),
 });
 
 export const insertJournalEntrySchema = createInsertSchema(couplesJournalEntries).omit({
   id: true,
   created_at: true,
-  updated_at: true,
-  is_locked: true,
-  joint_lock_expires: true,
 }).extend({
-  mode: z.enum(["joint", "individual"]),
-  visibility: z.enum(["private", "shared_with_partner", "shared_with_therapist"]),
-  entry_content: z.string().min(1, "Journal entry cannot be empty"),
+  entry_type: z.enum(['reflection', 'milestone', 'memory', 'moment']),
+  privacy_level: z.enum(['private', 'couple', 'therapist']).optional(),
+  media_urls: z.array(z.string()).optional(),
+  tags: z.array(z.string()).optional(),
 });
 export type InsertJournalEntry = z.infer<typeof insertJournalEntrySchema>;
 export type JournalEntry = typeof couplesJournalEntries.$inferSelect;
 
-// 36. JOURNAL MEDIA ATTACHMENTS
-export const couplesJournalAttachments = pgTable("Couples_journal_attachments", {
-  id: uuid("id").primaryKey(),
-  entry_id: uuid("entry_id").notNull(),
-  storage_path: text("storage_path").notNull(),
-  media_type: text("media_type").notNull(), // 'image', 'audio', 'video'
-  duration_secs: integer("duration_secs"), // For audio/video
-  created_at: timestamp("created_at").defaultNow(),
-});
-
-export const insertJournalAttachmentSchema = createInsertSchema(couplesJournalAttachments).omit({
-  id: true,
-  created_at: true,
-}).extend({
-  media_type: z.enum(["image", "audio", "video"]),
-});
-export type InsertJournalAttachment = z.infer<typeof insertJournalAttachmentSchema>;
-export type JournalAttachment = typeof couplesJournalAttachments.$inferSelect;
-
-// 37. JOURNAL MILESTONES
-export const couplesJournalMilestones = pgTable("Couples_journal_milestones", {
+// FINANCIAL COMMUNICATION
+export const couplesFinancialToolkit = pgTable("Couples_financial_toolkit", {
   id: uuid("id").primaryKey(),
   couple_id: uuid("couple_id").notNull(),
-  entry_id: uuid("entry_id"), // Optional link to journal entry
-  milestone_title: text("milestone_title").notNull(),
-  milestone_category: text("milestone_category").notNull(), // 'anniversary', 'breakthrough', 'vacation', 'custom'
-  milestone_date: timestamp("milestone_date").notNull(),
   created_at: timestamp("created_at").defaultNow(),
+  values_alignment: jsonb("values_alignment"), // {money_goals, financial_priorities}
+  budget_items: jsonb("budget_items"), // Array of budget items
+  shared_goals: jsonb("shared_goals"), // Array of financial goals
+  discussion_log: jsonb("discussion_log"), // Array of past discussions
 });
 
-export const insertJournalMilestoneSchema = createInsertSchema(couplesJournalMilestones).omit({
-  id: true,
-  created_at: true,
-}).extend({
-  milestone_title: z.string().min(1),
-  milestone_category: z.enum(["anniversary", "breakthrough", "vacation", "custom"]),
-});
-export type InsertJournalMilestone = z.infer<typeof insertJournalMilestoneSchema>;
-export type JournalMilestone = typeof couplesJournalMilestones.$inferSelect;
+export type FinancialToolkit = typeof couplesFinancialToolkit.$inferSelect;
 
-// 38. JOURNAL PROMPTS
-export const couplesJournalPrompts = pgTable("Couples_journal_prompts", {
+// CONNECTION CONCIERGE
+export const couplesConnectionConcierge = pgTable("Couples_connection_concierge", {
   id: uuid("id").primaryKey(),
-  prompt_text: text("prompt_text").notNull(),
-  theme_tags: jsonb("theme_tags"), // ['gratitude', 'conflict', 'intimacy']
-  therapist_curated: boolean("therapist_curated").default(true),
+  couple_id: uuid("couple_id").notNull(),
+  created_at: timestamp("created_at").defaultNow(),
+  topic: text("topic"), // Topic for AI recommendations
+  recommendations: jsonb("recommendations"), // Array of AI-generated recommendations
+  user_feedback: text("user_feedback"),
 });
 
-export type JournalPrompt = typeof couplesJournalPrompts.$inferSelect;
+export type ConnectionConcierge = typeof couplesConnectionConcierge.$inferSelect;
 
-// 39. JOURNAL THERAPIST SHARES
-export const couplesJournalShares = pgTable("Couples_journal_shares", {
+// 38. THERAPIST ANALYTICS
+export const couplesTherapistAnalytics = pgTable("Couples_therapist_analytics", {
   id: uuid("id").primaryKey(),
-  entry_id: uuid("entry_id").notNull(),
+  couple_id: uuid("couple_id").notNull(),
   therapist_id: uuid("therapist_id").notNull(),
-  couple_id: uuid("couple_id").notNull(),
-  permissions: text("permissions").notNull(), // 'read', 'comment'
-  shared_at: timestamp("shared_at").defaultNow(),
-});
-
-export const insertJournalShareSchema = createInsertSchema(couplesJournalShares).omit({
-  id: true,
-  shared_at: true,
-}).extend({
-  permissions: z.enum(["read", "comment"]),
-});
-export type InsertJournalShare = z.infer<typeof insertJournalShareSchema>;
-export type JournalShare = typeof couplesJournalShares.$inferSelect;
-
-// ==============================================
-// FINANCIAL COMMUNICATION TOOLKIT - Money Conversations
-// ==============================================
-
-// 40. FINANCIAL VALUES
-export const couplesFinancialValues = pgTable("Couples_financial_values", {
-  id: uuid("id").primaryKey(),
-  couple_id: uuid("couple_id").notNull(),
-  user_id: uuid("user_id").notNull(),
-  priorities: jsonb("priorities").notNull(), // { security: 9, experiences: 7, luxury: 3 }
-  completed_at: timestamp("completed_at").defaultNow(),
-});
-
-export const insertFinancialValuesSchema = createInsertSchema(couplesFinancialValues).omit({
-  id: true,
-  completed_at: true,
-}).extend({
-  priorities: z.record(z.number()),
-});
-export type InsertFinancialValues = z.infer<typeof insertFinancialValuesSchema>;
-export type FinancialValues = typeof couplesFinancialValues.$inferSelect;
-
-// 41. BUDGET CATEGORIES
-export const couplesBudgetCategories = pgTable("Couples_budget_categories", {
-  id: uuid("id").primaryKey(),
-  couple_id: uuid("couple_id").notNull(),
-  category_name: text("category_name").notNull(),
-  category_type: text("category_type").notNull(), // 'income', 'expense', 'savings'
-  monthly_limit: numeric("monthly_limit"),
   created_at: timestamp("created_at").defaultNow(),
+  insights: jsonb("insights"), // AI-generated insights
+  recommendations: jsonb("recommendations"), // Recommended interventions
+  risk_factors: jsonb("risk_factors"), // Identified risk factors
 });
 
-export const insertBudgetCategorySchema = createInsertSchema(couplesBudgetCategories).omit({
+export type TherapistAnalytics = typeof couplesTherapistAnalytics.$inferSelect;
+
+// 39. THERAPIST THOUGHTS (Replacement for Messages)
+export const couplesTherapistThoughts = pgTable("Couples_therapist_thoughts", {
+  id: uuid("id").primaryKey(),
+  couple_id: uuid("couple_id").notNull(),
+  therapist_id: uuid("therapist_id").notNull(),
+  created_at: timestamp("created_at").defaultNow(),
+  thought_type: text("thought_type").notNull(), // 'todo', 'message', 'file_reference'
+  title: text("title"),
+  content: text("content").notNull(),
+  priority: text("priority").default("medium"), // 'low', 'medium', 'high'
+  is_completed: boolean("is_completed").default(false),
+  file_reference: text("file_reference"),
+});
+
+export const insertTherapistThoughtSchema = createInsertSchema(couplesTherapistThoughts).omit({
   id: true,
   created_at: true,
+  is_completed: true,
 }).extend({
-  category_name: z.string().min(1),
-  category_type: z.enum(["income", "expense", "savings"]),
+  thought_type: z.enum(['todo', 'message', 'file_reference']),
+  title: z.string().optional(),
+  content: z.string().min(1),
+  priority: z.enum(['low', 'medium', 'high']).optional(),
 });
-export type InsertBudgetCategory = z.infer<typeof insertBudgetCategorySchema>;
-export type BudgetCategory = typeof couplesBudgetCategories.$inferSelect;
+export type InsertTherapistThought = z.infer<typeof insertTherapistThoughtSchema>;
+export type TherapistThought = typeof couplesTherapistThoughts.$inferSelect;
 
-// 42. BUDGET ENTRIES
-export const couplesBudgetEntries = pgTable("Couples_budget_entries", {
+// =========== DATE NIGHT GENERATOR - ENHANCED ===========
+
+// 40. DATE NIGHTS GENERATED
+export const couplesDateNights = pgTable("Couples_date_nights", {
   id: uuid("id").primaryKey(),
   couple_id: uuid("couple_id").notNull(),
-  category_id: uuid("category_id").notNull(),
+  created_at: timestamp("created_at").defaultNow(),
+  date_night_plan: jsonb("date_night_plan").notNull(), // Full plan from AI
+  category: text("category"),
+  status: text("status").default("suggested"), // 'suggested', 'scheduled', 'completed'
+  scheduled_date: timestamp("scheduled_date"),
+  feedback: text("feedback"),
+});
+
+export type DateNight = typeof couplesDateNights.$inferSelect;
+
+// FOUR HORSEMEN DETECTOR
+export const couplesFourHorsemenEntries = pgTable("Couples_four_horsemen_entries", {
+  id: uuid("id").primaryKey(),
+  couple_id: uuid("couple_id").notNull(),
   user_id: uuid("user_id").notNull(),
-  amount: numeric("amount").notNull(),
+  created_at: timestamp("created_at").defaultNow(),
+  horseman_type: text("horseman_type"), // 'criticism', 'contempt', 'defensiveness', 'stonewalling'
   description: text("description"),
-  entry_date: timestamp("entry_date").notNull(),
-  external_source_id: text("external_source_id"), // For Plaid integration
-  metadata: jsonb("metadata"), // Merchant info, tags, etc.
-  created_at: timestamp("created_at").defaultNow(),
+  severity: integer("severity"), // 1-5
+  context: text("context"),
 });
 
-export const insertBudgetEntrySchema = createInsertSchema(couplesBudgetEntries).omit({
+export const insertFourHorsemenSchema = createInsertSchema(couplesFourHorsemenEntries).omit({
   id: true,
   created_at: true,
 }).extend({
-  amount: z.string(), // Numeric fields are strings in Drizzle
-  entry_date: z.date(),
+  horseman_type: z.enum(['criticism', 'contempt', 'defensiveness', 'stonewalling']),
+  severity: z.number().min(1).max(5),
 });
-export type InsertBudgetEntry = z.infer<typeof insertBudgetEntrySchema>;
-export type BudgetEntry = typeof couplesBudgetEntries.$inferSelect;
+export type InsertFourHorsemen = z.infer<typeof insertFourHorsemenSchema>;
+export type FourHorsemen = typeof couplesFourHorsemenEntries.$inferSelect;
+
+// DEMON DIALOGUES
+export const couplesDemonDialogues = pgTable("Couples_demon_dialogues", {
+  id: uuid("id").primaryKey(),
+  couple_id: uuid("couple_id").notNull(),
+  created_at: timestamp("created_at").defaultNow(),
+  dialogue_type: text("dialogue_type"), // 'pursue-withdraw', 'attack-defend', 'withdraw-pursue'
+  description: text("description"),
+  triggers: jsonb("triggers"),
+  resolution_strategies: jsonb("resolution_strategies"),
+});
+
+export type DemonDialogue = typeof couplesDemonDialogues.$inferSelect;
+
+// 42. FINANCIAL DISCUSSION LOGS
+export const couplesFinancialDiscussionLogs = pgTable("Couples_financial_discussion_logs", {
+  id: uuid("id").primaryKey(),
+  couple_id: uuid("couple_id").notNull(),
+  created_by: uuid("created_by").notNull(),
+  created_at: timestamp("created_at").defaultNow(),
+  topic: text("topic").notNull(),
+  notes: text("notes"),
+  decisions_made: jsonb("decisions_made"),
+  follow_up_items: jsonb("follow_up_items"),
+});
+
+export type FinancialDiscussionLog = typeof couplesFinancialDiscussionLogs.$inferSelect;
 
 // 43. FINANCIAL GOALS
 export const couplesFinancialGoals = pgTable("Couples_financial_goals", {
   id: uuid("id").primaryKey(),
   couple_id: uuid("couple_id").notNull(),
+  created_at: timestamp("created_at").defaultNow(),
   goal_title: text("goal_title").notNull(),
-  target_amount: numeric("target_amount").notNull(),
+  target_amount: numeric("target_amount"),
   current_progress: numeric("current_progress").default("0"),
   due_date: timestamp("due_date"),
   created_at: timestamp("created_at").defaultNow(),
