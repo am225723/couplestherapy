@@ -38,7 +38,7 @@ export default function ChoreChart() {
     mode: "onChange",
   });
 
-  // Fetch couple data to get partner ID
+  // Fetch couple data to get partner ID and name
   const coupleQuery = useQuery({
     queryKey: [`/api/couple/${profile?.couple_id}`],
     queryFn: async () => {
@@ -54,15 +54,33 @@ export default function ChoreChart() {
     enabled: !!profile?.couple_id,
   });
 
-  // Determine partner ID
-  const partnerId = useMemo(() => {
+  // Determine partner ID and fetch partner name
+  const partnerData = useMemo(() => {
     if (!coupleQuery.data || !profile?.id) return null;
-    if (coupleQuery.data.partner1_id === profile.id) {
-      return coupleQuery.data.partner2_id;
-    } else {
-      return coupleQuery.data.partner1_id;
-    }
+    const partnerId = coupleQuery.data.partner1_id === profile.id 
+      ? coupleQuery.data.partner2_id 
+      : coupleQuery.data.partner1_id;
+    return { partnerId };
   }, [coupleQuery.data, profile?.id]);
+
+  // Fetch partner profile to get their name
+  const partnerQuery = useQuery({
+    queryKey: [`/api/profile/${partnerData?.partnerId}`],
+    queryFn: async () => {
+      if (!partnerData?.partnerId) return null;
+      const { data, error } = await supabase
+        .from("Couples_profiles")
+        .select("full_name")
+        .eq("id", partnerData.partnerId)
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!partnerData?.partnerId,
+  });
+
+  const partnerId = partnerData?.partnerId;
+  const partnerName = partnerQuery.data?.full_name;
 
   const choresQuery = useQuery({
     queryKey: [`/api/chores/couple/${profile?.couple_id}`],
@@ -213,7 +231,7 @@ export default function ChoreChart() {
                             </SelectTrigger>
                             <SelectContent>
                               <SelectItem value={profile.id}>Me</SelectItem>
-                              {partnerId && <SelectItem value={partnerId}>My Partner</SelectItem>}
+                              {partnerId && <SelectItem value={partnerId}>{partnerName || "My Partner"}</SelectItem>}
                             </SelectContent>
                           </Select>
                         </FormControl>
