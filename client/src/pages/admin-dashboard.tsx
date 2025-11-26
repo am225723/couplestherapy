@@ -767,6 +767,9 @@ export default function AdminDashboard() {
                       <TabsTrigger value="therapy-tools">
                         Therapy Tools
                       </TabsTrigger>
+                      <TabsTrigger value="dashboard-customization">
+                        Dashboard Customization
+                      </TabsTrigger>
                     </TabsList>
                   </div>
 
@@ -1286,6 +1289,47 @@ export default function AdminDashboard() {
                         </Tabs>
                       </CardContent>
                     </Card>
+                  </TabsContent>
+
+                  <TabsContent value="dashboard-customization" className="space-y-4">
+                    <DashboardCustomizer
+                      coupleId={selectedCouple.id}
+                      therapistId={profile?.id || ""}
+                      initialOrder={dashboardCustomizationQuery.data?.widget_order || [
+                        "weekly-checkin",
+                        "love-languages",
+                        "gratitude",
+                        "shared-goals",
+                        "conversations",
+                        "love-map",
+                        "voice-memos",
+                        "calendar",
+                        "rituals",
+                        "four-horsemen",
+                        "demon-dialogues",
+                        "meditation",
+                        "intimacy",
+                        "values",
+                        "parenting",
+                      ]}
+                      initialEnabled={dashboardCustomizationQuery.data?.enabled_widgets || {
+                        "weekly-checkin": true,
+                        "love-languages": true,
+                        gratitude: true,
+                        "shared-goals": true,
+                        conversations: true,
+                        "love-map": true,
+                        "voice-memos": true,
+                        calendar: true,
+                        rituals: true,
+                        "four-horsemen": true,
+                        "demon-dialogues": true,
+                        meditation: true,
+                        intimacy: true,
+                        values: true,
+                        parenting: true,
+                      }}
+                    />
                   </TabsContent>
                 </Tabs>
               </div>

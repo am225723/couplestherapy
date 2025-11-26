@@ -31,6 +31,12 @@ const WIDGET_LABELS: Record<string, string> = {
   "voice-memos": "Voice Memos",
   calendar: "Shared Calendar",
   rituals: "Rituals of Connection",
+  "four-horsemen": "Four Horsemen Tracker",
+  "demon-dialogues": "Demon Dialogues",
+  meditation: "Meditation Library",
+  intimacy: "Intimacy Mapping",
+  values: "Values & Vision",
+  parenting: "Parenting as Partners",
 };
 
 export function DashboardCustomizer({

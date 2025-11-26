@@ -12,6 +12,7 @@ import {
   Home,
   Map,
   ChevronDown,
+  LayoutDashboard,
 } from "lucide-react";
 import {
   Sidebar,
@@ -101,6 +102,14 @@ const sectionGroups = [
       { id: "activity", label: "Activity Feed", icon: TrendingUp },
       { id: "ifs", label: "IFS Exercises", icon: Brain },
       { id: "therapy-tools", label: "Therapy Tools", icon: Book },
+    ],
+  },
+  {
+    id: "settings",
+    label: "Settings",
+    defaultOpen: false,
+    sections: [
+      { id: "dashboard-customization", label: "Customize Dashboard", icon: LayoutDashboard },
     ],
   },
 ];

@@ -69,6 +69,15 @@ export default function ClientDashboard() {
     staleTime: 1000 * 60 * 30, // 30 minutes
   });
 
+  // Dashboard customization query
+  const customizationQuery = useQuery<{
+    widget_order: string[];
+    enabled_widgets: Record<string, boolean>;
+  }>({
+    queryKey: [`/api/dashboard-customization/couple/${profile?.couple_id}`],
+    enabled: !!profile?.couple_id,
+  });
+
   // Delete love language mutation
   const deleteLoveLanguageMutation = useMutation({
     mutationFn: async (id: string) => {
@@ -124,8 +133,9 @@ export default function ClientDashboard() {
     }
   };
 
-  const activities = [
+  const allActivities = [
     {
+      widgetId: "weekly-checkin",
       title: "Weekly Check-In",
       description: "Private reflection on your week together",
       icon: ClipboardList,
@@ -134,6 +144,7 @@ export default function ClientDashboard() {
       bgColor: "bg-primary/10",
     },
     {
+      widgetId: "gratitude",
       title: "Gratitude Log",
       description: "Share moments of appreciation",
       icon: Sparkles,
@@ -142,6 +153,7 @@ export default function ClientDashboard() {
       bgColor: "bg-accent/30",
     },
     {
+      widgetId: "shared-goals",
       title: "Shared Goals",
       description: "Track your journey together",
       icon: Target,
@@ -150,6 +162,7 @@ export default function ClientDashboard() {
       bgColor: "bg-secondary/30",
     },
     {
+      widgetId: "rituals",
       title: "Rituals of Connection",
       description: "Build daily moments together",
       icon: Coffee,
@@ -158,6 +171,7 @@ export default function ClientDashboard() {
       bgColor: "bg-primary/10",
     },
     {
+      widgetId: "conversations",
       title: "Hold Me Tight",
       description: "Deepen emotional connection",
       icon: MessageCircle,
@@ -166,6 +180,7 @@ export default function ClientDashboard() {
       bgColor: "bg-destructive/10",
     },
     {
+      widgetId: "voice-memos",
       title: "Voice Memos",
       description: "Send voice messages to your partner",
       icon: Mic,
@@ -174,6 +189,7 @@ export default function ClientDashboard() {
       bgColor: "bg-primary/10",
     },
     {
+      widgetId: "four-horsemen",
       title: "Four Horsemen Tracker",
       description: "Identify and transform conflict patterns",
       icon: AlertTriangle,
@@ -182,6 +198,7 @@ export default function ClientDashboard() {
       bgColor: "bg-destructive/10",
     },
     {
+      widgetId: "demon-dialogues",
       title: "Demon Dialogues",
       description: "Recognize and break negative cycles (EFT)",
       icon: MessageCircle,
@@ -190,6 +207,7 @@ export default function ClientDashboard() {
       bgColor: "bg-purple-100 dark:bg-purple-900/20",
     },
     {
+      widgetId: "meditation",
       title: "Meditation Library",
       description: "Guided meditations for connection",
       icon: BookOpen,
@@ -198,6 +216,7 @@ export default function ClientDashboard() {
       bgColor: "bg-green-100 dark:bg-green-900/20",
     },
     {
+      widgetId: "intimacy",
       title: "Intimacy Mapping",
       description: "Track five dimensions of intimacy",
       icon: Activity,
@@ -206,6 +225,7 @@ export default function ClientDashboard() {
       bgColor: "bg-pink-100 dark:bg-pink-900/20",
     },
     {
+      widgetId: "values",
       title: "Values & Vision",
       description: "Share dreams and create your future",
       icon: Compass,
@@ -214,6 +234,7 @@ export default function ClientDashboard() {
       bgColor: "bg-blue-100 dark:bg-blue-900/20",
     },
     {
+      widgetId: "parenting",
       title: "Parenting as Partners",
       description: "Align on parenting and protect couple time",
       icon: Baby,
@@ -221,7 +242,60 @@ export default function ClientDashboard() {
       color: "text-amber-600 dark:text-amber-400",
       bgColor: "bg-amber-100 dark:bg-amber-900/20",
     },
+    {
+      widgetId: "love-languages",
+      title: "Love Language Quiz",
+      description: "Discover how you give and receive love",
+      icon: Heart,
+      path: "/love-language-quiz",
+      color: "text-primary",
+      bgColor: "bg-primary/10",
+    },
+    {
+      widgetId: "love-map",
+      title: "Love Map Quiz",
+      description: "Explore your partner's inner world",
+      icon: Heart,
+      path: "/love-map",
+      color: "text-primary",
+      bgColor: "bg-primary/10",
+    },
+    {
+      widgetId: "calendar",
+      title: "Shared Calendar",
+      description: "Keep track of important dates together",
+      icon: Calendar,
+      path: "/calendar",
+      color: "text-primary",
+      bgColor: "bg-primary/10",
+    },
   ];
+
+  // Filter and order activities based on therapist customization
+  const activities = (() => {
+    const customization = customizationQuery.data;
+    if (!customization) {
+      return allActivities; // Show all if no customization
+    }
+
+    const { widget_order, enabled_widgets } = customization;
+
+    // Filter to only enabled widgets
+    const enabledActivities = allActivities.filter((activity) => {
+      // If widget not in enabled_widgets, default to true (show it)
+      return enabled_widgets[activity.widgetId] !== false;
+    });
+
+    // Sort by widget_order
+    return enabledActivities.sort((a, b) => {
+      const indexA = widget_order.indexOf(a.widgetId);
+      const indexB = widget_order.indexOf(b.widgetId);
+      // If not in order array, put at end
+      if (indexA === -1) return 1;
+      if (indexB === -1) return -1;
+      return indexA - indexB;
+    });
+  })();
 
   return (
     <div className="min-h-screen bg-background">
