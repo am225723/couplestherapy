@@ -8,13 +8,11 @@ const router = Router();
 
 // Schema for therapist thoughts
 const thoughtSchema = z.object({
-  type: z.enum(["todo", "message", "file"]),
-  title: z.string().min(1),
-  content: z.string().optional(),
-  file_url: z.string().optional(),
+  thought_type: z.enum(["todo", "message", "file_reference"]),
+  title: z.string().optional(),
+  content: z.string().min(1),
+  file_reference: z.string().optional(),
   priority: z.enum(["low", "medium", "high"]).optional(),
-  is_complete: z.boolean().optional(),
-  individual_id: z.string().uuid().optional().nullable(),
 });
 
 // GET /couple/:coupleId - Get all therapist thoughts for a couple
@@ -39,20 +37,12 @@ router.get("/couple/:coupleId", async (req: Request, res: Response) => {
       return res.status(403).json({ error: "Access denied" });
     }
 
-    // Fetch therapist thoughts with optional individual filtering
-    const { individual_id } = req.query;
-    
-    let query = supabaseAdmin
+    // Fetch therapist thoughts for the couple
+    const { data, error } = await supabaseAdmin
       .from("Couples_therapist_thoughts")
       .select("*")
-      .eq("couple_id", coupleId);
-    
-    // If individual_id is specified, filter by it; otherwise get all for the couple
-    if (individual_id && typeof individual_id === "string") {
-      query = query.eq("individual_id", individual_id);
-    }
-    
-    const { data, error } = await query.order("created_at", { ascending: false });
+      .eq("couple_id", coupleId)
+      .order("created_at", { ascending: false });
 
     if (error) throw error;
     res.json(data || []);
@@ -81,15 +71,12 @@ router.get("/client/messages", async (req: Request, res: Response) => {
       return res.status(403).json({ error: "User is not associated with a couple" });
     }
 
-    // Fetch only "message" type thoughts that are either:
-    // 1. For the entire couple (individual_id is null)
-    // 2. For this specific partner (individual_id matches userId)
+    // Fetch only "message" type thoughts for the couple
     const { data, error } = await supabaseAdmin
       .from("Couples_therapist_thoughts")
-      .select("id, title, content, created_at, individual_id")
+      .select("id, title, content, created_at")
       .eq("couple_id", coupleId)
-      .eq("type", "message")
-      .or(`individual_id.is.null,individual_id.eq.${userId}`)
+      .eq("thought_type", "message")
       .order("created_at", { ascending: false })
       .limit(50);
 
@@ -98,7 +85,7 @@ router.get("/client/messages", async (req: Request, res: Response) => {
     // Transform to include audience type for UI
     const messages = (data || []).map(msg => ({
       ...msg,
-      audience: msg.individual_id === null ? "couple" : "individual"
+      audience: "couple"
     }));
 
     res.json(messages);
@@ -136,12 +123,12 @@ router.post("/couple/:coupleId", async (req: Request, res: Response) => {
       .insert({
         couple_id: coupleId,
         therapist_id: authResult.therapistId,
-        type: body.type,
+        thought_type: body.thought_type,
         title: body.title,
         content: body.content,
-        file_url: body.file_url,
+        file_reference: body.file_reference,
         priority: body.priority || "medium",
-        is_complete: false,
+        is_completed: false,
         individual_id: body.individual_id || null,
       })
       .select()
