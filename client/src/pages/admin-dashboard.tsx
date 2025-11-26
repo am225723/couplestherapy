@@ -3281,12 +3281,11 @@ function ParentingPartnersTab({ coupleId }: { coupleId: string }) {
 
 interface TherapistThought {
   id: string;
-  type: "todo" | "message" | "file";
+  thought_type: "todo" | "message" | "file_reference";
   title: string;
   content?: string;
   priority?: "low" | "medium" | "high";
-  is_complete?: boolean;
-  individual_id?: string | null;
+  is_completed?: boolean;
 }
 
 interface TherapistThoughtsPanelProps {
@@ -3295,16 +3294,14 @@ interface TherapistThoughtsPanelProps {
   partner2?: { id: string; full_name: string | null } | null;
 }
 
-function TherapistThoughtsPanel({ coupleId, partner1, partner2 }: TherapistThoughtsPanelProps) {
+function TherapistThoughtsPanel({ coupleId }: TherapistThoughtsPanelProps) {
   const { toast } = useToast();
   const [isOpen, setIsOpen] = useState(false);
-  const [filterTarget, setFilterTarget] = useState<string>("all");
   const [newThought, setNewThought] = useState({
-    type: "todo" as "todo" | "message" | "file",
+    thought_type: "todo" as "todo" | "message" | "file_reference",
     title: "",
     content: "",
     priority: "medium" as "low" | "medium" | "high",
-    individual_id: null as string | null,
   });
 
   const thoughtsQuery = useQuery({
@@ -3318,21 +3315,19 @@ function TherapistThoughtsPanel({ coupleId, partner1, partner2 }: TherapistThoug
         "POST",
         `/api/therapist-thoughts/couple/${coupleId}`,
         {
-          type: newThought.type,
+          thought_type: newThought.thought_type,
           title: newThought.title,
           content: newThought.content,
           priority: newThought.priority,
-          individual_id: newThought.individual_id,
         },
       );
     },
     onSuccess: () => {
       setNewThought({
-        type: "todo",
+        thought_type: "todo",
         title: "",
         content: "",
         priority: "medium",
-        individual_id: null,
       });
       setIsOpen(false);
       toast({ title: "Success", description: "Thought added" });
@@ -3363,41 +3358,14 @@ function TherapistThoughtsPanel({ coupleId, partner1, partner2 }: TherapistThoug
 
   const allThoughts = (thoughtsQuery.data || []) as TherapistThought[];
   
-  const thoughts = filterTarget === "all" 
-    ? allThoughts 
-    : allThoughts.filter((t) => t.individual_id === filterTarget);
+  const thoughts = allThoughts;
   
-  const todos = thoughts.filter((t) => t.type === "todo");
-  const messages = thoughts.filter((t) => t.type === "message");
-  
-  const getPartnerName = (individualId: string | null | undefined) => {
-    if (!individualId) return null;
-    if (partner1?.id === individualId) return partner1.full_name || "Partner 1";
-    if (partner2?.id === individualId) return partner2.full_name || "Partner 2";
-    return null;
-  };
+  const todos = thoughts.filter((t) => t.thought_type === "todo");
+  const messages = thoughts.filter((t) => t.thought_type === "message");
 
   return (
     <div className="space-y-3">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <Select value={filterTarget} onValueChange={setFilterTarget}>
-          <SelectTrigger className="h-8 text-xs w-36" data-testid="select-thought-filter">
-            <SelectValue placeholder="Filter by..." />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Thoughts</SelectItem>
-            {partner1 && (
-              <SelectItem value={partner1.id}>
-                {partner1.full_name || "Partner 1"}
-              </SelectItem>
-            )}
-            {partner2 && (
-              <SelectItem value={partner2.id}>
-                {partner2.full_name || "Partner 2"}
-              </SelectItem>
-            )}
-          </SelectContent>
-        </Select>
+      <div className="flex flex-wrap items-center justify-end gap-2">
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
           <DialogTrigger asChild>
             <Button
@@ -3415,46 +3383,16 @@ function TherapistThoughtsPanel({ coupleId, partner1, partner2 }: TherapistThoug
                 Add Therapist Thought
               </DialogTitle>
               <DialogDescription className="text-xs">
-                Create a to-do, message, or file reference for the couple or individual
+                Create a to-do, message, or file reference for the couple
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-3">
               <div>
-                <label className="text-xs font-medium mb-1 block">For</label>
-                <Select
-                  value={newThought.individual_id || "couple"}
-                  onValueChange={(value: string) =>
-                    setNewThought({ ...newThought, individual_id: value === "couple" ? null : value })
-                  }
-                >
-                  <SelectTrigger
-                    className="h-8 text-xs"
-                    data-testid="select-thought-target"
-                  >
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="couple">Couple (Both Partners)</SelectItem>
-                    {partner1 && (
-                      <SelectItem value={partner1.id}>
-                        {partner1.full_name || "Partner 1"}
-                      </SelectItem>
-                    )}
-                    {partner2 && (
-                      <SelectItem value={partner2.id}>
-                        {partner2.full_name || "Partner 2"}
-                      </SelectItem>
-                    )}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
                 <label className="text-xs font-medium mb-1 block">Type</label>
                 <Select
-                  value={newThought.type}
+                  value={newThought.thought_type}
                   onValueChange={(value: any) =>
-                    setNewThought({ ...newThought, type: value })
+                    setNewThought({ ...newThought, thought_type: value })
                   }
                 >
                   <SelectTrigger
@@ -3466,7 +3404,7 @@ function TherapistThoughtsPanel({ coupleId, partner1, partner2 }: TherapistThoug
                   <SelectContent>
                     <SelectItem value="todo">To-Do</SelectItem>
                     <SelectItem value="message">Message to Client</SelectItem>
-                    <SelectItem value="file">File Reference</SelectItem>
+                    <SelectItem value="file_reference">File Reference</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -3562,16 +3500,9 @@ function TherapistThoughtsPanel({ coupleId, partner1, partner2 }: TherapistThoug
                   >
                     <CheckCircle2 className="w-3 h-3 mt-0.5 flex-shrink-0" />
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-1.5">
-                        <p className="font-semibold break-words">
-                          {thought.title}
-                        </p>
-                        {thought.individual_id && (
-                          <Badge variant="outline" className="text-xs h-4 px-1">
-                            {getPartnerName(thought.individual_id)}
-                          </Badge>
-                        )}
-                      </div>
+                      <p className="font-semibold break-words">
+                        {thought.title}
+                      </p>
                       {thought.content && (
                         <p className="text-muted-foreground break-words line-clamp-2">
                           {thought.content}
@@ -3620,16 +3551,9 @@ function TherapistThoughtsPanel({ coupleId, partner1, partner2 }: TherapistThoug
                   >
                     <MessageSquare className="w-3 h-3 mt-0.5 flex-shrink-0" />
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-1.5">
-                        <p className="font-semibold break-words">
-                          {thought.title}
-                        </p>
-                        {thought.individual_id && (
-                          <Badge variant="outline" className="text-xs h-4 px-1">
-                            {getPartnerName(thought.individual_id)}
-                          </Badge>
-                        )}
-                      </div>
+                      <p className="font-semibold break-words">
+                        {thought.title}
+                      </p>
                       {thought.content && (
                         <p className="text-muted-foreground break-words line-clamp-2">
                           {thought.content}

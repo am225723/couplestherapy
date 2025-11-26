@@ -56,11 +56,11 @@ interface CoupleData {
 
 interface TherapistThought {
   id: string;
-  type: "todo" | "message" | "file";
+  thought_type: "todo" | "message" | "file_reference";
   title: string;
   content?: string;
   priority?: "low" | "medium" | "high";
-  is_complete?: boolean;
+  is_completed?: boolean;
 }
 
 export default function TherapistDashboard() {
@@ -292,7 +292,7 @@ function CoupleDetails({ couple }: { couple: CoupleData }) {
 
   const thoughts = (thoughtsQuery.data || []) as TherapistThought[];
   const incompleteTodos = thoughts.filter(
-    (t) => t.type === "todo" && !t.is_complete,
+    (t) => t.thought_type === "todo" && !t.is_completed,
   );
 
   return (
@@ -438,7 +438,7 @@ function TherapistThoughtsPanel({ coupleId }: { coupleId: string }) {
   const { toast } = useToast();
   const [isOpen, setIsOpen] = useState(false);
   const [newThought, setNewThought] = useState({
-    type: "todo" as "todo" | "message" | "file",
+    thought_type: "todo" as "todo" | "message" | "file_reference",
     title: "",
     content: "",
     priority: "medium" as "low" | "medium" | "high",
@@ -459,7 +459,7 @@ function TherapistThoughtsPanel({ coupleId }: { coupleId: string }) {
     },
     onSuccess: () => {
       setNewThought({
-        type: "todo",
+        thought_type: "todo",
         title: "",
         content: "",
         priority: "medium",
@@ -510,8 +510,8 @@ function TherapistThoughtsPanel({ coupleId }: { coupleId: string }) {
   });
 
   const thoughts = (thoughtsQuery.data || []) as TherapistThought[];
-  const todos = thoughts.filter((t) => t.type === "todo");
-  const messages = thoughts.filter((t) => t.type === "message");
+  const todos = thoughts.filter((t) => t.thought_type === "todo");
+  const messages = thoughts.filter((t) => t.thought_type === "message");
 
   return (
     <div className="space-y-3">
@@ -540,9 +540,9 @@ function TherapistThoughtsPanel({ coupleId }: { coupleId: string }) {
               <div>
                 <label className="text-xs font-medium mb-1 block">Type</label>
                 <Select
-                  value={newThought.type}
+                  value={newThought.thought_type}
                   onValueChange={(value: any) =>
-                    setNewThought({ ...newThought, type: value })
+                    setNewThought({ ...newThought, thought_type: value })
                   }
                 >
                   <SelectTrigger
@@ -554,7 +554,7 @@ function TherapistThoughtsPanel({ coupleId }: { coupleId: string }) {
                   <SelectContent>
                     <SelectItem value="todo">To-Do</SelectItem>
                     <SelectItem value="message">Message to Client</SelectItem>
-                    <SelectItem value="file">File Reference</SelectItem>
+                    <SelectItem value="file_reference">File Reference</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
