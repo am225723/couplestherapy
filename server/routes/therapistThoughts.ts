@@ -129,7 +129,6 @@ router.post("/couple/:coupleId", async (req: Request, res: Response) => {
         file_reference: body.file_reference,
         priority: body.priority || "medium",
         is_completed: false,
-        individual_id: body.individual_id || null,
       })
       .select()
       .single();
