@@ -405,7 +405,7 @@ export default function ClientDashboard() {
         {therapistMessagesQuery.isSuccess && therapistMessagesQuery.data && therapistMessagesQuery.data.length > 0 && (
           <Card
             className="shadow-lg border-primary/20 bg-gradient-to-br from-blue-50/50 to-indigo-50/50 dark:from-blue-950/20 dark:to-indigo-950/20"
-            data-testid="card-therapist-messages"
+            data-testid="card-therapist-thoughts"
           >
             <CardHeader>
               <div className="flex items-center justify-between">
@@ -418,7 +418,7 @@ export default function ClientDashboard() {
                     Notes and guidance from your therapy sessions
                   </CardDescription>
                 </div>
-                <Link href="/therapist-messages">
+                <Link href="/therapist-thoughts">
                   <Button variant="ghost" size="sm" className="text-primary" data-testid="button-view-all-messages">
                     View All
                     <ArrowRight className="ml-1 h-4 w-4" />

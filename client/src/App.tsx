@@ -79,7 +79,7 @@ import MoodTrackerPage from "./pages/mood-tracker";
 import DailyTipsPage from "./pages/daily-tips";
 import CoupleCompatibility from "./pages/couple-compatibility";
 import ChoreChart from "./pages/chore-chart";
-import TherapistMessagesPage from "./pages/therapist-messages";
+import TherapistThoughtsPage from "./pages/therapist-thoughts";
 import NotFound from "./pages/not-found";
 
 function AppSidebar() {
@@ -301,7 +301,7 @@ function AppSidebar() {
 }
 
 function AuthenticatedApp() {
-  const { user, profile, loading } = useAuth();
+  const { user, profile, loading, signOut } = useAuth();
   const [location, setLocation] = useLocation();
 
   // Redirect users to their appropriate home page on first authentication
@@ -418,118 +418,116 @@ function AuthenticatedApp() {
     "--sidebar-width-icon": "3rem",
   };
 
+  // Therapist layout - no sidebar, signout in header
+  if (profile.role === "therapist") {
+    return (
+      <div className="flex flex-col h-screen w-full">
+        <header className="flex items-center justify-between p-4 border-b bg-background shrink-0">
+          <Link href="/admin/couple" className="flex items-center gap-3" data-testid="link-therapist-home">
+            <img
+              src={coupleArt}
+              alt="ALEIC"
+              className="h-8 w-auto"
+            />
+            <span className="text-lg font-bold bg-gradient-to-r from-primary via-accent to-secondary bg-clip-text text-transparent">
+              ALEIC
+            </span>
+          </Link>
+          <div className="flex items-center gap-4">
+            <span className="text-sm text-muted-foreground">
+              {profile.full_name}
+            </span>
+            <ThemeToggle />
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={signOut}
+              className="gap-2"
+              data-testid="button-therapist-signout"
+            >
+              <LogOut className="h-4 w-4" />
+              Sign Out
+            </Button>
+          </div>
+        </header>
+        <main className="flex-1 overflow-y-auto">
+          <Switch>
+            <Route path="/admin" component={TherapistDashboard} />
+            <Route path="/admin/couple" component={AdminDashboard} />
+            <Route path="/admin/couple/:id" component={AdminDashboard} />
+            <Route path="/admin/couple/:id/:section" component={AdminDashboard} />
+            <Route path="/admin/analytics" component={AnalyticsPage} />
+            <Route path="/admin/invitation-codes" component={InvitationCodesPage} />
+            <Route path="/therapist-thoughts" component={AdminDashboard} />
+            <Route path="/">
+              <Redirect to="/admin/couple" />
+            </Route>
+            <Route component={NotFound} />
+          </Switch>
+        </main>
+      </div>
+    );
+  }
+
+  // Client layout - sidebar with Menu label
   return (
     <SidebarProvider style={style as React.CSSProperties} defaultOpen={false}>
       <div className="flex h-screen w-full">
         <AppSidebar />
         <div className="flex flex-col flex-1 overflow-hidden">
           <header className="flex items-center justify-between p-4 border-b bg-background">
-            <SidebarTrigger data-testid="button-sidebar-toggle" />
+            <div className="flex items-center gap-2">
+              <SidebarTrigger data-testid="button-sidebar-toggle" />
+              <span className="text-sm font-medium text-muted-foreground">Menu</span>
+            </div>
             <div className="flex items-center gap-4">
               <span className="text-sm text-muted-foreground">
-                {profile.full_name} ({profile.role})
+                {profile.full_name}
               </span>
               <ThemeToggle />
             </div>
           </header>
           <main className="flex-1 overflow-y-auto">
             <Switch>
-              {profile.role === "therapist" ? (
-                <>
-                  <Route path="/admin" component={TherapistDashboard} />
-                  <Route path="/admin/couple" component={AdminDashboard} />
-                  <Route
-                    path="/admin/couple/:id"
-                    component={AdminDashboard}
-                  />
-                  <Route
-                    path="/admin/couple/:id/:section"
-                    component={AdminDashboard}
-                  />
-                  <Route path="/admin/analytics" component={AnalyticsPage} />
-                  <Route
-                    path="/admin/invitation-codes"
-                    component={InvitationCodesPage}
-                  />
-                  <Route
-                    path="/therapist-thoughts"
-                    component={AdminDashboard}
-                  />
-                  <Route path="/">
-                    <Redirect to="/admin/couple" />
-                  </Route>
-                </>
-              
-              ) : (
-                <>
-                  <Route path="/couple-setup" component={CoupleSetup} />
-                  <Route path="/dashboard" component={ClientDashboard} />
-                  <Route path="/quiz" component={LoveLanguageQuiz} />
-                  <Route path="/love-map" component={LoveMapQuiz} />
-                  <Route path="/weekly-checkin" component={WeeklyCheckin} />
-                  <Route path="/checkin-history" component={CheckinHistory} />
-                  <Route path="/gratitude" component={GratitudeLogPage} />
-                  <Route path="/goals" component={SharedGoalsPage} />
-                  <Route path="/rituals" component={RitualsPage} />
-                  <Route path="/conversation" component={HoldMeTightPage} />
-                  <Route path="/voice-memos" component={VoiceMemosPage} />
-                  <Route path="/date-night" component={DateNightPage} />
-                  <Route path="/messages" component={MessagesPage} />
-                  <Route path="/calendar" component={CalendarPage} />
-                  <Route path="/chores" component={ChoreChart} />
-                  <Route path="/echo-empathy" component={EchoEmpathyPage} />
-                  <Route path="/ifs-intro" component={IfsIntroPage} />
-                  <Route path="/pause" component={PauseButtonPage} />
-                  <Route path="/four-horsemen" component={FourHorsemenPage} />
-                  <Route
-                    path="/demon-dialogues"
-                    component={DemonDialoguesPage}
-                  />
-                  <Route
-                    path="/meditation-library"
-                    component={MeditationLibraryPage}
-                  />
-                  <Route
-                    path="/intimacy-mapping"
-                    component={IntimacyMappingPage}
-                  />
-                  <Route path="/values-vision" component={ValuesVisionPage} />
-                  <Route
-                    path="/parenting-partners"
-                    component={ParentingPartnersPage}
-                  />
-                  <Route
-                    path="/attachment-assessment"
-                    component={AttachmentAssessmentPage}
-                  />
-                  <Route
-                    path="/enneagram-assessment"
-                    component={EnneagramAssessmentPage}
-                  />
-                  <Route
-                    path="/couple-compatibility"
-                    component={CoupleCompatibility}
-                  />
-                  <Route path="/couple-journal" component={CoupleJournalPage} />
-                  <Route
-                    path="/financial-toolkit"
-                    component={FinancialToolkitPage}
-                  />
-                  <Route path="/mood-tracker" component={MoodTrackerPage} />
-                  <Route path="/daily-tips" component={DailyTipsPage} />
-                  <Route
-                    path="/therapist-messages"
-                    component={TherapistMessagesPage}
-                  />
-                  <Route path="/">
-                    {profile.couple_id ? (
-                      <Redirect to="/dashboard" />
-                    ) : (
-                      <Redirect to="/couple-setup" />
-                    )}
-                  </Route>
-                </>
-              )}
+              <Route path="/couple-setup" component={CoupleSetup} />
+              <Route path="/dashboard" component={ClientDashboard} />
+              <Route path="/quiz" component={LoveLanguageQuiz} />
+              <Route path="/love-map" component={LoveMapQuiz} />
+              <Route path="/weekly-checkin" component={WeeklyCheckin} />
+              <Route path="/checkin-history" component={CheckinHistory} />
+              <Route path="/gratitude" component={GratitudeLogPage} />
+              <Route path="/goals" component={SharedGoalsPage} />
+              <Route path="/rituals" component={RitualsPage} />
+              <Route path="/conversation" component={HoldMeTightPage} />
+              <Route path="/voice-memos" component={VoiceMemosPage} />
+              <Route path="/date-night" component={DateNightPage} />
+              <Route path="/messages" component={MessagesPage} />
+              <Route path="/calendar" component={CalendarPage} />
+              <Route path="/chores" component={ChoreChart} />
+              <Route path="/echo-empathy" component={EchoEmpathyPage} />
+              <Route path="/ifs-intro" component={IfsIntroPage} />
+              <Route path="/pause" component={PauseButtonPage} />
+              <Route path="/four-horsemen" component={FourHorsemenPage} />
+              <Route path="/demon-dialogues" component={DemonDialoguesPage} />
+              <Route path="/meditation-library" component={MeditationLibraryPage} />
+              <Route path="/intimacy-mapping" component={IntimacyMappingPage} />
+              <Route path="/values-vision" component={ValuesVisionPage} />
+              <Route path="/parenting-partners" component={ParentingPartnersPage} />
+              <Route path="/attachment-assessment" component={AttachmentAssessmentPage} />
+              <Route path="/enneagram-assessment" component={EnneagramAssessmentPage} />
+              <Route path="/couple-compatibility" component={CoupleCompatibility} />
+              <Route path="/couple-journal" component={CoupleJournalPage} />
+              <Route path="/financial-toolkit" component={FinancialToolkitPage} />
+              <Route path="/mood-tracker" component={MoodTrackerPage} />
+              <Route path="/daily-tips" component={DailyTipsPage} />
+              <Route path="/therapist-thoughts" component={TherapistThoughtsPage} />
+              <Route path="/">
+                {profile.couple_id ? (
+                  <Redirect to="/dashboard" />
+                ) : (
+                  <Redirect to="/couple-setup" />
+                )}
+              </Route>
               <Route component={NotFound} />
             </Switch>
           </main>
