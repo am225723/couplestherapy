@@ -29,6 +29,7 @@ export default function ChoreChart() {
   const form = useForm({
     resolver: zodResolver(insertChoreSchema),
     defaultValues: {
+      couple_id: profile?.couple_id || "",
       title: "",
       assigned_to: profile?.id || "",
       recurrence: "daily",
@@ -48,7 +49,7 @@ export default function ChoreChart() {
     onSuccess: () => {
       toast({ title: "Success", description: "Chore added" });
       queryClient.invalidateQueries({ queryKey: [`/api/chores/couple/${profile?.couple_id}`] });
-      form.reset({ title: "", assigned_to: profile?.id || "", recurrence: "daily" });
+      form.reset({ couple_id: profile?.couple_id || "", title: "", assigned_to: profile?.id || "", recurrence: "daily" });
       setIsOpen(false);
     },
     onError: (error: any) => {
