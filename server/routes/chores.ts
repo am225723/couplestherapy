@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { supabase } from "../lib/supabase.js";
+import { supabaseAdmin } from "../supabaseAdmin.js";
 import { z } from "zod";
 import { insertChoreSchema } from "@shared/schema";
 

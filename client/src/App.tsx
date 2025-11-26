@@ -67,6 +67,7 @@ import FinancialToolkitPage from './pages/financial-toolkit';
 import MoodTrackerPage from './pages/mood-tracker';
 import DailyTipsPage from './pages/daily-tips';
 import CoupleCompatibility from './pages/couple-compatibility';
+import ChoreChart from './pages/chore-chart';
 import NotFound from './pages/not-found';
 
 function AppSidebar() {

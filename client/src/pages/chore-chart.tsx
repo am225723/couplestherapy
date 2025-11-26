@@ -1,6 +1,6 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { useAuth } from "@/lib/auth.js";
-import { queryClient, apiRequest } from "@/lib/queryClient.js";
+import { useAuth } from "@/lib/auth-context";
+import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
