@@ -4,25 +4,44 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { useLocation } from "wouter";
 import { Separator } from "@/components/ui/separator";
 
-const coupleSignupSchema = z.object({
-  invitation_code: z.string().min(1, "Invitation code is required"),
-  partner1_email: z.string().email("Invalid email address"),
-  partner1_password: z.string().min(8, "Password must be at least 8 characters"),
-  partner1_name: z.string().min(1, "Name is required"),
-  partner2_email: z.string().email("Invalid email address"),
-  partner2_password: z.string().min(8, "Password must be at least 8 characters"),
-  partner2_name: z.string().min(1, "Name is required"),
-}).refine(data => data.partner1_email !== data.partner2_email, {
-  message: "Partners must have different email addresses",
-  path: ["partner2_email"],
-});
+const coupleSignupSchema = z
+  .object({
+    invitation_code: z.string().min(1, "Invitation code is required"),
+    partner1_email: z.string().email("Invalid email address"),
+    partner1_password: z
+      .string()
+      .min(8, "Password must be at least 8 characters"),
+    partner1_name: z.string().min(1, "Name is required"),
+    partner2_email: z.string().email("Invalid email address"),
+    partner2_password: z
+      .string()
+      .min(8, "Password must be at least 8 characters"),
+    partner2_name: z.string().min(1, "Name is required"),
+  })
+  .refine((data) => data.partner1_email !== data.partner2_email, {
+    message: "Partners must have different email addresses",
+    path: ["partner2_email"],
+  });
 
 type CoupleSignupForm = z.infer<typeof coupleSignupSchema>;
 
@@ -49,10 +68,10 @@ export default function CoupleSignup() {
 
     try {
       // Call secure backend endpoint
-      const response = await fetch('/api/public/register-couple', {
-        method: 'POST',
+      const response = await fetch("/api/public/register-couple", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(data),
       });
@@ -60,7 +79,7 @@ export default function CoupleSignup() {
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.error || 'Registration failed');
+        throw new Error(result.error || "Registration failed");
       }
 
       toast({
@@ -71,10 +90,11 @@ export default function CoupleSignup() {
       // Redirect to login
       setLocation("/auth/login");
     } catch (error: any) {
-      console.error('Couple signup error:', error);
+      console.error("Couple signup error:", error);
       toast({
         title: "Registration Failed",
-        description: error.message || "Failed to create couple. Please try again.",
+        description:
+          error.message || "Failed to create couple. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -106,7 +126,9 @@ export default function CoupleSignup() {
                         placeholder="INVITE123"
                         data-testid="input-invitation-code"
                         {...field}
-                        onChange={(e) => field.onChange(e.target.value.toUpperCase())}
+                        onChange={(e) =>
+                          field.onChange(e.target.value.toUpperCase())
+                        }
                       />
                     </FormControl>
                     <FormMessage />

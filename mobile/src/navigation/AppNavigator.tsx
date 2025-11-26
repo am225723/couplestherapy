@@ -1,18 +1,18 @@
-import React from 'react';
-import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
-import { useAuth } from '../contexts/AuthContext';
-import { ActivityIndicator, View, StyleSheet } from 'react-native';
-import { colors } from '../constants/theme';
+import React from "react";
+import { NavigationContainer } from "@react-navigation/native";
+import { createStackNavigator } from "@react-navigation/stack";
+import { useAuth } from "../contexts/AuthContext";
+import { ActivityIndicator, View, StyleSheet } from "react-native";
+import { colors } from "../constants/theme";
 
 // Auth Screens
-import LoginScreen from '../screens/auth/LoginScreen';
-import TherapistSignupScreen from '../screens/auth/TherapistSignupScreen';
-import CoupleSignupScreen from '../screens/auth/CoupleSignupScreen';
+import LoginScreen from "../screens/auth/LoginScreen";
+import TherapistSignupScreen from "../screens/auth/TherapistSignupScreen";
+import CoupleSignupScreen from "../screens/auth/CoupleSignupScreen";
 
 // Main App Navigators
-import ClientTabNavigator from './ClientTabNavigator';
-import TherapistTabNavigator from './TherapistTabNavigator';
+import ClientTabNavigator from "./ClientTabNavigator";
+import TherapistTabNavigator from "./TherapistTabNavigator";
 
 const Stack = createStackNavigator();
 
@@ -36,10 +36,13 @@ export default function AppNavigator() {
           }}
         >
           <Stack.Screen name="Login" component={LoginScreen} />
-          <Stack.Screen name="TherapistSignup" component={TherapistSignupScreen} />
+          <Stack.Screen
+            name="TherapistSignup"
+            component={TherapistSignupScreen}
+          />
           <Stack.Screen name="CoupleSignup" component={CoupleSignupScreen} />
         </Stack.Navigator>
-      ) : profile.role === 'therapist' ? (
+      ) : profile.role === "therapist" ? (
         <TherapistTabNavigator />
       ) : (
         <ClientTabNavigator />
@@ -51,8 +54,8 @@ export default function AppNavigator() {
 const styles = StyleSheet.create({
   loadingContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     backgroundColor: colors.background,
   },
 });

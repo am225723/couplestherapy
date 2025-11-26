@@ -5,17 +5,20 @@
 ### **1. Authentication & User Management**
 
 #### **Therapist Registration**
+
 - ✅ Self-registration at `/auth/therapist-signup`
 - ✅ Email/password authentication
 - ✅ Automatic profile creation with `role='therapist'`
 
-#### **Couple Registration** 
+#### **Couple Registration**
+
 - ✅ Invitation code-based registration at `/auth/couple-signup`
 - ✅ Atomic backend creation using `/api/public/register-couple`
 - ✅ Automatic linking to therapist
 - ✅ Both partners created simultaneously with full rollback on errors
 
 #### **Invitation Code System**
+
 - ✅ Therapists can generate codes at `/admin/invitation-codes`
 - ✅ 8-character unique codes
 - ✅ 30-day expiration
@@ -27,13 +30,14 @@
 ### **2. Assessments & Quizzes**
 
 #### **Love Language Quiz** ✅
+
 - **Path:** `/quiz`
 - **Questions:** 30 scientifically-based questions
 - **Languages:** All 5 love languages covered:
   - Words of Affirmation
   - Quality Time
   - Receiving Gifts
-  - Acts of Service  
+  - Acts of Service
   - Physical Touch
 - **Features:**
   - Progress bar
@@ -43,6 +47,7 @@
   - Primary and secondary language identification
 
 #### **Love Map Quiz** ✅
+
 - **Path:** `/love-map`
 - **Questions:** 15+ questions about partner knowledge
 - **Categories:**
@@ -59,6 +64,7 @@
 - **Database:** `Couples_love_map_questions`, `Couples_love_map_sessions`, `Couples_love_map_truths`, `Couples_love_map_guesses`
 
 #### **Weekly Check-In** ✅
+
 - **Path:** `/weekly-checkin`
 - **Privacy:** Partner answers are hidden until both complete
 - **RLS Protected:** Partners cannot see each other's responses
@@ -69,6 +75,7 @@
 ### **3. Interactive Activities**
 
 #### **Connection Concierge (Date Night Generator)** ✅
+
 - **Path:** `/date-night`
 - **AI-Powered:** Uses Perplexity API (`sonar-pro` model)
 - **Backend:** `/api/ai/date-night`
@@ -84,6 +91,7 @@
   - Connection tip for deeper engagement
 
 #### **Gratitude Log** ✅
+
 - **Path:** `/gratitude`
 - **Features:**
   - Text entries
@@ -92,6 +100,7 @@
 - **Database:** `Couples_gratitude_logs`
 
 #### **Shared Goals (Kanban Board)** ✅
+
 - **Path:** `/goals`
 - **Columns:** Backlog, In Progress, Completed
 - **Features:**
@@ -101,12 +110,14 @@
 - **Database:** `Couples_shared_goals`
 
 #### **Rituals of Connection** ✅
+
 - **Path:** `/rituals`
 - **Based on:** Gottman's Rituals of Connection
 - **Track:** Daily/weekly connection rituals
 - **Database:** `Couples_rituals`
 
 #### **Hold Me Tight Conversation** ✅
+
 - **Path:** `/conversation`
 - **Based on:** EFT (Emotionally Focused Therapy)
 - **6-Step Wizard:**
@@ -119,6 +130,7 @@
 - **Database:** `Couples_conversations`
 
 #### **Echo & Empathy (Active Listening)** ✅
+
 - **Path:** `/echo-empathy`
 - **Turn-Based System:**
   - Speaker shares a feeling
@@ -127,6 +139,7 @@
 - **Database:** `Couples_echo_sessions`, `Couples_echo_turns`
 
 #### **IFS Introduction** ✅
+
 - **Path:** `/ifs-intro`
 - **Focus:** Internal Family Systems - identifying protective parts
 - **Individual Exercise:** For each partner separately
@@ -137,6 +150,7 @@
 ### **4. Communication Tools**
 
 #### **Voice Memos** ✅
+
 - **Path:** `/voice-memos`
 - **Category:** Words of Affirmation
 - **Features:**
@@ -147,6 +161,7 @@
 - **Database:** `Couples_voice_memos`
 
 #### **Secure Messages** ✅
+
 - **Path:** `/messages`
 - **Participants:** Couple ↔ Therapist
 - **Features:**
@@ -156,6 +171,7 @@
 - **Database:** `Couples_messages`
 
 #### **Shared Calendar** ✅
+
 - **Path:** `/calendar`
 - **Features:**
   - Add/view/edit events
@@ -166,6 +182,7 @@
 - **Database:** `Couples_calendar_events`
 
 #### **Shared Pause Button** ✅
+
 - **Path:** `/pause`
 - **Purpose:** De-escalation during conflict
 - **Features:**
@@ -180,6 +197,7 @@
 ### **5. Therapist Portal**
 
 #### **Admin Dashboard** ✅
+
 - **Path:** `/admin`
 - **Features:**
   - Client roster with couple cards
@@ -189,6 +207,7 @@
   - Activity feed
 
 #### **Couple Details View** ✅
+
 - **Path:** `/admin/couple/:id`
 - **Data Displayed:**
   - Partner profiles
@@ -202,12 +221,14 @@
   - All activities timestamped
 
 #### **Contextual Commenting** ✅
+
 - **Feature:** Add private or public comments on couple activities
 - **Privacy Toggle:** Therapist controls visibility
 - **Realtime:** Comments appear instantly to couple
 - **Database:** `Couples_therapist_comments`
 
 #### **Analytics (AI-Powered)** ✅
+
 - **Path:** `/admin/analytics`
 - **AI Engine:** Perplexity AI (`sonar-pro` model)
 - **Backend:** `/api/ai/analytics` (overview), `/api/ai/insights` (detailed analysis)
@@ -219,6 +240,7 @@
 - **Output:** Actionable insights for therapists
 
 #### **Invitation Code Management** ✅
+
 - **Path:** `/admin/invitation-codes`
 - **Features:**
   - Generate new codes
@@ -232,6 +254,7 @@
 ## 🔐 **Security Features**
 
 ### **Row Level Security (RLS)**
+
 ✅ All tables have RLS enabled
 ✅ Partners can only see their couple's data
 ✅ Weekly check-ins are private until both complete
@@ -240,12 +263,14 @@
 ✅ Message tampering prevented (no UPDATE policy)
 
 ### **Authentication**
+
 ✅ Supabase Auth with email/password
 ✅ Email confirmation
 ✅ Session management
 ✅ Role-based access control (therapist vs client)
 
 ### **Data Privacy**
+
 ✅ Service role key for admin operations
 ✅ RLS policies bypass for registration only
 ✅ No FORCE RLS (allows service role operations)
@@ -255,9 +280,11 @@
 ## 🔧 **Backend API Endpoints**
 
 ### **Public Endpoints**
+
 - `POST /api/public/register-couple` - Secure couple registration with invitation code
 
 ### **Authenticated Endpoints**
+
 - `POST /api/ai/date-night` - Generate AI date night ideas (Perplexity)
 - `GET /api/ai/analytics` - Get therapist analytics overview (Perplexity)
 - `GET /api/ai/insights` - Get detailed couple insights (Perplexity)
@@ -265,6 +292,7 @@
 - `GET /api/love-map/session/:couple_id` - Get/create Love Map session
 
 ### **Therapist-Only Endpoints**
+
 - `POST /api/therapist/create-therapist` - Create new therapist
 - `POST /api/therapist/create-couple` - Create new couple
 - `GET /api/therapist/my-couples` - Get assigned couples
@@ -274,11 +302,13 @@
 ## 📊 **Database Schema**
 
 ### **Core Tables**
+
 - `Couples_profiles` - User profiles with roles
 - `Couples_couples` - Couple linkages with therapist
 - `Couples_invitation_codes` - Invitation code management
 
 ### **Assessment Tables**
+
 - `Couples_love_languages` - Love Language results
 - `Couples_love_map_questions` - Love Map question bank
 - `Couples_love_map_sessions` - Love Map quiz sessions
@@ -287,6 +317,7 @@
 - `Couples_weekly_checkins` - Weekly check-in responses
 
 ### **Activity Tables**
+
 - `Couples_gratitude_logs` - Gratitude entries
 - `Couples_shared_goals` - Kanban board items
 - `Couples_rituals` - Connection rituals
@@ -297,6 +328,7 @@
 - `Couples_ifs_parts` - Identified protective parts
 
 ### **Communication Tables**
+
 - `Couples_voice_memos` - Voice message metadata
 - `Couples_messages` - Secure messaging
 - `Couples_calendar_events` - Shared calendar
@@ -308,6 +340,7 @@
 ## 🎨 **UI/UX**
 
 ### **Design System**
+
 - **Framework:** React 18 + Vite
 - **Routing:** Wouter
 - **Styling:** Tailwind CSS + Shadcn UI
@@ -317,6 +350,7 @@
 - **Theme:** Light/Dark mode support
 
 ### **Components**
+
 - Sidebar navigation (Shadcn)
 - Card-based layouts
 - Progress indicators
@@ -329,6 +363,7 @@
 ## 🚀 **External Integrations**
 
 ### **Supabase**
+
 - ✅ PostgreSQL database
 - ✅ Authentication
 - ✅ Realtime subscriptions
@@ -336,6 +371,7 @@
 - ✅ Row Level Security
 
 ### **Perplexity AI**
+
 - ✅ Connection Concierge (date night ideas)
 - ✅ Therapist Analytics
 - ✅ Model: `llama-3.1-sonar-small-128k-online`
@@ -401,17 +437,21 @@
 ## 📝 **Test Accounts**
 
 ### **Therapist:**
+
 - Email: support@drzelisko.com
 - ID: 226ae091-325e-4084-a467-bee2bc8405f6
 - Name: Aleixander Puerta M.A C.A.C.
 
 ### **Couple: Callahan**
+
 - **Matthew:**
+
   - Email: matthew.callahan10@gmail.com
   - Password: mcally88
   - ID: a47e29f7-0b6a-40d8-a6aa-2d8caebcfb6f
 
 - **Karli:**
+
   - Email: karli.callahan16@gmail.com
   - Password: kcally16
   - ID: febb1d5a-9191-4a8b-9686-26eab3631860
@@ -424,6 +464,7 @@
 ## 🎉 **Summary**
 
 TADI is a **complete, production-ready** couples therapy platform with:
+
 - ✅ 15+ client features
 - ✅ Full therapist oversight tools
 - ✅ AI-powered assistance

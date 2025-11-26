@@ -1,5 +1,5 @@
 interface PerplexityMessage {
-  role: 'system' | 'user' | 'assistant';
+  role: "system" | "user" | "assistant";
   content: string;
 }
 
@@ -50,23 +50,23 @@ export interface AnalyzeCheckInsResult {
  * Calls Perplexity AI API to analyze check-in data
  */
 export async function analyzeCheckInsWithPerplexity(
-  params: AnalyzeCheckInsParams
+  params: AnalyzeCheckInsParams,
 ): Promise<AnalyzeCheckInsResult> {
   const apiKey = process.env.PERPLEXITY_API_KEY;
 
   if (!apiKey) {
-    throw new Error('PERPLEXITY_API_KEY environment variable is not set');
+    throw new Error("PERPLEXITY_API_KEY environment variable is not set");
   }
 
   const request: PerplexityRequest = {
-    model: 'sonar',
+    model: "sonar",
     messages: [
       {
-        role: 'system',
+        role: "system",
         content: params.systemPrompt,
       },
       {
-        role: 'user',
+        role: "user",
         content: params.userPrompt,
       },
     ],
@@ -77,32 +77,32 @@ export async function analyzeCheckInsWithPerplexity(
   try {
     // PRIVACY: Do not log request payload - contains sensitive therapeutic content
     // console.log('Perplexity API Request:', JSON.stringify(request, null, 2));
-    const response = await fetch('https://api.perplexity.ai/chat/completions', {
-      method: 'POST',
+    const response = await fetch("https://api.perplexity.ai/chat/completions", {
+      method: "POST",
       headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
       },
       body: JSON.stringify(request),
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Perplexity API Error Response:', {
+      console.error("Perplexity API Error Response:", {
         status: response.status,
         statusText: response.statusText,
         headers: Object.fromEntries(response.headers.entries()),
         body: errorText,
       });
       throw new Error(
-        `Perplexity API error (${response.status}): ${errorText}`
+        `Perplexity API error (${response.status}): ${errorText}`,
       );
     }
 
     const data: PerplexityResponse = await response.json();
 
     if (!data.choices || data.choices.length === 0) {
-      throw new Error('Perplexity API returned no choices');
+      throw new Error("Perplexity API returned no choices");
     }
 
     return {
@@ -112,9 +112,9 @@ export async function analyzeCheckInsWithPerplexity(
     };
   } catch (error) {
     if (error instanceof Error) {
-      console.error('Perplexity API call failed:', error);
+      console.error("Perplexity API call failed:", error);
       throw error;
     }
-    throw new Error('Unknown error calling Perplexity API');
+    throw new Error("Unknown error calling Perplexity API");
   }
 }

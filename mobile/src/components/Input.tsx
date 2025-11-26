@@ -1,6 +1,12 @@
-import React from 'react';
-import { View, Text, TextInput, StyleSheet, TextInputProps } from 'react-native';
-import { colors, borderRadius, typography, spacing } from '../constants/theme';
+import React from "react";
+import {
+  View,
+  Text,
+  TextInput,
+  StyleSheet,
+  TextInputProps,
+} from "react-native";
+import { colors, borderRadius, typography, spacing } from "../constants/theme";
 
 interface InputProps extends TextInputProps {
   label?: string;
@@ -12,11 +18,7 @@ export default function Input({ label, error, style, ...props }: InputProps) {
     <View style={styles.container}>
       {label && <Text style={styles.label}>{label}</Text>}
       <TextInput
-        style={[
-          styles.input,
-          error && styles.inputError,
-          style,
-        ]}
+        style={[styles.input, error && styles.inputError, style]}
         placeholderTextColor={colors.textTertiary}
         {...props}
       />
@@ -32,7 +34,7 @@ const styles = StyleSheet.create({
   label: {
     ...typography.bodySmall,
     color: colors.text,
-    fontWeight: '600',
+    fontWeight: "600",
     marginBottom: spacing.xs,
   },
   input: {

@@ -5,10 +5,29 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
-import { Form, FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -57,9 +76,10 @@ export default function ChoreChart() {
   // Determine partner ID and fetch partner name
   const partnerData = useMemo(() => {
     if (!coupleQuery.data || !profile?.id) return null;
-    const partnerId = coupleQuery.data.partner1_id === profile.id 
-      ? coupleQuery.data.partner2_id 
-      : coupleQuery.data.partner1_id;
+    const partnerId =
+      coupleQuery.data.partner1_id === profile.id
+        ? coupleQuery.data.partner2_id
+        : coupleQuery.data.partner1_id;
     return { partnerId };
   }, [coupleQuery.data, profile?.id]);
 
@@ -89,25 +109,50 @@ export default function ChoreChart() {
   const createMutation = useMutation({
     mutationFn: async (data: any) => {
       if (!profile?.couple_id) throw new Error("No couple ID");
-      return apiRequest("POST", `/api/chores/couple/${profile.couple_id}`, data);
+      return apiRequest(
+        "POST",
+        `/api/chores/couple/${profile.couple_id}`,
+        data,
+      );
     },
     onSuccess: () => {
       toast({ title: "Success", description: "Chore added" });
-      queryClient.invalidateQueries({ queryKey: [`/api/chores/couple/${profile?.couple_id}`] });
-      form.reset({ couple_id: profile?.couple_id || "", title: "", assigned_to: profile?.id || "", recurrence: "daily" });
+      queryClient.invalidateQueries({
+        queryKey: [`/api/chores/couple/${profile?.couple_id}`],
+      });
+      form.reset({
+        couple_id: profile?.couple_id || "",
+        title: "",
+        assigned_to: profile?.id || "",
+        recurrence: "daily",
+      });
       setIsOpen(false);
     },
     onError: (error: any) => {
-      toast({ title: "Error", description: error?.message || "Failed to add chore", variant: "destructive" });
+      toast({
+        title: "Error",
+        description: error?.message || "Failed to add chore",
+        variant: "destructive",
+      });
     },
   });
 
   const completeMutation = useMutation({
-    mutationFn: async ({ choreId, completed_by }: { choreId: string; completed_by: string }) => {
-      return apiRequest("PATCH", `/api/chores/${choreId}/complete`, { completed_by });
+    mutationFn: async ({
+      choreId,
+      completed_by,
+    }: {
+      choreId: string;
+      completed_by: string;
+    }) => {
+      return apiRequest("PATCH", `/api/chores/${choreId}/complete`, {
+        completed_by,
+      });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/chores/couple/${profile?.couple_id}`] });
+      queryClient.invalidateQueries({
+        queryKey: [`/api/chores/couple/${profile?.couple_id}`],
+      });
     },
   });
 
@@ -116,7 +161,9 @@ export default function ChoreChart() {
       return apiRequest("PATCH", `/api/chores/${choreId}/incomplete`, {});
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/chores/couple/${profile?.couple_id}`] });
+      queryClient.invalidateQueries({
+        queryKey: [`/api/chores/couple/${profile?.couple_id}`],
+      });
     },
   });
 
@@ -126,13 +173,17 @@ export default function ChoreChart() {
     },
     onSuccess: () => {
       toast({ title: "Success", description: "Chore deleted" });
-      queryClient.invalidateQueries({ queryKey: [`/api/chores/couple/${profile?.couple_id}`] });
+      queryClient.invalidateQueries({
+        queryKey: [`/api/chores/couple/${profile?.couple_id}`],
+      });
     },
   });
 
   const chores = (choresQuery.data || []) as ChoreWithCreator[];
   const today = new Date();
-  const dayName = today.toLocaleDateString("en-US", { weekday: "long" }).toLowerCase();
+  const dayName = today
+    .toLocaleDateString("en-US", { weekday: "long" })
+    .toLowerCase();
 
   const weeklyChores = useMemo(() => {
     return chores.filter((c) => c.recurrence === "weekly");
@@ -143,16 +194,17 @@ export default function ChoreChart() {
   }, [chores]);
 
   const specificDayChores = useMemo(() => {
-    return chores.filter((c) =>
-      [
-        "monday",
-        "tuesday",
-        "wednesday",
-        "thursday",
-        "friday",
-        "saturday",
-        "sunday",
-      ].includes(c.recurrence) && c.recurrence === dayName
+    return chores.filter(
+      (c) =>
+        [
+          "monday",
+          "tuesday",
+          "wednesday",
+          "thursday",
+          "friday",
+          "saturday",
+          "sunday",
+        ].includes(c.recurrence) && c.recurrence === dayName,
     );
   }, [chores, dayName]);
 
@@ -201,10 +253,18 @@ export default function ChoreChart() {
             <DialogContent className="w-full max-w-sm">
               <DialogHeader>
                 <DialogTitle>Add New Chore</DialogTitle>
-                <DialogDescription>Create a new chore and assign it to a partner.</DialogDescription>
+                <DialogDescription>
+                  Create a new chore and assign it to a partner.
+                </DialogDescription>
               </DialogHeader>
               <Form {...form}>
-                <form onSubmit={form.handleSubmit((data) => createMutation.mutate(data), (errors) => console.log("Validation errors:", errors))} className="space-y-4">
+                <form
+                  onSubmit={form.handleSubmit(
+                    (data) => createMutation.mutate(data),
+                    (errors) => console.log("Validation errors:", errors),
+                  )}
+                  className="space-y-4"
+                >
                   <FormField
                     control={form.control}
                     name="title"
@@ -212,7 +272,11 @@ export default function ChoreChart() {
                       <FormItem>
                         <FormLabel>Chore Title</FormLabel>
                         <FormControl>
-                          <Input placeholder="e.g., Do laundry" data-testid="input-chore-title" {...field} />
+                          <Input
+                            placeholder="e.g., Do laundry"
+                            data-testid="input-chore-title"
+                            {...field}
+                          />
                         </FormControl>
                       </FormItem>
                     )}
@@ -225,13 +289,20 @@ export default function ChoreChart() {
                       <FormItem>
                         <FormLabel>Assigned To</FormLabel>
                         <FormControl>
-                          <Select value={field.value} onValueChange={field.onChange}>
+                          <Select
+                            value={field.value}
+                            onValueChange={field.onChange}
+                          >
                             <SelectTrigger data-testid="select-assigned-to">
                               <SelectValue placeholder="Select who..." />
                             </SelectTrigger>
                             <SelectContent>
                               <SelectItem value={profile.id}>Me</SelectItem>
-                              {partnerId && <SelectItem value={partnerId}>{partnerName || "My Partner"}</SelectItem>}
+                              {partnerId && (
+                                <SelectItem value={partnerId}>
+                                  {partnerName || "My Partner"}
+                                </SelectItem>
+                              )}
                             </SelectContent>
                           </Select>
                         </FormControl>
@@ -246,20 +317,37 @@ export default function ChoreChart() {
                       <FormItem>
                         <FormLabel>Frequency</FormLabel>
                         <FormControl>
-                          <Select value={field.value} onValueChange={field.onChange}>
+                          <Select
+                            value={field.value}
+                            onValueChange={field.onChange}
+                          >
                             <SelectTrigger data-testid="select-frequency">
                               <SelectValue placeholder="Select frequency..." />
                             </SelectTrigger>
                             <SelectContent>
                               <SelectItem value="daily">Daily</SelectItem>
                               <SelectItem value="weekly">Weekly</SelectItem>
-                              <SelectItem value="monday">Every Monday</SelectItem>
-                              <SelectItem value="tuesday">Every Tuesday</SelectItem>
-                              <SelectItem value="wednesday">Every Wednesday</SelectItem>
-                              <SelectItem value="thursday">Every Thursday</SelectItem>
-                              <SelectItem value="friday">Every Friday</SelectItem>
-                              <SelectItem value="saturday">Every Saturday</SelectItem>
-                              <SelectItem value="sunday">Every Sunday</SelectItem>
+                              <SelectItem value="monday">
+                                Every Monday
+                              </SelectItem>
+                              <SelectItem value="tuesday">
+                                Every Tuesday
+                              </SelectItem>
+                              <SelectItem value="wednesday">
+                                Every Wednesday
+                              </SelectItem>
+                              <SelectItem value="thursday">
+                                Every Thursday
+                              </SelectItem>
+                              <SelectItem value="friday">
+                                Every Friday
+                              </SelectItem>
+                              <SelectItem value="saturday">
+                                Every Saturday
+                              </SelectItem>
+                              <SelectItem value="sunday">
+                                Every Sunday
+                              </SelectItem>
                             </SelectContent>
                           </Select>
                         </FormControl>
@@ -267,7 +355,12 @@ export default function ChoreChart() {
                     )}
                   />
 
-                  <Button type="submit" className="w-full" disabled={createMutation.isPending} data-testid="button-submit-chore">
+                  <Button
+                    type="submit"
+                    className="w-full"
+                    disabled={createMutation.isPending}
+                    data-testid="button-submit-chore"
+                  >
                     {createMutation.isPending ? (
                       <>
                         <Loader2 className="w-4 h-4 animate-spin mr-2" />
@@ -294,10 +387,14 @@ export default function ChoreChart() {
       ) : viewMode === "daily" ? (
         /* Daily View */
         <div className="space-y-4">
-          <h2 className="text-xl font-semibold">Today - {today.toLocaleDateString()}</h2>
+          <h2 className="text-xl font-semibold">
+            Today - {today.toLocaleDateString()}
+          </h2>
           {todaysChores.length === 0 ? (
             <Card>
-              <CardContent className="py-8 text-center text-muted-foreground">No chores for today!</CardContent>
+              <CardContent className="py-8 text-center text-muted-foreground">
+                No chores for today!
+              </CardContent>
             </Card>
           ) : (
             <div className="space-y-3">
@@ -313,7 +410,10 @@ export default function ChoreChart() {
                         checked={chore.is_completed}
                         onCheckedChange={(checked) => {
                           if (checked) {
-                            completeMutation.mutate({ choreId: chore.id, completed_by: profile.id });
+                            completeMutation.mutate({
+                              choreId: chore.id,
+                              completed_by: profile.id,
+                            });
                           } else {
                             incompleteMutation.mutate(chore.id);
                           }
@@ -321,7 +421,9 @@ export default function ChoreChart() {
                         data-testid={`checkbox-chore-${chore.id}`}
                       />
                       <div className="flex-1">
-                        <p className={`font-medium ${chore.is_completed ? "line-through text-muted-foreground" : ""}`}>
+                        <p
+                          className={`font-medium ${chore.is_completed ? "line-through text-muted-foreground" : ""}`}
+                        >
                           {chore.title}
                         </p>
                         <p className="text-sm text-muted-foreground">
@@ -329,7 +431,8 @@ export default function ChoreChart() {
                         </p>
                         {chore.completed_at && (
                           <p className="text-xs text-muted-foreground">
-                            Completed: {new Date(chore.completed_at).toLocaleTimeString()}
+                            Completed:{" "}
+                            {new Date(chore.completed_at).toLocaleTimeString()}
                           </p>
                         )}
                       </div>
@@ -356,7 +459,9 @@ export default function ChoreChart() {
             <h2 className="text-xl font-semibold mb-3">Daily Chores</h2>
             {dailyChores.length === 0 ? (
               <Card>
-                <CardContent className="py-6 text-center text-muted-foreground">No daily chores</CardContent>
+                <CardContent className="py-6 text-center text-muted-foreground">
+                  No daily chores
+                </CardContent>
               </Card>
             ) : (
               <div className="space-y-3">
@@ -368,7 +473,10 @@ export default function ChoreChart() {
                           checked={chore.is_completed}
                           onCheckedChange={(checked) => {
                             if (checked) {
-                              completeMutation.mutate({ choreId: chore.id, completed_by: profile.id });
+                              completeMutation.mutate({
+                                choreId: chore.id,
+                                completed_by: profile.id,
+                              });
                             } else {
                               incompleteMutation.mutate(chore.id);
                             }
@@ -376,7 +484,9 @@ export default function ChoreChart() {
                           data-testid={`checkbox-chore-${chore.id}`}
                         />
                         <div className="flex-1">
-                          <p className={`font-medium ${chore.is_completed ? "line-through text-muted-foreground" : ""}`}>
+                          <p
+                            className={`font-medium ${chore.is_completed ? "line-through text-muted-foreground" : ""}`}
+                          >
                             {chore.title}
                           </p>
                           <p className="text-sm text-muted-foreground">
@@ -404,7 +514,9 @@ export default function ChoreChart() {
             <h2 className="text-xl font-semibold mb-3">Weekly Chores</h2>
             {weeklyChores.length === 0 ? (
               <Card>
-                <CardContent className="py-6 text-center text-muted-foreground">No weekly chores</CardContent>
+                <CardContent className="py-6 text-center text-muted-foreground">
+                  No weekly chores
+                </CardContent>
               </Card>
             ) : (
               <div className="space-y-3">
@@ -416,7 +528,10 @@ export default function ChoreChart() {
                           checked={chore.is_completed}
                           onCheckedChange={(checked) => {
                             if (checked) {
-                              completeMutation.mutate({ choreId: chore.id, completed_by: profile.id });
+                              completeMutation.mutate({
+                                choreId: chore.id,
+                                completed_by: profile.id,
+                              });
                             } else {
                               incompleteMutation.mutate(chore.id);
                             }
@@ -424,7 +539,9 @@ export default function ChoreChart() {
                           data-testid={`checkbox-chore-${chore.id}`}
                         />
                         <div className="flex-1">
-                          <p className={`font-medium ${chore.is_completed ? "line-through text-muted-foreground" : ""}`}>
+                          <p
+                            className={`font-medium ${chore.is_completed ? "line-through text-muted-foreground" : ""}`}
+                          >
                             {chore.title}
                           </p>
                           <p className="text-sm text-muted-foreground">
@@ -462,7 +579,10 @@ export default function ChoreChart() {
                           checked={chore.is_completed}
                           onCheckedChange={(checked) => {
                             if (checked) {
-                              completeMutation.mutate({ choreId: chore.id, completed_by: profile.id });
+                              completeMutation.mutate({
+                                choreId: chore.id,
+                                completed_by: profile.id,
+                              });
                             } else {
                               incompleteMutation.mutate(chore.id);
                             }
@@ -470,7 +590,9 @@ export default function ChoreChart() {
                           data-testid={`checkbox-chore-${chore.id}`}
                         />
                         <div className="flex-1">
-                          <p className={`font-medium ${chore.is_completed ? "line-through text-muted-foreground" : ""}`}>
+                          <p
+                            className={`font-medium ${chore.is_completed ? "line-through text-muted-foreground" : ""}`}
+                          >
                             {chore.title}
                           </p>
                           <p className="text-sm text-muted-foreground">

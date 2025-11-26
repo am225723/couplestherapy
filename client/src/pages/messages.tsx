@@ -1,37 +1,37 @@
-import { useEffect, useRef, useState } from 'react';
-import { useQuery, useMutation } from '@tanstack/react-query';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Loader2, Send, MessageSquare } from 'lucide-react';
-import { useAuth } from '@/lib/auth-context';
-import { supabase } from '@/lib/supabase';
-import { queryClient, apiRequest } from '@/lib/queryClient';
-import { useToast } from '@/hooks/use-toast';
-import { formatDistanceToNow } from 'date-fns';
-import type { Message, Profile } from '@shared/schema';
+import { useEffect, useRef, useState } from "react";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Loader2, Send, MessageSquare } from "lucide-react";
+import { useAuth } from "@/lib/auth-context";
+import { supabase } from "@/lib/supabase";
+import { queryClient, apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
+import { formatDistanceToNow } from "date-fns";
+import type { Message, Profile } from "@shared/schema";
 
 type MessageWithSender = Message & {
-  sender: Pick<Profile, 'id' | 'full_name' | 'role'>;
+  sender: Pick<Profile, "id" | "full_name" | "role">;
 };
 
 export default function MessagesPage() {
   const { user, profile } = useAuth();
   const { toast } = useToast();
-  const [messageText, setMessageText] = useState('');
+  const [messageText, setMessageText] = useState("");
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const coupleId = profile?.couple_id;
 
   const { data: messages = [], isLoading } = useQuery<MessageWithSender[]>({
-    queryKey: ['/api/messages', coupleId],
+    queryKey: ["/api/messages", coupleId],
     queryFn: async () => {
       if (!coupleId) return [];
       const response = await fetch(`/api/messages/${coupleId}`);
-      if (!response.ok) throw new Error('Failed to fetch messages');
+      if (!response.ok) throw new Error("Failed to fetch messages");
       return response.json();
     },
     enabled: !!coupleId,
@@ -39,20 +39,20 @@ export default function MessagesPage() {
 
   const sendMessageMutation = useMutation({
     mutationFn: async (text: string) => {
-      return apiRequest('POST', '/api/messages', {
+      return apiRequest("POST", "/api/messages", {
         couple_id: coupleId,
         message_text: text,
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/messages', coupleId] });
-      setMessageText('');
+      queryClient.invalidateQueries({ queryKey: ["/api/messages", coupleId] });
+      setMessageText("");
     },
     onError: (error: any) => {
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to send message',
-        variant: 'destructive',
+        title: "Error",
+        description: error.message || "Failed to send message",
+        variant: "destructive",
       });
     },
   });
@@ -63,7 +63,7 @@ export default function MessagesPage() {
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSend();
     }
@@ -71,7 +71,7 @@ export default function MessagesPage() {
 
   useEffect(() => {
     if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [messages]);
 
@@ -81,32 +81,36 @@ export default function MessagesPage() {
     const channel = supabase
       .channel(`messages:${coupleId}`)
       .on(
-        'postgres_changes',
+        "postgres_changes",
         {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'Couples_messages',
+          event: "INSERT",
+          schema: "public",
+          table: "Couples_messages",
           filter: `couple_id=eq.${coupleId}`,
         },
         async (payload) => {
           const newMessage = payload.new as Message;
-          
+
           const { data: sender } = await supabase
-            .from('Couples_profiles')
-            .select('id, full_name, role')
-            .eq('id', newMessage.sender_id)
+            .from("Couples_profiles")
+            .select("id, full_name, role")
+            .eq("id", newMessage.sender_id)
             .single();
 
           const messageWithSender: MessageWithSender = {
             ...newMessage,
-            sender: sender || { id: newMessage.sender_id, full_name: 'Unknown', role: 'client' },
+            sender: sender || {
+              id: newMessage.sender_id,
+              full_name: "Unknown",
+              role: "client",
+            },
           };
 
           queryClient.setQueryData<MessageWithSender[]>(
-            ['/api/messages', coupleId],
-            (old = []) => [...old, messageWithSender]
+            ["/api/messages", coupleId],
+            (old = []) => [...old, messageWithSender],
           );
-        }
+        },
       )
       .subscribe();
 
@@ -147,7 +151,7 @@ export default function MessagesPage() {
               Conversation with Therapist
             </CardTitle>
           </CardHeader>
-          
+
           <CardContent className="flex-1 flex flex-col p-0 overflow-hidden">
             {isLoading ? (
               <div className="flex-1 flex items-center justify-center">
@@ -170,35 +174,48 @@ export default function MessagesPage() {
                 <div className="space-y-4">
                   {messages.map((message) => {
                     const isCurrentUser = message.sender_id === user?.id;
-                    const isTherapist = message.sender.role === 'therapist';
+                    const isTherapist = message.sender.role === "therapist";
 
                     return (
                       <div
                         key={message.id}
-                        className={`flex gap-3 ${isCurrentUser ? 'flex-row-reverse' : 'flex-row'}`}
+                        className={`flex gap-3 ${isCurrentUser ? "flex-row-reverse" : "flex-row"}`}
                         data-testid={`message-${message.id}`}
                       >
                         <Avatar className="h-8 w-8 flex-shrink-0">
-                          <AvatarFallback className={isTherapist ? 'bg-accent text-accent-foreground' : 'bg-primary text-primary-foreground'}>
-                            {message.sender.full_name?.charAt(0) || '?'}
+                          <AvatarFallback
+                            className={
+                              isTherapist
+                                ? "bg-accent text-accent-foreground"
+                                : "bg-primary text-primary-foreground"
+                            }
+                          >
+                            {message.sender.full_name?.charAt(0) || "?"}
                           </AvatarFallback>
                         </Avatar>
-                        
-                        <div className={`flex flex-col gap-1 max-w-[70%] ${isCurrentUser ? 'items-end' : 'items-start'}`}>
+
+                        <div
+                          className={`flex flex-col gap-1 max-w-[70%] ${isCurrentUser ? "items-end" : "items-start"}`}
+                        >
                           <div className="flex items-center gap-2">
                             <span className="text-xs font-medium">
-                              {isCurrentUser ? 'You' : message.sender.full_name}
+                              {isCurrentUser ? "You" : message.sender.full_name}
                             </span>
                             <span className="text-xs text-muted-foreground">
-                              {message.created_at ? formatDistanceToNow(new Date(message.created_at), { addSuffix: true }) : 'Just now'}
+                              {message.created_at
+                                ? formatDistanceToNow(
+                                    new Date(message.created_at),
+                                    { addSuffix: true },
+                                  )
+                                : "Just now"}
                             </span>
                           </div>
-                          
+
                           <div
                             className={`rounded-lg px-4 py-2 ${
                               isCurrentUser
-                                ? 'bg-primary text-primary-foreground'
-                                : 'bg-accent text-accent-foreground'
+                                ? "bg-primary text-primary-foreground"
+                                : "bg-accent text-accent-foreground"
                             }`}
                           >
                             <p className="text-sm whitespace-pre-wrap break-words">
@@ -227,7 +244,9 @@ export default function MessagesPage() {
                 />
                 <Button
                   onClick={handleSend}
-                  disabled={!messageText.trim() || sendMessageMutation.isPending}
+                  disabled={
+                    !messageText.trim() || sendMessageMutation.isPending
+                  }
                   size="icon"
                   className="flex-shrink-0"
                   data-testid="button-send-message"

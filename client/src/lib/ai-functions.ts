@@ -1,4 +1,4 @@
-import { supabase } from './supabase';
+import { supabase } from "./supabase";
 
 // ========================================
 // Types
@@ -108,7 +108,7 @@ export interface SessionPrepResponse {
 
 async function invokeFunction<T>(
   functionName: string,
-  payload?: Record<string, any>
+  payload?: Record<string, any>,
 ): Promise<T> {
   const { data, error } = await supabase.functions.invoke(functionName, {
     body: payload,
@@ -117,12 +117,22 @@ async function invokeFunction<T>(
   if (error) {
     // Enhanced error handling using status code when available
     const status = (error as any).status;
-    
-    if (status === 401 || error.message?.includes('401') || error.message?.includes('Unauthorized')) {
-      throw new Error('Session expired. Please log in again.');
+
+    if (
+      status === 401 ||
+      error.message?.includes("401") ||
+      error.message?.includes("Unauthorized")
+    ) {
+      throw new Error("Session expired. Please log in again.");
     }
-    if (status === 403 || error.message?.includes('403') || error.message?.includes('Forbidden')) {
-      throw new Error('Access denied. You do not have permission to perform this action.');
+    if (
+      status === 403 ||
+      error.message?.includes("403") ||
+      error.message?.includes("Forbidden")
+    ) {
+      throw new Error(
+        "Access denied. You do not have permission to perform this action.",
+      );
     }
     throw new Error(error.message || `Failed to call ${functionName}`);
   }
@@ -139,34 +149,39 @@ export const aiFunctions = {
    * Get personalized exercise recommendations for a couple (Client access)
    */
   async getExerciseRecommendations(): Promise<ExerciseRecommendationsResponse> {
-    return invokeFunction<ExerciseRecommendationsResponse>('ai-exercise-recommendations');
+    return invokeFunction<ExerciseRecommendationsResponse>(
+      "ai-exercise-recommendations",
+    );
   },
 
   /**
    * Generate empathy prompts for Hold Me Tight conversations (Client access)
    */
   async createEmpathyPrompt(
-    payload: EmpathyPromptRequest
+    payload: EmpathyPromptRequest,
   ): Promise<EmpathyPromptResponse> {
-    return invokeFunction<EmpathyPromptResponse>('ai-empathy-prompt', payload);
+    return invokeFunction<EmpathyPromptResponse>("ai-empathy-prompt", payload);
   },
 
   /**
    * Get active listening coaching feedback (Client access)
    */
   async createEchoCoaching(
-    payload: EchoCoachingRequest
+    payload: EchoCoachingRequest,
   ): Promise<EchoCoachingResponse> {
-    return invokeFunction<EchoCoachingResponse>('ai-echo-coaching', payload);
+    return invokeFunction<EchoCoachingResponse>("ai-echo-coaching", payload);
   },
 
   /**
    * Analyze voice memo sentiment (Client access)
    */
   async analyzeVoiceMemoSentiment(
-    payload: VoiceMemoSentimentRequest
+    payload: VoiceMemoSentimentRequest,
   ): Promise<VoiceMemoSentimentResponse> {
-    return invokeFunction<VoiceMemoSentimentResponse>('ai-voice-memo-sentiment', payload);
+    return invokeFunction<VoiceMemoSentimentResponse>(
+      "ai-voice-memo-sentiment",
+      payload,
+    );
   },
 
   /**
@@ -174,6 +189,8 @@ export const aiFunctions = {
    * @param coupleId - The couple ID to generate session prep for
    */
   async getSessionPrep(coupleId: string): Promise<SessionPrepResponse> {
-    return invokeFunction<SessionPrepResponse>('ai-session-prep', { couple_id: coupleId });
+    return invokeFunction<SessionPrepResponse>("ai-session-prep", {
+      couple_id: coupleId,
+    });
   },
 };

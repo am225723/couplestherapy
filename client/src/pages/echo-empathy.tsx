@@ -1,19 +1,45 @@
-import { useState } from 'react';
-import { useAuth } from '@/lib/auth-context';
-import { useQuery, useMutation } from '@tanstack/react-query';
-import { queryClient, apiRequest } from '@/lib/queryClient';
-import { authenticatedFetch } from '@/lib/authenticated-fetch';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { useToast } from '@/hooks/use-toast';
-import { Loader2, MessageCircle, User, UserCheck, Check, X, Sparkles, TrendingUp, Lightbulb } from 'lucide-react';
-import { EchoSession, EchoTurn, Profile } from '@shared/schema';
-import { formatDistanceToNow } from 'date-fns';
+import { useState } from "react";
+import { useAuth } from "@/lib/auth-context";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { queryClient, apiRequest } from "@/lib/queryClient";
+import { authenticatedFetch } from "@/lib/authenticated-fetch";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { useToast } from "@/hooks/use-toast";
+import {
+  Loader2,
+  MessageCircle,
+  User,
+  UserCheck,
+  Check,
+  X,
+  Sparkles,
+  TrendingUp,
+  Lightbulb,
+} from "lucide-react";
+import { EchoSession, EchoTurn, Profile } from "@shared/schema";
+import { formatDistanceToNow } from "date-fns";
 
 type SessionWithTurns = EchoSession & {
   turns: EchoTurn[];
@@ -22,10 +48,12 @@ type SessionWithTurns = EchoSession & {
 export default function EchoEmpathyPage() {
   const { user, profile } = useAuth();
   const { toast } = useToast();
-  const [activeSession, setActiveSession] = useState<SessionWithTurns | null>(null);
-  const [speakerContent, setSpeakerContent] = useState('');
-  const [listenerContent, setListenerContent] = useState('');
-  const [confirmationFeedback, setConfirmationFeedback] = useState('');
+  const [activeSession, setActiveSession] = useState<SessionWithTurns | null>(
+    null,
+  );
+  const [speakerContent, setSpeakerContent] = useState("");
+  const [listenerContent, setListenerContent] = useState("");
+  const [confirmationFeedback, setConfirmationFeedback] = useState("");
   const [understood, setUnderstood] = useState<boolean | null>(null);
   const [aiCoachingData, setAiCoachingData] = useState<any>(null);
 
@@ -33,71 +61,89 @@ export default function EchoEmpathyPage() {
   const coachingMutation = useMutation({
     mutationFn: async () => {
       if (!activeSession || !speakerTurn || !listenerContent.trim()) return;
-      
-      const response = await authenticatedFetch('/api/ai/echo-coaching', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+
+      const response = await authenticatedFetch("/api/ai/echo-coaching", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           session_id: activeSession.id,
           turn_id: speakerTurn.id,
           speaker_message: speakerTurn.content,
-          listener_response: listenerContent
-        })
+          listener_response: listenerContent,
+        }),
       });
 
-      if (!response.ok) throw new Error('Failed to get coaching feedback');
+      if (!response.ok) throw new Error("Failed to get coaching feedback");
       return response.json();
     },
     onSuccess: (data) => {
       setAiCoachingData(data);
-    }
+    },
   });
 
   // Fetch partner profile
   const { data: partnerProfile } = useQuery<Profile>({
-    queryKey: ['/api/profile/partner'],
+    queryKey: ["/api/profile/partner"],
     enabled: !!profile?.couple_id,
   });
 
   // Fetch session history
   const { data: sessions, isLoading } = useQuery<SessionWithTurns[]>({
-    queryKey: ['/api/echo/sessions', profile?.couple_id],
+    queryKey: ["/api/echo/sessions", profile?.couple_id],
     enabled: !!profile?.couple_id,
   });
 
   // Start new session mutation
   const startSessionMutation = useMutation({
-    mutationFn: async ({ speaker_id, listener_id }: { speaker_id: string; listener_id: string }) => {
-      const response = await apiRequest('POST', '/api/echo/session', {
+    mutationFn: async ({
+      speaker_id,
+      listener_id,
+    }: {
+      speaker_id: string;
+      listener_id: string;
+    }) => {
+      const response = await apiRequest("POST", "/api/echo/session", {
         couple_id: profile!.couple_id,
         speaker_id,
         listener_id,
         current_step: 1,
-        status: 'in_progress',
+        status: "in_progress",
       });
       return response.json();
     },
     onSuccess: (data) => {
       setActiveSession({ ...data, turns: [] });
-      queryClient.invalidateQueries({ queryKey: ['/api/echo/sessions', profile?.couple_id] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/echo/sessions", profile?.couple_id],
+      });
       toast({
-        title: 'Session Started',
-        description: 'Begin by sharing your concern or feeling.',
+        title: "Session Started",
+        description: "Begin by sharing your concern or feeling.",
       });
     },
     onError: (error: any) => {
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to start session',
-        variant: 'destructive',
+        title: "Error",
+        description: error.message || "Failed to start session",
+        variant: "destructive",
       });
     },
   });
 
   // Submit turn mutation
   const submitTurnMutation = useMutation({
-    mutationFn: async ({ session_id, step, author_id, content }: { session_id: string; step: number; author_id: string; content: string }) => {
-      const response = await apiRequest('POST', '/api/echo/turn', {
+    mutationFn: async ({
+      session_id,
+      step,
+      author_id,
+      content,
+    }: {
+      session_id: string;
+      step: number;
+      author_id: string;
+      content: string;
+    }) => {
+      const response = await apiRequest("POST", "/api/echo/turn", {
         session_id,
         step,
         author_id,
@@ -109,31 +155,36 @@ export default function EchoEmpathyPage() {
       if (activeSession) {
         const updatedSession: SessionWithTurns = {
           ...activeSession,
-          current_step: variables.step < 3 ? variables.step + 1 : activeSession.current_step,
+          current_step:
+            variables.step < 3
+              ? variables.step + 1
+              : activeSession.current_step,
           turns: [...activeSession.turns, data],
         };
         setActiveSession(updatedSession);
       }
-      
+
       // Clear inputs
-      setSpeakerContent('');
-      setListenerContent('');
-      setConfirmationFeedback('');
-      
-      queryClient.invalidateQueries({ queryKey: ['/api/echo/sessions', profile?.couple_id] });
-      
+      setSpeakerContent("");
+      setListenerContent("");
+      setConfirmationFeedback("");
+
+      queryClient.invalidateQueries({
+        queryKey: ["/api/echo/sessions", profile?.couple_id],
+      });
+
       if (variables.step < 3) {
         toast({
-          title: 'Turn Submitted',
+          title: "Turn Submitted",
           description: `Moving to step ${variables.step + 1}`,
         });
       }
     },
     onError: (error: any) => {
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to submit turn',
-        variant: 'destructive',
+        title: "Error",
+        description: error.message || "Failed to submit turn",
+        variant: "destructive",
       });
     },
   });
@@ -141,33 +192,38 @@ export default function EchoEmpathyPage() {
   // Complete session mutation
   const completeSessionMutation = useMutation({
     mutationFn: async (session_id: string) => {
-      const response = await apiRequest('PATCH', `/api/echo/session/${session_id}/complete`);
+      const response = await apiRequest(
+        "PATCH",
+        `/api/echo/session/${session_id}/complete`,
+      );
       return response.json();
     },
     onSuccess: () => {
       setActiveSession(null);
-      setSpeakerContent('');
-      setListenerContent('');
-      setConfirmationFeedback('');
+      setSpeakerContent("");
+      setListenerContent("");
+      setConfirmationFeedback("");
       setUnderstood(null);
-      queryClient.invalidateQueries({ queryKey: ['/api/echo/sessions', profile?.couple_id] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/echo/sessions", profile?.couple_id],
+      });
       toast({
-        title: 'Session Complete',
-        description: 'Great job practicing active listening!',
+        title: "Session Complete",
+        description: "Great job practicing active listening!",
       });
     },
     onError: (error: any) => {
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to complete session',
-        variant: 'destructive',
+        title: "Error",
+        description: error.message || "Failed to complete session",
+        variant: "destructive",
       });
     },
   });
 
   const handleStartSession = (isSpeaker: boolean) => {
     if (!user?.id || !partnerProfile?.id) return;
-    
+
     startSessionMutation.mutate({
       speaker_id: isSpeaker ? user.id : partnerProfile.id,
       listener_id: isSpeaker ? partnerProfile.id : user.id,
@@ -196,11 +252,11 @@ export default function EchoEmpathyPage() {
 
   const handleSubmitStep3 = () => {
     if (!activeSession || !user?.id || understood === null) return;
-    
-    const content = understood 
-      ? `Confirmed understanding. ${confirmationFeedback ? `Feedback: ${confirmationFeedback}` : ''}`
+
+    const content = understood
+      ? `Confirmed understanding. ${confirmationFeedback ? `Feedback: ${confirmationFeedback}` : ""}`
       : `Needs clarification. ${confirmationFeedback}`;
-    
+
     submitTurnMutation.mutate({
       session_id: activeSession.id,
       step: 3,
@@ -215,13 +271,13 @@ export default function EchoEmpathyPage() {
   };
 
   const getRoleLabel = (userId: string) => {
-    if (!activeSession) return '';
-    return userId === activeSession.speaker_id ? 'Speaker' : 'Listener';
+    if (!activeSession) return "";
+    return userId === activeSession.speaker_id ? "Speaker" : "Listener";
   };
 
   const isUserSpeaker = activeSession?.speaker_id === user?.id;
-  const speakerTurn = activeSession?.turns.find(t => t.step === 1);
-  const listenerTurn = activeSession?.turns.find(t => t.step === 2);
+  const speakerTurn = activeSession?.turns.find((t) => t.step === 1);
+  const listenerTurn = activeSession?.turns.find((t) => t.step === 2);
 
   if (isLoading) {
     return (
@@ -234,17 +290,28 @@ export default function EchoEmpathyPage() {
   return (
     <div className="container max-w-5xl mx-auto p-6 space-y-6">
       <div>
-        <h1 className="text-3xl font-bold mb-2" data-testid="text-page-title">Echo & Empathy</h1>
-        <p className="text-muted-foreground" data-testid="text-page-description">
-          Practice active listening through structured 3-step exercises. One partner shares a concern, the other reflects it back, and understanding is confirmed.
+        <h1 className="text-3xl font-bold mb-2" data-testid="text-page-title">
+          Echo & Empathy
+        </h1>
+        <p
+          className="text-muted-foreground"
+          data-testid="text-page-description"
+        >
+          Practice active listening through structured 3-step exercises. One
+          partner shares a concern, the other reflects it back, and
+          understanding is confirmed.
         </p>
       </div>
 
       {!activeSession ? (
         <Card data-testid="card-start-session">
           <CardHeader>
-            <CardTitle data-testid="text-card-title">Start a New Session</CardTitle>
-            <CardDescription data-testid="text-card-description">Choose your role to begin the exercise</CardDescription>
+            <CardTitle data-testid="text-card-title">
+              Start a New Session
+            </CardTitle>
+            <CardDescription data-testid="text-card-description">
+              Choose your role to begin the exercise
+            </CardDescription>
           </CardHeader>
           <CardContent className="flex gap-4">
             <Button
@@ -281,23 +348,41 @@ export default function EchoEmpathyPage() {
           <CardHeader>
             <div className="flex items-center justify-between mb-4">
               <div>
-                <CardTitle data-testid="text-session-title">Active Session</CardTitle>
+                <CardTitle data-testid="text-session-title">
+                  Active Session
+                </CardTitle>
                 <CardDescription data-testid="text-session-role">
-                  Your role: <Badge data-testid="badge-user-role">{getRoleLabel(user!.id)}</Badge>
+                  Your role:{" "}
+                  <Badge data-testid="badge-user-role">
+                    {getRoleLabel(user!.id)}
+                  </Badge>
                 </CardDescription>
               </div>
               <Badge variant="outline" data-testid="badge-session-step">
                 Step {activeSession.current_step} of 3
               </Badge>
             </div>
-            <Progress value={(activeSession.current_step - 1) * 50} className="h-2" data-testid="progress-session" />
+            <Progress
+              value={(activeSession.current_step - 1) * 50}
+              className="h-2"
+              data-testid="progress-session"
+            />
           </CardHeader>
           <CardContent className="space-y-6">
             {activeSession.current_step === 1 && isUserSpeaker && (
               <div data-testid="container-step-1">
-                <h3 className="text-lg font-semibold mb-2" data-testid="text-step-title">Step 1: Share Your Concern</h3>
-                <p className="text-sm text-muted-foreground mb-4" data-testid="text-step-description">
-                  Share a specific concern, feeling, or situation you'd like your partner to understand.
+                <h3
+                  className="text-lg font-semibold mb-2"
+                  data-testid="text-step-title"
+                >
+                  Step 1: Share Your Concern
+                </h3>
+                <p
+                  className="text-sm text-muted-foreground mb-4"
+                  data-testid="text-step-description"
+                >
+                  Share a specific concern, feeling, or situation you'd like
+                  your partner to understand.
                 </p>
                 <Textarea
                   value={speakerContent}
@@ -308,10 +393,14 @@ export default function EchoEmpathyPage() {
                 />
                 <Button
                   onClick={handleSubmitStep1}
-                  disabled={!speakerContent.trim() || submitTurnMutation.isPending}
+                  disabled={
+                    !speakerContent.trim() || submitTurnMutation.isPending
+                  }
                   data-testid="button-submit-step-1"
                 >
-                  {submitTurnMutation.isPending && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+                  {submitTurnMutation.isPending && (
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  )}
                   Submit Concern
                 </Button>
               </div>
@@ -319,22 +408,47 @@ export default function EchoEmpathyPage() {
 
             {activeSession.current_step === 1 && !isUserSpeaker && (
               <div data-testid="container-waiting-step-1">
-                <h3 className="text-lg font-semibold mb-2" data-testid="text-waiting-title">Waiting for Speaker...</h3>
-                <p className="text-sm text-muted-foreground" data-testid="text-waiting-description">
-                  The speaker is sharing their concern. You'll reflect it back in the next step.
+                <h3
+                  className="text-lg font-semibold mb-2"
+                  data-testid="text-waiting-title"
+                >
+                  Waiting for Speaker...
+                </h3>
+                <p
+                  className="text-sm text-muted-foreground"
+                  data-testid="text-waiting-description"
+                >
+                  The speaker is sharing their concern. You'll reflect it back
+                  in the next step.
                 </p>
               </div>
             )}
 
             {activeSession.current_step === 2 && !isUserSpeaker && (
               <div data-testid="container-step-2">
-                <h3 className="text-lg font-semibold mb-2" data-testid="text-step-2-title">Step 2: Reflect What You Heard</h3>
+                <h3
+                  className="text-lg font-semibold mb-2"
+                  data-testid="text-step-2-title"
+                >
+                  Step 2: Reflect What You Heard
+                </h3>
                 <div className="bg-muted p-4 rounded-md mb-4">
-                  <p className="text-sm font-medium mb-1" data-testid="text-speaker-concern-label">Speaker said:</p>
-                  <p className="text-sm" data-testid="text-speaker-concern">{speakerTurn?.content}</p>
+                  <p
+                    className="text-sm font-medium mb-1"
+                    data-testid="text-speaker-concern-label"
+                  >
+                    Speaker said:
+                  </p>
+                  <p className="text-sm" data-testid="text-speaker-concern">
+                    {speakerTurn?.content}
+                  </p>
                 </div>
-                <p className="text-sm text-muted-foreground mb-4" data-testid="text-step-2-description">
-                  Reflect back what you heard in your own words. Focus on understanding, not problem-solving.
+                <p
+                  className="text-sm text-muted-foreground mb-4"
+                  data-testid="text-step-2-description"
+                >
+                  Reflect back what you heard in your own words. Focus on
+                  understanding, not problem-solving.
                 </p>
                 <Textarea
                   value={listenerContent}
@@ -349,7 +463,9 @@ export default function EchoEmpathyPage() {
                     type="button"
                     variant="outline"
                     onClick={() => coachingMutation.mutate()}
-                    disabled={!listenerContent.trim() || coachingMutation.isPending}
+                    disabled={
+                      !listenerContent.trim() || coachingMutation.isPending
+                    }
                     className="w-full gap-2"
                     data-testid="button-ai-coaching"
                   >
@@ -367,50 +483,80 @@ export default function EchoEmpathyPage() {
                   </Button>
 
                   {coachingMutation.isError && (
-                    <Alert variant="destructive" data-testid="alert-coaching-error">
-                      <AlertDescription>Failed to get AI feedback. Please try again.</AlertDescription>
+                    <Alert
+                      variant="destructive"
+                      data-testid="alert-coaching-error"
+                    >
+                      <AlertDescription>
+                        Failed to get AI feedback. Please try again.
+                      </AlertDescription>
                     </Alert>
                   )}
 
                   {aiCoachingData && (
-                    <Card className="bg-gradient-to-br from-green-50/50 to-teal-50/50 dark:from-green-950/20 dark:to-teal-950/20 border-green-200/50 dark:border-green-800/50" data-testid="card-ai-feedback">
+                    <Card
+                      className="bg-gradient-to-br from-green-50/50 to-teal-50/50 dark:from-green-950/20 dark:to-teal-950/20 border-green-200/50 dark:border-green-800/50"
+                      data-testid="card-ai-feedback"
+                    >
                       <CardHeader>
                         <CardTitle className="flex items-center gap-2 text-lg">
                           <TrendingUp className="h-5 w-5 text-green-600 dark:text-green-400" />
-                          Active Listening Score: {aiCoachingData.overall_score}/10
+                          Active Listening Score: {aiCoachingData.overall_score}
+                          /10
                         </CardTitle>
                       </CardHeader>
                       <CardContent className="space-y-4">
                         <div>
-                          <p className="text-sm font-semibold text-green-700 dark:text-green-300 mb-2">What Went Well:</p>
+                          <p className="text-sm font-semibold text-green-700 dark:text-green-300 mb-2">
+                            What Went Well:
+                          </p>
                           <ul className="space-y-1">
-                            {aiCoachingData.feedback.what_went_well.map((item: string, idx: number) => (
-                              <li key={idx} className="text-sm flex items-start gap-2">
-                                <span className="text-green-600 dark:text-green-400 mt-0.5">✓</span>
-                                <span>{item}</span>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                        
-                        {aiCoachingData.feedback.areas_to_improve.length > 0 && (
-                          <div>
-                            <p className="text-sm font-semibold text-amber-700 dark:text-amber-300 mb-2">Areas to Improve:</p>
-                            <ul className="space-y-1">
-                              {aiCoachingData.feedback.areas_to_improve.map((item: string, idx: number) => (
-                                <li key={idx} className="text-sm flex items-start gap-2">
-                                  <Lightbulb className="h-4 w-4 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
+                            {aiCoachingData.feedback.what_went_well.map(
+                              (item: string, idx: number) => (
+                                <li
+                                  key={idx}
+                                  className="text-sm flex items-start gap-2"
+                                >
+                                  <span className="text-green-600 dark:text-green-400 mt-0.5">
+                                    ✓
+                                  </span>
                                   <span>{item}</span>
                                 </li>
-                              ))}
+                              ),
+                            )}
+                          </ul>
+                        </div>
+
+                        {aiCoachingData.feedback.areas_to_improve.length >
+                          0 && (
+                          <div>
+                            <p className="text-sm font-semibold text-amber-700 dark:text-amber-300 mb-2">
+                              Areas to Improve:
+                            </p>
+                            <ul className="space-y-1">
+                              {aiCoachingData.feedback.areas_to_improve.map(
+                                (item: string, idx: number) => (
+                                  <li
+                                    key={idx}
+                                    className="text-sm flex items-start gap-2"
+                                  >
+                                    <Lightbulb className="h-4 w-4 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
+                                    <span>{item}</span>
+                                  </li>
+                                ),
+                              )}
                             </ul>
                           </div>
                         )}
 
                         {aiCoachingData.feedback.suggested_response && (
                           <div className="bg-background/50 p-3 rounded-md">
-                            <p className="text-sm font-semibold mb-2">Suggested Response:</p>
-                            <p className="text-sm italic">{aiCoachingData.feedback.suggested_response}</p>
+                            <p className="text-sm font-semibold mb-2">
+                              Suggested Response:
+                            </p>
+                            <p className="text-sm italic">
+                              {aiCoachingData.feedback.suggested_response}
+                            </p>
                           </div>
                         )}
                       </CardContent>
@@ -420,11 +566,15 @@ export default function EchoEmpathyPage() {
 
                 <Button
                   onClick={handleSubmitStep2}
-                  disabled={!listenerContent.trim() || submitTurnMutation.isPending}
+                  disabled={
+                    !listenerContent.trim() || submitTurnMutation.isPending
+                  }
                   className="w-full mt-4"
                   data-testid="button-submit-step-2"
                 >
-                  {submitTurnMutation.isPending && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+                  {submitTurnMutation.isPending && (
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  )}
                   Submit Reflection
                 </Button>
               </div>
@@ -432,30 +582,61 @@ export default function EchoEmpathyPage() {
 
             {activeSession.current_step === 2 && isUserSpeaker && (
               <div data-testid="container-waiting-step-2">
-                <h3 className="text-lg font-semibold mb-2" data-testid="text-waiting-step-2-title">Listener is Reflecting...</h3>
+                <h3
+                  className="text-lg font-semibold mb-2"
+                  data-testid="text-waiting-step-2-title"
+                >
+                  Listener is Reflecting...
+                </h3>
                 <div className="bg-muted p-4 rounded-md mb-4">
-                  <p className="text-sm font-medium mb-1" data-testid="text-your-concern-label">Your concern:</p>
-                  <p className="text-sm" data-testid="text-your-concern">{speakerTurn?.content}</p>
+                  <p
+                    className="text-sm font-medium mb-1"
+                    data-testid="text-your-concern-label"
+                  >
+                    Your concern:
+                  </p>
+                  <p className="text-sm" data-testid="text-your-concern">
+                    {speakerTurn?.content}
+                  </p>
                 </div>
-                <p className="text-sm text-muted-foreground" data-testid="text-waiting-step-2-description">
-                  The listener is reflecting back what they heard. You'll confirm understanding in the next step.
+                <p
+                  className="text-sm text-muted-foreground"
+                  data-testid="text-waiting-step-2-description"
+                >
+                  The listener is reflecting back what they heard. You'll
+                  confirm understanding in the next step.
                 </p>
               </div>
             )}
 
             {activeSession.current_step === 3 && isUserSpeaker && (
               <div data-testid="container-step-3">
-                <h3 className="text-lg font-semibold mb-2" data-testid="text-step-3-title">Step 3: Confirm Understanding</h3>
+                <h3
+                  className="text-lg font-semibold mb-2"
+                  data-testid="text-step-3-title"
+                >
+                  Step 3: Confirm Understanding
+                </h3>
                 <div className="bg-muted p-4 rounded-md mb-4">
-                  <p className="text-sm font-medium mb-1" data-testid="text-listener-reflection-label">Listener reflected:</p>
-                  <p className="text-sm" data-testid="text-listener-reflection">{listenerTurn?.content}</p>
+                  <p
+                    className="text-sm font-medium mb-1"
+                    data-testid="text-listener-reflection-label"
+                  >
+                    Listener reflected:
+                  </p>
+                  <p className="text-sm" data-testid="text-listener-reflection">
+                    {listenerTurn?.content}
+                  </p>
                 </div>
-                <p className="text-sm text-muted-foreground mb-4" data-testid="text-step-3-description">
+                <p
+                  className="text-sm text-muted-foreground mb-4"
+                  data-testid="text-step-3-description"
+                >
                   Did the listener accurately understand your concern?
                 </p>
                 <div className="flex gap-4 mb-4">
                   <Button
-                    variant={understood === true ? 'default' : 'outline'}
+                    variant={understood === true ? "default" : "outline"}
                     onClick={() => setUnderstood(true)}
                     className="flex-1"
                     data-testid="button-understood-yes"
@@ -464,7 +645,7 @@ export default function EchoEmpathyPage() {
                     Yes, I Feel Understood
                   </Button>
                   <Button
-                    variant={understood === false ? 'default' : 'outline'}
+                    variant={understood === false ? "default" : "outline"}
                     onClick={() => setUnderstood(false)}
                     className="flex-1"
                     data-testid="button-understood-no"
@@ -488,10 +669,14 @@ export default function EchoEmpathyPage() {
                     />
                     <Button
                       onClick={handleSubmitStep3}
-                      disabled={submitTurnMutation.isPending || completeSessionMutation.isPending}
+                      disabled={
+                        submitTurnMutation.isPending ||
+                        completeSessionMutation.isPending
+                      }
                       data-testid="button-submit-step-3"
                     >
-                      {(submitTurnMutation.isPending || completeSessionMutation.isPending) && (
+                      {(submitTurnMutation.isPending ||
+                        completeSessionMutation.isPending) && (
                         <Loader2 className="h-4 w-4 animate-spin mr-2" />
                       )}
                       Complete Session
@@ -503,13 +688,29 @@ export default function EchoEmpathyPage() {
 
             {activeSession.current_step === 3 && !isUserSpeaker && (
               <div data-testid="container-waiting-step-3">
-                <h3 className="text-lg font-semibold mb-2" data-testid="text-waiting-step-3-title">Speaker is Confirming...</h3>
+                <h3
+                  className="text-lg font-semibold mb-2"
+                  data-testid="text-waiting-step-3-title"
+                >
+                  Speaker is Confirming...
+                </h3>
                 <div className="bg-muted p-4 rounded-md mb-4">
-                  <p className="text-sm font-medium mb-1" data-testid="text-your-reflection-label">Your reflection:</p>
-                  <p className="text-sm" data-testid="text-your-reflection">{listenerTurn?.content}</p>
+                  <p
+                    className="text-sm font-medium mb-1"
+                    data-testid="text-your-reflection-label"
+                  >
+                    Your reflection:
+                  </p>
+                  <p className="text-sm" data-testid="text-your-reflection">
+                    {listenerTurn?.content}
+                  </p>
                 </div>
-                <p className="text-sm text-muted-foreground" data-testid="text-waiting-step-3-description">
-                  The speaker is confirming whether you accurately understood their concern.
+                <p
+                  className="text-sm text-muted-foreground"
+                  data-testid="text-waiting-step-3-description"
+                >
+                  The speaker is confirming whether you accurately understood
+                  their concern.
                 </p>
               </div>
             )}
@@ -519,30 +720,51 @@ export default function EchoEmpathyPage() {
 
       {/* Session History */}
       <div>
-        <h2 className="text-2xl font-bold mb-4" data-testid="text-history-title">Session History</h2>
+        <h2
+          className="text-2xl font-bold mb-4"
+          data-testid="text-history-title"
+        >
+          Session History
+        </h2>
         {sessions && sessions.length > 0 ? (
           <div className="space-y-4">
             {sessions.map((session) => {
               const speakerIsUser = session.speaker_id === user?.id;
-              const step1Turn = session.turns.find(t => t.step === 1);
-              const step2Turn = session.turns.find(t => t.step === 2);
-              const step3Turn = session.turns.find(t => t.step === 3);
-              
+              const step1Turn = session.turns.find((t) => t.step === 1);
+              const step2Turn = session.turns.find((t) => t.step === 2);
+              const step3Turn = session.turns.find((t) => t.step === 3);
+
               return (
-                <Card key={session.id} data-testid={`card-session-${session.id}`}>
+                <Card
+                  key={session.id}
+                  data-testid={`card-session-${session.id}`}
+                >
                   <CardHeader>
                     <div className="flex items-center justify-between">
                       <div>
-                        <CardTitle className="text-lg" data-testid={`text-session-title-${session.id}`}>
+                        <CardTitle
+                          className="text-lg"
+                          data-testid={`text-session-title-${session.id}`}
+                        >
                           <MessageCircle className="h-4 w-4 inline mr-2" />
-                          {speakerIsUser ? 'You' : partnerProfile?.full_name} as Speaker
+                          {speakerIsUser ? "You" : partnerProfile?.full_name} as
+                          Speaker
                         </CardTitle>
-                        <CardDescription data-testid={`text-session-date-${session.id}`}>
-                          {session.created_at && formatDistanceToNow(new Date(session.created_at), { addSuffix: true })}
+                        <CardDescription
+                          data-testid={`text-session-date-${session.id}`}
+                        >
+                          {session.created_at &&
+                            formatDistanceToNow(new Date(session.created_at), {
+                              addSuffix: true,
+                            })}
                         </CardDescription>
                       </div>
                       <Badge
-                        variant={session.status === 'completed' ? 'default' : 'secondary'}
+                        variant={
+                          session.status === "completed"
+                            ? "default"
+                            : "secondary"
+                        }
                         data-testid={`badge-session-status-${session.id}`}
                       >
                         {session.status}
@@ -552,20 +774,41 @@ export default function EchoEmpathyPage() {
                   <CardContent className="space-y-4">
                     {step1Turn && (
                       <div data-testid={`container-turn-1-${session.id}`}>
-                        <p className="text-sm font-medium text-muted-foreground">Step 1: Speaker's Concern</p>
-                        <p className="text-sm mt-1" data-testid={`text-turn-1-${session.id}`}>{step1Turn.content}</p>
+                        <p className="text-sm font-medium text-muted-foreground">
+                          Step 1: Speaker's Concern
+                        </p>
+                        <p
+                          className="text-sm mt-1"
+                          data-testid={`text-turn-1-${session.id}`}
+                        >
+                          {step1Turn.content}
+                        </p>
                       </div>
                     )}
                     {step2Turn && (
                       <div data-testid={`container-turn-2-${session.id}`}>
-                        <p className="text-sm font-medium text-muted-foreground">Step 2: Listener's Reflection</p>
-                        <p className="text-sm mt-1" data-testid={`text-turn-2-${session.id}`}>{step2Turn.content}</p>
+                        <p className="text-sm font-medium text-muted-foreground">
+                          Step 2: Listener's Reflection
+                        </p>
+                        <p
+                          className="text-sm mt-1"
+                          data-testid={`text-turn-2-${session.id}`}
+                        >
+                          {step2Turn.content}
+                        </p>
                       </div>
                     )}
                     {step3Turn && (
                       <div data-testid={`container-turn-3-${session.id}`}>
-                        <p className="text-sm font-medium text-muted-foreground">Step 3: Speaker's Confirmation</p>
-                        <p className="text-sm mt-1" data-testid={`text-turn-3-${session.id}`}>{step3Turn.content}</p>
+                        <p className="text-sm font-medium text-muted-foreground">
+                          Step 3: Speaker's Confirmation
+                        </p>
+                        <p
+                          className="text-sm mt-1"
+                          data-testid={`text-turn-3-${session.id}`}
+                        >
+                          {step3Turn.content}
+                        </p>
                       </div>
                     )}
                   </CardContent>
@@ -577,7 +820,10 @@ export default function EchoEmpathyPage() {
           <Card data-testid="card-no-sessions">
             <CardContent className="p-12 text-center">
               <MessageCircle className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-              <p className="text-muted-foreground" data-testid="text-no-sessions">
+              <p
+                className="text-muted-foreground"
+                data-testid="text-no-sessions"
+              >
                 No sessions yet. Start your first Echo & Empathy exercise above!
               </p>
             </CardContent>

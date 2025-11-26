@@ -1,14 +1,23 @@
-import { useState } from 'react';
-import { useLocation } from 'wouter';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
-import { quizQuestions, calculateLoveLanguageScores } from '@/lib/love-language-quiz';
-import { LoveLanguageType } from '@shared/schema';
-import { supabase } from '@/lib/supabase';
-import { useAuth } from '@/lib/auth-context';
-import { useToast } from '@/hooks/use-toast';
-import { Heart, Loader2 } from 'lucide-react';
+import { useState } from "react";
+import { useLocation } from "wouter";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import {
+  quizQuestions,
+  calculateLoveLanguageScores,
+} from "@/lib/love-language-quiz";
+import { LoveLanguageType } from "@shared/schema";
+import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/lib/auth-context";
+import { useToast } from "@/hooks/use-toast";
+import { Heart, Loader2 } from "lucide-react";
 
 export default function LoveLanguageQuiz() {
   const [currentQuestion, setCurrentQuestion] = useState(0);
@@ -33,10 +42,11 @@ export default function LoveLanguageQuiz() {
     if (!user) return;
 
     setSaving(true);
-    const { scores, primary, secondary } = calculateLoveLanguageScores(finalAnswers);
+    const { scores, primary, secondary } =
+      calculateLoveLanguageScores(finalAnswers);
 
     try {
-      const { error } = await supabase.from('Couples_love_languages').insert({
+      const { error } = await supabase.from("Couples_love_languages").insert({
         user_id: user.id,
         primary_language: primary,
         secondary_language: secondary,
@@ -46,16 +56,16 @@ export default function LoveLanguageQuiz() {
       if (error) throw error;
 
       toast({
-        title: 'Quiz Complete!',
+        title: "Quiz Complete!",
         description: `Your primary love language is ${primary}`,
       });
 
-      navigate('/dashboard');
+      navigate("/dashboard");
     } catch (error: any) {
       toast({
-        title: 'Error',
+        title: "Error",
         description: error.message,
-        variant: 'destructive',
+        variant: "destructive",
       });
     } finally {
       setSaving(false);
@@ -71,7 +81,9 @@ export default function LoveLanguageQuiz() {
         <Card className="w-full max-w-md">
           <CardContent className="pt-12 pb-12 text-center">
             <Loader2 className="h-12 w-12 animate-spin mx-auto mb-4 text-primary" />
-            <p className="text-lg font-medium">Calculating your love language...</p>
+            <p className="text-lg font-medium">
+              Calculating your love language...
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -93,7 +105,8 @@ export default function LoveLanguageQuiz() {
           </div>
           <Progress value={progress} className="h-2" />
           <CardDescription className="mt-4">
-            Choose the statement that best describes how you prefer to give and receive love
+            Choose the statement that best describes how you prefer to give and
+            receive love
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">

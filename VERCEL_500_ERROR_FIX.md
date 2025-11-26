@@ -5,6 +5,7 @@
 Your deployed Vercel app had 500 errors on two pages:
 
 1. **Pause Button** (`/pause`):
+
    - Error: "Failed to execute 'fetch' on 'Window': '/api/pause/activate' is not a valid HTTP method."
 
 2. **Date Night Generator** (`/date-night`):
@@ -20,10 +21,10 @@ Located in `client/src/lib/queryClient.ts`:
 
 ```typescript
 export async function apiRequest(
-  method: string,     // First parameter: HTTP method ('POST', 'GET', etc.)
-  url: string,        // Second parameter: API endpoint URL
-  data?: unknown      // Third parameter: Request body data
-): Promise<Response>
+  method: string, // First parameter: HTTP method ('POST', 'GET', etc.)
+  url: string, // Second parameter: API endpoint URL
+  data?: unknown, // Third parameter: Request body data
+): Promise<Response>;
 ```
 
 ### What Was Wrong
@@ -31,6 +32,7 @@ export async function apiRequest(
 Two files were calling `apiRequest` with **wrong parameter order**:
 
 **❌ WRONG (what you had):**
+
 ```typescript
 apiRequest('/api/pause/activate', {
   method: 'POST',
@@ -41,6 +43,7 @@ apiRequest('/api/pause/activate', {
 This passed the **URL as the method**, causing the bizarre error message!
 
 **✅ CORRECT (what it should be):**
+
 ```typescript
 apiRequest('POST', '/api/pause/activate', {...})
 ```
@@ -52,43 +55,47 @@ apiRequest('POST', '/api/pause/activate', {...})
 **Fixed 2 mutations:**
 
 #### Activate Pause Mutation (lines 145-153)
+
 ```typescript
 // BEFORE ❌
 mutationFn: async () => {
   return apiRequest(`/api/pause/activate`, {
-    method: 'POST',
+    method: "POST",
     body: JSON.stringify({
       couple_id: profile!.couple_id,
       initiated_by: user!.id,
     }),
   });
-}
+};
 
 // AFTER ✅
 mutationFn: async () => {
-  const response = await apiRequest('POST', '/api/pause/activate', {
+  const response = await apiRequest("POST", "/api/pause/activate", {
     couple_id: profile!.couple_id,
     initiated_by: user!.id,
   });
   return response.json();
-}
+};
 ```
 
 #### End Pause Mutation (lines 171-176)
+
 ```typescript
 // BEFORE ❌
 mutationFn: async ({ id, reflection }) => {
   return apiRequest(`/api/pause/end/${id}`, {
-    method: 'POST',
+    method: "POST",
     body: JSON.stringify({ reflection }),
   });
-}
+};
 
 // AFTER ✅
 mutationFn: async ({ id, reflection }) => {
-  const response = await apiRequest('POST', `/api/pause/end/${id}`, { reflection });
+  const response = await apiRequest("POST", `/api/pause/end/${id}`, {
+    reflection,
+  });
   return response.json();
-}
+};
 ```
 
 ### 2. client/src/pages/echo-empathy.tsx
@@ -96,6 +103,7 @@ mutationFn: async ({ id, reflection }) => {
 **Fixed 3 mutations:**
 
 #### Start Session Mutation (lines 44-55)
+
 ```typescript
 // BEFORE ❌
 mutationFn: async ({ speaker_id, listener_id }) => {
@@ -119,6 +127,7 @@ mutationFn: async ({ speaker_id, listener_id }) => {
 ```
 
 #### Submit Turn Mutation (lines 73-83)
+
 ```typescript
 // BEFORE ❌
 mutationFn: async ({ session_id, step, author_id, content }) => {
@@ -141,30 +150,36 @@ mutationFn: async ({ session_id, step, author_id, content }) => {
 ```
 
 #### Complete Session Mutation (lines 117-122)
+
 ```typescript
 // BEFORE ❌
 mutationFn: async (session_id: string) => {
   return apiRequest(`/api/echo/session/${session_id}/complete`, {
-    method: 'PATCH',
+    method: "PATCH",
   });
-}
+};
 
 // AFTER ✅
 mutationFn: async (session_id: string) => {
-  const response = await apiRequest('PATCH', `/api/echo/session/${session_id}/complete`);
+  const response = await apiRequest(
+    "PATCH",
+    `/api/echo/session/${session_id}/complete`,
+  );
   return response.json();
-}
+};
 ```
 
 ## ✅ **What Was Changed**
 
 For each broken mutation, I:
 
-1. **Fixed parameter order**: 
+1. **Fixed parameter order**:
+
    - From: `apiRequest(url, { method, body })`
    - To: `apiRequest(method, url, data)`
 
 2. **Removed manual JSON.stringify**:
+
    - The `apiRequest` function already handles this internally
 
 3. **Added response.json() parsing**:
@@ -176,23 +191,23 @@ For each broken mutation, I:
 
 ```typescript
 // GET request (no body)
-const response = await apiRequest('GET', '/api/endpoint');
+const response = await apiRequest("GET", "/api/endpoint");
 const data = await response.json();
 
 // POST request (with body)
-const response = await apiRequest('POST', '/api/endpoint', {
-  key: 'value',
-  nested: { data: 'here' }
+const response = await apiRequest("POST", "/api/endpoint", {
+  key: "value",
+  nested: { data: "here" },
 });
 const data = await response.json();
 
 // PATCH request
-const response = await apiRequest('PATCH', `/api/endpoint/${id}`, {
-  updates: 'here'
+const response = await apiRequest("PATCH", `/api/endpoint/${id}`, {
+  updates: "here",
 });
 
 // DELETE request
-const response = await apiRequest('DELETE', `/api/endpoint/${id}`);
+const response = await apiRequest("DELETE", `/api/endpoint/${id}`);
 ```
 
 ## 📊 **Verification**
@@ -200,6 +215,7 @@ const response = await apiRequest('DELETE', `/api/endpoint/${id}`);
 ### Files Using apiRequest Correctly ✅
 
 These files already had the correct usage:
+
 - `client/src/pages/date-night.tsx`
 - `client/src/pages/messages.tsx`
 - `client/src/pages/admin-dashboard.tsx`
@@ -216,6 +232,7 @@ These files already had the correct usage:
 ## 🚀 **Next Steps**
 
 1. **Push these changes to Git:**
+
    ```bash
    git add .
    git commit -m "Fix apiRequest parameter order in pause-button and echo-empathy pages"
@@ -223,6 +240,7 @@ These files already had the correct usage:
    ```
 
 2. **Vercel will auto-deploy** (if you have auto-deploy enabled)
+
    - Or manually trigger a deployment in Vercel dashboard
 
 3. **Test the fixed pages:**
@@ -233,6 +251,7 @@ These files already had the correct usage:
 ## ✨ **Expected Results**
 
 After deployment:
+
 - ✅ Pause Button will activate without errors
 - ✅ Date Night Generator will generate ideas successfully
 - ✅ Echo & Empathy sessions will work properly
@@ -241,6 +260,7 @@ After deployment:
 ## 🔍 **Why This Happened**
 
 This inconsistency likely occurred because:
+
 1. The `apiRequest` function signature isn't immediately obvious
 2. Different developers or different times may have used different patterns
 3. No TypeScript type checking forced the correct parameter order
@@ -248,6 +268,7 @@ This inconsistency likely occurred because:
 ## 💡 **Prevention**
 
 To prevent this in the future:
+
 1. Always check `client/src/lib/queryClient.ts` for the correct signature
 2. Use existing correct examples as templates (like `date-night.tsx`)
 3. The apiRequest function handles JSON serialization automatically - just pass objects!

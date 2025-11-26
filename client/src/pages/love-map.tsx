@@ -1,20 +1,34 @@
-import { useState, useEffect, useMemo } from 'react';
-import { useQuery, useMutation } from '@tanstack/react-query';
-import { useAuth } from '@/lib/auth-context';
-import { queryClient, apiRequest } from '@/lib/queryClient';
-import { supabase } from '@/lib/supabase';
-import { useToast } from '@/hooks/use-toast';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Progress } from '@/components/ui/progress';
-import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, Heart, CheckCircle2, XCircle, AlertCircle, Users, Sparkles } from 'lucide-react';
-import type { LoveMapQuestion, LoveMapSession } from '@shared/schema';
+import { useState, useEffect, useMemo } from "react";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { useAuth } from "@/lib/auth-context";
+import { queryClient, apiRequest } from "@/lib/queryClient";
+import { supabase } from "@/lib/supabase";
+import { useToast } from "@/hooks/use-toast";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  Loader2,
+  Heart,
+  CheckCircle2,
+  XCircle,
+  AlertCircle,
+  Users,
+  Sparkles,
+} from "lucide-react";
+import type { LoveMapQuestion, LoveMapSession } from "@shared/schema";
 
-type Phase = 'truths' | 'guesses' | 'results';
+type Phase = "truths" | "guesses" | "results";
 
 interface TruthAnswers {
   [questionId: string]: string;
@@ -46,7 +60,7 @@ interface ResultsData {
 export default function LoveMapQuiz() {
   const { user, profile } = useAuth();
   const { toast } = useToast();
-  const [currentPhase, setCurrentPhase] = useState<Phase>('truths');
+  const [currentPhase, setCurrentPhase] = useState<Phase>("truths");
   const [truthAnswers, setTruthAnswers] = useState<TruthAnswers>({});
   const [guessAnswers, setGuessAnswers] = useState<GuessAnswers>({});
   const [pageByPhase, setPageByPhase] = useState<Record<Phase, number>>({
@@ -55,37 +69,44 @@ export default function LoveMapQuiz() {
     results: 0,
   });
   const QUESTIONS_PER_PAGE = 10;
-  
+
   // Get current page for active phase
   const currentPage = pageByPhase[currentPhase];
 
   // Fetch questions
-  const { data: questions, isLoading: questionsLoading } = useQuery<LoveMapQuestion[]>({
-    queryKey: ['/api/love-map/questions'],
+  const { data: questions, isLoading: questionsLoading } = useQuery<
+    LoveMapQuestion[]
+  >({
+    queryKey: ["/api/love-map/questions"],
     enabled: !!user,
   });
 
   // Fetch or create session
-  const { data: session, isLoading: sessionLoading } = useQuery<LoveMapSession>({
-    queryKey: ['/api/love-map/session', profile?.couple_id],
-    queryFn: async () => {
-      const response = await fetch(`/api/love-map/session/${profile?.couple_id}`);
-      if (!response.ok) throw new Error('Failed to get session');
-      return response.json();
+  const { data: session, isLoading: sessionLoading } = useQuery<LoveMapSession>(
+    {
+      queryKey: ["/api/love-map/session", profile?.couple_id],
+      queryFn: async () => {
+        const response = await fetch(
+          `/api/love-map/session/${profile?.couple_id}`,
+        );
+        if (!response.ok) throw new Error("Failed to get session");
+        return response.json();
+      },
+      enabled: !!profile?.couple_id,
     },
-    enabled: !!profile?.couple_id,
-  });
+  );
 
   // Fetch results when both partners complete both phases
-  const { data: resultsData, isLoading: resultsLoading } = useQuery<ResultsData>({
-    queryKey: ['/api/love-map/results', session?.id],
-    queryFn: async () => {
-      const response = await fetch(`/api/love-map/results/${session?.id}`);
-      if (!response.ok) throw new Error('Failed to get results');
-      return response.json();
-    },
-    enabled: !!session?.id && currentPhase === 'results',
-  });
+  const { data: resultsData, isLoading: resultsLoading } =
+    useQuery<ResultsData>({
+      queryKey: ["/api/love-map/results", session?.id],
+      queryFn: async () => {
+        const response = await fetch(`/api/love-map/results/${session?.id}`);
+        if (!response.ok) throw new Error("Failed to get results");
+        return response.json();
+      },
+      enabled: !!session?.id && currentPhase === "results",
+    });
 
   // Determine which partner the current user is (need to fetch couple to determine partner1_id vs partner2_id)
   // For now, we'll use a heuristic based on completion status
@@ -94,20 +115,20 @@ export default function LoveMapQuiz() {
   // Determine which partner number based on who has completed what
   useEffect(() => {
     if (!session || !user) return;
-    
+
     // Fetch the couple to determine which partner this user is
     const fetchCoupleInfo = async () => {
       const { data } = await supabase
-        .from('Couples_couples')
-        .select('partner1_id, partner2_id')
-        .eq('id', session.couple_id)
+        .from("Couples_couples")
+        .select("partner1_id, partner2_id")
+        .eq("id", session.couple_id)
         .single();
-      
+
       if (data) {
         setIsPartner1(data.partner1_id === user.id);
       }
     };
-    
+
     fetchCoupleInfo();
   }, [session, user]);
 
@@ -116,66 +137,69 @@ export default function LoveMapQuiz() {
     if (!session || !user) return;
 
     // Determine if current user completed truths and guesses
-    const myTruthsCompleted = isPartner1 
-      ? session.partner1_truths_completed 
+    const myTruthsCompleted = isPartner1
+      ? session.partner1_truths_completed
       : session.partner2_truths_completed;
-    const myGuessesCompleted = isPartner1 
-      ? session.partner1_guesses_completed 
+    const myGuessesCompleted = isPartner1
+      ? session.partner1_guesses_completed
       : session.partner2_guesses_completed;
 
-    const partnerTruthsCompleted = isPartner1 
-      ? session.partner2_truths_completed 
+    const partnerTruthsCompleted = isPartner1
+      ? session.partner2_truths_completed
       : session.partner1_truths_completed;
-    const partnerGuessesCompleted = isPartner1 
-      ? session.partner2_guesses_completed 
+    const partnerGuessesCompleted = isPartner1
+      ? session.partner2_guesses_completed
       : session.partner1_guesses_completed;
 
     // Determine current phase
     if (!myTruthsCompleted) {
-      setCurrentPhase('truths');
+      setCurrentPhase("truths");
     } else if (!partnerTruthsCompleted) {
       // Partner hasn't completed truths yet
-      setCurrentPhase('truths'); // Show completion message
+      setCurrentPhase("truths"); // Show completion message
     } else if (!myGuessesCompleted) {
-      setCurrentPhase('guesses');
+      setCurrentPhase("guesses");
     } else if (!partnerGuessesCompleted) {
       // Partner hasn't completed guesses yet
-      setCurrentPhase('guesses'); // Show completion message
+      setCurrentPhase("guesses"); // Show completion message
     } else {
-      setCurrentPhase('results');
+      setCurrentPhase("results");
     }
   }, [session, user, isPartner1]);
 
   // Get questions for current phase with phase-specific filtering
   const phaseQuestions = useMemo(() => {
-    if (currentPhase === 'truths') {
+    if (currentPhase === "truths") {
       // Truths phase: All questions
       return questions || [];
-    } else if (currentPhase === 'guesses') {
+    } else if (currentPhase === "guesses") {
       // Guesses phase: Only show questions if partner has completed truths
-      const partnerTruthsCompleted = isPartner1 
-        ? session?.partner2_truths_completed 
+      const partnerTruthsCompleted = isPartner1
+        ? session?.partner2_truths_completed
         : session?.partner1_truths_completed;
-      
+
       if (!partnerTruthsCompleted || !questions) {
         return []; // Partner hasn't completed truths yet
       }
       return questions;
-    } else if (currentPhase === 'results') {
+    } else if (currentPhase === "results") {
       // Results phase: Use comparison results array
       return resultsData?.results || [];
     }
     return [];
   }, [currentPhase, questions, session, isPartner1, resultsData]);
-  
+
   // Clamp page number when dataset shrinks
   useEffect(() => {
-    const maxPage = phaseQuestions.length > 0 ? Math.ceil(phaseQuestions.length / QUESTIONS_PER_PAGE) - 1 : 0;
+    const maxPage =
+      phaseQuestions.length > 0
+        ? Math.ceil(phaseQuestions.length / QUESTIONS_PER_PAGE) - 1
+        : 0;
     if (currentPage > maxPage) {
-      setPageByPhase(prev => ({ ...prev, [currentPhase]: maxPage }));
+      setPageByPhase((prev) => ({ ...prev, [currentPhase]: maxPage }));
     }
   }, [phaseQuestions.length, currentPage, currentPhase, QUESTIONS_PER_PAGE]);
-  
+
   // Calculate paginated questions for current phase
   const getCurrentPageQuestions = () => {
     const startIndex = currentPage * QUESTIONS_PER_PAGE;
@@ -184,35 +208,41 @@ export default function LoveMapQuiz() {
   };
 
   // Calculate pagination bounds per phase
-  const totalPages = phaseQuestions.length > 0 ? Math.ceil(phaseQuestions.length / QUESTIONS_PER_PAGE) : 0;
+  const totalPages =
+    phaseQuestions.length > 0
+      ? Math.ceil(phaseQuestions.length / QUESTIONS_PER_PAGE)
+      : 0;
   const isLastPage = currentPage === totalPages - 1;
   const isFirstPage = currentPage === 0;
 
   // Submit truths mutation
   const submitTruthsMutation = useMutation({
     mutationFn: async (truths: TruthAnswers) => {
-      const truthsArray = Object.entries(truths).map(([question_id, answer_text]) => ({
-        question_id,
-        answer_text,
-      }));
+      const truthsArray = Object.entries(truths).map(
+        ([question_id, answer_text]) => ({
+          question_id,
+          answer_text,
+        }),
+      );
 
-      return apiRequest('POST', '/api/love-map/truths', {
+      return apiRequest("POST", "/api/love-map/truths", {
         session_id: session?.id,
         truths: truthsArray,
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/love-map/session'] });
+      queryClient.invalidateQueries({ queryKey: ["/api/love-map/session"] });
       toast({
-        title: 'Answers Saved!',
-        description: 'Your self-reflections have been saved. Waiting for your partner to complete theirs.',
+        title: "Answers Saved!",
+        description:
+          "Your self-reflections have been saved. Waiting for your partner to complete theirs.",
       });
     },
     onError: (error: any) => {
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to save answers',
-        variant: 'destructive',
+        title: "Error",
+        description: error.message || "Failed to save answers",
+        variant: "destructive",
       });
     },
   });
@@ -220,39 +250,45 @@ export default function LoveMapQuiz() {
   // Submit guesses mutation
   const submitGuessesMutation = useMutation({
     mutationFn: async (guesses: GuessAnswers) => {
-      const guessesArray = Object.entries(guesses).map(([question_id, guess_text]) => ({
-        question_id,
-        guess_text,
-      }));
+      const guessesArray = Object.entries(guesses).map(
+        ([question_id, guess_text]) => ({
+          question_id,
+          guess_text,
+        }),
+      );
 
-      return apiRequest('POST', '/api/love-map/guesses', {
+      return apiRequest("POST", "/api/love-map/guesses", {
         session_id: session?.id,
         guesses: guessesArray,
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/love-map/session'] });
+      queryClient.invalidateQueries({ queryKey: ["/api/love-map/session"] });
       toast({
-        title: 'Guesses Submitted!',
-        description: 'Your guesses have been saved. Check back to see how well you know each other!',
+        title: "Guesses Submitted!",
+        description:
+          "Your guesses have been saved. Check back to see how well you know each other!",
       });
     },
     onError: (error: any) => {
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to save guesses',
-        variant: 'destructive',
+        title: "Error",
+        description: error.message || "Failed to save guesses",
+        variant: "destructive",
       });
     },
   });
 
   const handleTruthsSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (phaseQuestions.length === 0 || Object.keys(truthAnswers).length !== phaseQuestions.length) {
+    if (
+      phaseQuestions.length === 0 ||
+      Object.keys(truthAnswers).length !== phaseQuestions.length
+    ) {
       toast({
-        title: 'Incomplete',
-        description: 'Please answer all questions before submitting.',
-        variant: 'destructive',
+        title: "Incomplete",
+        description: "Please answer all questions before submitting.",
+        variant: "destructive",
       });
       return;
     }
@@ -261,11 +297,14 @@ export default function LoveMapQuiz() {
 
   const handleGuessesSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (phaseQuestions.length === 0 || Object.keys(guessAnswers).length !== phaseQuestions.length) {
+    if (
+      phaseQuestions.length === 0 ||
+      Object.keys(guessAnswers).length !== phaseQuestions.length
+    ) {
       toast({
-        title: 'Incomplete',
-        description: 'Please answer all questions before submitting.',
-        variant: 'destructive',
+        title: "Incomplete",
+        description: "Please answer all questions before submitting.",
+        variant: "destructive",
       });
       return;
     }
@@ -275,7 +314,10 @@ export default function LoveMapQuiz() {
   if (questionsLoading || sessionLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" data-testid="loader-page" />
+        <Loader2
+          className="h-8 w-8 animate-spin text-primary"
+          data-testid="loader-page"
+        />
       </div>
     );
   }
@@ -295,15 +337,34 @@ export default function LoveMapQuiz() {
   }
 
   // Check completion status
-  const myTruthsCompleted = session && (isPartner1 ? session.partner1_truths_completed : session.partner2_truths_completed);
-  const partnerTruthsCompleted = session && (isPartner1 ? session.partner2_truths_completed : session.partner1_truths_completed);
-  const myGuessesCompleted = session && (isPartner1 ? session.partner1_guesses_completed : session.partner2_guesses_completed);
-  const partnerGuessesCompleted = session && (isPartner1 ? session.partner2_guesses_completed : session.partner1_guesses_completed);
+  const myTruthsCompleted =
+    session &&
+    (isPartner1
+      ? session.partner1_truths_completed
+      : session.partner2_truths_completed);
+  const partnerTruthsCompleted =
+    session &&
+    (isPartner1
+      ? session.partner2_truths_completed
+      : session.partner1_truths_completed);
+  const myGuessesCompleted =
+    session &&
+    (isPartner1
+      ? session.partner1_guesses_completed
+      : session.partner2_guesses_completed);
+  const partnerGuessesCompleted =
+    session &&
+    (isPartner1
+      ? session.partner2_guesses_completed
+      : session.partner1_guesses_completed);
 
   const progress = [
-    { label: 'Share About Yourself', completed: myTruthsCompleted },
-    { label: 'Guess About Partner', completed: myGuessesCompleted },
-    { label: 'View Results', completed: myGuessesCompleted && partnerGuessesCompleted },
+    { label: "Share About Yourself", completed: myTruthsCompleted },
+    { label: "Guess About Partner", completed: myGuessesCompleted },
+    {
+      label: "View Results",
+      completed: myGuessesCompleted && partnerGuessesCompleted,
+    },
   ];
 
   return (
@@ -312,7 +373,10 @@ export default function LoveMapQuiz() {
         {/* Header */}
         <div className="mb-8 text-center">
           <div className="flex items-center justify-center gap-2 mb-4">
-            <Heart className="h-8 w-8 text-primary" data-testid="icon-love-map-header" />
+            <Heart
+              className="h-8 w-8 text-primary"
+              data-testid="icon-love-map-header"
+            />
             <h1 className="text-4xl font-bold">Love Map Quiz</h1>
           </div>
           <p className="text-muted-foreground">
@@ -330,8 +394,8 @@ export default function LoveMapQuiz() {
                     <div
                       className={`w-8 h-8 rounded-full flex items-center justify-center mb-2 ${
                         step.completed
-                          ? 'bg-primary text-primary-foreground'
-                          : 'bg-muted text-muted-foreground'
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-muted text-muted-foreground"
                       }`}
                       data-testid={`progress-step-${index}`}
                     >
@@ -355,7 +419,7 @@ export default function LoveMapQuiz() {
         </Card>
 
         {/* Phase 1: Share About Yourself (Truths) */}
-        {currentPhase === 'truths' && !myTruthsCompleted && (
+        {currentPhase === "truths" && !myTruthsCompleted && (
           <form onSubmit={handleTruthsSubmit}>
             <Card>
               <CardHeader>
@@ -364,27 +428,41 @@ export default function LoveMapQuiz() {
                   Phase 1: Share About Yourself
                 </CardTitle>
                 <CardDescription>
-                  Answer these questions about yourself honestly. Your partner will try to guess your answers!
+                  Answer these questions about yourself honestly. Your partner
+                  will try to guess your answers!
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="mb-4 flex items-center justify-between">
                   <p className="text-sm text-muted-foreground">
-                    Page {currentPage + 1} of {totalPages} • {Object.keys(truthAnswers).length} of {phaseQuestions.length} answered
+                    Page {currentPage + 1} of {totalPages} •{" "}
+                    {Object.keys(truthAnswers).length} of{" "}
+                    {phaseQuestions.length} answered
                   </p>
                   <Badge variant="outline" data-testid="badge-question-page">
-                    Questions {currentPage * QUESTIONS_PER_PAGE + 1}-{Math.min((currentPage + 1) * QUESTIONS_PER_PAGE, phaseQuestions.length)}
+                    Questions {currentPage * QUESTIONS_PER_PAGE + 1}-
+                    {Math.min(
+                      (currentPage + 1) * QUESTIONS_PER_PAGE,
+                      phaseQuestions.length,
+                    )}
                   </Badge>
                 </div>
-                
+
                 {getCurrentPageQuestions().map((question, index) => {
                   const globalIndex = currentPage * QUESTIONS_PER_PAGE + index;
                   return (
                     <div key={question.id} className="space-y-2">
-                      <Label htmlFor={`truth-${question.id}`} className="text-base">
+                      <Label
+                        htmlFor={`truth-${question.id}`}
+                        className="text-base"
+                      >
                         {globalIndex + 1}. {question.question_text}
                         {question.category && (
-                          <Badge variant="secondary" className="ml-2" data-testid={`badge-category-${globalIndex}`}>
+                          <Badge
+                            variant="secondary"
+                            className="ml-2"
+                            data-testid={`badge-category-${globalIndex}`}
+                          >
                             {question.category}
                           </Badge>
                         )}
@@ -393,9 +471,12 @@ export default function LoveMapQuiz() {
                         id={`truth-${question.id}`}
                         data-testid={`textarea-truth-${globalIndex}`}
                         placeholder="Your answer..."
-                        value={truthAnswers[question.id] || ''}
+                        value={truthAnswers[question.id] || ""}
                         onChange={(e) =>
-                          setTruthAnswers({ ...truthAnswers, [question.id]: e.target.value })
+                          setTruthAnswers({
+                            ...truthAnswers,
+                            [question.id]: e.target.value,
+                          })
                         }
                         className="min-h-20 resize-none"
                         required
@@ -403,22 +484,32 @@ export default function LoveMapQuiz() {
                     </div>
                   );
                 })}
-                
+
                 <div className="flex items-center justify-between gap-4 pt-4">
                   <Button
                     type="button"
                     variant="outline"
-                    onClick={() => setPageByPhase(prev => ({ ...prev, [currentPhase]: prev[currentPhase] - 1 }))}
+                    onClick={() =>
+                      setPageByPhase((prev) => ({
+                        ...prev,
+                        [currentPhase]: prev[currentPhase] - 1,
+                      }))
+                    }
                     disabled={isFirstPage}
                     data-testid="button-prev-page"
                   >
                     Previous
                   </Button>
-                  
+
                   {!isLastPage ? (
                     <Button
                       type="button"
-                      onClick={() => setPageByPhase(prev => ({ ...prev, [currentPhase]: prev[currentPhase] + 1 }))}
+                      onClick={() =>
+                        setPageByPhase((prev) => ({
+                          ...prev,
+                          [currentPhase]: prev[currentPhase] + 1,
+                        }))
+                      }
                       data-testid="button-next-page"
                     >
                       Next Page
@@ -435,7 +526,7 @@ export default function LoveMapQuiz() {
                           Saving...
                         </>
                       ) : (
-                        'Submit Your Answers'
+                        "Submit Your Answers"
                       )}
                     </Button>
                   )}
@@ -446,138 +537,188 @@ export default function LoveMapQuiz() {
         )}
 
         {/* Waiting for Partner to Complete Truths */}
-        {currentPhase === 'truths' && myTruthsCompleted && !partnerTruthsCompleted && (
-          <Alert className="border-primary/20 bg-primary/5">
-            <Users className="h-4 w-4 text-primary" />
-            <AlertDescription>
-              <p className="font-semibold mb-1">Great job completing Phase 1!</p>
-              <p className="text-sm">
-                Waiting for your partner to share their answers. You'll be notified when they're ready so you can move to Phase 2.
-              </p>
-            </AlertDescription>
-          </Alert>
-        )}
+        {currentPhase === "truths" &&
+          myTruthsCompleted &&
+          !partnerTruthsCompleted && (
+            <Alert className="border-primary/20 bg-primary/5">
+              <Users className="h-4 w-4 text-primary" />
+              <AlertDescription>
+                <p className="font-semibold mb-1">
+                  Great job completing Phase 1!
+                </p>
+                <p className="text-sm">
+                  Waiting for your partner to share their answers. You'll be
+                  notified when they're ready so you can move to Phase 2.
+                </p>
+              </AlertDescription>
+            </Alert>
+          )}
 
         {/* Phase 2: Guess About Your Partner */}
-        {currentPhase === 'guesses' && partnerTruthsCompleted && !myGuessesCompleted && (
-          <form onSubmit={handleGuessesSubmit}>
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Users className="h-5 w-5 text-primary" />
-                  Phase 2: Guess About Your Partner
-                </CardTitle>
-                <CardDescription>
-                  Your partner has shared their answers. Now guess what they said!
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="mb-4 flex items-center justify-between">
-                  <p className="text-sm text-muted-foreground">
-                    Page {currentPage + 1} of {totalPages} • {Object.keys(guessAnswers).length} of {phaseQuestions.length} answered
-                  </p>
-                  <Badge variant="outline" data-testid="badge-guess-page">
-                    Questions {currentPage * QUESTIONS_PER_PAGE + 1}-{Math.min((currentPage + 1) * QUESTIONS_PER_PAGE, phaseQuestions.length)}
-                  </Badge>
-                </div>
-                
-                {getCurrentPageQuestions().map((question, index) => {
-                  const globalIndex = currentPage * QUESTIONS_PER_PAGE + index;
-                  return (
-                    <div key={question.id} className="space-y-2">
-                      <Label htmlFor={`guess-${question.id}`} className="text-base">
-                        {globalIndex + 1}. {question.question_text}
-                        {question.category && (
-                          <Badge variant="secondary" className="ml-2" data-testid={`badge-guess-category-${globalIndex}`}>
-                            {question.category}
-                          </Badge>
-                        )}
-                      </Label>
-                      <Textarea
-                        id={`guess-${question.id}`}
-                        data-testid={`textarea-guess-${globalIndex}`}
-                        placeholder="What did your partner say?"
-                        value={guessAnswers[question.id] || ''}
-                        onChange={(e) =>
-                          setGuessAnswers({ ...guessAnswers, [question.id]: e.target.value })
-                        }
-                        className="min-h-20 resize-none"
-                        required
-                      />
-                    </div>
-                  );
-                })}
-                
-                <div className="flex items-center justify-between gap-4 pt-4">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setPageByPhase(prev => ({ ...prev, [currentPhase]: prev[currentPhase] - 1 }))}
-                    disabled={isFirstPage}
-                    data-testid="button-guess-prev-page"
-                  >
-                    Previous
-                  </Button>
-                  
-                  {!isLastPage ? (
+        {currentPhase === "guesses" &&
+          partnerTruthsCompleted &&
+          !myGuessesCompleted && (
+            <form onSubmit={handleGuessesSubmit}>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Users className="h-5 w-5 text-primary" />
+                    Phase 2: Guess About Your Partner
+                  </CardTitle>
+                  <CardDescription>
+                    Your partner has shared their answers. Now guess what they
+                    said!
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="mb-4 flex items-center justify-between">
+                    <p className="text-sm text-muted-foreground">
+                      Page {currentPage + 1} of {totalPages} •{" "}
+                      {Object.keys(guessAnswers).length} of{" "}
+                      {phaseQuestions.length} answered
+                    </p>
+                    <Badge variant="outline" data-testid="badge-guess-page">
+                      Questions {currentPage * QUESTIONS_PER_PAGE + 1}-
+                      {Math.min(
+                        (currentPage + 1) * QUESTIONS_PER_PAGE,
+                        phaseQuestions.length,
+                      )}
+                    </Badge>
+                  </div>
+
+                  {getCurrentPageQuestions().map((question, index) => {
+                    const globalIndex =
+                      currentPage * QUESTIONS_PER_PAGE + index;
+                    return (
+                      <div key={question.id} className="space-y-2">
+                        <Label
+                          htmlFor={`guess-${question.id}`}
+                          className="text-base"
+                        >
+                          {globalIndex + 1}. {question.question_text}
+                          {question.category && (
+                            <Badge
+                              variant="secondary"
+                              className="ml-2"
+                              data-testid={`badge-guess-category-${globalIndex}`}
+                            >
+                              {question.category}
+                            </Badge>
+                          )}
+                        </Label>
+                        <Textarea
+                          id={`guess-${question.id}`}
+                          data-testid={`textarea-guess-${globalIndex}`}
+                          placeholder="What did your partner say?"
+                          value={guessAnswers[question.id] || ""}
+                          onChange={(e) =>
+                            setGuessAnswers({
+                              ...guessAnswers,
+                              [question.id]: e.target.value,
+                            })
+                          }
+                          className="min-h-20 resize-none"
+                          required
+                        />
+                      </div>
+                    );
+                  })}
+
+                  <div className="flex items-center justify-between gap-4 pt-4">
                     <Button
                       type="button"
-                      onClick={() => setPageByPhase(prev => ({ ...prev, [currentPhase]: prev[currentPhase] + 1 }))}
-                      data-testid="button-guess-next-page"
+                      variant="outline"
+                      onClick={() =>
+                        setPageByPhase((prev) => ({
+                          ...prev,
+                          [currentPhase]: prev[currentPhase] - 1,
+                        }))
+                      }
+                      disabled={isFirstPage}
+                      data-testid="button-guess-prev-page"
                     >
-                      Next Page
+                      Previous
                     </Button>
-                  ) : (
-                    <Button
-                      type="submit"
-                      disabled={submitGuessesMutation.isPending}
-                      data-testid="button-submit-guesses"
-                    >
-                      {submitGuessesMutation.isPending ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Saving...
-                        </>
-                      ) : (
-                        'Submit Your Guesses'
-                      )}
-                    </Button>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          </form>
-        )}
+
+                    {!isLastPage ? (
+                      <Button
+                        type="button"
+                        onClick={() =>
+                          setPageByPhase((prev) => ({
+                            ...prev,
+                            [currentPhase]: prev[currentPhase] + 1,
+                          }))
+                        }
+                        data-testid="button-guess-next-page"
+                      >
+                        Next Page
+                      </Button>
+                    ) : (
+                      <Button
+                        type="submit"
+                        disabled={submitGuessesMutation.isPending}
+                        data-testid="button-submit-guesses"
+                      >
+                        {submitGuessesMutation.isPending ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Saving...
+                          </>
+                        ) : (
+                          "Submit Your Guesses"
+                        )}
+                      </Button>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </form>
+          )}
 
         {/* Waiting for Partner to Complete Guesses */}
-        {currentPhase === 'guesses' && myGuessesCompleted && !partnerGuessesCompleted && (
-          <Alert className="border-primary/20 bg-primary/5">
-            <Users className="h-4 w-4 text-primary" />
-            <AlertDescription>
-              <p className="font-semibold mb-1">Phase 2 complete!</p>
-              <p className="text-sm">
-                Waiting for your partner to finish their guesses. Once they're done, you'll both be able to see the results and compare your answers!
-              </p>
-            </AlertDescription>
-          </Alert>
-        )}
+        {currentPhase === "guesses" &&
+          myGuessesCompleted &&
+          !partnerGuessesCompleted && (
+            <Alert className="border-primary/20 bg-primary/5">
+              <Users className="h-4 w-4 text-primary" />
+              <AlertDescription>
+                <p className="font-semibold mb-1">Phase 2 complete!</p>
+                <p className="text-sm">
+                  Waiting for your partner to finish their guesses. Once they're
+                  done, you'll both be able to see the results and compare your
+                  answers!
+                </p>
+              </AlertDescription>
+            </Alert>
+          )}
 
         {/* Phase 3: Reveal & Compare Results */}
-        {currentPhase === 'results' && resultsData && (
+        {currentPhase === "results" && resultsData && (
           <div className="space-y-6">
             {/* Score Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Card>
                 <CardHeader>
                   <CardTitle className="text-lg">Your Score</CardTitle>
-                  <CardDescription>How well you know your partner</CardDescription>
+                  <CardDescription>
+                    How well you know your partner
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-4xl font-bold text-primary" data-testid="text-my-score">
-                    {resultsData.my_score ? `${parseFloat(resultsData.my_score).toFixed(0)}%` : 'N/A'}
+                  <div
+                    className="text-4xl font-bold text-primary"
+                    data-testid="text-my-score"
+                  >
+                    {resultsData.my_score
+                      ? `${parseFloat(resultsData.my_score).toFixed(0)}%`
+                      : "N/A"}
                   </div>
-                  <Progress 
-                    value={resultsData.my_score ? parseFloat(resultsData.my_score) : 0} 
+                  <Progress
+                    value={
+                      resultsData.my_score
+                        ? parseFloat(resultsData.my_score)
+                        : 0
+                    }
                     className="mt-2"
                     data-testid="progress-my-score"
                   />
@@ -586,14 +727,25 @@ export default function LoveMapQuiz() {
               <Card>
                 <CardHeader>
                   <CardTitle className="text-lg">Partner's Score</CardTitle>
-                  <CardDescription>How well your partner knows you</CardDescription>
+                  <CardDescription>
+                    How well your partner knows you
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-4xl font-bold text-primary" data-testid="text-partner-score">
-                    {resultsData.partner_score ? `${parseFloat(resultsData.partner_score).toFixed(0)}%` : 'N/A'}
+                  <div
+                    className="text-4xl font-bold text-primary"
+                    data-testid="text-partner-score"
+                  >
+                    {resultsData.partner_score
+                      ? `${parseFloat(resultsData.partner_score).toFixed(0)}%`
+                      : "N/A"}
                   </div>
-                  <Progress 
-                    value={resultsData.partner_score ? parseFloat(resultsData.partner_score) : 0} 
+                  <Progress
+                    value={
+                      resultsData.partner_score
+                        ? parseFloat(resultsData.partner_score)
+                        : 0
+                    }
                     className="mt-2"
                     data-testid="progress-partner-score"
                   />
@@ -611,7 +763,11 @@ export default function LoveMapQuiz() {
               </CardHeader>
               <CardContent className="space-y-6">
                 {resultsData.results.map((result, index) => (
-                  <div key={result.question_id} className="space-y-4 border-b pb-4 last:border-b-0" data-testid={`result-item-${index}`}>
+                  <div
+                    key={result.question_id}
+                    className="space-y-4 border-b pb-4 last:border-b-0"
+                    data-testid={`result-item-${index}`}
+                  >
                     <div className="font-semibold">
                       {index + 1}. {result.question_text}
                     </div>
@@ -619,22 +775,36 @@ export default function LoveMapQuiz() {
                     {/* My Answer vs Partner's Guess */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-1">
-                        <Label className="text-sm text-muted-foreground">Your Answer</Label>
-                        <p className="text-sm p-3 bg-muted rounded-md" data-testid={`text-my-answer-${index}`}>
-                          {result.my_answer || 'Not answered'}
+                        <Label className="text-sm text-muted-foreground">
+                          Your Answer
+                        </Label>
+                        <p
+                          className="text-sm p-3 bg-muted rounded-md"
+                          data-testid={`text-my-answer-${index}`}
+                        >
+                          {result.my_answer || "Not answered"}
                         </p>
                       </div>
                       <div className="space-y-1">
                         <Label className="text-sm text-muted-foreground flex items-center gap-2">
                           Partner's Guess
                           {result.partner_guess_correct ? (
-                            <CheckCircle2 className="h-4 w-4 text-green-600" data-testid={`icon-partner-correct-${index}`} />
+                            <CheckCircle2
+                              className="h-4 w-4 text-green-600"
+                              data-testid={`icon-partner-correct-${index}`}
+                            />
                           ) : (
-                            <XCircle className="h-4 w-4 text-red-600" data-testid={`icon-partner-incorrect-${index}`} />
+                            <XCircle
+                              className="h-4 w-4 text-red-600"
+                              data-testid={`icon-partner-incorrect-${index}`}
+                            />
                           )}
                         </Label>
-                        <p className="text-sm p-3 bg-muted rounded-md" data-testid={`text-partner-guess-${index}`}>
-                          {result.partner_guess || 'Not guessed'}
+                        <p
+                          className="text-sm p-3 bg-muted rounded-md"
+                          data-testid={`text-partner-guess-${index}`}
+                        >
+                          {result.partner_guess || "Not guessed"}
                         </p>
                       </div>
                     </div>
@@ -642,22 +812,36 @@ export default function LoveMapQuiz() {
                     {/* Partner's Answer vs My Guess */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-1">
-                        <Label className="text-sm text-muted-foreground">Partner's Answer</Label>
-                        <p className="text-sm p-3 bg-muted rounded-md" data-testid={`text-partner-answer-${index}`}>
-                          {result.partner_answer || 'Not answered'}
+                        <Label className="text-sm text-muted-foreground">
+                          Partner's Answer
+                        </Label>
+                        <p
+                          className="text-sm p-3 bg-muted rounded-md"
+                          data-testid={`text-partner-answer-${index}`}
+                        >
+                          {result.partner_answer || "Not answered"}
                         </p>
                       </div>
                       <div className="space-y-1">
                         <Label className="text-sm text-muted-foreground flex items-center gap-2">
                           Your Guess
                           {result.my_guess_correct ? (
-                            <CheckCircle2 className="h-4 w-4 text-green-600" data-testid={`icon-my-correct-${index}`} />
+                            <CheckCircle2
+                              className="h-4 w-4 text-green-600"
+                              data-testid={`icon-my-correct-${index}`}
+                            />
                           ) : (
-                            <XCircle className="h-4 w-4 text-red-600" data-testid={`icon-my-incorrect-${index}`} />
+                            <XCircle
+                              className="h-4 w-4 text-red-600"
+                              data-testid={`icon-my-incorrect-${index}`}
+                            />
                           )}
                         </Label>
-                        <p className="text-sm p-3 bg-muted rounded-md" data-testid={`text-my-guess-${index}`}>
-                          {result.my_guess || 'Not guessed'}
+                        <p
+                          className="text-sm p-3 bg-muted rounded-md"
+                          data-testid={`text-my-guess-${index}`}
+                        >
+                          {result.my_guess || "Not guessed"}
                         </p>
                       </div>
                     </div>
@@ -670,12 +854,19 @@ export default function LoveMapQuiz() {
             <Alert className="border-primary/20 bg-primary/5">
               <Heart className="h-4 w-4 text-primary" />
               <AlertDescription>
-                <p className="font-semibold mb-2">Understanding Your Love Map</p>
+                <p className="font-semibold mb-2">
+                  Understanding Your Love Map
+                </p>
                 <p className="text-sm">
-                  The Love Map represents the space in your heart and mind where you store all the relevant information about your partner's life. Couples who have detailed Love Maps of each other's worlds are better prepared to cope with stressful events and conflict.
+                  The Love Map represents the space in your heart and mind where
+                  you store all the relevant information about your partner's
+                  life. Couples who have detailed Love Maps of each other's
+                  worlds are better prepared to cope with stressful events and
+                  conflict.
                 </p>
                 <p className="text-sm mt-2">
-                  Continue updating your Love Map by staying curious about your partner's inner world!
+                  Continue updating your Love Map by staying curious about your
+                  partner's inner world!
                 </p>
               </AlertDescription>
             </Alert>

@@ -1,31 +1,42 @@
-import { useState, useMemo } from 'react';
-import { supabase } from '@/lib/supabase';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { useToast } from '@/hooks/use-toast';
-import { Loader2, Heart, Sparkles, ArrowRight, Shield, Lock } from 'lucide-react';
-import { motion } from 'framer-motion';
-import aleicLogo from '@assets/1762758450973_1762758574241.png';
-import coupleArt from '@assets/Screenshot_20251109_193551_Chrome Beta_1762759399065.png';
+import { useState, useMemo } from "react";
+import { supabase } from "@/lib/supabase";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useToast } from "@/hooks/use-toast";
+import {
+  Loader2,
+  Heart,
+  Sparkles,
+  ArrowRight,
+  Shield,
+  Lock,
+} from "lucide-react";
+import { motion } from "framer-motion";
+import aleicLogo from "@assets/1762758450973_1762758574241.png";
+import coupleArt from "@assets/Screenshot_20251109_193551_Chrome Beta_1762759399065.png";
 
 // Utility to check prefers-reduced-motion
 const useReducedMotion = () => {
   return useMemo(() => {
-    if (typeof window === 'undefined') return false;
-    return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (typeof window === "undefined") return false;
+    return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   }, []);
 };
 
 // Motion variant helper that respects prefers-reduced-motion
-const motionVariant = (shouldReduce: boolean, variant: any, staticFallback: any = {}) => {
+const motionVariant = (
+  shouldReduce: boolean,
+  variant: any,
+  staticFallback: any = {},
+) => {
   return shouldReduce ? staticFallback : variant;
 };
 
 export default function AuthPage() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [fullName, setFullName] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [fullName, setFullName] = useState("");
   const [isSignUp, setIsSignUp] = useState(false);
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
@@ -36,32 +47,37 @@ export default function AuthPage() {
     setLoading(true);
 
     try {
-      console.log('Attempting authentication...', { isSignUp, supabaseUrl: import.meta.env.VITE_SUPABASE_URL });
-      
-      if (isSignUp) {
-        const { data: authData, error: authError } = await supabase.auth.signUp({
-          email,
-          password,
-        });
+      console.log("Attempting authentication...", {
+        isSignUp,
+        supabaseUrl: import.meta.env.VITE_SUPABASE_URL,
+      });
 
-        console.log('SignUp response:', { data: authData, error: authError });
+      if (isSignUp) {
+        const { data: authData, error: authError } = await supabase.auth.signUp(
+          {
+            email,
+            password,
+          },
+        );
+
+        console.log("SignUp response:", { data: authData, error: authError });
         if (authError) throw authError;
 
         if (authData.user) {
           const { error: profileError } = await supabase
-            .from('Couples_profiles')
+            .from("Couples_profiles")
             .insert({
               id: authData.user.id,
               full_name: fullName,
-              role: 'client',
+              role: "client",
               couple_id: null,
             });
 
           if (profileError) throw profileError;
 
           toast({
-            title: 'Account created!',
-            description: 'Please check your email to verify your account.',
+            title: "Account created!",
+            description: "Please check your email to verify your account.",
           });
         }
       } else {
@@ -70,21 +86,23 @@ export default function AuthPage() {
           password,
         });
 
-        console.log('SignIn response:', { error });
+        console.log("SignIn response:", { error });
         if (error) throw error;
 
         toast({
-          title: 'Welcome back!',
-          description: 'Successfully signed in.',
+          title: "Welcome back!",
+          description: "Successfully signed in.",
         });
       }
     } catch (error: any) {
-      console.error('Authentication error:', error);
-      const errorMessage = error.message || 'Failed to connect. Please check your internet connection.';
+      console.error("Authentication error:", error);
+      const errorMessage =
+        error.message ||
+        "Failed to connect. Please check your internet connection.";
       toast({
-        title: 'Error',
+        title: "Error",
         description: errorMessage,
-        variant: 'destructive',
+        variant: "destructive",
       });
     } finally {
       setLoading(false);
@@ -97,7 +115,7 @@ export default function AuthPage() {
       <div className="absolute inset-0 bg-gradient-to-br from-primary via-accent to-secondary" />
       <div className="absolute inset-0 bg-gradient-to-tr from-tertiary/40 via-transparent to-accent/40" />
       <div className="absolute inset-0 bg-gradient-to-bl from-transparent via-primary/20 to-secondary/30" />
-      
+
       {/* Couple line art background - elegant and subtle */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none flex items-center justify-center">
         <img
@@ -111,9 +129,17 @@ export default function AuthPage() {
       <div className="relative z-10 flex flex-col items-center justify-center min-h-screen px-6 py-10">
         {/* Brand header with logo above subtitle */}
         <motion.div
-          initial={motionVariant(reducedMotion, { opacity: 0, y: 20 }, { opacity: 1, y: 0 })}
+          initial={motionVariant(
+            reducedMotion,
+            { opacity: 0, y: 20 },
+            { opacity: 1, y: 0 },
+          )}
           animate={{ opacity: 1, y: 0 }}
-          transition={motionVariant(reducedMotion, { duration: 0.6 }, { duration: 0 })}
+          transition={motionVariant(
+            reducedMotion,
+            { duration: 0.6 },
+            { duration: 0 },
+          )}
           className="mb-10 text-center max-w-3xl mx-auto px-4"
         >
           {/* Ornate ALEIC logo */}
@@ -126,45 +152,70 @@ export default function AuthPage() {
               data-testid="img-logo"
             />
           </div>
-          
+
           {/* Styled subtitle with prominent ALEIC letters */}
           <motion.p
-            initial={motionVariant(reducedMotion, { opacity: 0 }, { opacity: 1 })}
+            initial={motionVariant(
+              reducedMotion,
+              { opacity: 0 },
+              { opacity: 1 },
+            )}
             animate={{ opacity: 1 }}
-            transition={motionVariant(reducedMotion, { delay: 0.3, duration: 0.6 }, { duration: 0 })}
+            transition={motionVariant(
+              reducedMotion,
+              { delay: 0.3, duration: 0.6 },
+              { duration: 0 },
+            )}
             className="text-base md:text-lg text-white/95 font-medium max-w-2xl mx-auto leading-relaxed"
           >
-            <span className="text-xl md:text-2xl font-bold text-white">A</span>ssisted{' '}
-            <span className="text-xl md:text-2xl font-bold text-white">L</span>earning for{' '}
-            <span className="text-xl md:text-2xl font-bold text-white">E</span>mpathetic and{' '}
-            <span className="text-xl md:text-2xl font-bold text-white">I</span>nsightful{' '}
-            <span className="text-xl md:text-2xl font-bold text-white">C</span>ouples
+            <span className="text-xl md:text-2xl font-bold text-white">A</span>
+            ssisted{" "}
+            <span className="text-xl md:text-2xl font-bold text-white">L</span>
+            earning for{" "}
+            <span className="text-xl md:text-2xl font-bold text-white">E</span>
+            mpathetic and{" "}
+            <span className="text-xl md:text-2xl font-bold text-white">I</span>
+            nsightful{" "}
+            <span className="text-xl md:text-2xl font-bold text-white">C</span>
+            ouples
           </motion.p>
         </motion.div>
 
         {/* Auth card with elegant white design */}
         <motion.div
-          initial={motionVariant(reducedMotion, { opacity: 0, y: 30 }, { opacity: 1, y: 0 })}
+          initial={motionVariant(
+            reducedMotion,
+            { opacity: 0, y: 30 },
+            { opacity: 1, y: 0 },
+          )}
           animate={{ opacity: 1, y: 0 }}
-          transition={motionVariant(reducedMotion, { delay: 0.2, duration: 0.8 }, { duration: 0 })}
+          transition={motionVariant(
+            reducedMotion,
+            { delay: 0.2, duration: 0.8 },
+            { duration: 0 },
+          )}
           className="w-full max-w-md"
         >
           <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/60 p-8 md:p-10">
             {/* Dynamic headline */}
             <div className="text-center mb-8">
               <motion.h2
-                key={isSignUp ? 'signup' : 'signin'}
-                initial={motionVariant(reducedMotion, { opacity: 0, y: -10 }, { opacity: 1, y: 0 })}
+                key={isSignUp ? "signup" : "signin"}
+                initial={motionVariant(
+                  reducedMotion,
+                  { opacity: 0, y: -10 },
+                  { opacity: 1, y: 0 },
+                )}
                 animate={{ opacity: 1, y: 0 }}
                 transition={motionVariant(reducedMotion, {}, { duration: 0 })}
                 className="text-3xl font-bold bg-gradient-to-r from-primary via-accent to-secondary bg-clip-text text-transparent mb-2"
               >
-                {isSignUp ? 'Begin Your Journey' : 'Welcome Back'}
+                {isSignUp ? "Begin Your Journey" : "Welcome Back"}
               </motion.h2>
               <p className="text-gray-600 text-sm">
                 {isSignUp
-                  ? 'Create your account to strengthen your relationship'
-                  : 'Continue your path to connection'}
+                  ? "Create your account to strengthen your relationship"
+                  : "Continue your path to connection"}
               </p>
             </div>
 
@@ -172,10 +223,22 @@ export default function AuthPage() {
             <form onSubmit={handleAuth} className="space-y-4">
               {isSignUp && (
                 <motion.div
-                  initial={motionVariant(reducedMotion, { opacity: 0, height: 0 }, { opacity: 1, height: 'auto' })}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  exit={motionVariant(reducedMotion, { opacity: 0, height: 0 }, { opacity: 1, height: 'auto' })}
-                  transition={motionVariant(reducedMotion, { duration: 0.3 }, { duration: 0 })}
+                  initial={motionVariant(
+                    reducedMotion,
+                    { opacity: 0, height: 0 },
+                    { opacity: 1, height: "auto" },
+                  )}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={motionVariant(
+                    reducedMotion,
+                    { opacity: 0, height: 0 },
+                    { opacity: 1, height: "auto" },
+                  )}
+                  transition={motionVariant(
+                    reducedMotion,
+                    { duration: 0.3 },
+                    { duration: 0 },
+                  )}
                   className="space-y-2"
                 >
                   <Label htmlFor="fullName">Full Name</Label>
@@ -227,11 +290,11 @@ export default function AuthPage() {
                 {loading ? (
                   <>
                     <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                    {isSignUp ? 'Creating account...' : 'Signing in...'}
+                    {isSignUp ? "Creating account..." : "Signing in..."}
                   </>
                 ) : (
                   <>
-                    {isSignUp ? 'Create Account' : 'Sign In'}
+                    {isSignUp ? "Create Account" : "Sign In"}
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </>
                 )}
@@ -247,10 +310,10 @@ export default function AuthPage() {
                 data-testid="button-toggle-mode"
               >
                 {isSignUp
-                  ? 'Already have an account? '
+                  ? "Already have an account? "
                   : "Don't have an account? "}
                 <span className="text-primary font-medium">
-                  {isSignUp ? 'Sign in' : 'Create one'}
+                  {isSignUp ? "Sign in" : "Create one"}
                 </span>
               </button>
             </div>

@@ -1,25 +1,37 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TextInput } from 'react-native';
-import { useApiMutation } from '../../hooks/useApi';
-import Button from '../../components/Button';
-import Card from '../../components/Card';
-import { colors, spacing, typography } from '../../constants/theme';
+import React, { useState } from "react";
+import { View, Text, StyleSheet, ScrollView, TextInput } from "react-native";
+import { useApiMutation } from "../../hooks/useApi";
+import Button from "../../components/Button";
+import Card from "../../components/Card";
+import { colors, spacing, typography } from "../../constants/theme";
 
 const conversations = [
-  { id: 1, title: 'Are You There For Me?', description: 'Recognize negative patterns' },
-  { id: 2, title: 'Finding the Raw Spots', description: 'Identify emotional triggers' },
-  { id: 3, title: 'Revisiting a Rocky Moment', description: 'Process past conflicts' },
-  { id: 4, title: 'Hold Me Tight', description: 'Connect deeply and safely' },
-  { id: 5, title: 'Forgiving Injuries', description: 'Heal past hurts' },
+  {
+    id: 1,
+    title: "Are You There For Me?",
+    description: "Recognize negative patterns",
+  },
+  {
+    id: 2,
+    title: "Finding the Raw Spots",
+    description: "Identify emotional triggers",
+  },
+  {
+    id: 3,
+    title: "Revisiting a Rocky Moment",
+    description: "Process past conflicts",
+  },
+  { id: 4, title: "Hold Me Tight", description: "Connect deeply and safely" },
+  { id: 5, title: "Forgiving Injuries", description: "Heal past hurts" },
 ];
 
 export default function HoldMeTightScreen() {
   const [selectedConv, setSelectedConv] = useState<number | null>(null);
-  const [response, setResponse] = useState('');
+  const [response, setResponse] = useState("");
 
-  const saveResponse = useApiMutation('/api/hold-me-tight/responses', 'post', {
+  const saveResponse = useApiMutation("/api/hold-me-tight/responses", "post", {
     onSuccess: () => {
-      setResponse('');
+      setResponse("");
       setSelectedConv(null);
     },
   });
@@ -32,8 +44,8 @@ export default function HoldMeTightScreen() {
 
         <Card style={styles.introCard}>
           <Text style={styles.introText}>
-            Based on Dr. Sue Johnson's Emotionally Focused Therapy. These conversations help you
-            reconnect and strengthen your emotional bond.
+            Based on Dr. Sue Johnson's Emotionally Focused Therapy. These
+            conversations help you reconnect and strengthen your emotional bond.
           </Text>
         </Card>
 
@@ -51,7 +63,7 @@ export default function HoldMeTightScreen() {
         {selectedConv && (
           <Card style={styles.responseCard}>
             <Text style={styles.responseTitle}>
-              {conversations.find(c => c.id === selectedConv)?.title}
+              {conversations.find((c) => c.id === selectedConv)?.title}
             </Text>
             <TextInput
               style={styles.textArea}
@@ -67,7 +79,7 @@ export default function HoldMeTightScreen() {
                 variant="outline"
                 onPress={() => {
                   setSelectedConv(null);
-                  setResponse('');
+                  setResponse("");
                 }}
                 style={styles.button}
               />
@@ -94,14 +106,29 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   content: { padding: spacing.lg },
   title: { ...typography.h2, color: colors.text, marginBottom: spacing.xs },
-  subtitle: { ...typography.body, color: colors.textSecondary, marginBottom: spacing.lg },
-  introCard: { marginBottom: spacing.lg, backgroundColor: colors.primary + '10' },
+  subtitle: {
+    ...typography.body,
+    color: colors.textSecondary,
+    marginBottom: spacing.lg,
+  },
+  introCard: {
+    marginBottom: spacing.lg,
+    backgroundColor: colors.primary + "10",
+  },
   introText: { ...typography.body, color: colors.text },
   convCard: { marginBottom: spacing.md },
-  convTitle: { ...typography.h6, color: colors.primary, marginBottom: spacing.xs },
+  convTitle: {
+    ...typography.h6,
+    color: colors.primary,
+    marginBottom: spacing.xs,
+  },
   convDescription: { ...typography.body, color: colors.textSecondary },
   responseCard: { marginTop: spacing.lg },
-  responseTitle: { ...typography.h5, color: colors.text, marginBottom: spacing.md },
+  responseTitle: {
+    ...typography.h5,
+    color: colors.text,
+    marginBottom: spacing.md,
+  },
   textArea: {
     ...typography.body,
     backgroundColor: colors.background,
@@ -113,6 +140,6 @@ const styles = StyleSheet.create({
     color: colors.text,
     marginBottom: spacing.md,
   },
-  buttons: { flexDirection: 'row', gap: spacing.md },
+  buttons: { flexDirection: "row", gap: spacing.md },
   button: { flex: 1 },
 });

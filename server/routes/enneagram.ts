@@ -13,16 +13,18 @@ router.get("/questions", async (req, res) => {
     }
 
     const { data, error } = await supabaseAdmin
-      .from('Couples_enneagram_questions')
-      .select('*')
-      .order('id');
+      .from("Couples_enneagram_questions")
+      .select("*")
+      .order("id");
 
     if (error) throw error;
 
     res.json(data);
   } catch (error: any) {
-    console.error('Error fetching enneagram questions:', error);
-    res.status(500).json({ error: error.message || 'Failed to fetch questions' });
+    console.error("Error fetching enneagram questions:", error);
+    res
+      .status(500)
+      .json({ error: error.message || "Failed to fetch questions" });
   }
 });
 
@@ -36,21 +38,21 @@ router.post("/sessions", async (req, res) => {
 
     // Get user's couple_id from their profile
     const { data: profile } = await supabaseAdmin
-      .from('Couples_profiles')
-      .select('couple_id')
-      .eq('id', authResult.userId)
+      .from("Couples_profiles")
+      .select("couple_id")
+      .eq("id", authResult.userId)
       .single();
 
     if (!profile?.couple_id) {
-      return res.status(400).json({ error: 'User is not part of a couple' });
+      return res.status(400).json({ error: "User is not part of a couple" });
     }
 
     const { data, error } = await supabaseAdmin
-      .from('Couples_enneagram_sessions')
+      .from("Couples_enneagram_sessions")
       .insert({
         user_id: authResult.userId,
         couple_id: profile.couple_id,
-        is_completed: false
+        is_completed: false,
       })
       .select()
       .single();
@@ -59,8 +61,10 @@ router.post("/sessions", async (req, res) => {
 
     res.json(data);
   } catch (error: any) {
-    console.error('Error creating enneagram session:', error);
-    res.status(500).json({ error: error.message || 'Failed to create session' });
+    console.error("Error creating enneagram session:", error);
+    res
+      .status(500)
+      .json({ error: error.message || "Failed to create session" });
   }
 });
 
@@ -73,17 +77,19 @@ router.get("/sessions/my", async (req, res) => {
     }
 
     const { data, error } = await supabaseAdmin
-      .from('Couples_enneagram_sessions')
-      .select('*')
-      .eq('user_id', authResult.userId)
-      .order('created_at', { ascending: false });
+      .from("Couples_enneagram_sessions")
+      .select("*")
+      .eq("user_id", authResult.userId)
+      .order("created_at", { ascending: false });
 
     if (error) throw error;
 
     res.json(data);
   } catch (error: any) {
-    console.error('Error fetching enneagram sessions:', error);
-    res.status(500).json({ error: error.message || 'Failed to fetch sessions' });
+    console.error("Error fetching enneagram sessions:", error);
+    res
+      .status(500)
+      .json({ error: error.message || "Failed to fetch sessions" });
   }
 });
 
@@ -99,27 +105,32 @@ router.post("/responses", async (req, res) => {
 
     // Verify the session belongs to the user
     const { data: session } = await supabaseAdmin
-      .from('Couples_enneagram_sessions')
-      .select('user_id')
-      .eq('id', session_id)
+      .from("Couples_enneagram_sessions")
+      .select("user_id")
+      .eq("id", session_id)
       .single();
 
     if (!session || session.user_id !== authResult.userId) {
-      return res.status(403).json({ error: 'Access denied' });
+      return res.status(403).json({ error: "Access denied" });
     }
 
     // Validate response value
     if (!response_value || response_value < 1 || response_value > 5) {
-      return res.status(400).json({ error: 'Response value must be between 1 and 5' });
+      return res
+        .status(400)
+        .json({ error: "Response value must be between 1 and 5" });
     }
 
     const { data, error } = await supabaseAdmin
-      .from('Couples_enneagram_responses')
-      .upsert({
-        session_id,
-        question_id,
-        response_value
-      }, { onConflict: 'session_id,question_id' })
+      .from("Couples_enneagram_responses")
+      .upsert(
+        {
+          session_id,
+          question_id,
+          response_value,
+        },
+        { onConflict: "session_id,question_id" },
+      )
       .select()
       .single();
 
@@ -127,8 +138,8 @@ router.post("/responses", async (req, res) => {
 
     res.json(data);
   } catch (error: any) {
-    console.error('Error saving enneagram response:', error);
-    res.status(500).json({ error: error.message || 'Failed to save response' });
+    console.error("Error saving enneagram response:", error);
+    res.status(500).json({ error: error.message || "Failed to save response" });
   }
 });
 
@@ -144,28 +155,32 @@ router.post("/sessions/:id/complete", async (req, res) => {
 
     // Verify the session belongs to the user
     const { data: session } = await supabaseAdmin
-      .from('Couples_enneagram_sessions')
-      .select('user_id, couple_id')
-      .eq('id', id)
+      .from("Couples_enneagram_sessions")
+      .select("user_id, couple_id")
+      .eq("id", id)
       .single();
 
     if (!session || session.user_id !== authResult.userId) {
-      return res.status(403).json({ error: 'Access denied' });
+      return res.status(403).json({ error: "Access denied" });
     }
 
     // Get all responses for this session with question details
     const { data: responses } = await supabaseAdmin
-      .from('Couples_enneagram_responses')
-      .select(`
+      .from("Couples_enneagram_responses")
+      .select(
+        `
         response_value,
         Couples_enneagram_questions!inner (
           enneagram_type
         )
-      `)
-      .eq('session_id', id);
+      `,
+      )
+      .eq("session_id", id);
 
     if (!responses || responses.length < 30) {
-      return res.status(400).json({ error: 'Not enough responses to calculate results' });
+      return res
+        .status(400)
+        .json({ error: "Not enough responses to calculate results" });
     }
 
     // Calculate scores for each type (1-9)
@@ -189,37 +204,39 @@ router.post("/sessions/:id/complete", async (req, res) => {
     // Normalize scores (average per type, scaled to 100)
     const normalizedScores: { [key: string]: number } = {};
     for (let i = 1; i <= 9; i++) {
-      normalizedScores[i.toString()] = typeCounts[i] > 0 
-        ? Math.round((typeScores[i] / typeCounts[i]) * 20) 
-        : 0;
+      normalizedScores[i.toString()] =
+        typeCounts[i] > 0
+          ? Math.round((typeScores[i] / typeCounts[i]) * 20)
+          : 0;
     }
 
     // Determine dominant and secondary types
-    const sortedTypes = Object.entries(normalizedScores)
-      .sort(([, a], [, b]) => (b as number) - (a as number));
+    const sortedTypes = Object.entries(normalizedScores).sort(
+      ([, a], [, b]) => (b as number) - (a as number),
+    );
 
     const dominantType = parseInt(sortedTypes[0][0]);
     const secondaryType = parseInt(sortedTypes[1][0]);
 
     // Mark session as completed
     await supabaseAdmin
-      .from('Couples_enneagram_sessions')
-      .update({ 
+      .from("Couples_enneagram_sessions")
+      .update({
         is_completed: true,
-        completed_at: new Date().toISOString()
+        completed_at: new Date().toISOString(),
       })
-      .eq('id', id);
+      .eq("id", id);
 
     // Save results
     const { data: result, error } = await supabaseAdmin
-      .from('Couples_enneagram_results')
+      .from("Couples_enneagram_results")
       .insert({
         session_id: id,
         user_id: authResult.userId,
         couple_id: session.couple_id,
         dominant_type: dominantType,
         secondary_type: secondaryType,
-        enneagram_scores: normalizedScores
+        enneagram_scores: normalizedScores,
       })
       .select()
       .single();
@@ -228,8 +245,10 @@ router.post("/sessions/:id/complete", async (req, res) => {
 
     res.json(result);
   } catch (error: any) {
-    console.error('Error completing enneagram session:', error);
-    res.status(500).json({ error: error.message || 'Failed to complete session' });
+    console.error("Error completing enneagram session:", error);
+    res
+      .status(500)
+      .json({ error: error.message || "Failed to complete session" });
   }
 });
 
@@ -242,17 +261,17 @@ router.get("/results/my", async (req, res) => {
     }
 
     const { data, error } = await supabaseAdmin
-      .from('Couples_enneagram_results')
-      .select('*')
-      .eq('user_id', authResult.userId)
-      .order('created_at', { ascending: false });
+      .from("Couples_enneagram_results")
+      .select("*")
+      .eq("user_id", authResult.userId)
+      .order("created_at", { ascending: false });
 
     if (error) throw error;
 
     res.json(data);
   } catch (error: any) {
-    console.error('Error fetching enneagram results:', error);
-    res.status(500).json({ error: error.message || 'Failed to fetch results' });
+    console.error("Error fetching enneagram results:", error);
+    res.status(500).json({ error: error.message || "Failed to fetch results" });
   }
 });
 
@@ -266,32 +285,36 @@ router.get("/results/couple", async (req, res) => {
 
     // Get user's couple_id
     const { data: profile } = await supabaseAdmin
-      .from('Couples_profiles')
-      .select('couple_id')
-      .eq('id', authResult.userId)
+      .from("Couples_profiles")
+      .select("couple_id")
+      .eq("id", authResult.userId)
       .single();
 
     if (!profile?.couple_id) {
-      return res.status(400).json({ error: 'User is not part of a couple' });
+      return res.status(400).json({ error: "User is not part of a couple" });
     }
 
     const { data, error } = await supabaseAdmin
-      .from('Couples_enneagram_results')
-      .select(`
+      .from("Couples_enneagram_results")
+      .select(
+        `
         *,
         Couples_profiles!Couples_enneagram_results_user_id_fkey (
           full_name
         )
-      `)
-      .eq('couple_id', profile.couple_id)
-      .order('created_at', { ascending: false });
+      `,
+      )
+      .eq("couple_id", profile.couple_id)
+      .order("created_at", { ascending: false });
 
     if (error) throw error;
 
     res.json(data);
   } catch (error: any) {
-    console.error('Error fetching couple enneagram results:', error);
-    res.status(500).json({ error: error.message || 'Failed to fetch couple results' });
+    console.error("Error fetching couple enneagram results:", error);
+    res
+      .status(500)
+      .json({ error: error.message || "Failed to fetch couple results" });
   }
 });
 

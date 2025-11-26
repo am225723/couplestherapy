@@ -1,59 +1,61 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TextInput, Alert } from 'react-native';
-import { useAuth } from '../../contexts/AuthContext';
-import { useApi, useApiMutation } from '../../hooks/useApi';
-import { SharedGoal } from '../../types';
-import Button from '../../components/Button';
-import Card from '../../components/Card';
-import LoadingSpinner from '../../components/LoadingSpinner';
-import { colors, spacing, typography } from '../../constants/theme';
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TextInput,
+  Alert,
+} from "react-native";
+import { useAuth } from "../../contexts/AuthContext";
+import { useApi, useApiMutation } from "../../hooks/useApi";
+import { SharedGoal } from "../../types";
+import Button from "../../components/Button";
+import Card from "../../components/Card";
+import LoadingSpinner from "../../components/LoadingSpinner";
+import { colors, spacing, typography } from "../../constants/theme";
 
 export default function SharedGoalsScreen() {
   const { profile } = useAuth();
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
   const [showForm, setShowForm] = useState(false);
 
   const { data: goals, isLoading } = useApi<SharedGoal[]>(
-    `/api/shared-goals/couple/${profile?.couple_id}`
+    `/api/shared-goals/couple/${profile?.couple_id}`,
   );
 
-  const createGoal = useApiMutation(
-    '/api/shared-goals',
-    'post',
-    {
-      invalidateQueries: [`/api/shared-goals/couple/${profile?.couple_id}`],
-      onSuccess: () => {
-        Alert.alert('Success', 'Goal added!');
-        setTitle('');
-        setDescription('');
-        setShowForm(false);
-      },
-    }
-  );
+  const createGoal = useApiMutation("/api/shared-goals", "post", {
+    invalidateQueries: [`/api/shared-goals/couple/${profile?.couple_id}`],
+    onSuccess: () => {
+      Alert.alert("Success", "Goal added!");
+      setTitle("");
+      setDescription("");
+      setShowForm(false);
+    },
+  });
 
-  const updateGoalStatus = useApiMutation(
-    '/api/shared-goals',
-    'put',
-    {
-      invalidateQueries: [`/api/shared-goals/couple/${profile?.couple_id}`],
-    }
-  );
+  const updateGoalStatus = useApiMutation("/api/shared-goals", "put", {
+    invalidateQueries: [`/api/shared-goals/couple/${profile?.couple_id}`],
+  });
 
   const handleSubmit = () => {
     if (!title.trim()) {
-      Alert.alert('Error', 'Please enter a goal title');
+      Alert.alert("Error", "Please enter a goal title");
       return;
     }
 
     createGoal.mutate({
       title: title.trim(),
       description: description.trim() || undefined,
-      status: 'backlog',
+      status: "backlog",
     });
   };
 
-  const handleStatusChange = (goalId: number, newStatus: 'backlog' | 'in_progress' | 'completed') => {
+  const handleStatusChange = (
+    goalId: number,
+    newStatus: "backlog" | "in_progress" | "completed",
+  ) => {
     updateGoalStatus.mutate({
       id: goalId,
       status: newStatus,
@@ -61,9 +63,9 @@ export default function SharedGoalsScreen() {
   };
 
   const groupedGoals = {
-    backlog: goals?.filter(g => g.status === 'backlog') || [],
-    in_progress: goals?.filter(g => g.status === 'in_progress') || [],
-    completed: goals?.filter(g => g.status === 'completed') || [],
+    backlog: goals?.filter((g) => g.status === "backlog") || [],
+    in_progress: goals?.filter((g) => g.status === "in_progress") || [],
+    completed: goals?.filter((g) => g.status === "completed") || [],
   };
 
   if (isLoading) {
@@ -117,8 +119,8 @@ export default function SharedGoalsScreen() {
                 variant="outline"
                 onPress={() => {
                   setShowForm(false);
-                  setTitle('');
-                  setDescription('');
+                  setTitle("");
+                  setDescription("");
                 }}
                 style={styles.formButton}
               />
@@ -144,13 +146,13 @@ export default function SharedGoalsScreen() {
                 <Button
                   title="Start"
                   variant="primary"
-                  onPress={() => handleStatusChange(goal.id, 'in_progress')}
+                  onPress={() => handleStatusChange(goal.id, "in_progress")}
                   style={styles.statusButton}
                 />
                 <Button
                   title="Complete"
                   variant="outline"
-                  onPress={() => handleStatusChange(goal.id, 'completed')}
+                  onPress={() => handleStatusChange(goal.id, "completed")}
                   style={styles.statusButton}
                 />
               </View>
@@ -170,13 +172,13 @@ export default function SharedGoalsScreen() {
                 <Button
                   title="Move to Backlog"
                   variant="outline"
-                  onPress={() => handleStatusChange(goal.id, 'backlog')}
+                  onPress={() => handleStatusChange(goal.id, "backlog")}
                   style={styles.statusButton}
                 />
                 <Button
                   title="Complete"
                   variant="primary"
-                  onPress={() => handleStatusChange(goal.id, 'completed')}
+                  onPress={() => handleStatusChange(goal.id, "completed")}
                   style={styles.statusButton}
                 />
               </View>
@@ -188,14 +190,16 @@ export default function SharedGoalsScreen() {
           <Text style={styles.columnTitle}>✅ Completed</Text>
           {groupedGoals.completed.map((goal) => (
             <Card key={goal.id} style={[styles.goalCard, styles.completedCard]}>
-              <Text style={[styles.goalTitle, styles.completedTitle]}>{goal.title}</Text>
+              <Text style={[styles.goalTitle, styles.completedTitle]}>
+                {goal.title}
+              </Text>
               {goal.description && (
                 <Text style={styles.goalDescription}>{goal.description}</Text>
               )}
               <Button
                 title="Reopen"
                 variant="outline"
-                onPress={() => handleStatusChange(goal.id, 'backlog')}
+                onPress={() => handleStatusChange(goal.id, "backlog")}
                 fullWidth
               />
             </Card>
@@ -210,7 +214,11 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   content: { padding: spacing.lg },
   title: { ...typography.h2, color: colors.text, marginBottom: spacing.xs },
-  subtitle: { ...typography.body, color: colors.textSecondary, marginBottom: spacing.lg },
+  subtitle: {
+    ...typography.body,
+    color: colors.textSecondary,
+    marginBottom: spacing.lg,
+  },
   addButton: { marginBottom: spacing.lg },
   formCard: { marginBottom: spacing.lg },
   inputGroup: { marginBottom: spacing.md },
@@ -234,15 +242,23 @@ const styles = StyleSheet.create({
     minHeight: 80,
     color: colors.text,
   },
-  formButtons: { flexDirection: 'row', gap: spacing.sm },
+  formButtons: { flexDirection: "row", gap: spacing.sm },
   formButton: { flex: 1 },
   column: { marginBottom: spacing.xl },
-  columnTitle: { ...typography.h5, color: colors.text, marginBottom: spacing.md },
+  columnTitle: {
+    ...typography.h5,
+    color: colors.text,
+    marginBottom: spacing.md,
+  },
   goalCard: { marginBottom: spacing.md },
   goalTitle: { ...typography.h6, color: colors.text, marginBottom: spacing.xs },
-  goalDescription: { ...typography.body, color: colors.textSecondary, marginBottom: spacing.md },
-  statusButtons: { flexDirection: 'row', gap: spacing.sm },
+  goalDescription: {
+    ...typography.body,
+    color: colors.textSecondary,
+    marginBottom: spacing.md,
+  },
+  statusButtons: { flexDirection: "row", gap: spacing.sm },
   statusButton: { flex: 1 },
   completedCard: { opacity: 0.8 },
-  completedTitle: { textDecorationLine: 'line-through' },
+  completedTitle: { textDecorationLine: "line-through" },
 });

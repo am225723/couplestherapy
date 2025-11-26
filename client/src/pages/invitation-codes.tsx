@@ -2,15 +2,21 @@ import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { queryClient } from "@/lib/queryClient";
 import { Copy, Plus, CheckCircle, XCircle } from "lucide-react";
 import type { InvitationCode } from "@shared/schema";
 
 function generateInvitationCode(): string {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  let code = '';
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  let code = "";
   for (let i = 0; i < 8; i++) {
     code += chars.charAt(Math.floor(Math.random() * chars.length));
   }
@@ -23,16 +29,18 @@ export default function InvitationCodes() {
 
   // Fetch invitation codes
   const { data: codes, isLoading } = useQuery<InvitationCode[]>({
-    queryKey: ['/api/invitation-codes'],
+    queryKey: ["/api/invitation-codes"],
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
       const { data, error } = await supabase
-        .from('Couples_invitation_codes')
-        .select('*')
-        .eq('therapist_id', user.id)
-        .order('created_at', { ascending: false });
+        .from("Couples_invitation_codes")
+        .select("*")
+        .eq("therapist_id", user.id)
+        .order("created_at", { ascending: false });
 
       if (error) throw error;
       return data as InvitationCode[];
@@ -42,7 +50,9 @@ export default function InvitationCodes() {
   // Create new invitation code
   const createCodeMutation = useMutation({
     mutationFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
       const code = generateInvitationCode();
@@ -50,7 +60,7 @@ export default function InvitationCodes() {
       expiresAt.setDate(expiresAt.getDate() + 30); // 30 days expiry
 
       const { data, error } = await supabase
-        .from('Couples_invitation_codes')
+        .from("Couples_invitation_codes")
         .insert({
           code,
           therapist_id: user.id,
@@ -64,7 +74,7 @@ export default function InvitationCodes() {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/invitation-codes'] });
+      queryClient.invalidateQueries({ queryKey: ["/api/invitation-codes"] });
       toast({
         title: "Invitation Code Created",
         description: "A new invitation code has been generated.",
@@ -89,8 +99,8 @@ export default function InvitationCodes() {
     });
   };
 
-  const activeOnes = codes?.filter(c => c.is_active && !c.used_at) || [];
-  const usedCodes = codes?.filter(c => c.used_at) || [];
+  const activeOnes = codes?.filter((c) => c.is_active && !c.used_at) || [];
+  const usedCodes = codes?.filter((c) => c.used_at) || [];
 
   return (
     <div className="min-h-screen bg-background p-6">
@@ -108,7 +118,9 @@ export default function InvitationCodes() {
             data-testid="button-generate-code"
           >
             <Plus className="w-4 h-4 mr-2" />
-            {createCodeMutation.isPending ? "Generating..." : "Generate New Code"}
+            {createCodeMutation.isPending
+              ? "Generating..."
+              : "Generate New Code"}
           </Button>
         </div>
 
@@ -142,9 +154,14 @@ export default function InvitationCodes() {
                         {code.code}
                       </div>
                       <div className="text-sm text-muted-foreground mt-1">
-                        Created {new Date(code.created_at!).toLocaleDateString()}
+                        Created{" "}
+                        {new Date(code.created_at!).toLocaleDateString()}
                         {code.expires_at && (
-                          <span> • Expires {new Date(code.expires_at!).toLocaleDateString()}</span>
+                          <span>
+                            {" "}
+                            • Expires{" "}
+                            {new Date(code.expires_at!).toLocaleDateString()}
+                          </span>
                         )}
                       </div>
                     </div>
@@ -195,7 +212,9 @@ export default function InvitationCodes() {
                         {code.code}
                       </div>
                       <div className="text-sm text-muted-foreground mt-1">
-                        Used on {code.used_at && new Date(code.used_at).toLocaleDateString()}
+                        Used on{" "}
+                        {code.used_at &&
+                          new Date(code.used_at).toLocaleDateString()}
                       </div>
                     </div>
                     <div className="flex items-center text-muted-foreground">
@@ -225,7 +244,10 @@ export default function InvitationCodes() {
             </div>
             <div className="flex gap-3">
               <div className="font-bold text-primary min-w-6">3.</div>
-              <div>Couples use the code to register at: <strong className="text-foreground">/auth/couple-signup</strong></div>
+              <div>
+                Couples use the code to register at:{" "}
+                <strong className="text-foreground">/auth/couple-signup</strong>
+              </div>
             </div>
             <div className="flex gap-3">
               <div className="font-bold text-primary min-w-6">4.</div>

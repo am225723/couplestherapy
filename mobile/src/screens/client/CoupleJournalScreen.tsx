@@ -1,40 +1,46 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TextInput, Alert, Image } from 'react-native';
-import * as ImagePicker from 'expo-image-picker';
-import { useAuth } from '../../contexts/AuthContext';
-import { useApi, useApiMutation } from '../../hooks/useApi';
-import { CoupleJournalEntry } from '../../types';
-import Button from '../../components/Button';
-import Card from '../../components/Card';
-import LoadingSpinner from '../../components/LoadingSpinner';
-import { colors, spacing, typography } from '../../constants/theme';
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TextInput,
+  Alert,
+  Image,
+} from "react-native";
+import * as ImagePicker from "expo-image-picker";
+import { useAuth } from "../../contexts/AuthContext";
+import { useApi, useApiMutation } from "../../hooks/useApi";
+import { CoupleJournalEntry } from "../../types";
+import Button from "../../components/Button";
+import Card from "../../components/Card";
+import LoadingSpinner from "../../components/LoadingSpinner";
+import { colors, spacing, typography } from "../../constants/theme";
 
 export default function CoupleJournalScreen() {
   const { profile } = useAuth();
   const [showForm, setShowForm] = useState(false);
-  const [title, setTitle] = useState('');
-  const [content, setContent] = useState('');
-  const [privacyLevel, setPrivacyLevel] = useState<'private' | 'partner' | 'therapist'>('partner');
+  const [title, setTitle] = useState("");
+  const [content, setContent] = useState("");
+  const [privacyLevel, setPrivacyLevel] = useState<
+    "private" | "partner" | "therapist"
+  >("partner");
   const [selectedImages, setSelectedImages] = useState<string[]>([]);
 
   const { data: entries, isLoading } = useApi<CoupleJournalEntry[]>(
-    `/api/journal/couple/${profile?.couple_id}`
+    `/api/journal/couple/${profile?.couple_id}`,
   );
 
-  const createEntry = useApiMutation(
-    '/api/journal/entries',
-    'post',
-    {
-      invalidateQueries: [`/api/journal/couple/${profile?.couple_id}`],
-      onSuccess: () => {
-        Alert.alert('Success', 'Journal entry saved!');
-        setTitle('');
-        setContent('');
-        setSelectedImages([]);
-        setShowForm(false);
-      },
-    }
-  );
+  const createEntry = useApiMutation("/api/journal/entries", "post", {
+    invalidateQueries: [`/api/journal/couple/${profile?.couple_id}`],
+    onSuccess: () => {
+      Alert.alert("Success", "Journal entry saved!");
+      setTitle("");
+      setContent("");
+      setSelectedImages([]);
+      setShowForm(false);
+    },
+  });
 
   const pickImage = async () => {
     const result = await ImagePicker.launchImagePickerAsync({
@@ -44,13 +50,16 @@ export default function CoupleJournalScreen() {
     });
 
     if (!result.canceled) {
-      setSelectedImages(prev => [...prev, ...result.assets.map(a => a.uri)]);
+      setSelectedImages((prev) => [
+        ...prev,
+        ...result.assets.map((a) => a.uri),
+      ]);
     }
   };
 
   const handleSubmit = () => {
     if (!title.trim() || !content.trim()) {
-      Alert.alert('Error', 'Please fill in title and content');
+      Alert.alert("Error", "Please fill in title and content");
       return;
     }
 
@@ -70,9 +79,7 @@ export default function CoupleJournalScreen() {
     <ScrollView style={styles.container}>
       <View style={styles.content}>
         <Text style={styles.title}>Couple Journal</Text>
-        <Text style={styles.subtitle}>
-          Document your journey together
-        </Text>
+        <Text style={styles.subtitle}>Document your journey together</Text>
 
         {!showForm ? (
           <Button
@@ -112,20 +119,20 @@ export default function CoupleJournalScreen() {
               <View style={styles.privacyButtons}>
                 <Button
                   title="Private"
-                  variant={privacyLevel === 'private' ? 'primary' : 'outline'}
-                  onPress={() => setPrivacyLevel('private')}
+                  variant={privacyLevel === "private" ? "primary" : "outline"}
+                  onPress={() => setPrivacyLevel("private")}
                   style={styles.privacyButton}
                 />
                 <Button
                   title="Partner"
-                  variant={privacyLevel === 'partner' ? 'primary' : 'outline'}
-                  onPress={() => setPrivacyLevel('partner')}
+                  variant={privacyLevel === "partner" ? "primary" : "outline"}
+                  onPress={() => setPrivacyLevel("partner")}
                   style={styles.privacyButton}
                 />
                 <Button
                   title="Therapist"
-                  variant={privacyLevel === 'therapist' ? 'primary' : 'outline'}
-                  onPress={() => setPrivacyLevel('therapist')}
+                  variant={privacyLevel === "therapist" ? "primary" : "outline"}
+                  onPress={() => setPrivacyLevel("therapist")}
                   style={styles.privacyButton}
                 />
               </View>
@@ -134,7 +141,11 @@ export default function CoupleJournalScreen() {
             {selectedImages.length > 0 && (
               <View style={styles.imagesPreview}>
                 {selectedImages.map((uri, index) => (
-                  <Image key={index} source={{ uri }} style={styles.previewImage} />
+                  <Image
+                    key={index}
+                    source={{ uri }}
+                    style={styles.previewImage}
+                  />
                 ))}
               </View>
             )}
@@ -152,8 +163,8 @@ export default function CoupleJournalScreen() {
                 variant="outline"
                 onPress={() => {
                   setShowForm(false);
-                  setTitle('');
-                  setContent('');
+                  setTitle("");
+                  setContent("");
                   setSelectedImages([]);
                 }}
                 style={styles.formButton}
@@ -176,9 +187,9 @@ export default function CoupleJournalScreen() {
                 <View style={styles.entryHeader}>
                   <Text style={styles.entryTitle}>{entry.title}</Text>
                   <Text style={styles.privacyLabel}>
-                    {entry.privacy_level === 'private' && '🔒 Private'}
-                    {entry.privacy_level === 'partner' && '👥 Partner'}
-                    {entry.privacy_level === 'therapist' && '👨‍⚕️ Therapist'}
+                    {entry.privacy_level === "private" && "🔒 Private"}
+                    {entry.privacy_level === "partner" && "👥 Partner"}
+                    {entry.privacy_level === "therapist" && "👨‍⚕️ Therapist"}
                   </Text>
                 </View>
                 <Text style={styles.entryDate}>
@@ -188,7 +199,11 @@ export default function CoupleJournalScreen() {
                 {entry.media_urls && entry.media_urls.length > 0 && (
                   <View style={styles.entryImages}>
                     {entry.media_urls.map((url, index) => (
-                      <Image key={index} source={{ uri: url }} style={styles.entryImage} />
+                      <Image
+                        key={index}
+                        source={{ uri: url }}
+                        style={styles.entryImage}
+                      />
                     ))}
                   </View>
                 )}
@@ -205,7 +220,11 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   content: { padding: spacing.lg },
   title: { ...typography.h2, color: colors.text, marginBottom: spacing.xs },
-  subtitle: { ...typography.body, color: colors.textSecondary, marginBottom: spacing.lg },
+  subtitle: {
+    ...typography.body,
+    color: colors.textSecondary,
+    marginBottom: spacing.lg,
+  },
   addButton: { marginBottom: spacing.lg },
   formCard: { marginBottom: spacing.lg },
   inputGroup: { marginBottom: spacing.md },
@@ -229,34 +248,46 @@ const styles = StyleSheet.create({
     minHeight: 150,
     color: colors.text,
   },
-  privacyButtons: { flexDirection: 'row', gap: spacing.sm },
+  privacyButtons: { flexDirection: "row", gap: spacing.sm },
   privacyButton: { flex: 1 },
   imagesPreview: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    flexWrap: "wrap",
     marginBottom: spacing.md,
     gap: spacing.sm,
   },
   previewImage: { width: 100, height: 100, borderRadius: 8 },
   imageButton: { marginBottom: spacing.md },
-  formButtons: { flexDirection: 'row', gap: spacing.sm },
+  formButtons: { flexDirection: "row", gap: spacing.sm },
   formButton: { flex: 1 },
   entriesSection: { marginTop: spacing.lg },
-  sectionTitle: { ...typography.h5, color: colors.text, marginBottom: spacing.md },
+  sectionTitle: {
+    ...typography.h5,
+    color: colors.text,
+    marginBottom: spacing.md,
+  },
   entryCard: { marginBottom: spacing.md },
   entryHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
     marginBottom: spacing.xs,
   },
   entryTitle: { ...typography.h6, color: colors.text, flex: 1 },
   privacyLabel: { ...typography.bodySmall, color: colors.textSecondary },
-  entryDate: { ...typography.bodySmall, color: colors.textSecondary, marginBottom: spacing.sm },
-  entryContent: { ...typography.body, color: colors.text, marginBottom: spacing.sm },
+  entryDate: {
+    ...typography.bodySmall,
+    color: colors.textSecondary,
+    marginBottom: spacing.sm,
+  },
+  entryContent: {
+    ...typography.body,
+    color: colors.text,
+    marginBottom: spacing.sm,
+  },
   entryImages: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    flexWrap: "wrap",
     gap: spacing.sm,
     marginTop: spacing.sm,
   },

@@ -8,11 +8,11 @@ const router = Router();
 
 // Schema for therapist thoughts
 const thoughtSchema = z.object({
-  type: z.enum(['todo', 'message', 'file']),
+  type: z.enum(["todo", "message", "file"]),
   title: z.string().min(1),
   content: z.string().optional(),
   file_url: z.string().optional(),
-  priority: z.enum(['low', 'medium', 'high']).optional(),
+  priority: z.enum(["low", "medium", "high"]).optional(),
   is_complete: z.boolean().optional(),
 });
 
@@ -28,27 +28,27 @@ router.get("/couple/:coupleId", async (req: Request, res: Response) => {
 
     // Verify therapist has access to this couple
     const { data: couple } = await supabaseAdmin
-      .from('Couples_couples')
-      .select('id')
-      .eq('id', coupleId)
-      .eq('therapist_id', authResult.therapistId)
+      .from("Couples_couples")
+      .select("id")
+      .eq("id", coupleId)
+      .eq("therapist_id", authResult.therapistId)
       .single();
 
     if (!couple) {
-      return res.status(403).json({ error: 'Access denied' });
+      return res.status(403).json({ error: "Access denied" });
     }
 
     // Fetch therapist thoughts
     const { data, error } = await supabaseAdmin
-      .from('Couples_therapist_thoughts')
-      .select('*')
-      .eq('couple_id', coupleId)
-      .order('created_at', { ascending: false });
+      .from("Couples_therapist_thoughts")
+      .select("*")
+      .eq("couple_id", coupleId)
+      .order("created_at", { ascending: false });
 
     if (error) throw error;
     res.json(data || []);
   } catch (error: any) {
-    console.error('Error fetching therapist thoughts:', error);
+    console.error("Error fetching therapist thoughts:", error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -66,18 +66,18 @@ router.post("/couple/:coupleId", async (req: Request, res: Response) => {
 
     // Verify therapist has access
     const { data: couple } = await supabaseAdmin
-      .from('Couples_couples')
-      .select('id')
-      .eq('id', coupleId)
-      .eq('therapist_id', authResult.therapistId)
+      .from("Couples_couples")
+      .select("id")
+      .eq("id", coupleId)
+      .eq("therapist_id", authResult.therapistId)
       .single();
 
     if (!couple) {
-      return res.status(403).json({ error: 'Access denied' });
+      return res.status(403).json({ error: "Access denied" });
     }
 
     const { data, error } = await supabaseAdmin
-      .from('Couples_therapist_thoughts')
+      .from("Couples_therapist_thoughts")
       .insert({
         couple_id: coupleId,
         therapist_id: authResult.therapistId,
@@ -85,7 +85,7 @@ router.post("/couple/:coupleId", async (req: Request, res: Response) => {
         title: body.title,
         content: body.content,
         file_url: body.file_url,
-        priority: body.priority || 'medium',
+        priority: body.priority || "medium",
         is_complete: false,
       })
       .select()
@@ -94,7 +94,7 @@ router.post("/couple/:coupleId", async (req: Request, res: Response) => {
     if (error) throw error;
     res.json(data);
   } catch (error: any) {
-    console.error('Error creating therapist thought:', error);
+    console.error("Error creating therapist thought:", error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -111,26 +111,26 @@ router.patch("/:id", async (req: Request, res: Response) => {
 
     // Verify ownership
     const { data: thought } = await supabaseAdmin
-      .from('Couples_therapist_thoughts')
-      .select('therapist_id')
-      .eq('id', id)
+      .from("Couples_therapist_thoughts")
+      .select("therapist_id")
+      .eq("id", id)
       .single();
 
     if (!thought || thought.therapist_id !== authResult.therapistId) {
-      return res.status(403).json({ error: 'Access denied' });
+      return res.status(403).json({ error: "Access denied" });
     }
 
     const { data, error } = await supabaseAdmin
-      .from('Couples_therapist_thoughts')
+      .from("Couples_therapist_thoughts")
       .update(req.body)
-      .eq('id', id)
+      .eq("id", id)
       .select()
       .single();
 
     if (error) throw error;
     res.json(data);
   } catch (error: any) {
-    console.error('Error updating therapist thought:', error);
+    console.error("Error updating therapist thought:", error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -147,24 +147,24 @@ router.delete("/:id", async (req: Request, res: Response) => {
 
     // Verify ownership
     const { data: thought } = await supabaseAdmin
-      .from('Couples_therapist_thoughts')
-      .select('therapist_id')
-      .eq('id', id)
+      .from("Couples_therapist_thoughts")
+      .select("therapist_id")
+      .eq("id", id)
       .single();
 
     if (!thought || thought.therapist_id !== authResult.therapistId) {
-      return res.status(403).json({ error: 'Access denied' });
+      return res.status(403).json({ error: "Access denied" });
     }
 
     const { error } = await supabaseAdmin
-      .from('Couples_therapist_thoughts')
+      .from("Couples_therapist_thoughts")
       .delete()
-      .eq('id', id);
+      .eq("id", id);
 
     if (error) throw error;
     res.json({ success: true });
   } catch (error: any) {
-    console.error('Error deleting therapist thought:', error);
+    console.error("Error deleting therapist thought:", error);
     res.status(500).json({ error: error.message });
   }
 });

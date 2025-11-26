@@ -1,40 +1,43 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TextInput, Alert } from 'react-native';
-import { useAuth } from '../../contexts/AuthContext';
-import { useApi, useApiMutation } from '../../hooks/useApi';
-import { WeeklyCheckin } from '../../types';
-import Button from '../../components/Button';
-import Card from '../../components/Card';
-import LoadingSpinner from '../../components/LoadingSpinner';
-import { colors, spacing, typography } from '../../constants/theme';
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TextInput,
+  Alert,
+} from "react-native";
+import { useAuth } from "../../contexts/AuthContext";
+import { useApi, useApiMutation } from "../../hooks/useApi";
+import { WeeklyCheckin } from "../../types";
+import Button from "../../components/Button";
+import Card from "../../components/Card";
+import LoadingSpinner from "../../components/LoadingSpinner";
+import { colors, spacing, typography } from "../../constants/theme";
 
 export default function WeeklyCheckinScreen() {
   const { profile } = useAuth();
   const [moodRating, setMoodRating] = useState(5);
   const [connectionRating, setConnectionRating] = useState(5);
   const [stressLevel, setStressLevel] = useState(5);
-  const [reflection, setReflection] = useState('');
+  const [reflection, setReflection] = useState("");
   const [isPrivate, setIsPrivate] = useState(false);
 
   const { data: checkins, isLoading } = useApi<WeeklyCheckin[]>(
-    `/api/weekly-checkins/couple/${profile?.couple_id}`
+    `/api/weekly-checkins/couple/${profile?.couple_id}`,
   );
 
-  const createCheckin = useApiMutation(
-    '/api/weekly-checkins',
-    'post',
-    {
-      invalidateQueries: [`/api/weekly-checkins/couple/${profile?.couple_id}`],
-      onSuccess: () => {
-        Alert.alert('Success', 'Weekly check-in submitted!');
-        setReflection('');
-      },
-    }
-  );
+  const createCheckin = useApiMutation("/api/weekly-checkins", "post", {
+    invalidateQueries: [`/api/weekly-checkins/couple/${profile?.couple_id}`],
+    onSuccess: () => {
+      Alert.alert("Success", "Weekly check-in submitted!");
+      setReflection("");
+    },
+  });
 
   const handleSubmit = () => {
     if (!reflection.trim()) {
-      Alert.alert('Error', 'Please add a reflection');
+      Alert.alert("Error", "Please add a reflection");
       return;
     }
 
@@ -67,7 +70,7 @@ export default function WeeklyCheckinScreen() {
                 <Button
                   key={value}
                   title={String(value)}
-                  variant={moodRating === value ? 'primary' : 'outline'}
+                  variant={moodRating === value ? "primary" : "outline"}
                   onPress={() => setMoodRating(value)}
                   style={styles.ratingButton}
                 />
@@ -82,7 +85,7 @@ export default function WeeklyCheckinScreen() {
                 <Button
                   key={value}
                   title={String(value)}
-                  variant={connectionRating === value ? 'primary' : 'outline'}
+                  variant={connectionRating === value ? "primary" : "outline"}
                   onPress={() => setConnectionRating(value)}
                   style={styles.ratingButton}
                 />
@@ -97,7 +100,7 @@ export default function WeeklyCheckinScreen() {
                 <Button
                   key={value}
                   title={String(value)}
-                  variant={stressLevel === value ? 'primary' : 'outline'}
+                  variant={stressLevel === value ? "primary" : "outline"}
                   onPress={() => setStressLevel(value)}
                   style={styles.ratingButton}
                 />
@@ -121,8 +124,8 @@ export default function WeeklyCheckinScreen() {
 
           <View style={styles.privacyToggle}>
             <Button
-              title={isPrivate ? 'Private (Only You)' : 'Shared (With Partner)'}
-              variant={isPrivate ? 'secondary' : 'primary'}
+              title={isPrivate ? "Private (Only You)" : "Shared (With Partner)"}
+              variant={isPrivate ? "secondary" : "primary"}
               onPress={() => setIsPrivate(!isPrivate)}
               fullWidth
             />
@@ -150,9 +153,15 @@ export default function WeeklyCheckinScreen() {
                   )}
                 </View>
                 <View style={styles.ratings}>
-                  <Text style={styles.ratingText}>Mood: {checkin.mood_rating}/10</Text>
-                  <Text style={styles.ratingText}>Connection: {checkin.connection_rating}/10</Text>
-                  <Text style={styles.ratingText}>Stress: {checkin.stress_level}/10</Text>
+                  <Text style={styles.ratingText}>
+                    Mood: {checkin.mood_rating}/10
+                  </Text>
+                  <Text style={styles.ratingText}>
+                    Connection: {checkin.connection_rating}/10
+                  </Text>
+                  <Text style={styles.ratingText}>
+                    Stress: {checkin.stress_level}/10
+                  </Text>
                 </View>
                 <Text style={styles.reflection}>{checkin.reflection}</Text>
               </Card>
@@ -168,11 +177,19 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   content: { padding: spacing.lg },
   title: { ...typography.h2, color: colors.text, marginBottom: spacing.xs },
-  subtitle: { ...typography.body, color: colors.textSecondary, marginBottom: spacing.lg },
+  subtitle: {
+    ...typography.body,
+    color: colors.textSecondary,
+    marginBottom: spacing.lg,
+  },
   formCard: { marginBottom: spacing.lg },
   ratingGroup: { marginBottom: spacing.lg },
   label: { ...typography.h6, color: colors.text, marginBottom: spacing.sm },
-  ratingButtons: { flexDirection: 'row', flexWrap: 'wrap', marginHorizontal: -spacing.xs },
+  ratingButtons: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    marginHorizontal: -spacing.xs,
+  },
   ratingButton: { margin: spacing.xs, minWidth: 40 },
   inputGroup: { marginBottom: spacing.lg },
   textArea: {
@@ -187,12 +204,28 @@ const styles = StyleSheet.create({
   },
   privacyToggle: { marginBottom: spacing.md },
   historySection: { marginTop: spacing.lg },
-  sectionTitle: { ...typography.h4, color: colors.text, marginBottom: spacing.md },
+  sectionTitle: {
+    ...typography.h4,
+    color: colors.text,
+    marginBottom: spacing.md,
+  },
   checkinCard: { marginBottom: spacing.md },
-  checkinHeader: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: spacing.sm },
+  checkinHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: spacing.sm,
+  },
   checkinDate: { ...typography.bodySmall, color: colors.textSecondary },
-  privateLabel: { ...typography.bodySmall, color: colors.secondary, fontWeight: '600' },
-  ratings: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: spacing.sm },
+  privateLabel: {
+    ...typography.bodySmall,
+    color: colors.secondary,
+    fontWeight: "600",
+  },
+  ratings: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: spacing.sm,
+  },
   ratingText: { ...typography.bodySmall, color: colors.text },
   reflection: { ...typography.body, color: colors.text },
 });

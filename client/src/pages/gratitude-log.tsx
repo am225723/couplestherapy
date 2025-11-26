@@ -1,14 +1,14 @@
-import { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { Textarea } from '@/components/ui/textarea';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { useAuth } from '@/lib/auth-context';
-import { supabase } from '@/lib/supabase';
-import { useToast } from '@/hooks/use-toast';
-import { Heart, Loader2, Sparkles, Upload } from 'lucide-react';
-import { GratitudeLog, Profile, TherapistComment } from '@shared/schema';
-import { formatDistanceToNow } from 'date-fns';
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Textarea } from "@/components/ui/textarea";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { useAuth } from "@/lib/auth-context";
+import { supabase } from "@/lib/supabase";
+import { useToast } from "@/hooks/use-toast";
+import { Heart, Loader2, Sparkles, Upload } from "lucide-react";
+import { GratitudeLog, Profile, TherapistComment } from "@shared/schema";
+import { formatDistanceToNow } from "date-fns";
 
 type GratitudeWithAuthor = GratitudeLog & {
   author?: Profile;
@@ -17,7 +17,7 @@ type GratitudeWithAuthor = GratitudeLog & {
 
 export default function GratitudeLogPage() {
   const [logs, setLogs] = useState<GratitudeWithAuthor[]>([]);
-  const [newText, setNewText] = useState('');
+  const [newText, setNewText] = useState("");
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -38,56 +38,59 @@ export default function GratitudeLogPage() {
 
     try {
       const { data: logsData, error: logsError } = await supabase
-        .from('Couples_gratitude_logs')
-        .select('*')
-        .eq('couple_id', profile.couple_id)
-        .order('created_at', { ascending: false });
+        .from("Couples_gratitude_logs")
+        .select("*")
+        .eq("couple_id", profile.couple_id)
+        .order("created_at", { ascending: false });
 
       if (logsError) throw logsError;
 
-      const userIds = [...new Set(logsData.map(log => log.user_id))];
+      const userIds = [...new Set(logsData.map((log) => log.user_id))];
       const { data: profiles, error: profilesError } = await supabase
-        .from('Couples_profiles')
-        .select('*')
-        .in('id', userIds);
+        .from("Couples_profiles")
+        .select("*")
+        .in("id", userIds);
 
       if (profilesError) throw profilesError;
 
       const { data: comments } = await supabase
-        .from('Couples_therapist_comments')
-        .select('*')
-        .eq('couple_id', profile.couple_id)
-        .eq('related_activity_type', 'gratitude_logs')
-        .eq('is_private_note', false);
+        .from("Couples_therapist_comments")
+        .select("*")
+        .eq("couple_id", profile.couple_id)
+        .eq("related_activity_type", "gratitude_logs")
+        .eq("is_private_note", false);
 
       // Generate signed URLs for images (valid for 1 hour)
-      const logsWithSignedUrls = await Promise.all(logsData.map(async (log) => {
-        let signedUrl: string | null = null;
-        
-        if (log.image_url) {
-          const { data, error } = await supabase.storage
-            .from('gratitude-images')
-            .createSignedUrl(log.image_url, 3600); // 1 hour expiry
+      const logsWithSignedUrls = await Promise.all(
+        logsData.map(async (log) => {
+          let signedUrl: string | null = null;
 
-          if (!error && data) {
-            signedUrl = data.signedUrl;
+          if (log.image_url) {
+            const { data, error } = await supabase.storage
+              .from("gratitude-images")
+              .createSignedUrl(log.image_url, 3600); // 1 hour expiry
+
+            if (!error && data) {
+              signedUrl = data.signedUrl;
+            }
           }
-        }
 
-        return {
-          ...log,
-          image_url: signedUrl, // Replace file path with signed URL
-          author: profiles.find(p => p.id === log.user_id),
-          comments: comments?.filter(c => c.related_activity_id === log.id) || [],
-        };
-      }));
+          return {
+            ...log,
+            image_url: signedUrl, // Replace file path with signed URL
+            author: profiles.find((p) => p.id === log.user_id),
+            comments:
+              comments?.filter((c) => c.related_activity_id === log.id) || [],
+          };
+        }),
+      );
 
       setLogs(logsWithSignedUrls);
     } catch (error: any) {
       toast({
-        title: 'Error',
+        title: "Error",
         description: error.message,
-        variant: 'destructive',
+        variant: "destructive",
       });
     } finally {
       setLoading(false);
@@ -98,20 +101,23 @@ export default function GratitudeLogPage() {
     if (!profile?.couple_id) return;
 
     const channel = supabase
-      .channel('gratitude_comments')
+      .channel("gratitude_comments")
       .on(
-        'postgres_changes',
+        "postgres_changes",
         {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'Couples_therapist_comments',
+          event: "INSERT",
+          schema: "public",
+          table: "Couples_therapist_comments",
           filter: `couple_id=eq.${profile.couple_id}`,
         },
         (payload) => {
-          if (payload.new.related_activity_type === 'gratitude_logs' && !payload.new.is_private_note) {
+          if (
+            payload.new.related_activity_type === "gratitude_logs" &&
+            !payload.new.is_private_note
+          ) {
             fetchLogs();
           }
-        }
+        },
       )
       .subscribe();
 
@@ -125,11 +131,11 @@ export default function GratitudeLogPage() {
     if (!file) return;
 
     // Validate file type
-    if (!file.type.startsWith('image/')) {
+    if (!file.type.startsWith("image/")) {
       toast({
-        title: 'Invalid file type',
-        description: 'Please select an image file',
-        variant: 'destructive',
+        title: "Invalid file type",
+        description: "Please select an image file",
+        variant: "destructive",
       });
       return;
     }
@@ -137,15 +143,15 @@ export default function GratitudeLogPage() {
     // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
       toast({
-        title: 'File too large',
-        description: 'Please select an image smaller than 5MB',
-        variant: 'destructive',
+        title: "File too large",
+        description: "Please select an image smaller than 5MB",
+        variant: "destructive",
       });
       return;
     }
 
     setSelectedImage(file);
-    
+
     // Create preview
     const reader = new FileReader();
     reader.onloadend = () => {
@@ -161,7 +167,8 @@ export default function GratitudeLogPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user || !profile?.couple_id || (!newText.trim() && !selectedImage)) return;
+    if (!user || !profile?.couple_id || (!newText.trim() && !selectedImage))
+      return;
 
     setSubmitting(true);
     setUploading(!!selectedImage);
@@ -179,9 +186,9 @@ export default function GratitudeLogPage() {
         uploadedFilePath = filePath;
 
         const { error: uploadError } = await supabase.storage
-          .from('gratitude-images')
+          .from("gratitude-images")
           .upload(filePath, selectedImage, {
-            cacheControl: '3600',
+            cacheControl: "3600",
             upsert: false,
           });
 
@@ -192,36 +199,40 @@ export default function GratitudeLogPage() {
       }
 
       // Insert gratitude log
-      const { error: insertError } = await supabase.from('Couples_gratitude_logs').insert({
-        couple_id: profile.couple_id,
-        user_id: user.id,
-        text_content: newText.trim() || null,
-        image_url: imageUrl,
-      });
+      const { error: insertError } = await supabase
+        .from("Couples_gratitude_logs")
+        .insert({
+          couple_id: profile.couple_id,
+          user_id: user.id,
+          text_content: newText.trim() || null,
+          image_url: imageUrl,
+        });
 
       if (insertError) {
         // Clean up uploaded file if database insert fails
         if (uploadedFilePath) {
-          await supabase.storage.from('gratitude-images').remove([uploadedFilePath]);
+          await supabase.storage
+            .from("gratitude-images")
+            .remove([uploadedFilePath]);
         }
         throw insertError;
       }
 
-      setNewText('');
+      setNewText("");
       setSelectedImage(null);
       setImagePreview(null);
-      
+
       toast({
-        title: 'Gratitude shared!',
-        description: 'Your moment of gratitude has been added.',
+        title: "Gratitude shared!",
+        description: "Your moment of gratitude has been added.",
       });
 
       fetchLogs();
     } catch (error: any) {
       toast({
-        title: 'Error',
+        title: "Error",
         description: error.message,
-        variant: 'destructive',
+        variant: "destructive",
       });
     } finally {
       setSubmitting(false);
@@ -260,7 +271,7 @@ export default function GratitudeLogPage() {
                 className="min-h-32 resize-none"
                 data-testid="textarea-new-gratitude"
               />
-              
+
               {imagePreview && (
                 <div className="relative">
                   <img
@@ -300,11 +311,11 @@ export default function GratitudeLogPage() {
                   >
                     <span className="cursor-pointer">
                       <Upload className="mr-2 h-4 w-4" />
-                      {selectedImage ? 'Change Image' : 'Add Image'}
+                      {selectedImage ? "Change Image" : "Add Image"}
                     </span>
                   </Button>
                 </label>
-                
+
                 <Button
                   type="submit"
                   disabled={(!newText.trim() && !selectedImage) || submitting}
@@ -338,7 +349,8 @@ export default function GratitudeLogPage() {
               <CardContent>
                 <Heart className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
                 <p className="text-muted-foreground">
-                  No gratitude entries yet. Be the first to share something beautiful!
+                  No gratitude entries yet. Be the first to share something
+                  beautiful!
                 </p>
               </CardContent>
             </Card>
@@ -349,13 +361,19 @@ export default function GratitudeLogPage() {
                   <div className="flex items-center gap-3">
                     <Avatar>
                       <AvatarFallback className="bg-primary/10 text-primary">
-                        {log.author?.full_name?.charAt(0) || '?'}
+                        {log.author?.full_name?.charAt(0) || "?"}
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex-1">
-                      <p className="font-semibold">{log.author?.full_name || 'Unknown'}</p>
+                      <p className="font-semibold">
+                        {log.author?.full_name || "Unknown"}
+                      </p>
                       <p className="text-sm text-muted-foreground">
-                        {log.created_at ? formatDistanceToNow(new Date(log.created_at), { addSuffix: true }) : 'Recently'}
+                        {log.created_at
+                          ? formatDistanceToNow(new Date(log.created_at), {
+                              addSuffix: true,
+                            })
+                          : "Recently"}
                       </p>
                     </div>
                   </div>
@@ -369,18 +387,23 @@ export default function GratitudeLogPage() {
                       data-testid={`img-gratitude-${log.id}`}
                     />
                   )}
-                  
+
                   {log.text_content && (
                     <p className="text-base leading-relaxed whitespace-pre-wrap">
                       {log.text_content}
                     </p>
                   )}
-                  
+
                   {log.comments && log.comments.length > 0 && (
                     <div className="border-l-4 border-primary/30 pl-4 mt-4 space-y-2">
-                      <p className="text-sm font-medium text-primary">Therapist Comment</p>
+                      <p className="text-sm font-medium text-primary">
+                        Therapist Comment
+                      </p>
                       {log.comments.map((comment) => (
-                        <p key={comment.id} className="text-sm text-muted-foreground italic">
+                        <p
+                          key={comment.id}
+                          className="text-sm text-muted-foreground italic"
+                        >
                           {comment.comment_text}
                         </p>
                       ))}

@@ -1,23 +1,27 @@
 # Week Number Tracking & Historical Timeline Feature
 
 ## Overview
+
 The weekly check-in system now includes automatic ISO week number tracking and a comprehensive historical timeline view for couples to review their progress over time.
 
 ## What's New
 
 ### 1. Automatic Week Tracking
+
 - **ISO Week Numbers**: Uses standard ISO 8601 week numbering (Week 1-53)
 - **Year Tracking**: Tracks the ISO year to handle year boundaries correctly
 - **Database Triggers**: Automatically calculates and sets week_number and year on insert
 - **No Manual Input**: Couples don't need to worry about week numbers - it's all automated
 
 ### 2. Historical Timeline View
+
 - **Chronological History**: View all past check-ins organized by week and year
 - **Trend Indicators**: Visual badges showing improvement or areas needing attention
 - **Connection Scores**: See connectedness and conflict scores at a glance
 - **Full Reflections**: Read complete responses for each week
 
 ### 3. Progress Tracking
+
 - **Week-over-Week Comparison**: Compare your current scores with previous weeks
 - **Visual Trends**: See if connection is improving, declining, or stable
 - **Complete History**: Access all past check-ins in one place
@@ -32,6 +36,7 @@ The weekly check-in system now includes automatic ISO week number tracking and a
 4. Click **"Run"**
 
 This script will:
+
 - Add a `year` column to the Couples_weekly_checkins table
 - Create indexes for faster queries
 - Add database triggers to auto-calculate week_number and year
@@ -48,6 +53,7 @@ Once the upgrade script is run, users can:
 ## Technical Details
 
 ### Database Schema Changes
+
 ```sql
 -- New column
 year INT
@@ -66,12 +72,14 @@ trigger_set_week_number_and_year BEFORE INSERT
 ### Frontend Components
 
 **New Page**: `/checkin-history`
+
 - Displays all check-ins grouped by week and year
 - Shows trend indicators (improving vs needs attention)
 - Displays full reflection content
 - Calculates week-over-week changes
 
 **Dashboard Update**:
+
 - New "Check-In History" card with prominent placement
 - Direct link to timeline view
 - Visual indication with Calendar and TrendingUp icons
@@ -79,11 +87,13 @@ trigger_set_week_number_and_year BEFORE INSERT
 ### API Integration
 
 The historical view uses the standard Supabase query:
+
 ```typescript
-queryKey: ['/api/weekly-checkins/history', profile?.couple_id]
+queryKey: ["/api/weekly-checkins/history", profile?.couple_id];
 ```
 
 Data is automatically filtered by:
+
 - User's couple_id (via RLS policies)
 - Sorted by year and week (most recent first)
 
@@ -114,6 +124,7 @@ Data is automatically filtered by:
 ## Future Enhancements
 
 This foundation enables:
+
 - Analytics dashboards with trend charts
 - Automated insights based on historical patterns
 - Email notifications for missed weeks

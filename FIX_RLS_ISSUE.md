@@ -3,6 +3,7 @@
 ## ❌ **The Problem:**
 
 You're getting this error when signing up:
+
 ```
 new row violates row-level security policy for table "Couples_profiles"
 ```
@@ -52,6 +53,7 @@ ALTER TABLE public."Couples_couples" NO FORCE ROW LEVEL SECURITY;
 ## 🔒 **Security:**
 
 This is **safe** because:
+
 - RLS is still enabled for all users
 - Only the backend service role can bypass it (for creating new accounts)
 - All existing security policies remain in place

@@ -17,6 +17,7 @@ The previous system using Supabase Admin API was causing `FUNCTION_INVOCATION_FA
 ### **For Therapists:**
 
 1. **Self-Registration** (`/auth/therapist-signup`)
+
    - Therapist visits the signup page
    - Creates account with email/password
    - Profile automatically created with `role='therapist'`
@@ -44,15 +45,18 @@ The previous system using Supabase Admin API was causing `FUNCTION_INVOCATION_FA
 ## 📁 **New Files Created**
 
 ### **Database Schema:**
+
 - **`shared/schema.ts`** - Added `Couples_invitation_codes` table definition
 - **`supabase-invitation-codes.sql`** - SQL migration to create the table
 
 ### **Frontend Pages:**
+
 - **`client/src/pages/therapist-signup.tsx`** - Therapist self-registration
 - **`client/src/pages/couple-signup.tsx`** - Couple registration with invitation code
 - **`client/src/pages/invitation-codes.tsx`** - Invitation code management for therapists
 
 ### **Routing:**
+
 - **`client/src/App.tsx`** - Updated to include new routes and menu items
 
 ---
@@ -160,6 +164,7 @@ CREATE POLICY "Couples can use codes"
 ## 🔒 **Security Features**
 
 ### **RLS Policies:**
+
 - ✅ Therapists can only see their own invitation codes
 - ✅ Only therapists can create invitation codes
 - ✅ Anyone can validate codes (for signup process)
@@ -167,6 +172,7 @@ CREATE POLICY "Couples can use codes"
 - ✅ Used codes cannot be modified again
 
 ### **Validation:**
+
 - ✅ Invitation code must exist and be active
 - ✅ Invitation code cannot already be used
 - ✅ Email addresses must be unique
@@ -181,6 +187,7 @@ CREATE POLICY "Couples can use codes"
 ### **Therapist View:**
 
 **Invitation Codes Page** (`/admin/invitation-codes`):
+
 - List of active (unused) codes
 - List of used codes (with used date)
 - One-click copy to clipboard
@@ -190,6 +197,7 @@ CREATE POLICY "Couples can use codes"
 ### **Couple View:**
 
 **Signup Page** (`/auth/couple-signup`):
+
 - Single form with all fields
 - Separate sections for Partner 1 and Partner 2
 - Automatic code validation
@@ -201,6 +209,7 @@ CREATE POLICY "Couples can use codes"
 ## 🎨 **UI Components Used**
 
 All pages use existing Shadcn UI components:
+
 - `Card`, `CardHeader`, `CardTitle`, `CardDescription`, `CardContent`
 - `Form`, `FormField`, `FormItem`, `FormLabel`, `FormControl`, `FormMessage`
 - `Input` with proper `data-testid` attributes
@@ -213,6 +222,7 @@ All pages use existing Shadcn UI components:
 ## ✅ **What Was Removed**
 
 The old complex system has been removed from the **navigation only**:
+
 - ❌ "User Management" admin menu item (replaced with "Invitation Codes")
 - ❌ Old `/admin/user-management` route
 
@@ -227,6 +237,7 @@ The old complex system has been removed from the **navigation only**:
 1. **Run the SQL migration** in Supabase Dashboard
 
 2. **Test Therapist Signup:**
+
    ```
    Navigate to: /auth/therapist-signup
    Email: therapist@test.com
@@ -235,6 +246,7 @@ The old complex system has been removed from the **navigation only**:
    ```
 
 3. **Test Invitation Code Generation:**
+
    ```
    Sign in as therapist
    Go to: /admin/invitation-codes
@@ -243,6 +255,7 @@ The old complex system has been removed from the **navigation only**:
    ```
 
 4. **Test Couple Signup:**
+
    ```
    Navigate to: /auth/couple-signup
    Invitation Code: [paste code from step 3]
@@ -264,12 +277,14 @@ The old complex system has been removed from the **navigation only**:
 ### **Authentication Flow:**
 
 1. **Therapist Signup:**
+
    ```typescript
    supabase.auth.signUp() → Creates auth user
    supabase.from('Couples_profiles').insert() → Creates profile
    ```
 
 2. **Invitation Code Generation:**
+
    ```typescript
    Generate 8-char code → Insert to Couples_invitation_codes
    ```
@@ -284,20 +299,21 @@ The old complex system has been removed from the **navigation only**:
    ```
 
 ### **No Backend Required:**
+
 All operations use Supabase client-side SDK with RLS policies enforcing security.
 
 ---
 
 ## 📊 **Advantages Over Old System**
 
-| Feature | Old System | New System |
-|---------|-----------|------------|
-| **Complexity** | High (Admin API) | Low (Client SDK) |
-| **Serverless Compatible** | ❌ Issues | ✅ Works perfectly |
-| **User Experience** | Admin creates accounts | Users self-register |
-| **Security** | Backend validation | RLS policies |
-| **Maintenance** | Complex error handling | Simple, reliable |
-| **Scalability** | Backend dependent | Fully client-side |
+| Feature                   | Old System             | New System          |
+| ------------------------- | ---------------------- | ------------------- |
+| **Complexity**            | High (Admin API)       | Low (Client SDK)    |
+| **Serverless Compatible** | ❌ Issues              | ✅ Works perfectly  |
+| **User Experience**       | Admin creates accounts | Users self-register |
+| **Security**              | Backend validation     | RLS policies        |
+| **Maintenance**           | Complex error handling | Simple, reliable    |
+| **Scalability**           | Backend dependent      | Fully client-side   |
 
 ---
 
@@ -311,6 +327,7 @@ All operations use Supabase client-side SDK with RLS policies enforcing security
 ✅ **Scalable** - Pure client-side with Supabase
 
 **Next Steps:**
+
 1. Run the SQL migration in Supabase
 2. Test the full flow
 3. Start using the new invitation system!

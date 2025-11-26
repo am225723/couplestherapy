@@ -1,19 +1,40 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'wouter';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Badge } from '@/components/ui/badge';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/lib/auth-context';
-import { supabase } from '@/lib/supabase';
-import { Users, UserPlus, Link, RefreshCw, AlertCircle, CheckCircle, Plus } from 'lucide-react';
-import { apiRequest } from '@/lib/queryClient';
+import { useState, useEffect } from "react";
+import { useNavigate } from "wouter";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/lib/auth-context";
+import { supabase } from "@/lib/supabase";
+import {
+  Users,
+  UserPlus,
+  Link,
+  RefreshCw,
+  AlertCircle,
+  CheckCircle,
+  Plus,
+} from "lucide-react";
+import { apiRequest } from "@/lib/queryClient";
 
 interface Couple {
   couple_id: string;
@@ -30,7 +51,7 @@ interface Therapist {
 }
 
 export default function TherapistManagement() {
-  const [activeTab, setActiveTab] = useState('couples');
+  const [activeTab, setActiveTab] = useState("couples");
   const [myCouples, setMyCouples] = useState<Couple[]>([]);
   const [unassignedCouples, setUnassignedCouples] = useState<Couple[]>([]);
   const [therapists, setTherapists] = useState<Therapist[]>([]);
@@ -43,41 +64,41 @@ export default function TherapistManagement() {
 
   // Form states
   const [coupleForm, setCoupleForm] = useState({
-    partner1_email: '',
-    partner1_password: '',
-    partner1_name: '',
-    partner2_email: '',
-    partner2_password: '',
-    partner2_name: '',
+    partner1_email: "",
+    partner1_password: "",
+    partner1_name: "",
+    partner2_email: "",
+    partner2_password: "",
+    partner2_name: "",
   });
 
   const [therapistForm, setTherapistForm] = useState({
-    email: '',
-    password: '',
-    full_name: '',
+    email: "",
+    password: "",
+    full_name: "",
   });
 
   useEffect(() => {
-    if (profile?.role === 'therapist') {
+    if (profile?.role === "therapist") {
       fetchMyCouples();
       fetchUnassignedCouples();
     }
-    if (profile?.role === 'therapist' || profile?.role === 'admin') {
+    if (profile?.role === "therapist" || profile?.role === "admin") {
       fetchTherapists();
     }
   }, [profile]);
 
   const fetchMyCouples = async () => {
     try {
-      const response = await fetch('/api/therapist/my-couples');
-      if (!response.ok) throw new Error('Failed to fetch couples');
+      const response = await fetch("/api/therapist/my-couples");
+      if (!response.ok) throw new Error("Failed to fetch couples");
       const data = await response.json();
       setMyCouples(data.couples || []);
     } catch (error: any) {
       toast({
-        title: 'Error',
+        title: "Error",
         description: error.message,
-        variant: 'destructive',
+        variant: "destructive",
       });
     } finally {
       setLoading(false);
@@ -86,52 +107,56 @@ export default function TherapistManagement() {
 
   const fetchUnassignedCouples = async () => {
     try {
-      const response = await fetch('/api/therapist/unassigned-couples');
-      if (!response.ok) throw new Error('Failed to fetch unassigned couples');
+      const response = await fetch("/api/therapist/unassigned-couples");
+      if (!response.ok) throw new Error("Failed to fetch unassigned couples");
       const data = await response.json();
       setUnassignedCouples(data.couples || []);
     } catch (error: any) {
-      console.error('Error fetching unassigned couples:', error);
+      console.error("Error fetching unassigned couples:", error);
     }
   };
 
   const fetchTherapists = async () => {
     try {
       const { data, error } = await supabase
-        .from('Couples_profiles')
-        .select('*')
-        .eq('role', 'therapist');
+        .from("Couples_profiles")
+        .select("*")
+        .eq("role", "therapist");
 
       if (error) throw error;
       setTherapists(data || []);
     } catch (error: any) {
-      console.error('Error fetching therapists:', error);
+      console.error("Error fetching therapists:", error);
     }
   };
 
   const handleCreateCouple = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await apiRequest('POST', '/api/therapist/create-couple', coupleForm);
+      const response = await apiRequest(
+        "POST",
+        "/api/therapist/create-couple",
+        coupleForm,
+      );
       toast({
-        title: 'Success',
-        description: 'Couple created successfully',
+        title: "Success",
+        description: "Couple created successfully",
       });
       setCoupleForm({
-        partner1_email: '',
-        partner1_password: '',
-        partner1_name: '',
-        partner2_email: '',
-        partner2_password: '',
-        partner2_name: '',
+        partner1_email: "",
+        partner1_password: "",
+        partner1_name: "",
+        partner2_email: "",
+        partner2_password: "",
+        partner2_name: "",
       });
       setShowCreateCouple(false);
       fetchMyCouples();
     } catch (error: any) {
       toast({
-        title: 'Error',
+        title: "Error",
         description: error.message,
-        variant: 'destructive',
+        variant: "destructive",
       });
     }
   };
@@ -139,69 +164,80 @@ export default function TherapistManagement() {
   const handleCreateTherapist = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await apiRequest('POST', '/api/therapist/create-therapist', therapistForm);
+      const response = await apiRequest(
+        "POST",
+        "/api/therapist/create-therapist",
+        therapistForm,
+      );
       toast({
-        title: 'Success',
-        description: 'Therapist created successfully',
+        title: "Success",
+        description: "Therapist created successfully",
       });
       setTherapistForm({
-        email: '',
-        password: '',
-        full_name: '',
+        email: "",
+        password: "",
+        full_name: "",
       });
       setShowCreateTherapist(false);
       fetchTherapists();
     } catch (error: any) {
       toast({
-        title: 'Error',
+        title: "Error",
         description: error.message,
-        variant: 'destructive',
+        variant: "destructive",
       });
     }
   };
 
   const handleLinkCouple = async (coupleId: string) => {
     try {
-      const response = await apiRequest('POST', '/api/therapist/link-couple', { couple_id: coupleId });
+      const response = await apiRequest("POST", "/api/therapist/link-couple", {
+        couple_id: coupleId,
+      });
       toast({
-        title: 'Success',
-        description: 'Couple linked to your account',
+        title: "Success",
+        description: "Couple linked to your account",
       });
       fetchMyCouples();
       fetchUnassignedCouples();
     } catch (error: any) {
       toast({
-        title: 'Error',
+        title: "Error",
         description: error.message,
-        variant: 'destructive',
+        variant: "destructive",
       });
     }
   };
 
   const handleRegenerateJoinCode = async (coupleId: string) => {
     try {
-      const response = await apiRequest('POST', '/api/therapist/regenerate-join-code', { couple_id: coupleId });
+      const response = await apiRequest(
+        "POST",
+        "/api/therapist/regenerate-join-code",
+        { couple_id: coupleId },
+      );
       toast({
-        title: 'Success',
-        description: 'Join code regenerated',
+        title: "Success",
+        description: "Join code regenerated",
       });
       fetchMyCouples();
     } catch (error: any) {
       toast({
-        title: 'Error',
+        title: "Error",
         description: error.message,
-        variant: 'destructive',
+        variant: "destructive",
       });
     }
   };
 
-  if (!profile || (profile.role !== 'therapist' && profile.role !== 'admin')) {
+  if (!profile || (profile.role !== "therapist" && profile.role !== "admin")) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Alert>
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>
-            Access denied. Only therapists and administrators can access this page.
+            Access denied. Only therapists and administrators can access this
+            page.
           </AlertDescription>
         </Alert>
       </div>
@@ -215,7 +251,8 @@ export default function TherapistManagement() {
           <div>
             <h1 className="text-4xl font-bold">Therapist Management</h1>
             <p className="text-muted-foreground mt-2">
-              Manage couples, create new users, and oversee your therapy practice
+              Manage couples, create new users, and oversee your therapy
+              practice
             </p>
           </div>
           <div className="flex gap-2">
@@ -242,7 +279,12 @@ export default function TherapistManagement() {
                         <Input
                           id="partner1_name"
                           value={coupleForm.partner1_name}
-                          onChange={(e) => setCoupleForm(prev => ({ ...prev, partner1_name: e.target.value }))}
+                          onChange={(e) =>
+                            setCoupleForm((prev) => ({
+                              ...prev,
+                              partner1_name: e.target.value,
+                            }))
+                          }
                           required
                         />
                       </div>
@@ -252,7 +294,12 @@ export default function TherapistManagement() {
                           id="partner1_email"
                           type="email"
                           value={coupleForm.partner1_email}
-                          onChange={(e) => setCoupleForm(prev => ({ ...prev, partner1_email: e.target.value }))}
+                          onChange={(e) =>
+                            setCoupleForm((prev) => ({
+                              ...prev,
+                              partner1_email: e.target.value,
+                            }))
+                          }
                           required
                         />
                       </div>
@@ -262,7 +309,12 @@ export default function TherapistManagement() {
                           id="partner1_password"
                           type="password"
                           value={coupleForm.partner1_password}
-                          onChange={(e) => setCoupleForm(prev => ({ ...prev, partner1_password: e.target.value }))}
+                          onChange={(e) =>
+                            setCoupleForm((prev) => ({
+                              ...prev,
+                              partner1_password: e.target.value,
+                            }))
+                          }
                           required
                           minLength={6}
                         />
@@ -275,7 +327,12 @@ export default function TherapistManagement() {
                         <Input
                           id="partner2_name"
                           value={coupleForm.partner2_name}
-                          onChange={(e) => setCoupleForm(prev => ({ ...prev, partner2_name: e.target.value }))}
+                          onChange={(e) =>
+                            setCoupleForm((prev) => ({
+                              ...prev,
+                              partner2_name: e.target.value,
+                            }))
+                          }
                           required
                         />
                       </div>
@@ -285,7 +342,12 @@ export default function TherapistManagement() {
                           id="partner2_email"
                           type="email"
                           value={coupleForm.partner2_email}
-                          onChange={(e) => setCoupleForm(prev => ({ ...prev, partner2_email: e.target.value }))}
+                          onChange={(e) =>
+                            setCoupleForm((prev) => ({
+                              ...prev,
+                              partner2_email: e.target.value,
+                            }))
+                          }
                           required
                         />
                       </div>
@@ -295,7 +357,12 @@ export default function TherapistManagement() {
                           id="partner2_password"
                           type="password"
                           value={coupleForm.partner2_password}
-                          onChange={(e) => setCoupleForm(prev => ({ ...prev, partner2_password: e.target.value }))}
+                          onChange={(e) =>
+                            setCoupleForm((prev) => ({
+                              ...prev,
+                              partner2_password: e.target.value,
+                            }))
+                          }
                           required
                           minLength={6}
                         />
@@ -303,7 +370,11 @@ export default function TherapistManagement() {
                     </div>
                   </div>
                   <div className="flex justify-end gap-2">
-                    <Button type="button" variant="outline" onClick={() => setShowCreateCouple(false)}>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setShowCreateCouple(false)}
+                    >
                       Cancel
                     </Button>
                     <Button type="submit">Create Couple</Button>
@@ -312,8 +383,11 @@ export default function TherapistManagement() {
               </DialogContent>
             </Dialog>
 
-            {profile.role === 'admin' && (
-              <Dialog open={showCreateTherapist} onOpenChange={setShowCreateTherapist}>
+            {profile.role === "admin" && (
+              <Dialog
+                open={showCreateTherapist}
+                onOpenChange={setShowCreateTherapist}
+              >
                 <DialogTrigger asChild>
                   <Button variant="outline">
                     <UserPlus className="h-4 w-4 mr-2" />
@@ -333,7 +407,12 @@ export default function TherapistManagement() {
                       <Input
                         id="therapist_name"
                         value={therapistForm.full_name}
-                        onChange={(e) => setTherapistForm(prev => ({ ...prev, full_name: e.target.value }))}
+                        onChange={(e) =>
+                          setTherapistForm((prev) => ({
+                            ...prev,
+                            full_name: e.target.value,
+                          }))
+                        }
                         required
                       />
                     </div>
@@ -343,7 +422,12 @@ export default function TherapistManagement() {
                         id="therapist_email"
                         type="email"
                         value={therapistForm.email}
-                        onChange={(e) => setTherapistForm(prev => ({ ...prev, email: e.target.value }))}
+                        onChange={(e) =>
+                          setTherapistForm((prev) => ({
+                            ...prev,
+                            email: e.target.value,
+                          }))
+                        }
                         required
                       />
                     </div>
@@ -353,13 +437,22 @@ export default function TherapistManagement() {
                         id="therapist_password"
                         type="password"
                         value={therapistForm.password}
-                        onChange={(e) => setTherapistForm(prev => ({ ...prev, password: e.target.value }))}
+                        onChange={(e) =>
+                          setTherapistForm((prev) => ({
+                            ...prev,
+                            password: e.target.value,
+                          }))
+                        }
                         required
                         minLength={6}
                       />
                     </div>
                     <div className="flex justify-end gap-2">
-                      <Button type="button" variant="outline" onClick={() => setShowCreateTherapist(false)}>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => setShowCreateTherapist(false)}
+                      >
                         Cancel
                       </Button>
                       <Button type="submit">Create Therapist</Button>
@@ -375,7 +468,7 @@ export default function TherapistManagement() {
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="couples">My Couples</TabsTrigger>
             <TabsTrigger value="unassigned">Unassigned Couples</TabsTrigger>
-            {profile.role === 'admin' && (
+            {profile.role === "admin" && (
               <TabsTrigger value="therapists">Therapists</TabsTrigger>
             )}
           </TabsList>
@@ -384,22 +477,30 @@ export default function TherapistManagement() {
             {loading ? (
               <div className="text-center py-12">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-                <p className="mt-4 text-muted-foreground">Loading your couples...</p>
+                <p className="mt-4 text-muted-foreground">
+                  Loading your couples...
+                </p>
               </div>
             ) : myCouples.length === 0 ? (
               <Card>
                 <CardContent className="text-center py-12">
                   <Users className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                  <h3 className="text-lg font-semibold mb-2">No couples assigned yet</h3>
+                  <h3 className="text-lg font-semibold mb-2">
+                    No couples assigned yet
+                  </h3>
                   <p className="text-muted-foreground mb-4">
-                    Create new couples or link existing unassigned couples to your account.
+                    Create new couples or link existing unassigned couples to
+                    your account.
                   </p>
                   <div className="flex gap-2 justify-center">
                     <Button onClick={() => setShowCreateCouple(true)}>
                       <Plus className="h-4 w-4 mr-2" />
                       Create New Couple
                     </Button>
-                    <Button variant="outline" onClick={() => setActiveTab('unassigned')}>
+                    <Button
+                      variant="outline"
+                      onClick={() => setActiveTab("unassigned")}
+                    >
                       <Link className="h-4 w-4 mr-2" />
                       Browse Unassigned
                     </Button>
@@ -420,7 +521,9 @@ export default function TherapistManagement() {
                     </CardHeader>
                     <CardContent className="space-y-4">
                       <div>
-                        <Label className="text-sm text-muted-foreground">Join Code</Label>
+                        <Label className="text-sm text-muted-foreground">
+                          Join Code
+                        </Label>
                         <div className="flex items-center gap-2 mt-1">
                           <code className="bg-muted px-2 py-1 rounded text-sm font-mono">
                             {couple.join_code}
@@ -428,7 +531,9 @@ export default function TherapistManagement() {
                           <Button
                             size="sm"
                             variant="ghost"
-                            onClick={() => handleRegenerateJoinCode(couple.couple_id)}
+                            onClick={() =>
+                              handleRegenerateJoinCode(couple.couple_id)
+                            }
                           >
                             <RefreshCw className="h-3 w-3" />
                           </Button>
@@ -437,7 +542,9 @@ export default function TherapistManagement() {
                       <div className="flex gap-2">
                         <Button
                           size="sm"
-                          onClick={() => navigate(`/admin/couple/${couple.couple_id}`)}
+                          onClick={() =>
+                            navigate(`/admin/couple/${couple.couple_id}`)
+                          }
                         >
                           View Details
                         </Button>
@@ -453,8 +560,8 @@ export default function TherapistManagement() {
             <Alert>
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
-                These couples have been created but are not yet assigned to a therapist. 
-                Click "Link to Me" to assign them to your account.
+                These couples have been created but are not yet assigned to a
+                therapist. Click "Link to Me" to assign them to your account.
               </AlertDescription>
             </Alert>
 
@@ -462,7 +569,9 @@ export default function TherapistManagement() {
               <Card>
                 <CardContent className="text-center py-12">
                   <CheckCircle className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                  <h3 className="text-lg font-semibold mb-2">All couples assigned</h3>
+                  <h3 className="text-lg font-semibold mb-2">
+                    All couples assigned
+                  </h3>
                   <p className="text-muted-foreground">
                     There are no unassigned couples at the moment.
                   </p>
@@ -480,7 +589,9 @@ export default function TherapistManagement() {
                     </CardHeader>
                     <CardContent className="space-y-4">
                       <div>
-                        <Label className="text-sm text-muted-foreground">Join Code</Label>
+                        <Label className="text-sm text-muted-foreground">
+                          Join Code
+                        </Label>
                         <code className="bg-muted px-2 py-1 rounded text-sm font-mono block mt-1">
                           {couple.join_code}
                         </code>
@@ -500,13 +611,15 @@ export default function TherapistManagement() {
             )}
           </TabsContent>
 
-          {profile.role === 'admin' && (
+          {profile.role === "admin" && (
             <TabsContent value="therapists" className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {therapists.map((therapist) => (
                   <Card key={therapist.id}>
                     <CardHeader>
-                      <CardTitle className="text-lg">{therapist.full_name}</CardTitle>
+                      <CardTitle className="text-lg">
+                        {therapist.full_name}
+                      </CardTitle>
                       <CardDescription>{therapist.email}</CardDescription>
                     </CardHeader>
                     <CardContent>

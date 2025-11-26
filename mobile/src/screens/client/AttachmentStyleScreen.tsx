@@ -1,11 +1,18 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
-import { useAuth } from '../../contexts/AuthContext';
-import { useApi, useApiMutation } from '../../hooks/useApi';
-import Button from '../../components/Button';
-import Card from '../../components/Card';
-import LoadingSpinner from '../../components/LoadingSpinner';
-import { colors, spacing, typography } from '../../constants/theme';
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  Alert,
+} from "react-native";
+import { useAuth } from "../../contexts/AuthContext";
+import { useApi, useApiMutation } from "../../hooks/useApi";
+import Button from "../../components/Button";
+import Card from "../../components/Card";
+import LoadingSpinner from "../../components/LoadingSpinner";
+import { colors, spacing, typography } from "../../constants/theme";
 
 interface Question {
   id: number;
@@ -18,27 +25,28 @@ export default function AttachmentStyleScreen() {
   const [answers, setAnswers] = useState<{ [key: number]: number }>({});
   const [showResults, setShowResults] = useState(false);
 
-  const { data: questions, isLoading } = useApi<Question[]>('/api/attachment/questions');
+  const { data: questions, isLoading } = useApi<Question[]>(
+    "/api/attachment/questions",
+  );
 
   const { data: results } = useApi<any>(
     `/api/attachment/couple/${profile?.couple_id}/results`,
-    { enabled: showResults }
+    { enabled: showResults },
   );
 
-  const submitAssessment = useApiMutation(
-    '/api/attachment/submit',
-    'post',
-    {
-      onSuccess: () => {
-        Alert.alert('Complete!', 'Your attachment style assessment is saved.');
-        setShowResults(true);
-      },
-    }
-  );
+  const submitAssessment = useApiMutation("/api/attachment/submit", "post", {
+    onSuccess: () => {
+      Alert.alert("Complete!", "Your attachment style assessment is saved.");
+      setShowResults(true);
+    },
+  });
 
   const handleSubmit = () => {
     if (Object.keys(answers).length < (questions?.length || 0)) {
-      Alert.alert('Incomplete', 'Please answer all questions before submitting.');
+      Alert.alert(
+        "Incomplete",
+        "Please answer all questions before submitting.",
+      );
       return;
     }
 
@@ -71,7 +79,10 @@ export default function AttachmentStyleScreen() {
                   <Text style={styles.scoreName}>{item.style}</Text>
                   <View style={styles.scoreBar}>
                     <View
-                      style={[styles.scoreBarFill, { width: `${(item.score / 50) * 100}%` }]}
+                      style={[
+                        styles.scoreBarFill,
+                        { width: `${(item.score / 50) * 100}%` },
+                      ]}
                     />
                   </View>
                   <Text style={styles.scoreValue}>{item.score}</Text>
@@ -82,7 +93,9 @@ export default function AttachmentStyleScreen() {
             <View style={styles.insightsSection}>
               <Text style={styles.sectionTitle}>Key Insights:</Text>
               {results.insights?.map((insight: string, index: number) => (
-                <Text key={index} style={styles.insightText}>• {insight}</Text>
+                <Text key={index} style={styles.insightText}>
+                  • {insight}
+                </Text>
               ))}
             </View>
 
@@ -126,14 +139,18 @@ export default function AttachmentStyleScreen() {
                   key={value}
                   style={[
                     styles.optionButton,
-                    answers[question.id] === value && styles.optionButtonSelected,
+                    answers[question.id] === value &&
+                      styles.optionButtonSelected,
                   ]}
-                  onPress={() => setAnswers({ ...answers, [question.id]: value })}
+                  onPress={() =>
+                    setAnswers({ ...answers, [question.id]: value })
+                  }
                 >
                   <Text
                     style={[
                       styles.optionText,
-                      answers[question.id] === value && styles.optionTextSelected,
+                      answers[question.id] === value &&
+                        styles.optionTextSelected,
                     ]}
                   >
                     {value}
@@ -164,36 +181,69 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   content: { padding: spacing.lg },
   title: { ...typography.h2, color: colors.text, marginBottom: spacing.xs },
-  subtitle: { ...typography.body, color: colors.textSecondary, marginBottom: spacing.lg },
-  progressCard: { marginBottom: spacing.lg, alignItems: 'center' },
+  subtitle: {
+    ...typography.body,
+    color: colors.textSecondary,
+    marginBottom: spacing.lg,
+  },
+  progressCard: { marginBottom: spacing.lg, alignItems: "center" },
   progressText: { ...typography.h6, color: colors.primary },
   questionCard: { marginBottom: spacing.lg },
-  questionNumber: { ...typography.bodySmall, color: colors.textSecondary, marginBottom: spacing.xs },
-  questionText: { ...typography.h6, color: colors.text, marginBottom: spacing.md },
-  optionsContainer: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: spacing.xs },
+  questionNumber: {
+    ...typography.bodySmall,
+    color: colors.textSecondary,
+    marginBottom: spacing.xs,
+  },
+  questionText: {
+    ...typography.h6,
+    color: colors.text,
+    marginBottom: spacing.md,
+  },
+  optionsContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: spacing.xs,
+  },
   optionButton: {
     width: 48,
     height: 48,
     borderRadius: 24,
     borderWidth: 2,
     borderColor: colors.border,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
-  optionButtonSelected: { borderColor: colors.primary, backgroundColor: colors.primary },
+  optionButtonSelected: {
+    borderColor: colors.primary,
+    backgroundColor: colors.primary,
+  },
   optionText: { ...typography.h6, color: colors.text },
-  optionTextSelected: { color: '#FFFFFF' },
-  scaleLabels: { flexDirection: 'row', justifyContent: 'space-between' },
+  optionTextSelected: { color: "#FFFFFF" },
+  scaleLabels: { flexDirection: "row", justifyContent: "space-between" },
   scaleLabel: { ...typography.bodySmall, color: colors.textSecondary },
   submitButton: { marginTop: spacing.lg, marginBottom: spacing.xxl },
   resultCard: { marginBottom: spacing.lg },
-  styleTitle: { ...typography.h3, color: colors.primary, marginBottom: spacing.md, textAlign: 'center' },
-  styleDescription: { ...typography.body, color: colors.text, marginBottom: spacing.xl, textAlign: 'center' },
+  styleTitle: {
+    ...typography.h3,
+    color: colors.primary,
+    marginBottom: spacing.md,
+    textAlign: "center",
+  },
+  styleDescription: {
+    ...typography.body,
+    color: colors.text,
+    marginBottom: spacing.xl,
+    textAlign: "center",
+  },
   scoresSection: { marginBottom: spacing.xl },
-  sectionTitle: { ...typography.h5, color: colors.text, marginBottom: spacing.md },
+  sectionTitle: {
+    ...typography.h5,
+    color: colors.text,
+    marginBottom: spacing.md,
+  },
   scoreRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: spacing.md,
     gap: spacing.sm,
   },
@@ -203,10 +253,19 @@ const styles = StyleSheet.create({
     height: 24,
     backgroundColor: colors.border,
     borderRadius: 12,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
-  scoreBarFill: { height: '100%', backgroundColor: colors.primary },
-  scoreValue: { ...typography.h6, color: colors.text, width: 40, textAlign: 'right' },
+  scoreBarFill: { height: "100%", backgroundColor: colors.primary },
+  scoreValue: {
+    ...typography.h6,
+    color: colors.text,
+    width: 40,
+    textAlign: "right",
+  },
   insightsSection: { marginBottom: spacing.xl },
-  insightText: { ...typography.body, color: colors.text, marginBottom: spacing.sm },
+  insightText: {
+    ...typography.body,
+    color: colors.text,
+    marginBottom: spacing.sm,
+  },
 });

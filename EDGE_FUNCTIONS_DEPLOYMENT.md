@@ -5,6 +5,7 @@ This guide explains how to deploy all 8 Edge Functions to your Supabase project.
 ## Prerequisites
 
 1. **Supabase CLI** installed:
+
    ```bash
    npm install -g supabase
    ```
@@ -19,16 +20,16 @@ This guide explains how to deploy all 8 Edge Functions to your Supabase project.
 
 ## Edge Functions Overview
 
-| Function Name | Purpose | Authentication |
-|--------------|---------|----------------|
-| `ai-date-night` | Generate personalized date night ideas | JWT required |
-| `ai-analytics` | Analyze couple activity analytics | JWT required (therapist-only) |
-| `ai-insights` | Generate clinical insights for therapists | JWT required (therapist-only) |
-| `ai-exercise-recommendations` | Recommend therapy tools based on usage | JWT required (couple) |
-| `ai-empathy-prompt` | Generate empathy suggestions for Hold Me Tight | JWT required (couple) |
-| `ai-echo-coaching` | Provide active listening feedback | JWT required (couple) |
-| `ai-voice-memo-sentiment` | Analyze voice memo sentiment | JWT required (couple) |
-| `ai-session-prep` | Generate therapist session preparation | JWT required (therapist-only) |
+| Function Name                 | Purpose                                        | Authentication                |
+| ----------------------------- | ---------------------------------------------- | ----------------------------- |
+| `ai-date-night`               | Generate personalized date night ideas         | JWT required                  |
+| `ai-analytics`                | Analyze couple activity analytics              | JWT required (therapist-only) |
+| `ai-insights`                 | Generate clinical insights for therapists      | JWT required (therapist-only) |
+| `ai-exercise-recommendations` | Recommend therapy tools based on usage         | JWT required (couple)         |
+| `ai-empathy-prompt`           | Generate empathy suggestions for Hold Me Tight | JWT required (couple)         |
+| `ai-echo-coaching`            | Provide active listening feedback              | JWT required (couple)         |
+| `ai-voice-memo-sentiment`     | Analyze voice memo sentiment                   | JWT required (couple)         |
+| `ai-session-prep`             | Generate therapist session preparation         | JWT required (therapist-only) |
 
 ## Step 1: Login to Supabase CLI
 
@@ -49,6 +50,7 @@ Replace `YOUR_PROJECT_REF` with your actual Supabase project reference ID (found
 ## Step 3: Set Environment Variables
 
 Navigate to your Supabase Dashboard:
+
 1. Go to **Project Settings** > **Edge Functions**
 2. Add the following secrets:
 
@@ -110,6 +112,7 @@ supabase functions invoke ai-exercise-recommendations \
 Make sure these are set in your Supabase project:
 
 1. **Dashboard** → **Project Settings** → **Edge Functions** → **Secrets**:
+
    - `PERPLEXITY_API_KEY` - Your Perplexity AI key
 
 2. Auto-provided by Supabase (no action needed):
@@ -122,16 +125,16 @@ Make sure these are set in your Supabase project:
 The frontend is already configured to call these functions via `client/src/lib/ai-functions.ts`:
 
 ```typescript
-import { aiFunctions } from '@/lib/ai-functions';
+import { aiFunctions } from "@/lib/ai-functions";
 
 // Example: Get exercise recommendations
 const recommendations = await aiFunctions.getExerciseRecommendations();
 
 // Example: Generate empathy prompt
 const empathy = await aiFunctions.createEmpathyPrompt({
-  conversation_id: 'abc123',
+  conversation_id: "abc123",
   step_number: 4,
-  user_response: 'I feel disconnected lately...'
+  user_response: "I feel disconnected lately...",
 });
 ```
 
@@ -163,11 +166,13 @@ All functions include CORS headers. If you still see CORS errors:
 ## Cost Considerations
 
 Edge Functions are billed based on:
+
 - **Invocations**: Number of function calls
 - **Execution time**: Duration of each call
 - **Bandwidth**: Data transferred
 
 **Perplexity AI costs** are separate and based on:
+
 - Token usage (prompt + completion tokens)
 - Model: `sonar` model pricing
 
@@ -213,6 +218,7 @@ Monitor function performance:
 ## Support
 
 For issues:
+
 - Check Supabase docs: https://supabase.com/docs/guides/functions
 - Review function logs in dashboard
 - Contact Supabase support for infrastructure issues

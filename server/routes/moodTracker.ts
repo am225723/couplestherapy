@@ -26,18 +26,18 @@ router.get("/couple/:coupleId", async (req: Request, res: Response) => {
 
     // Verify user has access to this couple
     const { data: couple } = await supabaseAdmin
-      .from('Couples_couples')
-      .select('id')
-      .eq('id', coupleId)
-      .in('partner1_id', [authResult.userId])
+      .from("Couples_couples")
+      .select("id")
+      .eq("id", coupleId)
+      .in("partner1_id", [authResult.userId])
       .single();
 
     if (!couple) {
       const { data: couple2 } = await supabaseAdmin
-        .from('Couples_couples')
-        .select('id')
-        .eq('id', coupleId)
-        .eq('partner2_id', authResult.userId)
+        .from("Couples_couples")
+        .select("id")
+        .eq("id", coupleId)
+        .eq("partner2_id", authResult.userId)
         .single();
       if (!couple2) {
         return res.status(403).json({ error: "Access denied" });
@@ -85,7 +85,10 @@ router.get("/couple/:coupleId/stats", async (req: Request, res: Response) => {
       .from("Couples_mood_entries")
       .select("*")
       .eq("couple_id", coupleId)
-      .gte("created_at", new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
+      .gte(
+        "created_at",
+        new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+      )
       .order("created_at", { ascending: false });
 
     if (!entries || entries.length === 0) {
@@ -102,20 +105,39 @@ router.get("/couple/:coupleId/stats", async (req: Request, res: Response) => {
       .select("id, full_name")
       .in("id", [couple.partner1_id, couple.partner2_id]);
 
-    const p1 = profiles?.find(p => p.id === couple.partner1_id);
-    const p2 = profiles?.find(p => p.id === couple.partner2_id);
+    const p1 = profiles?.find((p) => p.id === couple.partner1_id);
+    const p2 = profiles?.find((p) => p.id === couple.partner2_id);
 
     // Calculate stats per partner
-    const p1Entries = entries.filter(e => e.user_id === couple.partner1_id);
-    const p2Entries = entries.filter(e => e.user_id === couple.partner2_id);
+    const p1Entries = entries.filter((e) => e.user_id === couple.partner1_id);
+    const p2Entries = entries.filter((e) => e.user_id === couple.partner2_id);
 
-    const p1Avg = p1Entries.length > 0 ? p1Entries.reduce((sum, e) => sum + e.mood_level, 0) / p1Entries.length : 0;
-    const p2Avg = p2Entries.length > 0 ? p2Entries.reduce((sum, e) => sum + e.mood_level, 0) / p2Entries.length : 0;
+    const p1Avg =
+      p1Entries.length > 0
+        ? p1Entries.reduce((sum, e) => sum + e.mood_level, 0) / p1Entries.length
+        : 0;
+    const p2Avg =
+      p2Entries.length > 0
+        ? p2Entries.reduce((sum, e) => sum + e.mood_level, 0) / p2Entries.length
+        : 0;
 
     res.json({
-      partner1: { name: p1?.full_name || "Partner 1", avgMood: Math.round(p1Avg * 10) / 10, entries: p1Entries.length },
-      partner2: { name: p2?.full_name || "Partner 2", avgMood: Math.round(p2Avg * 10) / 10, entries: p2Entries.length },
-      overallTrend: p1Avg > p2Avg ? "partner1_higher" : p2Avg > p1Avg ? "partner2_higher" : "balanced",
+      partner1: {
+        name: p1?.full_name || "Partner 1",
+        avgMood: Math.round(p1Avg * 10) / 10,
+        entries: p1Entries.length,
+      },
+      partner2: {
+        name: p2?.full_name || "Partner 2",
+        avgMood: Math.round(p2Avg * 10) / 10,
+        entries: p2Entries.length,
+      },
+      overallTrend:
+        p1Avg > p2Avg
+          ? "partner1_higher"
+          : p2Avg > p1Avg
+            ? "partner2_higher"
+            : "balanced",
     });
   } catch (error: any) {
     console.error("Error calculating mood stats:", error);
@@ -136,10 +158,12 @@ router.post("/couple/:coupleId", async (req: Request, res: Response) => {
 
     // Verify user is part of the couple
     const { data: couple } = await supabaseAdmin
-      .from('Couples_couples')
-      .select('id')
-      .eq('id', coupleId)
-      .or(`partner1_id.eq.${authResult.userId},partner2_id.eq.${authResult.userId}`)
+      .from("Couples_couples")
+      .select("id")
+      .eq("id", coupleId)
+      .or(
+        `partner1_id.eq.${authResult.userId},partner2_id.eq.${authResult.userId}`,
+      )
       .single();
 
     if (!couple) {

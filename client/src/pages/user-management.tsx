@@ -1,34 +1,60 @@
-import { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Separator } from '@/components/ui/separator';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { useAuth } from '@/lib/auth-context';
-import { useToast } from '@/hooks/use-toast';
-import { Loader2, Users, UserPlus, AlertCircle, CheckCircle2, Copy, Link as LinkIcon, RefreshCw } from 'lucide-react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { apiRequest, queryClient } from '@/lib/queryClient';
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useState } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useAuth } from "@/lib/auth-context";
+import { useToast } from "@/hooks/use-toast";
+import {
+  Loader2,
+  Users,
+  UserPlus,
+  AlertCircle,
+  CheckCircle2,
+  Copy,
+  Link as LinkIcon,
+  RefreshCw,
+} from "lucide-react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useQuery, useMutation } from "@tanstack/react-query";
 
 // Form validation schemas
 const createCoupleSchema = z.object({
-  partner1_email: z.string().email('Invalid email address'),
-  partner1_password: z.string().min(6, 'Password must be at least 6 characters'),
-  partner1_name: z.string().min(1, 'Name is required'),
-  partner2_email: z.string().email('Invalid email address'),
-  partner2_password: z.string().min(6, 'Password must be at least 6 characters'),
-  partner2_name: z.string().min(1, 'Name is required'),
+  partner1_email: z.string().email("Invalid email address"),
+  partner1_password: z
+    .string()
+    .min(6, "Password must be at least 6 characters"),
+  partner1_name: z.string().min(1, "Name is required"),
+  partner2_email: z.string().email("Invalid email address"),
+  partner2_password: z
+    .string()
+    .min(6, "Password must be at least 6 characters"),
+  partner2_name: z.string().min(1, "Name is required"),
 });
 
 const createTherapistSchema = z.object({
-  email: z.string().email('Invalid email address'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
-  full_name: z.string().min(1, 'Name is required'),
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+  full_name: z.string().min(1, "Name is required"),
 });
 
 type CreateCoupleFormData = z.infer<typeof createCoupleSchema>;
@@ -44,36 +70,47 @@ type CoupleData = {
 export default function UserManagementPage() {
   const { profile } = useAuth();
   const { toast } = useToast();
-  const [coupleSuccess, setCoupleSuccess] = useState<{ join_code: string; partner1_name: string; partner2_name: string } | null>(null);
-  const [therapistSuccess, setTherapistSuccess] = useState<{ email: string; full_name: string } | null>(null);
+  const [coupleSuccess, setCoupleSuccess] = useState<{
+    join_code: string;
+    partner1_name: string;
+    partner2_name: string;
+  } | null>(null);
+  const [therapistSuccess, setTherapistSuccess] = useState<{
+    email: string;
+    full_name: string;
+  } | null>(null);
 
   const coupleForm = useForm<CreateCoupleFormData>({
     resolver: zodResolver(createCoupleSchema),
     defaultValues: {
-      partner1_email: '',
-      partner1_password: '',
-      partner1_name: '',
-      partner2_email: '',
-      partner2_password: '',
-      partner2_name: '',
+      partner1_email: "",
+      partner1_password: "",
+      partner1_name: "",
+      partner2_email: "",
+      partner2_password: "",
+      partner2_name: "",
     },
   });
 
   const therapistForm = useForm<CreateTherapistFormData>({
     resolver: zodResolver(createTherapistSchema),
     defaultValues: {
-      email: '',
-      password: '',
-      full_name: '',
+      email: "",
+      password: "",
+      full_name: "",
     },
   });
 
   const onCreateCouple = async (data: CreateCoupleFormData) => {
     try {
       // Backend will automatically use the authenticated user's ID as therapist_id
-      const res = await apiRequest('POST', '/api/therapist/create-couple', data);
+      const res = await apiRequest(
+        "POST",
+        "/api/therapist/create-couple",
+        data,
+      );
 
-      const response = await res.json() as { success: boolean; couple: any };
+      const response = (await res.json()) as { success: boolean; couple: any };
 
       if (response.success && response.couple) {
         setCoupleSuccess({
@@ -83,24 +120,32 @@ export default function UserManagementPage() {
         });
         coupleForm.reset();
         toast({
-          title: 'Couple Created Successfully',
+          title: "Couple Created Successfully",
           description: `${response.couple.partner1_name} and ${response.couple.partner2_name} have been set up.`,
         });
       }
     } catch (error: any) {
       toast({
-        title: 'Error Creating Couple',
-        description: error.message || 'Failed to create couple. Please try again.',
-        variant: 'destructive',
+        title: "Error Creating Couple",
+        description:
+          error.message || "Failed to create couple. Please try again.",
+        variant: "destructive",
       });
     }
   };
 
   const onCreateTherapist = async (data: CreateTherapistFormData) => {
     try {
-      const res = await apiRequest('POST', '/api/therapist/create-therapist', data);
+      const res = await apiRequest(
+        "POST",
+        "/api/therapist/create-therapist",
+        data,
+      );
 
-      const response = await res.json() as { success: boolean; therapist: any };
+      const response = (await res.json()) as {
+        success: boolean;
+        therapist: any;
+      };
 
       if (response.success && response.therapist) {
         setTherapistSuccess({
@@ -109,49 +154,60 @@ export default function UserManagementPage() {
         });
         therapistForm.reset();
         toast({
-          title: 'Therapist Created Successfully',
+          title: "Therapist Created Successfully",
           description: `${response.therapist.full_name} has been added as a therapist.`,
         });
       }
     } catch (error: any) {
       toast({
-        title: 'Error Creating Therapist',
-        description: error.message || 'Failed to create therapist. Please try again.',
-        variant: 'destructive',
+        title: "Error Creating Therapist",
+        description:
+          error.message || "Failed to create therapist. Please try again.",
+        variant: "destructive",
       });
     }
   };
 
   // Query for therapist's couples
-  const { data: myCouples, isLoading: isLoadingMyCouples } = useQuery<{ couples: CoupleData[] }>({
-    queryKey: ['/api/therapist/my-couples'],
-    enabled: profile?.role === 'therapist',
+  const { data: myCouples, isLoading: isLoadingMyCouples } = useQuery<{
+    couples: CoupleData[];
+  }>({
+    queryKey: ["/api/therapist/my-couples"],
+    enabled: profile?.role === "therapist",
   });
 
   // Query for unassigned couples
-  const { data: unassignedCouples, isLoading: isLoadingUnassigned } = useQuery<{ couples: CoupleData[] }>({
-    queryKey: ['/api/therapist/unassigned-couples'],
-    enabled: profile?.role === 'therapist',
+  const { data: unassignedCouples, isLoading: isLoadingUnassigned } = useQuery<{
+    couples: CoupleData[];
+  }>({
+    queryKey: ["/api/therapist/unassigned-couples"],
+    enabled: profile?.role === "therapist",
   });
 
   // Mutation to regenerate join code
   const regenerateJoinCodeMutation = useMutation({
     mutationFn: async (coupleId: string) => {
-      const res = await apiRequest('POST', '/api/therapist/regenerate-join-code', { couple_id: coupleId });
+      const res = await apiRequest(
+        "POST",
+        "/api/therapist/regenerate-join-code",
+        { couple_id: coupleId },
+      );
       return res.json() as Promise<{ join_code: string }>;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/therapist/my-couples'] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/therapist/my-couples"],
+      });
       toast({
-        title: 'Join Code Regenerated',
-        description: 'New join code has been created successfully.',
+        title: "Join Code Regenerated",
+        description: "New join code has been created successfully.",
       });
     },
     onError: (error: any) => {
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to regenerate join code',
-        variant: 'destructive',
+        title: "Error",
+        description: error.message || "Failed to regenerate join code",
+        variant: "destructive",
       });
     },
   });
@@ -159,22 +215,28 @@ export default function UserManagementPage() {
   // Mutation to link couple
   const linkCoupleMutation = useMutation({
     mutationFn: async (coupleId: string) => {
-      const res = await apiRequest('POST', '/api/therapist/link-couple', { couple_id: coupleId });
+      const res = await apiRequest("POST", "/api/therapist/link-couple", {
+        couple_id: coupleId,
+      });
       return res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/therapist/my-couples'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/therapist/unassigned-couples'] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/therapist/my-couples"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/therapist/unassigned-couples"],
+      });
       toast({
-        title: 'Couple Linked',
-        description: 'Couple has been successfully linked to your account.',
+        title: "Couple Linked",
+        description: "Couple has been successfully linked to your account.",
       });
     },
     onError: (error: any) => {
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to link couple',
-        variant: 'destructive',
+        title: "Error",
+        description: error.message || "Failed to link couple",
+        variant: "destructive",
       });
     },
   });
@@ -183,25 +245,26 @@ export default function UserManagementPage() {
     try {
       await navigator.clipboard.writeText(text);
       toast({
-        title: 'Copied!',
-        description: 'Join code copied to clipboard',
+        title: "Copied!",
+        description: "Join code copied to clipboard",
       });
     } catch (error) {
       toast({
-        title: 'Error',
-        description: 'Failed to copy to clipboard',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to copy to clipboard",
+        variant: "destructive",
       });
     }
   };
 
-  if (profile?.role !== 'therapist') {
+  if (profile?.role !== "therapist") {
     return (
       <div className="container max-w-4xl py-8">
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>
-            You do not have permission to access this page. Only therapists can manage users.
+            You do not have permission to access this page. Only therapists can
+            manage users.
           </AlertDescription>
         </Alert>
       </div>
@@ -242,12 +305,16 @@ export default function UserManagementPage() {
                   <div>
                     <span className="text-sm font-medium">Partners:</span>
                     <p className="text-sm text-muted-foreground">
-                      {coupleSuccess.partner1_name} & {coupleSuccess.partner2_name}
+                      {coupleSuccess.partner1_name} &{" "}
+                      {coupleSuccess.partner2_name}
                     </p>
                   </div>
                   <div>
                     <span className="text-sm font-medium">Join Code:</span>
-                    <p className="text-lg font-mono font-bold text-primary" data-testid="text-join-code">
+                    <p
+                      className="text-lg font-mono font-bold text-primary"
+                      data-testid="text-join-code"
+                    >
                       {coupleSuccess.join_code}
                     </p>
                   </div>
@@ -263,7 +330,10 @@ export default function UserManagementPage() {
               </div>
             ) : (
               <Form {...coupleForm}>
-                <form onSubmit={coupleForm.handleSubmit(onCreateCouple)} className="space-y-6">
+                <form
+                  onSubmit={coupleForm.handleSubmit(onCreateCouple)}
+                  className="space-y-6"
+                >
                   <div className="space-y-4">
                     <h3 className="font-semibold">Partner 1</h3>
                     <FormField
@@ -427,13 +497,19 @@ export default function UserManagementPage() {
                 <div className="p-4 bg-muted rounded-md space-y-2">
                   <div>
                     <span className="text-sm font-medium">Name:</span>
-                    <p className="text-sm text-muted-foreground" data-testid="text-therapist-name">
+                    <p
+                      className="text-sm text-muted-foreground"
+                      data-testid="text-therapist-name"
+                    >
                       {therapistSuccess.full_name}
                     </p>
                   </div>
                   <div>
                     <span className="text-sm font-medium">Email:</span>
-                    <p className="text-sm text-muted-foreground" data-testid="text-therapist-email">
+                    <p
+                      className="text-sm text-muted-foreground"
+                      data-testid="text-therapist-email"
+                    >
                       {therapistSuccess.email}
                     </p>
                   </div>
@@ -449,7 +525,10 @@ export default function UserManagementPage() {
               </div>
             ) : (
               <Form {...therapistForm}>
-                <form onSubmit={therapistForm.handleSubmit(onCreateTherapist)} className="space-y-6">
+                <form
+                  onSubmit={therapistForm.handleSubmit(onCreateTherapist)}
+                  className="space-y-6"
+                >
                   <FormField
                     control={therapistForm.control}
                     name="full_name"
@@ -549,15 +628,27 @@ export default function UserManagementPage() {
             ) : myCouples?.couples && myCouples.couples.length > 0 ? (
               <div className="space-y-4">
                 {myCouples.couples.map((couple) => (
-                  <Card key={couple.couple_id} className="p-4" data-testid={`card-couple-${couple.couple_id}`}>
+                  <Card
+                    key={couple.couple_id}
+                    className="p-4"
+                    data-testid={`card-couple-${couple.couple_id}`}
+                  >
                     <div className="flex items-center justify-between gap-4 flex-wrap">
                       <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-sm mb-1" data-testid={`text-couple-names-${couple.couple_id}`}>
+                        <p
+                          className="font-semibold text-sm mb-1"
+                          data-testid={`text-couple-names-${couple.couple_id}`}
+                        >
                           {couple.partner1_name} & {couple.partner2_name}
                         </p>
                         <div className="flex items-center gap-2">
-                          <span className="text-xs text-muted-foreground">Join Code:</span>
-                          <code className="text-sm font-mono font-bold text-primary" data-testid={`text-join-code-${couple.couple_id}`}>
+                          <span className="text-xs text-muted-foreground">
+                            Join Code:
+                          </span>
+                          <code
+                            className="text-sm font-mono font-bold text-primary"
+                            data-testid={`text-join-code-${couple.couple_id}`}
+                          >
                             {couple.join_code}
                           </code>
                         </div>
@@ -575,7 +666,9 @@ export default function UserManagementPage() {
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => regenerateJoinCodeMutation.mutate(couple.couple_id)}
+                          onClick={() =>
+                            regenerateJoinCodeMutation.mutate(couple.couple_id)
+                          }
                           disabled={regenerateJoinCodeMutation.isPending}
                           data-testid={`button-regenerate-${couple.couple_id}`}
                         >
@@ -623,17 +716,27 @@ export default function UserManagementPage() {
               <div className="flex items-center justify-center py-8">
                 <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
               </div>
-            ) : unassignedCouples?.couples && unassignedCouples.couples.length > 0 ? (
+            ) : unassignedCouples?.couples &&
+              unassignedCouples.couples.length > 0 ? (
               <div className="space-y-4">
                 {unassignedCouples.couples.map((couple) => (
-                  <Card key={couple.couple_id} className="p-4" data-testid={`card-unassigned-${couple.couple_id}`}>
+                  <Card
+                    key={couple.couple_id}
+                    className="p-4"
+                    data-testid={`card-unassigned-${couple.couple_id}`}
+                  >
                     <div className="flex items-center justify-between gap-4 flex-wrap">
                       <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-sm mb-1" data-testid={`text-unassigned-names-${couple.couple_id}`}>
+                        <p
+                          className="font-semibold text-sm mb-1"
+                          data-testid={`text-unassigned-names-${couple.couple_id}`}
+                        >
                           {couple.partner1_name} & {couple.partner2_name}
                         </p>
                         <div className="flex items-center gap-2">
-                          <span className="text-xs text-muted-foreground">Join Code:</span>
+                          <span className="text-xs text-muted-foreground">
+                            Join Code:
+                          </span>
                           <code className="text-sm font-mono text-muted-foreground">
                             {couple.join_code}
                           </code>
@@ -641,7 +744,9 @@ export default function UserManagementPage() {
                       </div>
                       <Button
                         size="sm"
-                        onClick={() => linkCoupleMutation.mutate(couple.couple_id)}
+                        onClick={() =>
+                          linkCoupleMutation.mutate(couple.couple_id)
+                        }
                         disabled={linkCoupleMutation.isPending}
                         data-testid={`button-link-${couple.couple_id}`}
                       >
@@ -664,7 +769,9 @@ export default function UserManagementPage() {
             ) : (
               <div className="text-center py-8">
                 <LinkIcon className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                <p className="text-muted-foreground">No unassigned couples found</p>
+                <p className="text-muted-foreground">
+                  No unassigned couples found
+                </p>
                 <p className="text-sm text-muted-foreground mt-1">
                   All couples are currently assigned to therapists
                 </p>

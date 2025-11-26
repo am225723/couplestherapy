@@ -1,49 +1,50 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TextInput, Alert } from 'react-native';
-import { useAuth } from '../../contexts/AuthContext';
-import { useApi, useApiMutation } from '../../hooks/useApi';
-import { Ritual } from '../../types';
-import Button from '../../components/Button';
-import Card from '../../components/Card';
-import LoadingSpinner from '../../components/LoadingSpinner';
-import { colors, spacing, typography } from '../../constants/theme';
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TextInput,
+  Alert,
+} from "react-native";
+import { useAuth } from "../../contexts/AuthContext";
+import { useApi, useApiMutation } from "../../hooks/useApi";
+import { Ritual } from "../../types";
+import Button from "../../components/Button";
+import Card from "../../components/Card";
+import LoadingSpinner from "../../components/LoadingSpinner";
+import { colors, spacing, typography } from "../../constants/theme";
 
 export default function RitualsScreen() {
   const { profile } = useAuth();
-  const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
-  const [frequency, setFrequency] = useState<'daily' | 'weekly' | 'monthly'>('daily');
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const [frequency, setFrequency] = useState<"daily" | "weekly" | "monthly">(
+    "daily",
+  );
   const [showForm, setShowForm] = useState(false);
 
   const { data: rituals, isLoading } = useApi<Ritual[]>(
-    `/api/rituals/couple/${profile?.couple_id}`
+    `/api/rituals/couple/${profile?.couple_id}`,
   );
 
-  const createRitual = useApiMutation(
-    '/api/rituals',
-    'post',
-    {
-      invalidateQueries: [`/api/rituals/couple/${profile?.couple_id}`],
-      onSuccess: () => {
-        Alert.alert('Success', 'Ritual created!');
-        setName('');
-        setDescription('');
-        setShowForm(false);
-      },
-    }
-  );
+  const createRitual = useApiMutation("/api/rituals", "post", {
+    invalidateQueries: [`/api/rituals/couple/${profile?.couple_id}`],
+    onSuccess: () => {
+      Alert.alert("Success", "Ritual created!");
+      setName("");
+      setDescription("");
+      setShowForm(false);
+    },
+  });
 
-  const completeRitual = useApiMutation(
-    '/api/rituals/complete',
-    'post',
-    {
-      invalidateQueries: [`/api/rituals/couple/${profile?.couple_id}`],
-    }
-  );
+  const completeRitual = useApiMutation("/api/rituals/complete", "post", {
+    invalidateQueries: [`/api/rituals/couple/${profile?.couple_id}`],
+  });
 
   const handleSubmit = () => {
     if (!name.trim()) {
-      Alert.alert('Error', 'Please enter a ritual name');
+      Alert.alert("Error", "Please enter a ritual name");
       return;
     }
 
@@ -56,13 +57,13 @@ export default function RitualsScreen() {
 
   const handleComplete = (ritualId: number) => {
     completeRitual.mutate({ ritual_id: ritualId });
-    Alert.alert('Great!', 'Ritual completed! Keep up the connection.');
+    Alert.alert("Great!", "Ritual completed! Keep up the connection.");
   };
 
   const getDaysSinceCompletion = (lastCompleted?: string) => {
     if (!lastCompleted) return null;
     const days = Math.floor(
-      (Date.now() - new Date(lastCompleted).getTime()) / (1000 * 60 * 60 * 24)
+      (Date.now() - new Date(lastCompleted).getTime()) / (1000 * 60 * 60 * 24),
     );
     return days;
   };
@@ -117,20 +118,20 @@ export default function RitualsScreen() {
               <View style={styles.frequencyButtons}>
                 <Button
                   title="Daily"
-                  variant={frequency === 'daily' ? 'primary' : 'outline'}
-                  onPress={() => setFrequency('daily')}
+                  variant={frequency === "daily" ? "primary" : "outline"}
+                  onPress={() => setFrequency("daily")}
                   style={styles.frequencyButton}
                 />
                 <Button
                   title="Weekly"
-                  variant={frequency === 'weekly' ? 'primary' : 'outline'}
-                  onPress={() => setFrequency('weekly')}
+                  variant={frequency === "weekly" ? "primary" : "outline"}
+                  onPress={() => setFrequency("weekly")}
                   style={styles.frequencyButton}
                 />
                 <Button
                   title="Monthly"
-                  variant={frequency === 'monthly' ? 'primary' : 'outline'}
-                  onPress={() => setFrequency('monthly')}
+                  variant={frequency === "monthly" ? "primary" : "outline"}
+                  onPress={() => setFrequency("monthly")}
                   style={styles.frequencyButton}
                 />
               </View>
@@ -142,8 +143,8 @@ export default function RitualsScreen() {
                 variant="outline"
                 onPress={() => {
                   setShowForm(false);
-                  setName('');
-                  setDescription('');
+                  setName("");
+                  setDescription("");
                 }}
                 style={styles.formButton}
               />
@@ -161,25 +162,31 @@ export default function RitualsScreen() {
           <View style={styles.ritualsSection}>
             {rituals.map((ritual) => {
               const daysSince = getDaysSinceCompletion(ritual.last_completed);
-              
+
               return (
                 <Card key={ritual.id} style={styles.ritualCard}>
                   <View style={styles.ritualHeader}>
                     <View style={styles.ritualInfo}>
                       <Text style={styles.ritualName}>{ritual.name}</Text>
                       <Text style={styles.ritualFrequency}>
-                        {ritual.frequency.charAt(0).toUpperCase() + ritual.frequency.slice(1)}
+                        {ritual.frequency.charAt(0).toUpperCase() +
+                          ritual.frequency.slice(1)}
                       </Text>
                     </View>
                   </View>
 
                   {ritual.description && (
-                    <Text style={styles.ritualDescription}>{ritual.description}</Text>
+                    <Text style={styles.ritualDescription}>
+                      {ritual.description}
+                    </Text>
                   )}
 
                   {daysSince !== null && (
                     <Text style={styles.lastCompleted}>
-                      Last completed {daysSince === 0 ? 'today' : `${daysSince} day${daysSince > 1 ? 's' : ''} ago`}
+                      Last completed{" "}
+                      {daysSince === 0
+                        ? "today"
+                        : `${daysSince} day${daysSince > 1 ? "s" : ""} ago`}
                     </Text>
                   )}
 
@@ -196,7 +203,8 @@ export default function RitualsScreen() {
         ) : (
           <Card style={styles.emptyState}>
             <Text style={styles.emptyText}>
-              No rituals yet. Create your first ritual to start building meaningful connections!
+              No rituals yet. Create your first ritual to start building
+              meaningful connections!
             </Text>
           </Card>
         )}
@@ -209,7 +217,11 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   content: { padding: spacing.lg },
   title: { ...typography.h2, color: colors.text, marginBottom: spacing.xs },
-  subtitle: { ...typography.body, color: colors.textSecondary, marginBottom: spacing.lg },
+  subtitle: {
+    ...typography.body,
+    color: colors.textSecondary,
+    marginBottom: spacing.lg,
+  },
   addButton: { marginBottom: spacing.lg },
   formCard: { marginBottom: spacing.lg },
   inputGroup: { marginBottom: spacing.md },
@@ -233,18 +245,38 @@ const styles = StyleSheet.create({
     minHeight: 80,
     color: colors.text,
   },
-  frequencyButtons: { flexDirection: 'row', gap: spacing.sm },
+  frequencyButtons: { flexDirection: "row", gap: spacing.sm },
   frequencyButton: { flex: 1 },
-  formButtons: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.md },
+  formButtons: { flexDirection: "row", gap: spacing.sm, marginTop: spacing.md },
   formButton: { flex: 1 },
   ritualsSection: { marginTop: spacing.md },
   ritualCard: { marginBottom: spacing.md },
   ritualHeader: { marginBottom: spacing.sm },
   ritualInfo: { flex: 1 },
-  ritualName: { ...typography.h6, color: colors.text, marginBottom: spacing.xs },
-  ritualFrequency: { ...typography.bodySmall, color: colors.primary, fontWeight: '600' },
-  ritualDescription: { ...typography.body, color: colors.textSecondary, marginBottom: spacing.md },
-  lastCompleted: { ...typography.bodySmall, color: colors.textSecondary, marginBottom: spacing.md },
+  ritualName: {
+    ...typography.h6,
+    color: colors.text,
+    marginBottom: spacing.xs,
+  },
+  ritualFrequency: {
+    ...typography.bodySmall,
+    color: colors.primary,
+    fontWeight: "600",
+  },
+  ritualDescription: {
+    ...typography.body,
+    color: colors.textSecondary,
+    marginBottom: spacing.md,
+  },
+  lastCompleted: {
+    ...typography.bodySmall,
+    color: colors.textSecondary,
+    marginBottom: spacing.md,
+  },
   emptyState: { marginTop: spacing.lg },
-  emptyText: { ...typography.body, color: colors.textSecondary, textAlign: 'center' },
+  emptyText: {
+    ...typography.body,
+    color: colors.textSecondary,
+    textAlign: "center",
+  },
 });

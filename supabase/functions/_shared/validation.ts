@@ -9,23 +9,31 @@ export interface DateNightPreferences {
   energy: string;
 }
 
-export function validateDateNightPreferences(data: any): { 
-  valid: boolean; 
-  data?: DateNightPreferences; 
+export function validateDateNightPreferences(data: any): {
+  valid: boolean;
+  data?: DateNightPreferences;
   error?: string;
 } {
-  if (!data || typeof data !== 'object') {
-    return { valid: false, error: 'Request body must be an object' };
+  if (!data || typeof data !== "object") {
+    return { valid: false, error: "Request body must be an object" };
   }
 
-  const requiredFields = ['time', 'location', 'price', 'participants', 'energy'];
-  
+  const requiredFields = [
+    "time",
+    "location",
+    "price",
+    "participants",
+    "energy",
+  ];
+
   // Check for missing or invalid fields
-  const missingFields = requiredFields.filter(field => !data[field] || typeof data[field] !== 'string');
+  const missingFields = requiredFields.filter(
+    (field) => !data[field] || typeof data[field] !== "string",
+  );
   if (missingFields.length > 0) {
-    return { 
-      valid: false, 
-      error: `Missing or invalid required fields: ${missingFields.join(', ')}` 
+    return {
+      valid: false,
+      error: `Missing or invalid required fields: ${missingFields.join(", ")}`,
     };
   }
 
@@ -44,9 +52,9 @@ export function validateDateNightPreferences(data: any): {
     .map(([key, _]) => key);
 
   if (emptyFields.length > 0) {
-    return { 
-      valid: false, 
-      error: `Fields cannot be empty: ${emptyFields.join(', ')}` 
+    return {
+      valid: false,
+      error: `Fields cannot be empty: ${emptyFields.join(", ")}`,
     };
   }
 
@@ -57,9 +65,9 @@ export function validateDateNightPreferences(data: any): {
     .map(([key, _]) => key);
 
   if (tooLongFields.length > 0) {
-    return { 
-      valid: false, 
-      error: `Fields exceed maximum length of ${maxLength} characters: ${tooLongFields.join(', ')}` 
+    return {
+      valid: false,
+      error: `Fields exceed maximum length of ${maxLength} characters: ${tooLongFields.join(", ")}`,
     };
   }
 
@@ -72,25 +80,27 @@ export function validateDateNightPreferences(data: any): {
 export function redactForLogging(data: any): string {
   // Redact ALL user inputs for production logging
   // This prevents accidentally logging extra fields that may contain sensitive data
-  if (!data || typeof data !== 'object') {
-    return '[invalid data]';
+  if (!data || typeof data !== "object") {
+    return "[invalid data]";
   }
 
   // Only log field presence, never actual values
   // Use an allowlist approach - only log known safe metadata
-  const knownFields = ['time', 'location', 'price', 'participants', 'energy'];
+  const knownFields = ["time", "location", "price", "participants", "energy"];
   const redacted: Record<string, string> = {};
 
   for (const field of knownFields) {
     if (field in data) {
-      redacted[field] = '[REDACTED]';
+      redacted[field] = "[REDACTED]";
     }
   }
 
   // Count any extra fields without logging their names or values
-  const extraFieldCount = Object.keys(data).filter(key => !knownFields.includes(key)).length;
+  const extraFieldCount = Object.keys(data).filter(
+    (key) => !knownFields.includes(key),
+  ).length;
   if (extraFieldCount > 0) {
-    redacted['_extra_fields'] = `[${extraFieldCount} fields redacted]`;
+    redacted["_extra_fields"] = `[${extraFieldCount} fields redacted]`;
   }
 
   return JSON.stringify(redacted);

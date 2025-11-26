@@ -24,25 +24,29 @@ router.post("/activate", async (req, res) => {
 
     // Verify couple_id matches user's couple
     if (validatedData.couple_id !== userAuth.coupleId) {
-      return res.status(403).json({ error: 'Cannot activate pause for different couple' });
+      return res
+        .status(403)
+        .json({ error: "Cannot activate pause for different couple" });
     }
 
     // Check if there's already an active pause
     const { data: couple, error: coupleError } = await supabaseAdmin
-      .from('Couples_couples')
-      .select('active_pause_id')
-      .eq('id', userAuth.coupleId)
+      .from("Couples_couples")
+      .select("active_pause_id")
+      .eq("id", userAuth.coupleId)
       .single();
 
     if (coupleError) throw coupleError;
 
     if (couple.active_pause_id) {
-      return res.status(400).json({ error: 'A pause is already active for this couple' });
+      return res
+        .status(400)
+        .json({ error: "A pause is already active for this couple" });
     }
 
     // Create new pause event
     const { data: pauseEvent, error: pauseError } = await supabaseAdmin
-      .from('Couples_pause_events')
+      .from("Couples_pause_events")
       .insert(validatedData)
       .select()
       .single();
@@ -51,16 +55,18 @@ router.post("/activate", async (req, res) => {
 
     // Update couple's active_pause_id
     const { error: updateError } = await supabaseAdmin
-      .from('Couples_couples')
+      .from("Couples_couples")
       .update({ active_pause_id: pauseEvent.id })
-      .eq('id', userAuth.coupleId);
+      .eq("id", userAuth.coupleId);
 
     if (updateError) throw updateError;
 
     res.json(pauseEvent);
   } catch (error: any) {
-    console.error('Error activating pause:', error.message, error.stack);
-    res.status(500).json({ error: error.message || 'Failed to activate pause' });
+    console.error("Error activating pause:", error.message, error.stack);
+    res
+      .status(500)
+      .json({ error: error.message || "Failed to activate pause" });
   }
 });
 
@@ -77,27 +83,29 @@ router.post("/end/:id", async (req, res) => {
 
     // Verify pause belongs to user's couple
     const { data: pauseEvent, error: pauseError } = await supabaseAdmin
-      .from('Couples_pause_events')
-      .select('couple_id')
-      .eq('id', id)
+      .from("Couples_pause_events")
+      .select("couple_id")
+      .eq("id", id)
       .single();
 
     if (pauseError || !pauseEvent) {
-      return res.status(404).json({ error: 'Pause event not found' });
+      return res.status(404).json({ error: "Pause event not found" });
     }
 
     if (pauseEvent.couple_id !== userAuth.coupleId) {
-      return res.status(403).json({ error: 'Cannot end different couple pause' });
+      return res
+        .status(403)
+        .json({ error: "Cannot end different couple pause" });
     }
 
     // Update pause event
     const { data, error } = await supabaseAdmin
-      .from('Couples_pause_events')
-      .update({ 
+      .from("Couples_pause_events")
+      .update({
         ended_at: new Date().toISOString(),
         reflection: reflection || null,
       })
-      .eq('id', id)
+      .eq("id", id)
       .select()
       .single();
 
@@ -105,16 +113,16 @@ router.post("/end/:id", async (req, res) => {
 
     // Clear couple's active_pause_id
     const { error: clearError } = await supabaseAdmin
-      .from('Couples_couples')
+      .from("Couples_couples")
       .update({ active_pause_id: null })
-      .eq('id', userAuth.coupleId);
+      .eq("id", userAuth.coupleId);
 
     if (clearError) throw clearError;
 
     res.json(data);
   } catch (error: any) {
-    console.error('Error ending pause:', error.message, error.stack);
-    res.status(500).json({ error: error.message || 'Failed to end pause' });
+    console.error("Error ending pause:", error.message, error.stack);
+    res.status(500).json({ error: error.message || "Failed to end pause" });
   }
 });
 
@@ -130,13 +138,15 @@ router.get("/active/:couple_id", async (req, res) => {
 
     // Verify couple_id matches user's couple
     if (couple_id !== userAuth.coupleId) {
-      return res.status(403).json({ error: 'Cannot view different couple pause status' });
+      return res
+        .status(403)
+        .json({ error: "Cannot view different couple pause status" });
     }
 
     const { data: couple, error: coupleError } = await supabaseAdmin
-      .from('Couples_couples')
-      .select('active_pause_id')
-      .eq('id', couple_id)
+      .from("Couples_couples")
+      .select("active_pause_id")
+      .eq("id", couple_id)
       .single();
 
     if (coupleError) throw coupleError;
@@ -147,17 +157,19 @@ router.get("/active/:couple_id", async (req, res) => {
 
     // Get active pause event details
     const { data: pauseEvent, error: pauseError } = await supabaseAdmin
-      .from('Couples_pause_events')
-      .select('*')
-      .eq('id', couple.active_pause_id)
+      .from("Couples_pause_events")
+      .select("*")
+      .eq("id", couple.active_pause_id)
       .single();
 
     if (pauseError) throw pauseError;
 
     res.json({ active: true, pauseEvent });
   } catch (error: any) {
-    console.error('Error checking active pause:', error.message, error.stack);
-    res.status(500).json({ error: error.message || 'Failed to check pause status' });
+    console.error("Error checking active pause:", error.message, error.stack);
+    res
+      .status(500)
+      .json({ error: error.message || "Failed to check pause status" });
   }
 });
 
@@ -173,20 +185,24 @@ router.get("/history/:couple_id", async (req, res) => {
 
     // Verify couple_id matches user's couple
     if (couple_id !== userAuth.coupleId) {
-      return res.status(403).json({ error: 'Cannot view different couple pause history' });
+      return res
+        .status(403)
+        .json({ error: "Cannot view different couple pause history" });
     }
 
     const { data, error } = await supabaseAdmin
-      .from('Couples_pause_events')
-      .select('*')
-      .eq('couple_id', couple_id)
-      .order('started_at', { ascending: false });
+      .from("Couples_pause_events")
+      .select("*")
+      .eq("couple_id", couple_id)
+      .order("started_at", { ascending: false });
 
     if (error) throw error;
     res.json(data);
   } catch (error: any) {
-    console.error('Error fetching pause history:', error.message, error.stack);
-    res.status(500).json({ error: error.message || 'Failed to fetch pause history' });
+    console.error("Error fetching pause history:", error.message, error.stack);
+    res
+      .status(500)
+      .json({ error: error.message || "Failed to fetch pause history" });
   }
 });
 

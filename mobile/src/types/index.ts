@@ -2,7 +2,7 @@ export interface User {
   id: string;
   email: string;
   full_name?: string;
-  role?: 'client' | 'therapist';
+  role?: "client" | "therapist";
   couple_id?: string;
   therapist_id?: string;
 }
@@ -70,7 +70,7 @@ export interface SharedGoal {
   couple_id: string;
   title: string;
   description?: string;
-  status: 'backlog' | 'in_progress' | 'completed';
+  status: "backlog" | "in_progress" | "completed";
   target_date?: string;
   created_at: string;
 }
@@ -92,7 +92,7 @@ export interface Ritual {
   couple_id: string;
   name: string;
   description?: string;
-  frequency: 'daily' | 'weekly' | 'monthly';
+  frequency: "daily" | "weekly" | "monthly";
   last_completed?: string;
   created_at: string;
 }
@@ -103,7 +103,7 @@ export interface CoupleJournalEntry {
   user_id: string;
   title: string;
   content: string;
-  privacy_level: 'private' | 'partner' | 'therapist';
+  privacy_level: "private" | "partner" | "therapist";
   mood?: string;
   media_urls?: string[];
   created_at: string;

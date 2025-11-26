@@ -1,35 +1,41 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, FlatList, TextInput, KeyboardAvoidingView, Platform } from 'react-native';
-import { useAuth } from '../../contexts/AuthContext';
-import { useApi, useApiMutation } from '../../hooks/useApi';
-import { Message } from '../../types';
-import Button from '../../components/Button';
-import LoadingSpinner from '../../components/LoadingSpinner';
-import { colors, spacing, typography } from '../../constants/theme';
-import { supabase } from '../../services/supabase';
+import React, { useState, useEffect, useRef } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  TextInput,
+  KeyboardAvoidingView,
+  Platform,
+} from "react-native";
+import { useAuth } from "../../contexts/AuthContext";
+import { useApi, useApiMutation } from "../../hooks/useApi";
+import { Message } from "../../types";
+import Button from "../../components/Button";
+import LoadingSpinner from "../../components/LoadingSpinner";
+import { colors, spacing, typography } from "../../constants/theme";
+import { supabase } from "../../services/supabase";
 
 export default function MessagesScreen() {
   const { profile } = useAuth();
-  const [messageText, setMessageText] = useState('');
+  const [messageText, setMessageText] = useState("");
   const flatListRef = useRef<FlatList>(null);
 
-  const { data: messages, isLoading, refetch } = useApi<Message[]>(
-    `/api/messages/couple/${profile?.couple_id}`
-  );
+  const {
+    data: messages,
+    isLoading,
+    refetch,
+  } = useApi<Message[]>(`/api/messages/couple/${profile?.couple_id}`);
 
-  const sendMessage = useApiMutation(
-    '/api/messages',
-    'post',
-    {
-      invalidateQueries: [`/api/messages/couple/${profile?.couple_id}`],
-      onSuccess: () => {
-        setMessageText('');
-        setTimeout(() => {
-          flatListRef.current?.scrollToEnd({ animated: true });
-        }, 100);
-      },
-    }
-  );
+  const sendMessage = useApiMutation("/api/messages", "post", {
+    invalidateQueries: [`/api/messages/couple/${profile?.couple_id}`],
+    onSuccess: () => {
+      setMessageText("");
+      setTimeout(() => {
+        flatListRef.current?.scrollToEnd({ animated: true });
+      }, 100);
+    },
+  });
 
   // Subscribe to realtime messages
   useEffect(() => {
@@ -38,16 +44,16 @@ export default function MessagesScreen() {
     const channel = supabase
       .channel(`messages:${profile.couple_id}`)
       .on(
-        'postgres_changes',
+        "postgres_changes",
         {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'Couples_Messages',
+          event: "INSERT",
+          schema: "public",
+          table: "Couples_Messages",
           filter: `couple_id=eq.${profile.couple_id}`,
         },
         () => {
           refetch();
-        }
+        },
       )
       .subscribe();
 
@@ -68,23 +74,29 @@ export default function MessagesScreen() {
     const isOwnMessage = item.sender_id === profile?.id;
 
     return (
-      <View style={[
-        styles.messageBubble,
-        isOwnMessage ? styles.ownMessage : styles.partnerMessage
-      ]}>
-        <Text style={[
-          styles.messageText,
-          isOwnMessage ? styles.ownMessageText : styles.partnerMessageText
-        ]}>
+      <View
+        style={[
+          styles.messageBubble,
+          isOwnMessage ? styles.ownMessage : styles.partnerMessage,
+        ]}
+      >
+        <Text
+          style={[
+            styles.messageText,
+            isOwnMessage ? styles.ownMessageText : styles.partnerMessageText,
+          ]}
+        >
           {item.content}
         </Text>
-        <Text style={[
-          styles.messageTime,
-          isOwnMessage ? styles.ownMessageTime : styles.partnerMessageTime
-        ]}>
-          {new Date(item.created_at).toLocaleTimeString([], { 
-            hour: '2-digit', 
-            minute: '2-digit' 
+        <Text
+          style={[
+            styles.messageTime,
+            isOwnMessage ? styles.ownMessageTime : styles.partnerMessageTime,
+          ]}
+        >
+          {new Date(item.created_at).toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
           })}
         </Text>
       </View>
@@ -96,9 +108,9 @@ export default function MessagesScreen() {
   }
 
   return (
-    <KeyboardAvoidingView 
+    <KeyboardAvoidingView
       style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
       keyboardVerticalOffset={90}
     >
       <FlatList
@@ -107,7 +119,9 @@ export default function MessagesScreen() {
         renderItem={renderMessage}
         keyExtractor={(item) => String(item.id)}
         contentContainerStyle={styles.messagesList}
-        onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
+        onContentSizeChange={() =>
+          flatListRef.current?.scrollToEnd({ animated: true })
+        }
       />
 
       <View style={styles.inputContainer}>
@@ -140,18 +154,18 @@ const styles = StyleSheet.create({
     padding: spacing.md,
   },
   messageBubble: {
-    maxWidth: '75%',
+    maxWidth: "75%",
     padding: spacing.md,
     borderRadius: 16,
     marginBottom: spacing.sm,
   },
   ownMessage: {
-    alignSelf: 'flex-end',
+    alignSelf: "flex-end",
     backgroundColor: colors.primary,
     borderBottomRightRadius: 4,
   },
   partnerMessage: {
-    alignSelf: 'flex-start',
+    alignSelf: "flex-start",
     backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: colors.border,
@@ -179,12 +193,12 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
   },
   inputContainer: {
-    flexDirection: 'row',
+    flexDirection: "row",
     padding: spacing.md,
     borderTopWidth: 1,
     borderTopColor: colors.border,
     backgroundColor: colors.surface,
-    alignItems: 'flex-end',
+    alignItems: "flex-end",
   },
   input: {
     flex: 1,

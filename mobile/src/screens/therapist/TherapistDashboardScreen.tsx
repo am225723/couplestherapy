@@ -1,10 +1,16 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
-import { useAuth } from '../../contexts/AuthContext';
-import { useApi } from '../../hooks/useApi';
-import Card from '../../components/Card';
-import LoadingSpinner from '../../components/LoadingSpinner';
-import { colors, spacing, typography } from '../../constants/theme';
+import React from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+} from "react-native";
+import { useAuth } from "../../contexts/AuthContext";
+import { useApi } from "../../hooks/useApi";
+import Card from "../../components/Card";
+import LoadingSpinner from "../../components/LoadingSpinner";
+import { colors, spacing, typography } from "../../constants/theme";
 
 interface DashboardStats {
   total_couples: number;
@@ -17,14 +23,14 @@ export default function TherapistDashboardScreen({ navigation }: any) {
   const { profile } = useAuth();
 
   const { data: stats, isLoading } = useApi<DashboardStats>(
-    `/api/therapist/${profile?.id}/dashboard-stats`
+    `/api/therapist/${profile?.id}/dashboard-stats`,
   );
 
   const quickActions = [
-    { title: 'View Couples', icon: '👥', screen: 'CoupleList' },
-    { title: 'Generate Code', icon: '🔑', screen: 'InvitationCodes' },
-    { title: 'Messages', icon: '💬', screen: 'TherapistMessages' },
-    { title: 'Analytics', icon: '📊', action: () => {} },
+    { title: "View Couples", icon: "👥", screen: "CoupleList" },
+    { title: "Generate Code", icon: "🔑", screen: "InvitationCodes" },
+    { title: "Messages", icon: "💬", screen: "TherapistMessages" },
+    { title: "Analytics", icon: "📊", action: () => {} },
   ];
 
   if (isLoading) {
@@ -35,7 +41,9 @@ export default function TherapistDashboardScreen({ navigation }: any) {
     <ScrollView style={styles.container}>
       <View style={styles.content}>
         <Text style={styles.title}>Therapist Dashboard</Text>
-        <Text style={styles.greeting}>Welcome back, {profile?.full_name || 'Doctor'}</Text>
+        <Text style={styles.greeting}>
+          Welcome back, {profile?.full_name || "Doctor"}
+        </Text>
 
         <View style={styles.statsGrid}>
           <Card style={styles.statCard}>
@@ -89,37 +97,53 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   content: { padding: spacing.lg },
   title: { ...typography.h2, color: colors.text, marginBottom: spacing.xs },
-  greeting: { ...typography.body, color: colors.textSecondary, marginBottom: spacing.xl },
+  greeting: {
+    ...typography.body,
+    color: colors.textSecondary,
+    marginBottom: spacing.xl,
+  },
   statsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    flexWrap: "wrap",
     marginHorizontal: -spacing.sm,
     marginBottom: spacing.xl,
   },
   statCard: {
-    width: '48%',
+    width: "48%",
     margin: spacing.sm,
-    alignItems: 'center',
+    alignItems: "center",
   },
-  statValue: { ...typography.h2, color: colors.primary, marginBottom: spacing.xs },
-  statLabel: { ...typography.bodySmall, color: colors.textSecondary, textAlign: 'center' },
+  statValue: {
+    ...typography.h2,
+    color: colors.primary,
+    marginBottom: spacing.xs,
+  },
+  statLabel: {
+    ...typography.bodySmall,
+    color: colors.textSecondary,
+    textAlign: "center",
+  },
   actionsSection: { marginTop: spacing.lg },
-  sectionTitle: { ...typography.h5, color: colors.text, marginBottom: spacing.md },
+  sectionTitle: {
+    ...typography.h5,
+    color: colors.text,
+    marginBottom: spacing.md,
+  },
   actionsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    flexWrap: "wrap",
     marginHorizontal: -spacing.sm,
   },
   actionCard: {
-    width: '48%',
+    width: "48%",
     margin: spacing.sm,
     backgroundColor: colors.surface,
     padding: spacing.lg,
     borderRadius: 12,
     borderWidth: 1,
     borderColor: colors.border,
-    alignItems: 'center',
+    alignItems: "center",
   },
   actionIcon: { fontSize: 32, marginBottom: spacing.sm },
-  actionTitle: { ...typography.h6, color: colors.text, textAlign: 'center' },
+  actionTitle: { ...typography.h6, color: colors.text, textAlign: "center" },
 });

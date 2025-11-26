@@ -1,52 +1,59 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TextInput, Alert } from 'react-native';
-import { useAuth } from '../../contexts/AuthContext';
-import { useApi, useApiMutation } from '../../hooks/useApi';
-import Button from '../../components/Button';
-import Card from '../../components/Card';
-import LoadingSpinner from '../../components/LoadingSpinner';
-import { colors, spacing, typography } from '../../constants/theme';
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TextInput,
+  Alert,
+} from "react-native";
+import { useAuth } from "../../contexts/AuthContext";
+import { useApi, useApiMutation } from "../../hooks/useApi";
+import Button from "../../components/Button";
+import Card from "../../components/Card";
+import LoadingSpinner from "../../components/LoadingSpinner";
+import { colors, spacing, typography } from "../../constants/theme";
 
-type Phase = 'truths' | 'guesses' | 'results';
+type Phase = "truths" | "guesses" | "results";
 
 export default function LoveMapQuizScreen() {
   const { profile } = useAuth();
-  const [phase, setPhase] = useState<Phase>('truths');
+  const [phase, setPhase] = useState<Phase>("truths");
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [answer, setAnswer] = useState('');
+  const [answer, setAnswer] = useState("");
 
   const { data: questions, isLoading } = useApi<any[]>(
-    `/api/love-map/couple/${profile?.couple_id}/questions`
+    `/api/love-map/couple/${profile?.couple_id}/questions`,
   );
 
-  const submitTruth = useApiMutation('/api/love-map/truths', 'post', {
+  const submitTruth = useApiMutation("/api/love-map/truths", "post", {
     onSuccess: () => {
-      setAnswer('');
+      setAnswer("");
       if (currentIndex < (questions?.length || 0) - 1) {
-        setCurrentIndex(prev => prev + 1);
+        setCurrentIndex((prev) => prev + 1);
       } else {
-        Alert.alert('Complete!', 'Now guess your partner\'s answers!');
-        setPhase('guesses');
+        Alert.alert("Complete!", "Now guess your partner's answers!");
+        setPhase("guesses");
         setCurrentIndex(0);
       }
     },
   });
 
-  const submitGuess = useApiMutation('/api/love-map/guesses', 'post', {
+  const submitGuess = useApiMutation("/api/love-map/guesses", "post", {
     onSuccess: () => {
-      setAnswer('');
+      setAnswer("");
       if (currentIndex < (questions?.length || 0) - 1) {
-        setCurrentIndex(prev => prev + 1);
+        setCurrentIndex((prev) => prev + 1);
       } else {
-        Alert.alert('Done!', 'See how well you know each other!');
-        setPhase('results');
+        Alert.alert("Done!", "See how well you know each other!");
+        setPhase("results");
       }
     },
   });
 
   const { data: results } = useApi<any>(
     `/api/love-map/couple/${profile?.couple_id}/results`,
-    { enabled: phase === 'results' }
+    { enabled: phase === "results" },
   );
 
   if (isLoading) {
@@ -61,10 +68,12 @@ export default function LoveMapQuizScreen() {
         <Text style={styles.title}>Love Map Quiz</Text>
         <Text style={styles.subtitle}>How well do you know your partner?</Text>
 
-        {phase === 'truths' && currentQuestion && (
+        {phase === "truths" && currentQuestion && (
           <Card style={styles.phaseCard}>
             <Text style={styles.phaseTitle}>Phase 1: Your Truths</Text>
-            <Text style={styles.questionText}>{currentQuestion.question_text}</Text>
+            <Text style={styles.questionText}>
+              {currentQuestion.question_text}
+            </Text>
             <TextInput
               style={styles.input}
               value={answer}
@@ -77,7 +86,7 @@ export default function LoveMapQuizScreen() {
               title="Submit Answer"
               onPress={() => {
                 if (!answer.trim()) {
-                  Alert.alert('Error', 'Please enter an answer');
+                  Alert.alert("Error", "Please enter an answer");
                   return;
                 }
                 submitTruth.mutate({
@@ -91,10 +100,12 @@ export default function LoveMapQuizScreen() {
           </Card>
         )}
 
-        {phase === 'guesses' && currentQuestion && (
+        {phase === "guesses" && currentQuestion && (
           <Card style={styles.phaseCard}>
             <Text style={styles.phaseTitle}>Phase 2: Guess Your Partner</Text>
-            <Text style={styles.questionText}>{currentQuestion.question_text}</Text>
+            <Text style={styles.questionText}>
+              {currentQuestion.question_text}
+            </Text>
             <TextInput
               style={styles.input}
               value={answer}
@@ -107,7 +118,7 @@ export default function LoveMapQuizScreen() {
               title="Submit Guess"
               onPress={() => {
                 if (!answer.trim()) {
-                  Alert.alert('Error', 'Please enter a guess');
+                  Alert.alert("Error", "Please enter a guess");
                   return;
                 }
                 submitGuess.mutate({
@@ -121,7 +132,7 @@ export default function LoveMapQuizScreen() {
           </Card>
         )}
 
-        {phase === 'results' && results && (
+        {phase === "results" && results && (
           <Card style={styles.resultsCard}>
             <Text style={styles.phaseTitle}>Your Results</Text>
             <Text style={styles.scoreText}>
@@ -138,10 +149,22 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   content: { padding: spacing.lg },
   title: { ...typography.h2, color: colors.text, marginBottom: spacing.xs },
-  subtitle: { ...typography.body, color: colors.textSecondary, marginBottom: spacing.lg },
+  subtitle: {
+    ...typography.body,
+    color: colors.textSecondary,
+    marginBottom: spacing.lg,
+  },
   phaseCard: { marginBottom: spacing.lg },
-  phaseTitle: { ...typography.h4, color: colors.primary, marginBottom: spacing.md },
-  questionText: { ...typography.h5, color: colors.text, marginBottom: spacing.lg },
+  phaseTitle: {
+    ...typography.h4,
+    color: colors.primary,
+    marginBottom: spacing.md,
+  },
+  questionText: {
+    ...typography.h5,
+    color: colors.text,
+    marginBottom: spacing.lg,
+  },
   input: {
     ...typography.body,
     backgroundColor: colors.background,
@@ -152,8 +175,13 @@ const styles = StyleSheet.create({
     minHeight: 100,
     color: colors.text,
     marginBottom: spacing.md,
-    textAlignVertical: 'top',
+    textAlignVertical: "top",
   },
   resultsCard: { marginBottom: spacing.lg },
-  scoreText: { ...typography.h3, color: colors.primary, textAlign: 'center', marginTop: spacing.md },
+  scoreText: {
+    ...typography.h3,
+    color: colors.primary,
+    textAlign: "center",
+    marginTop: spacing.md,
+  },
 });

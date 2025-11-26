@@ -9,12 +9,14 @@ All AI features have been implemented, security-reviewed, and approved by the ar
 ## 🤖 AI Features Overview
 
 ### 1. AI Session Prep for Therapists
+
 **Endpoint:** `POST /api/ai/session-prep/:couple_id`  
 **Purpose:** Generate comprehensive weekly summaries to help therapists prepare for couple therapy sessions  
 **Authentication:** Therapist-only (uses `verifyTherapistSession()`)  
 **Cache:** 5 minutes
 
 **What It Does:**
+
 - Analyzes 13 therapy tools' activity from the last 4 weeks
 - Provides engagement summary (check-in completion, activity levels)
 - Identifies concerning patterns (Four Horsemen frequency, conflict scores trending up)
@@ -23,6 +25,7 @@ All AI features have been implemented, security-reviewed, and approved by the ar
 - Suggests specific interventions (which therapy tools to recommend)
 
 **Response:**
+
 ```json
 {
   "couple_id": "uuid",
@@ -42,12 +45,14 @@ All AI features have been implemented, security-reviewed, and approved by the ar
 ---
 
 ### 2. Hold Me Tight Empathy Prompts
+
 **Endpoint:** `POST /api/ai/empathy-prompt`  
 **Purpose:** Suggest empathetic responses during Hold Me Tight (EFT) conversations  
 **Authentication:** Client (couples) - uses `verifyUserSession()`  
 **Cache:** 10 minutes
 
 **What It Does:**
+
 - Analyzes what one partner just shared in a Hold Me Tight conversation
 - Suggests 2-3 empathetic responses for their partner
 - Uses Emotionally Focused Therapy (EFT) principles
@@ -55,6 +60,7 @@ All AI features have been implemented, security-reviewed, and approved by the ar
 - Promotes validation, understanding, and emotional attunement
 
 **Request Body:**
+
 ```json
 {
   "conversation_id": "uuid",
@@ -64,6 +70,7 @@ All AI features have been implemented, security-reviewed, and approved by the ar
 ```
 
 **Response:**
+
 ```json
 {
   "conversation_id": "uuid",
@@ -79,12 +86,14 @@ All AI features have been implemented, security-reviewed, and approved by the ar
 ---
 
 ### 3. AI Exercise Recommendations
+
 **Endpoint:** `GET /api/ai/exercise-recommendations`  
 **Purpose:** Suggest which therapy tools couples should try next based on their activity patterns  
 **Authentication:** Client (couples) - uses `verifyUserSession()`  
 **Cache:** 30 minutes
 
 **What It Does:**
+
 - Analyzes 18 therapy tools' usage over the last 30 days
 - Categorizes each tool as:
   - **Not Started** (0 uses)
@@ -95,6 +104,7 @@ All AI features have been implemented, security-reviewed, and approved by the ar
 - Suggests specific actions they can take this week
 
 **Response:**
+
 ```json
 {
   "couple_id": "uuid",
@@ -121,6 +131,7 @@ All AI features have been implemented, security-reviewed, and approved by the ar
 ---
 
 ### 4. Echo & Empathy Coaching
+
 **Endpoint:** `POST /api/ai/echo-coaching`  
 **Purpose:** Provide real-time feedback on active listening quality  
 **Authentication:** Client (couples) - uses `verifyUserSession()`  
@@ -128,6 +139,7 @@ All AI features have been implemented, security-reviewed, and approved by the ar
 **Input Limits:** 2000 characters per message (prevents Perplexity token overflow)
 
 **What It Does:**
+
 - Analyzes listener's response to speaker in Echo & Empathy sessions
 - Identifies what went well (2-3 specific positives)
 - Suggests areas to improve (1-2 gentle suggestions)
@@ -136,6 +148,7 @@ All AI features have been implemented, security-reviewed, and approved by the ar
 - Checks for: paraphrasing, emotion reflection, empathy, validation, clarifying questions
 
 **Request Body:**
+
 ```json
 {
   "session_id": "uuid",
@@ -146,6 +159,7 @@ All AI features have been implemented, security-reviewed, and approved by the ar
 ```
 
 **Response:**
+
 ```json
 {
   "session_id": "uuid",
@@ -166,6 +180,7 @@ All AI features have been implemented, security-reviewed, and approved by the ar
 ---
 
 ### 5. Voice Memo Sentiment Analysis
+
 **Endpoint:** `POST /api/ai/voice-memo-sentiment`  
 **Purpose:** Analyze tone and sentiment of voice memos (when transcript is available)  
 **Authentication:** Client (couples) - uses `verifyUserSession()`  
@@ -173,6 +188,7 @@ All AI features have been implemented, security-reviewed, and approved by the ar
 **Input Limits:** 5000 characters (prevents Perplexity token overflow)
 
 **What It Does:**
+
 - Analyzes transcript_text of voice memos
 - Identifies overall tone (loving, appreciative, neutral, concerned, frustrated, etc.)
 - Provides sentiment score (1-10, where 10 is most positive/loving)
@@ -181,6 +197,7 @@ All AI features have been implemented, security-reviewed, and approved by the ar
 - Provides encouragement (positive reinforcement)
 
 **Request Body:**
+
 ```json
 {
   "memo_id": "uuid"
@@ -188,6 +205,7 @@ All AI features have been implemented, security-reviewed, and approved by the ar
 ```
 
 **Response:**
+
 ```json
 {
   "memo_id": "uuid",
@@ -213,21 +231,25 @@ All AI features have been implemented, security-reviewed, and approved by the ar
 ## 🔒 Security & Privacy Features
 
 ### Authentication
+
 - **Therapist endpoints:** Use `verifyTherapistSession()` with couple assignment verification
 - **Client endpoints:** Use `verifyUserSession()` with couple membership verification
 
 ### Privacy Protections
+
 - **No sensitive logging:** Removed `console.log()` of Perplexity request payloads
 - **Anonymized labels:** Use "Partner 1" and "Partner 2" instead of real names when sending to AI
 - **Metadata only:** Voice memo analysis uses transcript (when available), not audio files
 - **RLS compliance:** All data fetches respect Supabase Row Level Security policies
 
 ### Input Validation
+
 - **Echo coaching:** 2000 character limit per message (returns 400 if exceeded)
 - **Voice memo sentiment:** 5000 character limit for transcripts (returns 413 if exceeded)
 - **All endpoints:** UUID validation, required field checks, type safety with Zod schemas
 
 ### Error Handling
+
 - **400:** Invalid request body, missing transcript, input too long
 - **401:** Not authenticated
 - **403:** Unauthorized access (wrong couple, not sender/listener, etc.)
@@ -240,17 +262,19 @@ All AI features have been implemented, security-reviewed, and approved by the ar
 ## ⚡ Performance Optimizations
 
 ### Caching Strategy
+
 All AI endpoints implement in-memory caching to prevent expensive duplicate Perplexity API calls:
 
-| Endpoint | Cache TTL | Rationale |
-|----------|-----------|-----------|
-| Session Prep | 5 minutes | Sessions happen weekly, needs fresh data |
-| Empathy Prompts | 10 minutes | Contextual to specific conversation step |
-| Exercise Recommendations | 30 minutes | Activity patterns change slowly |
-| Echo Coaching | 60 minutes | Feedback specific to exact turn |
-| Voice Memo Sentiment | 24 hours | Transcripts don't change |
+| Endpoint                 | Cache TTL  | Rationale                                |
+| ------------------------ | ---------- | ---------------------------------------- |
+| Session Prep             | 5 minutes  | Sessions happen weekly, needs fresh data |
+| Empathy Prompts          | 10 minutes | Contextual to specific conversation step |
+| Exercise Recommendations | 30 minutes | Activity patterns change slowly          |
+| Echo Coaching            | 60 minutes | Feedback specific to exact turn          |
+| Voice Memo Sentiment     | 24 hours   | Transcripts don't change                 |
 
 **Cache Key Format:**
+
 - Session Prep: `session-prep:${therapistId}:${coupleId}`
 - Empathy Prompts: `empathy:${conversationId}:${stepNumber}:${responseSuffix}`
 - Exercise Recommendations: `recommendations:${coupleId}`
@@ -258,6 +282,7 @@ All AI endpoints implement in-memory caching to prevent expensive duplicate Perp
 - Voice Memo Sentiment: `voice-sentiment:${memoId}`
 
 ### Parallel Data Fetching
+
 - Session Prep fetches 13 therapy tools in parallel using `Promise.all()`
 - Exercise Recommendations fetches 18 therapy tools in parallel
 - Minimizes database query time
@@ -267,15 +292,19 @@ All AI endpoints implement in-memory caching to prevent expensive duplicate Perp
 ## 🧪 Testing Recommendations
 
 ### Integration Tests
+
 1. **Length Limit Tests:**
+
    - Test speaker_message with 2001 characters → should return 400
    - Test transcript_text with 5001 characters → should return 413
 
 2. **Cache Tests:**
+
    - Call same endpoint twice → second call should be instant (from cache)
    - Wait for cache expiry → third call should hit Perplexity API
 
 3. **Authentication Tests:**
+
    - Call therapist endpoint without therapist auth → should return 401
    - Call with therapist auth but wrong couple → should return 403
 
@@ -284,6 +313,7 @@ All AI endpoints implement in-memory caching to prevent expensive duplicate Perp
    - Verify AI responses use "Partner 1/2" labels, not real names
 
 ### End-to-End Tests
+
 1. **Session Prep:** Create couple with activity → call endpoint → verify structured response
 2. **Empathy Prompts:** Create Hold Me Tight conversation → get suggestions → verify quality
 3. **Exercise Recommendations:** Create varied activity → get recommendations → verify categorization
@@ -295,16 +325,19 @@ All AI endpoints implement in-memory caching to prevent expensive duplicate Perp
 ## 📊 Monitoring Recommendations
 
 ### Perplexity API Metrics
+
 - **Token usage:** Monitor `usage.total_tokens` in responses
 - **Error rates:** Track 500 errors to identify API issues
 - **Cache hit rate:** Calculate `cached_responses / total_requests`
 
 ### User Experience Metrics
+
 - **Response times:** Should be <500ms for cache hits, <5s for API calls
 - **Feature adoption:** Track usage of each AI endpoint
 - **User feedback:** Collect ratings on AI suggestion quality
 
 ### Privacy Compliance
+
 - **Log audits:** Regularly verify no sensitive data in server logs
 - **Access patterns:** Monitor unauthorized access attempts (403 errors)
 
@@ -328,16 +361,19 @@ All AI endpoints implement in-memory caching to prevent expensive duplicate Perp
 ## 💡 Future Enhancements
 
 ### Short-term (Next Sprint)
+
 1. **Voice Memo Transcription:** Implement automatic transcription service
 2. **AI Feedback UI:** Add frontend components to display AI suggestions
 3. **Usage Analytics:** Track which AI features are most helpful
 
 ### Medium-term (Next Quarter)
+
 1. **Conflict De-escalation Coach:** Real-time suggestions during Pause Button events
 2. **Daily Check-In Bot:** AI-driven daily relationship prompts
 3. **Progress Tracking AI:** Detect trends and celebrate improvements
 
 ### Long-term (Future Roadmap)
+
 1. **Multi-language Support:** Translate AI prompts and responses
 2. **Personalized AI Models:** Fine-tune based on couple's communication style
 3. **Voice Tone Analysis:** Analyze audio tone directly (no transcript needed)
@@ -347,6 +383,7 @@ All AI endpoints implement in-memory caching to prevent expensive duplicate Perp
 ## 📚 Technical Documentation
 
 ### File Structure
+
 ```
 server/
 ├── routes.ts (lines 553-1815)
@@ -360,12 +397,14 @@ server/
 ```
 
 ### Dependencies
+
 - **Perplexity API:** Uses 'sonar' model with temperature 0.2
 - **Zod:** Request validation with custom error messages
 - **Supabase Admin:** Database queries for all therapy tools
 - **Express:** RESTful API endpoints
 
 ### Environment Variables
+
 - `PERPLEXITY_API_KEY` - Required for all AI features (already configured in Replit Secrets)
 
 ---
@@ -373,6 +412,7 @@ server/
 ## ✅ Completion Summary
 
 **All 5 AI features are:**
+
 - ✅ Implemented and tested
 - ✅ Security-reviewed and approved by architect
 - ✅ Production-ready with proper error handling
@@ -382,6 +422,7 @@ server/
 - ✅ Documented with comprehensive guides
 
 **Ready for:**
+
 - Frontend integration
 - QA testing
 - Production deployment

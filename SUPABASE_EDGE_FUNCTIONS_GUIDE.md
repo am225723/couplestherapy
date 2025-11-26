@@ -108,6 +108,7 @@ supabase start
 ```
 
 This will start:
+
 - PostgreSQL database
 - Auth server
 - Edge Functions runtime
@@ -172,11 +173,11 @@ supabase functions logs ai-date-night
 ### Before (Express API)
 
 ```typescript
-import { apiRequest } from '@/lib/queryClient';
+import { apiRequest } from "@/lib/queryClient";
 
 const generateMutation = useMutation({
   mutationFn: async (prefs: DateNightPreferences) => {
-    const response = await apiRequest('POST', '/api/ai/date-night', prefs);
+    const response = await apiRequest("POST", "/api/ai/date-night", prefs);
     const data = await response.json();
     return data as DateNightResponse;
   },
@@ -186,14 +187,14 @@ const generateMutation = useMutation({
 ### After (Supabase Edge Function)
 
 ```typescript
-import { supabase } from '@/lib/supabase';
+import { supabase } from "@/lib/supabase";
 
 const generateMutation = useMutation({
   mutationFn: async (prefs: DateNightPreferences) => {
-    const { data, error } = await supabase.functions.invoke('ai-date-night', {
+    const { data, error } = await supabase.functions.invoke("ai-date-night", {
       body: prefs,
     });
-    
+
     if (error) throw error;
     return data as DateNightResponse;
   },
@@ -207,12 +208,14 @@ const generateMutation = useMutation({
 ### 1. **No Backend Server Required**
 
 **Before:**
+
 - Express server running on Vercel
 - API routes in `server/routes.ts`
 - `api/index.ts` serverless wrapper
 - Complex deployment configuration
 
 **After:**
+
 - Pure Supabase Edge Functions
 - Simplified Vercel deployment (frontend only)
 - No Express server needed
@@ -226,6 +229,7 @@ const generateMutation = useMutation({
 ### 3. **Simplified Deployment**
 
 **Before (Vercel):**
+
 ```json
 {
   "build": "vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist",
@@ -238,12 +242,11 @@ const generateMutation = useMutation({
 ```
 
 **After (Vercel):**
+
 ```json
 {
   "build": "vite build",
-  "routes": [
-    { "src": "/(.*)", "dest": "/index.html" }
-  ]
+  "routes": [{ "src": "/(.*)", "dest": "/index.html" }]
 }
 ```
 
@@ -258,18 +261,20 @@ Edge Functions automatically have access to the user's session via JWT:
 
 ```typescript
 // In edge function
-import { createClient } from '@supabase/supabase-js';
+import { createClient } from "@supabase/supabase-js";
 
 Deno.serve(async (req) => {
   const supabaseClient = createClient(
-    Deno.env.get('SUPABASE_URL')!,
-    Deno.env.get('SUPABASE_ANON_KEY')!,
+    Deno.env.get("SUPABASE_URL")!,
+    Deno.env.get("SUPABASE_ANON_KEY")!,
     {
-      global: { headers: { Authorization: req.headers.get('Authorization')! } },
-    }
+      global: { headers: { Authorization: req.headers.get("Authorization")! } },
+    },
   );
 
-  const { data: { user } } = await supabaseClient.auth.getUser();
+  const {
+    data: { user },
+  } = await supabaseClient.auth.getUser();
   // User is automatically authenticated!
 });
 ```
@@ -312,31 +317,33 @@ app.post("/api/ai/date-night", async (req, res) => {
 
 ```typescript
 // supabase/functions/ai-date-night/index.ts
-import { corsHeaders } from '../_shared/cors.ts';
+import { corsHeaders } from "../_shared/cors.ts";
 
 Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
+  if (req.method === "OPTIONS") {
+    return new Response("ok", { headers: corsHeaders });
   }
 
   try {
     const prefs = await req.json();
     const result = await generateDateNightIdeas(prefs);
-    
+
     return new Response(
       JSON.stringify({ content: result.content, citations: result.citations }),
       {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,
-      }
+      },
     );
   } catch (error) {
     return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
+      JSON.stringify({
+        error: error instanceof Error ? error.message : "Unknown error",
+      }),
       {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 500,
-      }
+      },
     );
   }
 });
@@ -362,8 +369,9 @@ Make sure CORS headers are included in every response, including errors:
 
 ```typescript
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
 };
 ```
 
@@ -382,7 +390,7 @@ supabase secrets set PERPLEXITY_API_KEY=your-key-here
 Make sure the frontend is passing the Authorization header:
 
 ```typescript
-const { data, error } = await supabase.functions.invoke('ai-date-night', {
+const { data, error } = await supabase.functions.invoke("ai-date-night", {
   body: prefs,
   // Authorization header is automatically added by Supabase client
 });
@@ -393,21 +401,25 @@ const { data, error } = await supabase.functions.invoke('ai-date-night', {
 ## Next Steps
 
 ### Phase 1: AI Functions (Current)
+
 - ✅ ai-date-night
 - ⏳ ai-analytics
 - ⏳ ai-insights
 
 ### Phase 2: High-Traffic Routes
+
 - Calendar endpoints
 - Messages endpoints
 - Voice memos endpoints
 
 ### Phase 3: Therapist Management
+
 - User creation
 - Couple management
 - Analytics export
 
 ### Phase 4: Complete Migration
+
 - All 41 routes migrated
 - Express server removed
 - Simplified Vercel deployment

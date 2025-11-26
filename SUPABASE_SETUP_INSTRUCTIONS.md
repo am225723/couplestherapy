@@ -3,6 +3,7 @@
 ## Step 1: Run the SQL Setup Scripts
 
 ### Part A: Main Setup
+
 1. Go to your Supabase project dashboard: https://froxodstewdswllgokmu.supabase.co
 2. Navigate to **SQL Editor** in the left sidebar
 3. Click **New Query**
@@ -13,6 +14,7 @@
 This will create all tables with the `Couples_` prefix and set up basic Row Level Security (RLS) policies.
 
 ### Part B: Couple Join Fix (Required for pairing)
+
 1. In the same **SQL Editor**, click **New Query** again
 2. Copy the entire contents of `supabase-couple-join-fix.sql`
 3. Paste it into the SQL Editor
@@ -21,6 +23,7 @@ This will create all tables with the `Couples_` prefix and set up basic Row Leve
 This adds the `join_code` column and updates RLS policies so partners can find and join each other securely.
 
 ### Part C: Week Tracking Upgrade (Recommended)
+
 1. In the same **SQL Editor**, click **New Query** again
 2. Copy the entire contents of `supabase-week-tracking-upgrade.sql`
 3. Paste it into the SQL Editor
@@ -29,6 +32,7 @@ This adds the `join_code` column and updates RLS policies so partners can find a
 This adds automatic ISO week number tracking and enables the historical timeline view feature.
 
 ### Part D: Storage Setup for Image Uploads (Recommended)
+
 1. In the same **SQL Editor**, click **New Query** again
 2. Copy the entire contents of `supabase-storage-setup.sql`
 3. Paste it into the SQL Editor
@@ -105,6 +109,7 @@ Note: The SUPABASE_SERVICE_ROLE_KEY is already set.
 ## What's Next?
 
 After setting up the database:
+
 1. The application will be ready to use
 2. Users can sign up and create profiles
 3. Therapists can be assigned to couples

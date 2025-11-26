@@ -1,33 +1,41 @@
-import { useState } from 'react';
-import { useQuery, useMutation } from '@tanstack/react-query';
-import { useAuth } from '@/lib/auth-context';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
-import { useToast } from '@/hooks/use-toast';
-import { queryClient, apiRequest } from '@/lib/queryClient';
-import { format } from 'date-fns';
-import { AlertTriangle, Pause, TrendingDown } from 'lucide-react';
+import { useState } from "react";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { useAuth } from "@/lib/auth-context";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/hooks/use-toast";
+import { queryClient, apiRequest } from "@/lib/queryClient";
+import { format } from "date-fns";
+import { AlertTriangle, Pause, TrendingDown } from "lucide-react";
 
 const DEMON_DIALOGUES = {
   find_bad_guy: {
-    name: 'Find the Bad Guy',
-    color: 'bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-200',
-    description: 'Each partner blames the other: "It\'s your fault!" "No, it\'s yours!"',
-    pattern: 'Mutual blame and defensiveness',
+    name: "Find the Bad Guy",
+    color: "bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-200",
+    description:
+      'Each partner blames the other: "It\'s your fault!" "No, it\'s yours!"',
+    pattern: "Mutual blame and defensiveness",
   },
   protest_polka: {
-    name: 'Protest Polka',
-    color: 'bg-purple-100 dark:bg-purple-900/20 text-purple-800 dark:text-purple-200',
-    description: 'One partner pursues/criticizes, the other withdraws/defends',
-    pattern: 'Pursue-withdraw cycle',
+    name: "Protest Polka",
+    color:
+      "bg-purple-100 dark:bg-purple-900/20 text-purple-800 dark:text-purple-200",
+    description: "One partner pursues/criticizes, the other withdraws/defends",
+    pattern: "Pursue-withdraw cycle",
   },
   freeze_flee: {
-    name: 'Freeze and Flee',
-    color: 'bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-200',
-    description: 'Both partners shut down and emotionally withdraw',
-    pattern: 'Mutual withdrawal',
+    name: "Freeze and Flee",
+    color: "bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-200",
+    description: "Both partners shut down and emotionally withdraw",
+    pattern: "Mutual withdrawal",
   },
 };
 
@@ -47,44 +55,52 @@ interface DemonDialogue {
 export default function DemonDialoguesPage() {
   const { profile } = useAuth();
   const { toast } = useToast();
-  const [selectedDialogue, setSelectedDialogue] = useState<DialogueType | null>(null);
-  const [notes, setNotes] = useState('');
+  const [selectedDialogue, setSelectedDialogue] = useState<DialogueType | null>(
+    null,
+  );
+  const [notes, setNotes] = useState("");
   const [interrupted, setInterrupted] = useState(false);
 
   // Fetch dialogues
   const { data: dialogues = [], isLoading } = useQuery<DemonDialogue[]>({
-    queryKey: ['/api/demon-dialogues', profile?.couple_id],
+    queryKey: ["/api/demon-dialogues", profile?.couple_id],
     enabled: !!profile?.couple_id,
   });
 
   // Create dialogue mutation
   const createDialogueMutation = useMutation({
-    mutationFn: async (data: { dialogue_type: DialogueType; interrupted: boolean; notes: string }) => {
-      const response = await apiRequest('POST', '/api/demon-dialogues', data);
+    mutationFn: async (data: {
+      dialogue_type: DialogueType;
+      interrupted: boolean;
+      notes: string;
+    }) => {
+      const response = await apiRequest("POST", "/api/demon-dialogues", data);
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/demon-dialogues', profile?.couple_id] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/demon-dialogues", profile?.couple_id],
+      });
       toast({
-        title: 'Cycle Recognized',
-        description: 'Naming the pattern is the first step to breaking free.',
+        title: "Cycle Recognized",
+        description: "Naming the pattern is the first step to breaking free.",
       });
       setSelectedDialogue(null);
-      setNotes('');
+      setNotes("");
       setInterrupted(false);
     },
     onError: (error: any) => {
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to log dialogue',
-        variant: 'destructive',
+        title: "Error",
+        description: error.message || "Failed to log dialogue",
+        variant: "destructive",
       });
     },
   });
 
   const handleSubmit = () => {
     if (!selectedDialogue) return;
-    
+
     createDialogueMutation.mutate({
       dialogue_type: selectedDialogue,
       interrupted,
@@ -93,12 +109,15 @@ export default function DemonDialoguesPage() {
   };
 
   // Calculate stats
-  const stats = dialogues.reduce((acc, dialogue) => {
-    acc[dialogue.dialogue_type] = (acc[dialogue.dialogue_type] || 0) + 1;
-    return acc;
-  }, {} as Record<DialogueType, number>);
+  const stats = dialogues.reduce(
+    (acc, dialogue) => {
+      acc[dialogue.dialogue_type] = (acc[dialogue.dialogue_type] || 0) + 1;
+      return acc;
+    },
+    {} as Record<DialogueType, number>,
+  );
 
-  const interruptedCount = dialogues.filter(d => d.interrupted).length;
+  const interruptedCount = dialogues.filter((d) => d.interrupted).length;
   const totalDialogues = dialogues.length;
 
   return (
@@ -121,8 +140,15 @@ export default function DemonDialoguesPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold" data-testid={`text-stat-${key}`}>{stats[key as DialogueType] || 0}</div>
-              <p className="text-xs text-muted-foreground mt-1">times recognized</p>
+              <div
+                className="text-2xl font-bold"
+                data-testid={`text-stat-${key}`}
+              >
+                {stats[key as DialogueType] || 0}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                times recognized
+              </p>
             </CardContent>
           </Card>
         ))}
@@ -138,11 +164,15 @@ export default function DemonDialoguesPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-green-600" data-testid="text-success-rate">
+            <div
+              className="text-3xl font-bold text-green-600"
+              data-testid="text-success-rate"
+            >
               {Math.round((interruptedCount / totalDialogues) * 100)}%
             </div>
             <p className="text-sm text-muted-foreground">
-              {interruptedCount} of {totalDialogues} cycles successfully interrupted
+              {interruptedCount} of {totalDialogues} cycles successfully
+              interrupted
             </p>
           </CardContent>
         </Card>
@@ -153,7 +183,8 @@ export default function DemonDialoguesPage() {
         <CardHeader>
           <CardTitle>Recognize a Demon Dialogue</CardTitle>
           <CardDescription>
-            Identify which negative cycle you're experiencing right now or recently experienced.
+            Identify which negative cycle you're experiencing right now or
+            recently experienced.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -170,7 +201,9 @@ export default function DemonDialoguesPage() {
                   <span className="font-semibold">{config.name}</span>
                 </div>
                 <p className="text-xs text-left mt-1">{config.description}</p>
-                <p className="text-xs text-left text-muted-foreground">{config.pattern}</p>
+                <p className="text-xs text-left text-muted-foreground">
+                  {config.pattern}
+                </p>
               </Button>
             ))}
           </div>
@@ -197,8 +230,12 @@ export default function DemonDialoguesPage() {
                   onChange={(e) => setInterrupted(e.target.checked)}
                   className="w-4 h-4"
                 />
-                <label htmlFor="interrupted" className="text-sm font-medium cursor-pointer">
-                  We successfully interrupted this cycle (took a pause or reconnected)
+                <label
+                  htmlFor="interrupted"
+                  className="text-sm font-medium cursor-pointer"
+                >
+                  We successfully interrupted this cycle (took a pause or
+                  reconnected)
                 </label>
               </div>
 
@@ -208,7 +245,9 @@ export default function DemonDialoguesPage() {
                 disabled={createDialogueMutation.isPending}
                 className="w-full"
               >
-                {createDialogueMutation.isPending ? 'Logging...' : 'Log This Cycle'}
+                {createDialogueMutation.isPending
+                  ? "Logging..."
+                  : "Log This Cycle"}
               </Button>
             </>
           )}
@@ -225,7 +264,9 @@ export default function DemonDialoguesPage() {
           {isLoading ? (
             <p className="text-muted-foreground">Loading...</p>
           ) : dialogues.length === 0 ? (
-            <p className="text-muted-foreground">No demon dialogues logged yet.</p>
+            <p className="text-muted-foreground">
+              No demon dialogues logged yet.
+            </p>
           ) : (
             dialogues.map((dialogue) => (
               <div
@@ -235,23 +276,31 @@ export default function DemonDialoguesPage() {
               >
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-2">
-                    <Badge className={DEMON_DIALOGUES[dialogue.dialogue_type].color} data-testid={`badge-dialogue-${dialogue.id}`}>
+                    <Badge
+                      className={DEMON_DIALOGUES[dialogue.dialogue_type].color}
+                      data-testid={`badge-dialogue-${dialogue.id}`}
+                    >
                       {DEMON_DIALOGUES[dialogue.dialogue_type].name}
                     </Badge>
-                    <span className="text-sm text-muted-foreground" data-testid={`text-date-${dialogue.id}`}>
-                      {format(new Date(dialogue.created_at), 'MMM d, h:mm a')}
+                    <span
+                      className="text-sm text-muted-foreground"
+                      data-testid={`text-date-${dialogue.id}`}
+                    >
+                      {format(new Date(dialogue.created_at), "MMM d, h:mm a")}
                     </span>
                   </div>
                   {dialogue.interrupted && (
-                    <Badge variant="default" className="bg-green-600" data-testid={`badge-interrupted-${dialogue.id}`}>
+                    <Badge
+                      variant="default"
+                      className="bg-green-600"
+                      data-testid={`badge-interrupted-${dialogue.id}`}
+                    >
                       Interrupted
                     </Badge>
                   )}
                 </div>
 
-                {dialogue.notes && (
-                  <p className="text-sm">{dialogue.notes}</p>
-                )}
+                {dialogue.notes && <p className="text-sm">{dialogue.notes}</p>}
               </div>
             ))
           )}

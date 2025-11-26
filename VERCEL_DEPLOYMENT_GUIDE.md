@@ -16,6 +16,7 @@ The following files have been configured for Vercel deployment:
 ### Update package.json Build Script
 
 **Current:**
+
 ```json
 "scripts": {
   "build": "vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist"
@@ -23,6 +24,7 @@ The following files have been configured for Vercel deployment:
 ```
 
 **Change to:**
+
 ```json
 "scripts": {
   "build": "vite build"
@@ -37,6 +39,7 @@ The following files have been configured for Vercel deployment:
 
 1. Make the package.json change above
 2. Commit all changes:
+
 ```bash
 git add .
 git commit -m "Configure for Vercel deployment"
@@ -54,21 +57,23 @@ git push
 
 In the Vercel dashboard, go to **Project Settings > Environment Variables** and add:
 
-| Variable Name | Description | Where to Get It |
-|--------------|-------------|-----------------|
-| `VITE_SUPABASE_URL` | Your Supabase project URL | Supabase Dashboard > Project Settings > API |
-| `VITE_SUPABASE_ANON_KEY` | Supabase anonymous/public key | Supabase Dashboard > Project Settings > API |
+| Variable Name               | Description                         | Where to Get It                                                |
+| --------------------------- | ----------------------------------- | -------------------------------------------------------------- |
+| `VITE_SUPABASE_URL`         | Your Supabase project URL           | Supabase Dashboard > Project Settings > API                    |
+| `VITE_SUPABASE_ANON_KEY`    | Supabase anonymous/public key       | Supabase Dashboard > Project Settings > API                    |
 | `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role key (SECRET!) | Supabase Dashboard > Project Settings > API > service_role key |
-| `SESSION_SECRET` | Random string for sessions | Generate with: `openssl rand -base64 32` |
-| `PERPLEXITY_API_KEY` | Perplexity AI API key | https://www.perplexity.ai/settings/api |
+| `SESSION_SECRET`            | Random string for sessions          | Generate with: `openssl rand -base64 32`                       |
+| `PERPLEXITY_API_KEY`        | Perplexity AI API key               | https://www.perplexity.ai/settings/api                         |
 
-**Important:** 
+**Important:**
+
 - Add these to **all environments** (Production, Preview, Development)
 - Mark `SUPABASE_SERVICE_ROLE_KEY`, `SESSION_SECRET`, and `PERPLEXITY_API_KEY` as **sensitive**
 
 ### Step 4: Deploy
 
 Click **"Deploy"** in the Vercel dashboard. Vercel will:
+
 1. Build the frontend with `npm run build` (Vite)
 2. Build the serverless function from `api/index.ts`
 3. Configure routing based on `vercel.json`
@@ -89,6 +94,7 @@ Click **"Deploy"** in the Vercel dashboard. Vercel will:
 ### Request Flow
 
 1. **API Requests** (`/api/*`)
+
    - Routed to `api/index.ts` serverless function
    - Express handles the request
    - Connects to Supabase with service role key
@@ -103,6 +109,7 @@ Click **"Deploy"** in the Vercel dashboard. Vercel will:
 ### Client Routes (All handled by React Router)
 
 **Client App:**
+
 - `/dashboard` - Client Dashboard
 - `/couple-setup` - Initial couple setup
 - `/quiz` - Love Language Quiz
@@ -122,6 +129,7 @@ Click **"Deploy"** in the Vercel dashboard. Vercel will:
 - `/pause` - Shared Pause Button
 
 **Admin App:**
+
 - `/admin` - Therapist Dashboard
 - `/admin/couple/:id` - Couple Details
 - `/admin/analytics` - Analytics
@@ -132,6 +140,7 @@ Click **"Deploy"** in the Vercel dashboard. Vercel will:
 All routes from `server/routes.ts` are available at `/api/*`:
 
 **Couples:**
+
 - `GET /api/couples` - List all couples
 - `GET /api/couples/:id` - Get couple details
 - `POST /api/couples` - Create couple
@@ -139,22 +148,26 @@ All routes from `server/routes.ts` are available at `/api/*`:
 - `DELETE /api/couples/:id` - Delete couple
 
 **Weekly Check-ins:**
+
 - `GET /api/couples/:id/weekly-checkins` - Get check-ins
 - `POST /api/weekly-checkins` - Create check-in
 - `GET /api/weekly-checkins/:id` - Get check-in by ID
 
 **Gratitude Log:**
+
 - `GET /api/couples/:id/gratitude` - Get gratitude entries
 - `POST /api/gratitude` - Create entry
 - `DELETE /api/gratitude/:id` - Delete entry
 
 **Goals:**
+
 - `GET /api/couples/:id/goals` - Get goals
 - `POST /api/goals` - Create goal
 - `PATCH /api/goals/:id` - Update goal
 - `DELETE /api/goals/:id` - Delete goal
 
 **Voice Memos:**
+
 - `GET /api/couples/:id/voice-memos` - Get voice memos
 - `POST /api/voice-memos/upload-url` - Get upload URL
 - `POST /api/voice-memos` - Create memo
@@ -162,37 +175,44 @@ All routes from `server/routes.ts` are available at `/api/*`:
 - `DELETE /api/voice-memos/:id` - Delete memo
 
 **Messages:**
+
 - `GET /api/couples/:id/messages` - Get messages
 - `POST /api/messages` - Create message
 
 **Calendar:**
+
 - `GET /api/couples/:id/calendar` - Get events
 - `POST /api/calendar` - Create event
 - `PATCH /api/calendar/:id` - Update event
 - `DELETE /api/calendar/:id` - Delete event
 
 **Echo & Empathy:**
+
 - `POST /api/echo/session` - Create session
 - `GET /api/echo/session/:id` - Get session
 - `POST /api/echo/session/:id/complete` - Complete session
 
 **IFS:**
+
 - `POST /api/ifs/part` - Create part
 - `GET /api/ifs/parts/:userId` - Get user's parts
 - `PATCH /api/ifs/part/:id` - Update part
 
 **Pause Button:**
+
 - `POST /api/pause/activate` - Activate pause
 - `POST /api/pause/deactivate` - Deactivate pause
 - `GET /api/pause/status/:coupleId` - Get pause status
 - `GET /api/pause/history/:coupleId` - Get pause history
 
 **Therapist:**
+
 - `GET /api/therapist/couples` - Get therapist's couples
 - `POST /api/therapist/create-couple` - Create new couple
 - `POST /api/therapist/create-therapist` - Create new therapist
 
 **AI Endpoints:**
+
 - `POST /api/ai/date-night` - Generate date night ideas (Perplexity)
 - `GET /api/ai/analytics` - Get therapist analytics (Perplexity)
 - `GET /api/ai/insights` - Get detailed couple insights (Perplexity)
@@ -202,12 +222,14 @@ All routes from `server/routes.ts` are available at `/api/*`:
 After deployment, verify these work:
 
 1. **Frontend Routes:**
+
    - Visit `https://your-app.vercel.app/dashboard`
    - Visit `https://your-app.vercel.app/echo-empathy`
    - Visit `https://your-app.vercel.app/pause`
    - All should load the React app (not 404)
 
 2. **API Routes:**
+
    - Check browser console for API calls
    - All API requests should go to `/api/*`
    - No CORS errors
@@ -224,6 +246,7 @@ After deployment, verify these work:
 **Problem:** Visiting `/dashboard` returns 404
 
 **Solution:** The `vercel.json` rewrites should handle this. Verify:
+
 ```json
 {
   "rewrites": [
@@ -240,6 +263,7 @@ After deployment, verify these work:
 **Problem:** `/api/couples` returns 404
 
 **Solution:** Verify `api/index.ts` exists and exports the Express app:
+
 ```typescript
 export default app;
 ```
@@ -248,7 +272,8 @@ export default app;
 
 **Problem:** API can't connect to Supabase
 
-**Solution:** 
+**Solution:**
+
 1. Go to Vercel Dashboard > Settings > Environment Variables
 2. Verify all 5 variables are set
 3. Redeploy after adding variables
@@ -258,6 +283,7 @@ export default app;
 **Problem:** Vercel build fails
 
 **Solutions:**
+
 1. Check package.json has `"build": "vite build"` (not the esbuild command)
 2. Check all dependencies are in package.json
 3. Check build logs for specific errors
@@ -267,11 +293,13 @@ export default app;
 After deployment:
 
 1. **Vercel Dashboard:**
+
    - View deployment logs
    - Monitor function execution
    - Check error rates
 
 2. **Supabase Dashboard:**
+
    - Monitor database queries
    - Check API usage
    - Review logs
@@ -284,6 +312,7 @@ After deployment:
 ## 🎉 Success!
 
 Your TADI application is now live on Vercel with:
+
 - ✅ Global CDN for fast frontend delivery
 - ✅ Serverless functions for scalable backend
 - ✅ Automatic HTTPS

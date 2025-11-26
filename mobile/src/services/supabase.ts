@@ -1,6 +1,6 @@
-import { createClient } from '@supabase/supabase-js';
-import * as SecureStore from 'expo-secure-store';
-import config from '../constants/config';
+import { createClient } from "@supabase/supabase-js";
+import * as SecureStore from "expo-secure-store";
+import config from "../constants/config";
 
 const ExpoSecureStoreAdapter = {
   getItem: async (key: string) => {
@@ -24,5 +24,5 @@ export const supabase = createClient(
       persistSession: true,
       detectSessionInUrl: false,
     },
-  }
+  },
 );

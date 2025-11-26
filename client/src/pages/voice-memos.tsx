@@ -1,19 +1,36 @@
-import { useState, useRef, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { useAuth } from '@/lib/auth-context';
-import { supabase } from '@/lib/supabase';
-import { authenticatedFetch } from '@/lib/authenticated-fetch';
-import { useToast } from '@/hooks/use-toast';
-import { useQuery, useMutation } from '@tanstack/react-query';
-import { queryClient, apiRequest } from '@/lib/queryClient';
-import { Mic, Square, Send, Play, Pause, Loader2, Volume2, Check, Sparkles, Heart } from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
-import type { VoiceMemo, Profile } from '@shared/schema';
+import { useState, useRef, useEffect } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useAuth } from "@/lib/auth-context";
+import { supabase } from "@/lib/supabase";
+import { authenticatedFetch } from "@/lib/authenticated-fetch";
+import { useToast } from "@/hooks/use-toast";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { queryClient, apiRequest } from "@/lib/queryClient";
+import {
+  Mic,
+  Square,
+  Send,
+  Play,
+  Pause,
+  Loader2,
+  Volume2,
+  Check,
+  Sparkles,
+  Heart,
+} from "lucide-react";
+import { formatDistanceToNow } from "date-fns";
+import type { VoiceMemo, Profile } from "@shared/schema";
 
 type VoiceMemoWithProfile = VoiceMemo & {
   sender?: Profile;
@@ -38,23 +55,23 @@ export default function VoiceMemosPage() {
 
   // Fetch voice memos
   const { data: memos, isLoading } = useQuery<VoiceMemoWithProfile[]>({
-    queryKey: ['/api/voice-memos'],
+    queryKey: ["/api/voice-memos"],
     enabled: !!profile?.couple_id,
   });
 
   // Mark as listened mutation
   const markAsListenedMutation = useMutation({
     mutationFn: async (memoId: string) => {
-      await apiRequest('PATCH', `/api/voice-memos/${memoId}/listened`);
+      await apiRequest("PATCH", `/api/voice-memos/${memoId}/listened`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/voice-memos'] });
+      queryClient.invalidateQueries({ queryKey: ["/api/voice-memos"] });
     },
     onError: (error: Error) => {
       toast({
-        title: 'Error',
+        title: "Error",
         description: error.message,
-        variant: 'destructive',
+        variant: "destructive",
       });
     },
   });
@@ -63,15 +80,15 @@ export default function VoiceMemosPage() {
   const startRecording = async () => {
     try {
       setPermissionError(null);
-      
+
       // Request microphone permission
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       streamRef.current = stream;
 
       // Check for supported mime type
-      const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
-        ? 'audio/webm;codecs=opus'
-        : 'audio/webm';
+      const mimeType = MediaRecorder.isTypeSupported("audio/webm;codecs=opus")
+        ? "audio/webm;codecs=opus"
+        : "audio/webm";
 
       const mediaRecorder = new MediaRecorder(stream, { mimeType });
       mediaRecorderRef.current = mediaRecorder;
@@ -87,10 +104,10 @@ export default function VoiceMemosPage() {
         const blob = new Blob(audioChunksRef.current, { type: mimeType });
         setAudioBlob(blob);
         setAudioUrl(URL.createObjectURL(blob));
-        
+
         // Stop all tracks
         if (streamRef.current) {
-          streamRef.current.getTracks().forEach(track => track.stop());
+          streamRef.current.getTracks().forEach((track) => track.stop());
         }
       };
 
@@ -103,18 +120,27 @@ export default function VoiceMemosPage() {
         setRecordingTime((prev) => prev + 1);
       }, 1000);
     } catch (error: any) {
-      console.error('Error starting recording:', error);
-      if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
-        setPermissionError('Microphone permission denied. Please allow microphone access to record voice memos.');
-      } else if (error.name === 'NotFoundError') {
-        setPermissionError('No microphone found. Please connect a microphone and try again.');
+      console.error("Error starting recording:", error);
+      if (
+        error.name === "NotAllowedError" ||
+        error.name === "PermissionDeniedError"
+      ) {
+        setPermissionError(
+          "Microphone permission denied. Please allow microphone access to record voice memos.",
+        );
+      } else if (error.name === "NotFoundError") {
+        setPermissionError(
+          "No microphone found. Please connect a microphone and try again.",
+        );
       } else {
-        setPermissionError('Unable to access microphone. Please check your browser settings.');
+        setPermissionError(
+          "Unable to access microphone. Please check your browser settings.",
+        );
       }
       toast({
-        title: 'Recording Error',
-        description: error.message || 'Could not start recording',
-        variant: 'destructive',
+        title: "Recording Error",
+        description: error.message || "Could not start recording",
+        variant: "destructive",
       });
     }
   };
@@ -124,7 +150,7 @@ export default function VoiceMemosPage() {
     if (mediaRecorderRef.current && isRecording) {
       mediaRecorderRef.current.stop();
       setIsRecording(false);
-      
+
       if (timerRef.current) {
         clearInterval(timerRef.current);
       }
@@ -148,21 +174,22 @@ export default function VoiceMemosPage() {
 
       // Get partner ID
       const { data: coupleData } = await supabase
-        .from('Couples_couples')
-        .select('partner1_id, partner2_id')
-        .eq('id', profile.couple_id)
+        .from("Couples_couples")
+        .select("partner1_id, partner2_id")
+        .eq("id", profile.couple_id)
         .single();
 
       if (!coupleData) {
-        throw new Error('Couple not found');
+        throw new Error("Couple not found");
       }
 
-      const recipientId = coupleData.partner1_id === profile.id 
-        ? coupleData.partner2_id 
-        : coupleData.partner1_id;
+      const recipientId =
+        coupleData.partner1_id === profile.id
+          ? coupleData.partner2_id
+          : coupleData.partner1_id;
 
       // Step 1: Create voice memo and get upload URL
-      const createResponse = await apiRequest('POST', '/api/voice-memos', {
+      const createResponse = await apiRequest("POST", "/api/voice-memos", {
         recipient_id: recipientId,
       });
 
@@ -170,37 +197,37 @@ export default function VoiceMemosPage() {
 
       // Step 2: Upload blob to Supabase Storage
       const uploadResponse = await fetch(upload_url, {
-        method: 'PUT',
+        method: "PUT",
         body: audioBlob,
         headers: {
-          'Content-Type': audioBlob.type,
+          "Content-Type": audioBlob.type,
         },
       });
 
       if (!uploadResponse.ok) {
-        throw new Error('Failed to upload audio file');
+        throw new Error("Failed to upload audio file");
       }
 
       // Step 3: Complete the upload
-      await apiRequest('POST', `/api/voice-memos/${memo_id}/complete`, {
+      await apiRequest("POST", `/api/voice-memos/${memo_id}/complete`, {
         storage_path: storage_path,
         duration_secs: recordingTime,
       });
 
       toast({
-        title: 'Voice memo sent!',
-        description: 'Your voice memo has been sent to your partner.',
+        title: "Voice memo sent!",
+        description: "Your voice memo has been sent to your partner.",
       });
 
       // Reset state
       cancelRecording();
-      queryClient.invalidateQueries({ queryKey: ['/api/voice-memos'] });
+      queryClient.invalidateQueries({ queryKey: ["/api/voice-memos"] });
     } catch (error: any) {
-      console.error('Error sending voice memo:', error);
+      console.error("Error sending voice memo:", error);
       toast({
-        title: 'Error sending voice memo',
-        description: error.message || 'Please try again',
-        variant: 'destructive',
+        title: "Error sending voice memo",
+        description: error.message || "Please try again",
+        variant: "destructive",
       });
     } finally {
       setIsUploading(false);
@@ -214,7 +241,7 @@ export default function VoiceMemosPage() {
         clearInterval(timerRef.current);
       }
       if (streamRef.current) {
-        streamRef.current.getTracks().forEach(track => track.stop());
+        streamRef.current.getTracks().forEach((track) => track.stop());
       }
       if (audioUrl) {
         URL.revokeObjectURL(audioUrl);
@@ -226,13 +253,14 @@ export default function VoiceMemosPage() {
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
   // Separate memos
-  const receivedMemos = memos?.filter(m => m.recipient_id === profile?.id) || [];
-  const sentMemos = memos?.filter(m => m.sender_id === profile?.id) || [];
-  const unlistenedCount = receivedMemos.filter(m => !m.is_listened).length;
+  const receivedMemos =
+    memos?.filter((m) => m.recipient_id === profile?.id) || [];
+  const sentMemos = memos?.filter((m) => m.sender_id === profile?.id) || [];
+  const unlistenedCount = receivedMemos.filter((m) => !m.is_listened).length;
 
   return (
     <div className="min-h-screen bg-background py-8 px-4">
@@ -252,7 +280,8 @@ export default function VoiceMemosPage() {
               Record a Voice Memo
             </CardTitle>
             <CardDescription>
-              Record a message for your partner. They'll be able to listen to it privately.
+              Record a message for your partner. They'll be able to listen to it
+              privately.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -264,8 +293,8 @@ export default function VoiceMemosPage() {
 
             {!isRecording && !audioBlob && (
               <div className="text-center py-8">
-                <Button 
-                  size="lg" 
+                <Button
+                  size="lg"
                   onClick={startRecording}
                   className="gap-2"
                   data-testid="button-start-recording"
@@ -279,15 +308,21 @@ export default function VoiceMemosPage() {
             {isRecording && (
               <div className="space-y-6">
                 <div className="flex items-center justify-center gap-4 py-8">
-                  <div className="w-4 h-4 rounded-full bg-destructive animate-pulse" data-testid="indicator-recording" />
-                  <span className="text-3xl font-mono" data-testid="text-recording-time">
+                  <div
+                    className="w-4 h-4 rounded-full bg-destructive animate-pulse"
+                    data-testid="indicator-recording"
+                  />
+                  <span
+                    className="text-3xl font-mono"
+                    data-testid="text-recording-time"
+                  >
                     {formatTime(recordingTime)}
                   </span>
                 </div>
                 <div className="text-center">
-                  <Button 
-                    size="lg" 
-                    variant="destructive" 
+                  <Button
+                    size="lg"
+                    variant="destructive"
                     onClick={stopRecording}
                     className="gap-2"
                     data-testid="button-stop-recording"
@@ -311,15 +346,15 @@ export default function VoiceMemosPage() {
                   <AudioPlayer url={audioUrl} />
                 </div>
                 <div className="flex gap-3 justify-center">
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     onClick={cancelRecording}
                     disabled={isUploading}
                     data-testid="button-cancel-recording"
                   >
                     Cancel
                   </Button>
-                  <Button 
+                  <Button
                     onClick={sendVoiceMemo}
                     disabled={isUploading}
                     className="gap-2"
@@ -351,12 +386,18 @@ export default function VoiceMemosPage() {
                 <TabsTrigger value="received" data-testid="tab-received">
                   Received
                   {unlistenedCount > 0 && (
-                    <Badge variant="destructive" className="ml-2" data-testid="badge-unlistened-count">
+                    <Badge
+                      variant="destructive"
+                      className="ml-2"
+                      data-testid="badge-unlistened-count"
+                    >
                       {unlistenedCount}
                     </Badge>
                   )}
                 </TabsTrigger>
-                <TabsTrigger value="sent" data-testid="tab-sent">Sent</TabsTrigger>
+                <TabsTrigger value="sent" data-testid="tab-sent">
+                  Sent
+                </TabsTrigger>
               </TabsList>
             </CardHeader>
 
@@ -365,16 +406,18 @@ export default function VoiceMemosPage() {
                 {isLoading ? (
                   <LoadingSkeletons count={3} />
                 ) : receivedMemos.length === 0 ? (
-                  <EmptyState 
+                  <EmptyState
                     title="No voice memos yet"
                     description="When your partner sends you a voice memo, it will appear here."
                   />
                 ) : (
                   receivedMemos.map((memo) => (
-                    <VoiceMemoCard 
-                      key={memo.id} 
-                      memo={memo} 
-                      onMarkAsListened={() => markAsListenedMutation.mutate(memo.id)}
+                    <VoiceMemoCard
+                      key={memo.id}
+                      memo={memo}
+                      onMarkAsListened={() =>
+                        markAsListenedMutation.mutate(memo.id)
+                      }
                       isReceived
                     />
                   ))
@@ -385,13 +428,17 @@ export default function VoiceMemosPage() {
                 {isLoading ? (
                   <LoadingSkeletons count={3} />
                 ) : sentMemos.length === 0 ? (
-                  <EmptyState 
+                  <EmptyState
                     title="No sent memos"
                     description="Record and send a voice memo to your partner to get started."
                   />
                 ) : (
                   sentMemos.map((memo) => (
-                    <VoiceMemoCard key={memo.id} memo={memo} isReceived={false} />
+                    <VoiceMemoCard
+                      key={memo.id}
+                      memo={memo}
+                      isReceived={false}
+                    />
                   ))
                 )}
               </TabsContent>
@@ -418,14 +465,14 @@ function AudioPlayer({ url }: { url: string }) {
     const handleLoadedMetadata = () => setDuration(audio.duration);
     const handleEnded = () => setIsPlaying(false);
 
-    audio.addEventListener('timeupdate', handleTimeUpdate);
-    audio.addEventListener('loadedmetadata', handleLoadedMetadata);
-    audio.addEventListener('ended', handleEnded);
+    audio.addEventListener("timeupdate", handleTimeUpdate);
+    audio.addEventListener("loadedmetadata", handleLoadedMetadata);
+    audio.addEventListener("ended", handleEnded);
 
     return () => {
-      audio.removeEventListener('timeupdate', handleTimeUpdate);
-      audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
-      audio.removeEventListener('ended', handleEnded);
+      audio.removeEventListener("timeupdate", handleTimeUpdate);
+      audio.removeEventListener("loadedmetadata", handleLoadedMetadata);
+      audio.removeEventListener("ended", handleEnded);
     };
   }, []);
 
@@ -441,10 +488,10 @@ function AudioPlayer({ url }: { url: string }) {
   };
 
   const formatTime = (seconds: number) => {
-    if (!isFinite(seconds)) return '0:00';
+    if (!isFinite(seconds)) return "0:00";
     const mins = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
   const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
@@ -465,7 +512,7 @@ function AudioPlayer({ url }: { url: string }) {
       </Button>
       <div className="flex-1">
         <div className="relative h-2 bg-secondary rounded-full overflow-hidden">
-          <div 
+          <div
             className="absolute inset-y-0 left-0 bg-primary transition-all"
             style={{ width: `${progress}%` }}
           />
@@ -480,12 +527,12 @@ function AudioPlayer({ url }: { url: string }) {
 }
 
 // Voice Memo Card Component
-function VoiceMemoCard({ 
-  memo, 
-  onMarkAsListened, 
-  isReceived 
-}: { 
-  memo: VoiceMemoWithProfile; 
+function VoiceMemoCard({
+  memo,
+  onMarkAsListened,
+  isReceived,
+}: {
+  memo: VoiceMemoWithProfile;
   onMarkAsListened?: () => void;
   isReceived: boolean;
 }) {
@@ -498,22 +545,25 @@ function VoiceMemoCard({
   // AI Sentiment Analysis mutation
   const sentimentMutation = useMutation({
     mutationFn: async (memoId: string) => {
-      const response = await authenticatedFetch('/api/ai/voice-memo-sentiment', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ memo_id: memoId })
-      });
-      
+      const response = await authenticatedFetch(
+        "/api/ai/voice-memo-sentiment",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ memo_id: memoId }),
+        },
+      );
+
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.message || 'Failed to analyze tone');
+        throw new Error(error.message || "Failed to analyze tone");
       }
-      
+
       return response.json();
     },
     onSuccess: (data) => {
       setSentimentData(data);
-    }
+    },
   });
 
   // Load audio URL when card is rendered (for received memos)
@@ -529,14 +579,14 @@ function VoiceMemoCard({
     try {
       setIsLoadingAudio(true);
       const { data } = await supabase.storage
-        .from('voice-memos')
+        .from("voice-memos")
         .createSignedUrl(memo.storage_path, 3600); // 1 hour expiry
 
       if (data?.signedUrl) {
         setAudioUrl(data.signedUrl);
       }
     } catch (error) {
-      console.error('Error loading audio:', error);
+      console.error("Error loading audio:", error);
     } finally {
       setIsLoadingAudio(false);
     }
@@ -554,20 +604,22 @@ function VoiceMemoCard({
       }
     };
 
-    audio.addEventListener('play', handlePlay);
-    return () => audio.removeEventListener('play', handlePlay);
+    audio.addEventListener("play", handlePlay);
+    return () => audio.removeEventListener("play", handlePlay);
   }, [isReceived, hasPlayed, memo.is_listened, onMarkAsListened]);
 
-  const duration = memo.duration_secs ? parseFloat(memo.duration_secs as string) : 0;
+  const duration = memo.duration_secs
+    ? parseFloat(memo.duration_secs as string)
+    : 0;
   const formatDuration = (secs: number) => {
     const mins = Math.floor(secs / 60);
     const seconds = Math.floor(secs % 60);
-    return `${mins}:${seconds.toString().padStart(2, '0')}`;
+    return `${mins}:${seconds.toString().padStart(2, "0")}`;
   };
 
   return (
-    <Card 
-      className={!memo.is_listened && isReceived ? 'border-primary/40' : ''}
+    <Card
+      className={!memo.is_listened && isReceived ? "border-primary/40" : ""}
       data-testid={`card-memo-${memo.id}`}
     >
       <CardContent className="pt-6">
@@ -577,21 +629,38 @@ function VoiceMemoCard({
               <div className="flex items-center gap-2">
                 <Volume2 className="h-4 w-4 text-primary" />
                 <span className="font-medium" data-testid="text-memo-sender">
-                  {isReceived ? (memo.sender?.full_name || 'Your Partner') : 'You'}
+                  {isReceived
+                    ? memo.sender?.full_name || "Your Partner"
+                    : "You"}
                 </span>
                 {!memo.is_listened && isReceived && (
-                  <Badge variant="destructive" className="text-xs" data-testid="badge-new">New</Badge>
+                  <Badge
+                    variant="destructive"
+                    className="text-xs"
+                    data-testid="badge-new"
+                  >
+                    New
+                  </Badge>
                 )}
               </div>
               <div className="flex items-center gap-4 text-sm text-muted-foreground">
                 <span data-testid="text-memo-date">
-                  {memo.created_at && formatDistanceToNow(new Date(memo.created_at), { addSuffix: true })}
+                  {memo.created_at &&
+                    formatDistanceToNow(new Date(memo.created_at), {
+                      addSuffix: true,
+                    })}
                 </span>
-                <span data-testid="text-memo-duration">{formatDuration(duration)}</span>
+                <span data-testid="text-memo-duration">
+                  {formatDuration(duration)}
+                </span>
               </div>
             </div>
             {!isReceived && memo.is_listened && (
-              <Badge variant="secondary" className="gap-1" data-testid="badge-listened">
+              <Badge
+                variant="secondary"
+                className="gap-1"
+                data-testid="badge-listened"
+              >
                 <Check className="h-3 w-3" />
                 Listened
               </Badge>
@@ -611,7 +680,11 @@ function VoiceMemoCard({
                   Unable to load audio
                 </div>
               )}
-              <audio ref={audioRef} src={audioUrl || undefined} style={{ display: 'none' }} />
+              <audio
+                ref={audioRef}
+                src={audioUrl || undefined}
+                style={{ display: "none" }}
+              />
             </div>
           )}
 
@@ -639,53 +712,82 @@ function VoiceMemoCard({
               </Button>
 
               {sentimentMutation.isError && (
-                <Alert variant="destructive" data-testid="alert-sentiment-error">
+                <Alert
+                  variant="destructive"
+                  data-testid="alert-sentiment-error"
+                >
                   <AlertDescription>
-                    {sentimentMutation.error instanceof Error ? sentimentMutation.error.message : 'Unable to analyze tone. Make sure this memo has a transcript.'}
+                    {sentimentMutation.error instanceof Error
+                      ? sentimentMutation.error.message
+                      : "Unable to analyze tone. Make sure this memo has a transcript."}
                   </AlertDescription>
                 </Alert>
               )}
 
               {sentimentData && (
-                <Card className="bg-gradient-to-br from-pink-50/50 to-rose-50/50 dark:from-pink-950/20 dark:to-rose-950/20 border-pink-200/50 dark:border-pink-800/50" data-testid="card-sentiment-results">
+                <Card
+                  className="bg-gradient-to-br from-pink-50/50 to-rose-50/50 dark:from-pink-950/20 dark:to-rose-950/20 border-pink-200/50 dark:border-pink-800/50"
+                  data-testid="card-sentiment-results"
+                >
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2 text-lg">
                       <Heart className="h-5 w-5 text-pink-600 dark:text-pink-400" />
-                      Tone Analysis: {sentimentData.tone} ({sentimentData.sentiment_score}/10)
+                      Tone Analysis: {sentimentData.tone} (
+                      {sentimentData.sentiment_score}/10)
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    {sentimentData.whats_working && sentimentData.whats_working.length > 0 && (
-                      <div>
-                        <p className="text-sm font-semibold text-green-700 dark:text-green-300 mb-2">What's Working:</p>
-                        <ul className="space-y-1">
-                          {sentimentData.whats_working.map((item: string, idx: number) => (
-                            <li key={idx} className="text-sm flex items-start gap-2">
-                              <span className="text-green-600 dark:text-green-400 mt-0.5">✓</span>
-                              <span>{item}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
+                    {sentimentData.whats_working &&
+                      sentimentData.whats_working.length > 0 && (
+                        <div>
+                          <p className="text-sm font-semibold text-green-700 dark:text-green-300 mb-2">
+                            What's Working:
+                          </p>
+                          <ul className="space-y-1">
+                            {sentimentData.whats_working.map(
+                              (item: string, idx: number) => (
+                                <li
+                                  key={idx}
+                                  className="text-sm flex items-start gap-2"
+                                >
+                                  <span className="text-green-600 dark:text-green-400 mt-0.5">
+                                    ✓
+                                  </span>
+                                  <span>{item}</span>
+                                </li>
+                              ),
+                            )}
+                          </ul>
+                        </div>
+                      )}
 
-                    {sentimentData.gentle_suggestions && sentimentData.gentle_suggestions.length > 0 && (
-                      <div>
-                        <p className="text-sm font-semibold text-amber-700 dark:text-amber-300 mb-2">Gentle Suggestions:</p>
-                        <ul className="space-y-1">
-                          {sentimentData.gentle_suggestions.map((item: string, idx: number) => (
-                            <li key={idx} className="text-sm flex items-start gap-2">
-                              <Sparkles className="h-4 w-4 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
-                              <span>{item}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
+                    {sentimentData.gentle_suggestions &&
+                      sentimentData.gentle_suggestions.length > 0 && (
+                        <div>
+                          <p className="text-sm font-semibold text-amber-700 dark:text-amber-300 mb-2">
+                            Gentle Suggestions:
+                          </p>
+                          <ul className="space-y-1">
+                            {sentimentData.gentle_suggestions.map(
+                              (item: string, idx: number) => (
+                                <li
+                                  key={idx}
+                                  className="text-sm flex items-start gap-2"
+                                >
+                                  <Sparkles className="h-4 w-4 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
+                                  <span>{item}</span>
+                                </li>
+                              ),
+                            )}
+                          </ul>
+                        </div>
+                      )}
 
                     {sentimentData.encouragement && (
                       <div className="bg-background/50 p-3 rounded-md">
-                        <p className="text-sm italic text-pink-700 dark:text-pink-300">{sentimentData.encouragement}</p>
+                        <p className="text-sm italic text-pink-700 dark:text-pink-300">
+                          {sentimentData.encouragement}
+                        </p>
                       </div>
                     )}
                   </CardContent>
@@ -721,7 +823,13 @@ function LoadingSkeletons({ count }: { count: number }) {
 }
 
 // Empty State
-function EmptyState({ title, description }: { title: string; description: string }) {
+function EmptyState({
+  title,
+  description,
+}: {
+  title: string;
+  description: string;
+}) {
   return (
     <div className="text-center py-12" data-testid="empty-state">
       <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">

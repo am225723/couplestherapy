@@ -2,8 +2,9 @@
 // CORS Headers
 // ========================================
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
 };
 
 // ========================================
@@ -21,7 +22,7 @@ interface DateNightPreferences {
 }
 
 interface PerplexityMessage {
-  role: 'system' | 'user' | 'assistant';
+  role: "system" | "user" | "assistant";
   content: string;
 }
 
@@ -54,42 +55,54 @@ interface PerplexityResponse {
 // ========================================
 // Validation Functions
 // ========================================
-function validateDateNightPreferences(data: any): { 
-  valid: boolean; 
-  data?: DateNightPreferences; 
+function validateDateNightPreferences(data: any): {
+  valid: boolean;
+  data?: DateNightPreferences;
   error?: string;
 } {
-  if (!data || typeof data !== 'object') {
-    return { valid: false, error: 'Request body must be an object' };
+  if (!data || typeof data !== "object") {
+    return { valid: false, error: "Request body must be an object" };
   }
 
   // Validate interests array
   if (!data.interests || !Array.isArray(data.interests)) {
-    return { valid: false, error: 'interests must be an array' };
+    return { valid: false, error: "interests must be an array" };
   }
 
   if (data.interests.length === 0) {
-    return { valid: false, error: 'At least one interest must be selected' };
+    return { valid: false, error: "At least one interest must be selected" };
   }
 
   if (data.interests.length > 20) {
-    return { valid: false, error: 'Too many interests selected (max 20)' };
+    return { valid: false, error: "Too many interests selected (max 20)" };
   }
 
   // Validate each interest is a string
-  const invalidInterests = data.interests.filter((i: any) => typeof i !== 'string' || i.trim().length === 0);
+  const invalidInterests = data.interests.filter(
+    (i: any) => typeof i !== "string" || i.trim().length === 0,
+  );
   if (invalidInterests.length > 0) {
-    return { valid: false, error: 'All interests must be non-empty strings' };
+    return { valid: false, error: "All interests must be non-empty strings" };
   }
 
-  const requiredFields = ['time', 'zipCode', 'travelDistance', 'activityLocation', 'price', 'participants', 'energy'];
-  
+  const requiredFields = [
+    "time",
+    "zipCode",
+    "travelDistance",
+    "activityLocation",
+    "price",
+    "participants",
+    "energy",
+  ];
+
   // Check for missing or invalid fields
-  const missingFields = requiredFields.filter(field => !data[field] || typeof data[field] !== 'string');
+  const missingFields = requiredFields.filter(
+    (field) => !data[field] || typeof data[field] !== "string",
+  );
   if (missingFields.length > 0) {
-    return { 
-      valid: false, 
-      error: `Missing or invalid required fields: ${missingFields.join(', ')}` 
+    return {
+      valid: false,
+      error: `Missing or invalid required fields: ${missingFields.join(", ")}`,
     };
   }
 
@@ -107,26 +120,34 @@ function validateDateNightPreferences(data: any): {
 
   // Check for empty fields after trimming
   const emptyFields = Object.entries(trimmedData)
-    .filter(([key, value]) => key !== 'interests' && typeof value === 'string' && value.length === 0)
+    .filter(
+      ([key, value]) =>
+        key !== "interests" && typeof value === "string" && value.length === 0,
+    )
     .map(([key, _]) => key);
 
   if (emptyFields.length > 0) {
-    return { 
-      valid: false, 
-      error: `Fields cannot be empty: ${emptyFields.join(', ')}` 
+    return {
+      valid: false,
+      error: `Fields cannot be empty: ${emptyFields.join(", ")}`,
     };
   }
 
   // Max length validation to prevent abuse
   const maxLength = 500;
   const tooLongFields = Object.entries(trimmedData)
-    .filter(([key, value]) => key !== 'interests' && typeof value === 'string' && value.length > maxLength)
+    .filter(
+      ([key, value]) =>
+        key !== "interests" &&
+        typeof value === "string" &&
+        value.length > maxLength,
+    )
     .map(([key, _]) => key);
 
   if (tooLongFields.length > 0) {
-    return { 
-      valid: false, 
-      error: `Fields exceed maximum length of ${maxLength} characters: ${tooLongFields.join(', ')}` 
+    return {
+      valid: false,
+      error: `Fields exceed maximum length of ${maxLength} characters: ${tooLongFields.join(", ")}`,
     };
   }
 
@@ -139,29 +160,40 @@ function validateDateNightPreferences(data: any): {
 function redactForLogging(data: any): string {
   // Redact ALL user inputs for production logging
   // This prevents accidentally logging extra fields that may contain sensitive data
-  if (!data || typeof data !== 'object') {
-    return '[invalid data]';
+  if (!data || typeof data !== "object") {
+    return "[invalid data]";
   }
 
   // Only log field presence, never actual values
   // Use an allowlist approach - only log known safe metadata
-  const knownFields = ['interests', 'time', 'zipCode', 'travelDistance', 'activityLocation', 'price', 'participants', 'energy'];
+  const knownFields = [
+    "interests",
+    "time",
+    "zipCode",
+    "travelDistance",
+    "activityLocation",
+    "price",
+    "participants",
+    "energy",
+  ];
   const redacted: Record<string, string> = {};
 
   for (const field of knownFields) {
     if (field in data) {
-      if (field === 'interests' && Array.isArray(data[field])) {
+      if (field === "interests" && Array.isArray(data[field])) {
         redacted[field] = `[REDACTED - ${data[field].length} items]`;
       } else {
-        redacted[field] = '[REDACTED]';
+        redacted[field] = "[REDACTED]";
       }
     }
   }
 
   // Count any extra fields without logging their names or values
-  const extraFieldCount = Object.keys(data).filter(key => !knownFields.includes(key)).length;
+  const extraFieldCount = Object.keys(data).filter(
+    (key) => !knownFields.includes(key),
+  ).length;
   if (extraFieldCount > 0) {
-    redacted['_extra_fields'] = `[${extraFieldCount} fields redacted]`;
+    redacted["_extra_fields"] = `[${extraFieldCount} fields redacted]`;
   }
 
   return JSON.stringify(redacted);
@@ -172,29 +204,29 @@ function redactForLogging(data: any): string {
 // ========================================
 async function analyzeWithPerplexity(
   systemPrompt: string,
-  userPrompt: string
+  userPrompt: string,
 ): Promise<{ content: string; citations?: string[] }> {
-  const apiKey = Deno.env.get('PERPLEXITY_API_KEY');
+  const apiKey = Deno.env.get("PERPLEXITY_API_KEY");
 
   if (!apiKey) {
-    throw new Error('PERPLEXITY_API_KEY not configured');
+    throw new Error("PERPLEXITY_API_KEY not configured");
   }
 
   const requestBody: PerplexityRequest = {
-    model: 'sonar',
+    model: "sonar",
     messages: [
-      { role: 'system', content: systemPrompt },
-      { role: 'user', content: userPrompt },
+      { role: "system", content: systemPrompt },
+      { role: "user", content: userPrompt },
     ],
     temperature: 0.7,
     max_tokens: 2000,
   };
 
-  const response = await fetch('https://api.perplexity.ai/chat/completions', {
-    method: 'POST',
+  const response = await fetch("https://api.perplexity.ai/chat/completions", {
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
     },
     body: JSON.stringify(requestBody),
   });
@@ -207,7 +239,7 @@ async function analyzeWithPerplexity(
   const data: PerplexityResponse = await response.json();
 
   return {
-    content: data.choices[0]?.message?.content || '',
+    content: data.choices[0]?.message?.content || "",
     citations: data.citations,
   };
 }
@@ -217,28 +249,28 @@ async function analyzeWithPerplexity(
 // ========================================
 Deno.serve(async (req) => {
   // Handle CORS preflight
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
+  if (req.method === "OPTIONS") {
+    return new Response("ok", { headers: corsHeaders });
   }
 
   try {
     const rawBody = await req.json();
-    
+
     // Validate input with proper error messages
     const validation = validateDateNightPreferences(rawBody);
     if (!validation.valid) {
-      console.error('Validation failed:', redactForLogging(rawBody));
-      return new Response(
-        JSON.stringify({ error: validation.error }),
-        {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 400,
-        }
-      );
+      console.error("Validation failed:", redactForLogging(rawBody));
+      return new Response(JSON.stringify({ error: validation.error }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 400,
+      });
     }
 
     const prefs = validation.data!;
-    console.log('Generating date night ideas with preferences:', redactForLogging(prefs));
+    console.log(
+      "Generating date night ideas with preferences:",
+      redactForLogging(prefs),
+    );
 
     const systemPrompt = `You are a compassionate relationship expert and certified couples therapist specializing in Gottman Method, Emotionally Focused Therapy (EFT), and attachment theory. Your role is to suggest creative, evidence-based date night activities that foster emotional connection, communication, and intimacy between partners.
 
@@ -250,8 +282,10 @@ Guidelines:
 - Include practical tips and conversation starters
 - Be inclusive of diverse relationship styles and needs`;
 
-    const interestsText = prefs.interests.map(i => i.replace(/-/g, ' ')).join(', ');
-    
+    const interestsText = prefs.interests
+      .map((i) => i.replace(/-/g, " "))
+      .join(", ");
+
     const userPrompt = `Generate THREE thoughtful date night ideas based on these preferences:
 - Shared Interests: ${interestsText}
 - Available Time: ${prefs.time}
@@ -287,21 +321,19 @@ Now generate THREE unique date night ideas in this exact format.`;
         citations: result.citations,
       }),
       {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,
-      }
+      },
     );
   } catch (error) {
     // Don't log full error details in production to avoid leaking user data
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-    console.error('Error generating date night ideas:', errorMessage);
-    
-    return new Response(
-      JSON.stringify({ error: errorMessage }),
-      {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 500,
-      }
-    );
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error occurred";
+    console.error("Error generating date night ideas:", errorMessage);
+
+    return new Response(JSON.stringify({ error: errorMessage }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 500,
+    });
   }
 });

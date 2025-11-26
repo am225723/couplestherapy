@@ -1,12 +1,12 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import { Session, User, AuthError } from '@supabase/supabase-js';
-import { supabase } from '../services/supabase';
+import React, { createContext, useContext, useEffect, useState } from "react";
+import { Session, User, AuthError } from "@supabase/supabase-js";
+import { supabase } from "../services/supabase";
 
 type Profile = {
   id: string;
   email: string;
   full_name: string | null;
-  role: 'client' | 'therapist' | null;
+  role: "client" | "therapist" | null;
   couple_id: string | null;
   avatar_url: string | null;
 };
@@ -16,8 +16,15 @@ type AuthContextType = {
   user: User | null;
   profile: Profile | null;
   loading: boolean;
-  signIn: (email: string, password: string) => Promise<{ error: AuthError | null }>;
-  signUp: (email: string, password: string, userData: any) => Promise<{ error: AuthError | null }>;
+  signIn: (
+    email: string,
+    password: string,
+  ) => Promise<{ error: AuthError | null }>;
+  signUp: (
+    email: string,
+    password: string,
+    userData: any,
+  ) => Promise<{ error: AuthError | null }>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
 };
@@ -60,15 +67,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const fetchProfile = async (userId: string) => {
     try {
       const { data, error } = await supabase
-        .from('Couples_profiles')
-        .select('*')
-        .eq('id', userId)
+        .from("Couples_profiles")
+        .select("*")
+        .eq("id", userId)
         .single();
 
       if (error) throw error;
       setProfile(data);
     } catch (error) {
-      console.error('Error fetching profile:', error);
+      console.error("Error fetching profile:", error);
     } finally {
       setLoading(false);
     }
@@ -121,7 +128,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 export function useAuth() {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 }

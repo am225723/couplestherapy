@@ -1,59 +1,62 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TextInput, Alert } from 'react-native';
-import { useAuth } from '../../contexts/AuthContext';
-import { useApiMutation } from '../../hooks/useApi';
-import Button from '../../components/Button';
-import Card from '../../components/Card';
-import { colors, spacing, typography } from '../../constants/theme';
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TextInput,
+  Alert,
+} from "react-native";
+import { useAuth } from "../../contexts/AuthContext";
+import { useApiMutation } from "../../hooks/useApi";
+import Button from "../../components/Button";
+import Card from "../../components/Card";
+import { colors, spacing, typography } from "../../constants/theme";
 
 const INTERESTS = [
-  { id: 'food', emoji: '🍽️', label: 'Dining & Food' },
-  { id: 'outdoors', emoji: '🌲', label: 'Outdoor Activities' },
-  { id: 'arts', emoji: '🎨', label: 'Arts & Culture' },
-  { id: 'entertainment', emoji: '🎭', label: 'Entertainment' },
-  { id: 'relaxation', emoji: '🧘', label: 'Relaxation' },
-  { id: 'adventure', emoji: '🎢', label: 'Adventure' },
-  { id: 'learning', emoji: '📚', label: 'Learning' },
-  { id: 'sports', emoji: '⚽', label: 'Sports & Fitness' },
-  { id: 'music', emoji: '🎵', label: 'Music & Dance' },
-  { id: 'romance', emoji: '💑', label: 'Romantic' },
-  { id: 'social', emoji: '👥', label: 'Social Activities' },
-  { id: 'home', emoji: '🏠', label: 'At-Home Fun' },
+  { id: "food", emoji: "🍽️", label: "Dining & Food" },
+  { id: "outdoors", emoji: "🌲", label: "Outdoor Activities" },
+  { id: "arts", emoji: "🎨", label: "Arts & Culture" },
+  { id: "entertainment", emoji: "🎭", label: "Entertainment" },
+  { id: "relaxation", emoji: "🧘", label: "Relaxation" },
+  { id: "adventure", emoji: "🎢", label: "Adventure" },
+  { id: "learning", emoji: "📚", label: "Learning" },
+  { id: "sports", emoji: "⚽", label: "Sports & Fitness" },
+  { id: "music", emoji: "🎵", label: "Music & Dance" },
+  { id: "romance", emoji: "💑", label: "Romantic" },
+  { id: "social", emoji: "👥", label: "Social Activities" },
+  { id: "home", emoji: "🏠", label: "At-Home Fun" },
 ];
 
 export default function DateNightScreen() {
   const { profile } = useAuth();
   const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
-  const [location, setLocation] = useState('');
+  const [location, setLocation] = useState("");
   const [distance, setDistance] = useState(10);
   const [generatedIdeas, setGeneratedIdeas] = useState<any[]>([]);
 
-  const generateIdeas = useApiMutation(
-    '/api/perplexity/date-night',
-    'post',
-    {
-      onSuccess: (data) => {
-        setGeneratedIdeas(data.suggestions || []);
-      },
-    }
-  );
+  const generateIdeas = useApiMutation("/api/perplexity/date-night", "post", {
+    onSuccess: (data) => {
+      setGeneratedIdeas(data.suggestions || []);
+    },
+  });
 
   const toggleInterest = (interestId: string) => {
-    setSelectedInterests(prev =>
+    setSelectedInterests((prev) =>
       prev.includes(interestId)
-        ? prev.filter(id => id !== interestId)
-        : [...prev, interestId]
+        ? prev.filter((id) => id !== interestId)
+        : [...prev, interestId],
     );
   };
 
   const handleGenerate = () => {
     if (selectedInterests.length === 0) {
-      Alert.alert('Select Interests', 'Please select at least one interest');
+      Alert.alert("Select Interests", "Please select at least one interest");
       return;
     }
 
     if (!location.trim()) {
-      Alert.alert('Add Location', 'Please enter your city or zip code');
+      Alert.alert("Add Location", "Please enter your city or zip code");
       return;
     }
 
@@ -79,7 +82,11 @@ export default function DateNightScreen() {
               <Button
                 key={interest.id}
                 title={`${interest.emoji} ${interest.label}`}
-                variant={selectedInterests.includes(interest.id) ? 'primary' : 'outline'}
+                variant={
+                  selectedInterests.includes(interest.id)
+                    ? "primary"
+                    : "outline"
+                }
                 onPress={() => toggleInterest(interest.id)}
                 style={styles.interestButton}
               />
@@ -103,7 +110,7 @@ export default function DateNightScreen() {
               <Button
                 key={d}
                 title={`${d}mi`}
-                variant={distance === d ? 'primary' : 'outline'}
+                variant={distance === d ? "primary" : "outline"}
                 onPress={() => setDistance(d)}
                 style={styles.distanceButton}
               />
@@ -152,12 +159,29 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   content: { padding: spacing.lg },
   title: { ...typography.h2, color: colors.text, marginBottom: spacing.xs },
-  subtitle: { ...typography.body, color: colors.textSecondary, marginBottom: spacing.lg },
+  subtitle: {
+    ...typography.body,
+    color: colors.textSecondary,
+    marginBottom: spacing.lg,
+  },
   section: { marginBottom: spacing.lg },
-  sectionTitle: { ...typography.h5, color: colors.text, marginBottom: spacing.md },
-  interestsGrid: { flexDirection: 'row', flexWrap: 'wrap', marginHorizontal: -spacing.xs },
-  interestButton: { margin: spacing.xs, minWidth: '45%' },
-  label: { ...typography.h6, color: colors.text, marginBottom: spacing.sm, marginTop: spacing.md },
+  sectionTitle: {
+    ...typography.h5,
+    color: colors.text,
+    marginBottom: spacing.md,
+  },
+  interestsGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    marginHorizontal: -spacing.xs,
+  },
+  interestButton: { margin: spacing.xs, minWidth: "45%" },
+  label: {
+    ...typography.h6,
+    color: colors.text,
+    marginBottom: spacing.sm,
+    marginTop: spacing.md,
+  },
   input: {
     ...typography.body,
     backgroundColor: colors.background,
@@ -168,14 +192,30 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
     color: colors.text,
   },
-  distanceButtons: { flexDirection: 'row', flexWrap: 'wrap', marginHorizontal: -spacing.xs },
+  distanceButtons: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    marginHorizontal: -spacing.xs,
+  },
   distanceButton: { margin: spacing.xs },
   loadingCard: { marginTop: spacing.lg },
-  loadingText: { ...typography.body, color: colors.textSecondary, textAlign: 'center' },
+  loadingText: {
+    ...typography.body,
+    color: colors.textSecondary,
+    textAlign: "center",
+  },
   ideasSection: { marginTop: spacing.lg },
   ideaCard: { marginBottom: spacing.md },
   ideaTitle: { ...typography.h6, color: colors.text, marginBottom: spacing.xs },
-  ideaDescription: { ...typography.body, color: colors.text, marginBottom: spacing.sm },
-  ideaLocation: { ...typography.bodySmall, color: colors.textSecondary, marginBottom: spacing.xs },
+  ideaDescription: {
+    ...typography.body,
+    color: colors.text,
+    marginBottom: spacing.sm,
+  },
+  ideaLocation: {
+    ...typography.bodySmall,
+    color: colors.textSecondary,
+    marginBottom: spacing.xs,
+  },
   ideaCost: { ...typography.bodySmall, color: colors.textSecondary },
 });

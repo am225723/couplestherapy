@@ -1,27 +1,42 @@
-import { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Textarea } from '@/components/ui/textarea';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { useAuth } from '@/lib/auth-context';
-import { supabase } from '@/lib/supabase';
-import { useToast } from '@/hooks/use-toast';
-import { Coffee, Home, Utensils, Moon, Plus, Loader2, Lightbulb, Sparkles } from 'lucide-react';
-import { Ritual, RITUAL_CATEGORIES, RitualCategory } from '@shared/schema';
-import { RITUAL_EXAMPLES } from '@/lib/ritual-examples';
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Textarea } from "@/components/ui/textarea";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { useAuth } from "@/lib/auth-context";
+import { supabase } from "@/lib/supabase";
+import { useToast } from "@/hooks/use-toast";
+import {
+  Coffee,
+  Home,
+  Utensils,
+  Moon,
+  Plus,
+  Loader2,
+  Lightbulb,
+  Sparkles,
+} from "lucide-react";
+import { Ritual, RITUAL_CATEGORIES, RitualCategory } from "@shared/schema";
+import { RITUAL_EXAMPLES } from "@/lib/ritual-examples";
 
 const categoryIcons = {
-  'Mornings': Coffee,
-  'Reuniting': Home,
-  'Mealtimes': Utensils,
-  'Going to Sleep': Moon,
+  Mornings: Coffee,
+  Reuniting: Home,
+  Mealtimes: Utensils,
+  "Going to Sleep": Moon,
 };
 
 export default function RitualsPage() {
   const [rituals, setRituals] = useState<Ritual[]>([]);
-  const [newRitual, setNewRitual] = useState('');
-  const [activeCategory, setActiveCategory] = useState<RitualCategory>('Mornings');
+  const [newRitual, setNewRitual] = useState("");
+  const [activeCategory, setActiveCategory] =
+    useState<RitualCategory>("Mornings");
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const { user, profile } = useAuth();
@@ -38,18 +53,18 @@ export default function RitualsPage() {
 
     try {
       const { data, error } = await supabase
-        .from('Couples_rituals')
-        .select('*')
-        .eq('couple_id', profile.couple_id)
-        .order('category');
+        .from("Couples_rituals")
+        .select("*")
+        .eq("couple_id", profile.couple_id)
+        .order("category");
 
       if (error) throw error;
       setRituals(data || []);
     } catch (error: any) {
       toast({
-        title: 'Error',
+        title: "Error",
         description: error.message,
-        variant: 'destructive',
+        variant: "destructive",
       });
     } finally {
       setLoading(false);
@@ -63,7 +78,7 @@ export default function RitualsPage() {
     setSubmitting(true);
 
     try {
-      const { error } = await supabase.from('Couples_rituals').insert({
+      const { error } = await supabase.from("Couples_rituals").insert({
         couple_id: profile.couple_id,
         category: activeCategory,
         description: newRitual.trim(),
@@ -72,18 +87,18 @@ export default function RitualsPage() {
 
       if (error) throw error;
 
-      setNewRitual('');
+      setNewRitual("");
       toast({
-        title: 'Ritual added!',
+        title: "Ritual added!",
         description: `Added to ${activeCategory}`,
       });
 
       fetchRituals();
     } catch (error: any) {
       toast({
-        title: 'Error',
+        title: "Error",
         description: error.message,
-        variant: 'destructive',
+        variant: "destructive",
       });
     } finally {
       setSubmitting(false);
@@ -94,12 +109,12 @@ export default function RitualsPage() {
     setActiveCategory(category);
     setNewRitual(example);
     toast({
-      title: 'Example added to form',
-      description: 'Feel free to customize it before saving!',
+      title: "Example added to form",
+      description: "Feel free to customize it before saving!",
     });
   };
 
-  const categoryRituals = rituals.filter(r => r.category === activeCategory);
+  const categoryRituals = rituals.filter((r) => r.category === activeCategory);
   const Icon = categoryIcons[activeCategory];
 
   if (loading) {
@@ -120,7 +135,10 @@ export default function RitualsPage() {
           </p>
         </div>
 
-        <Tabs value={activeCategory} onValueChange={(v) => setActiveCategory(v as RitualCategory)}>
+        <Tabs
+          value={activeCategory}
+          onValueChange={(v) => setActiveCategory(v as RitualCategory)}
+        >
           <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4">
             {RITUAL_CATEGORIES.map((category) => {
               const Icon = categoryIcons[category];
@@ -128,7 +146,7 @@ export default function RitualsPage() {
                 <TabsTrigger
                   key={category}
                   value={category}
-                  data-testid={`tab-${category.toLowerCase().replace(/\s+/g, '-')}`}
+                  data-testid={`tab-${category.toLowerCase().replace(/\s+/g, "-")}`}
                   className="gap-2"
                 >
                   <Icon className="h-4 w-4" />
@@ -139,20 +157,38 @@ export default function RitualsPage() {
           </TabsList>
 
           {RITUAL_CATEGORIES.map((category) => (
-            <TabsContent key={category} value={category} className="space-y-6 mt-6">
-              <Accordion type="single" collapsible className="w-full" data-testid="accordion-examples">
-                <AccordionItem value="examples" className="border rounded-lg px-6 bg-accent/30">
-                  <AccordionTrigger data-testid="trigger-examples" className="hover:no-underline">
+            <TabsContent
+              key={category}
+              value={category}
+              className="space-y-6 mt-6"
+            >
+              <Accordion
+                type="single"
+                collapsible
+                className="w-full"
+                data-testid="accordion-examples"
+              >
+                <AccordionItem
+                  value="examples"
+                  className="border rounded-lg px-6 bg-accent/30"
+                >
+                  <AccordionTrigger
+                    data-testid="trigger-examples"
+                    className="hover:no-underline"
+                  >
                     <div className="flex items-center gap-2">
                       <Lightbulb className="h-5 w-5 text-primary" />
-                      <span className="font-semibold">Need Ideas? View Research-Based Examples</span>
+                      <span className="font-semibold">
+                        Need Ideas? View Research-Based Examples
+                      </span>
                     </div>
                   </AccordionTrigger>
                   <AccordionContent>
                     <div className="space-y-4 pt-2">
                       <p className="text-sm text-muted-foreground flex items-center gap-2">
                         <Sparkles className="h-4 w-4" />
-                        Try these research-based rituals from the Gottman Institute
+                        Try these research-based rituals from the Gottman
+                        Institute
                       </p>
                       <div className="space-y-3">
                         {RITUAL_EXAMPLES[category].map((example, index) => (
@@ -161,11 +197,15 @@ export default function RitualsPage() {
                             data-testid={`example-${index}`}
                             className="flex items-start gap-3 p-4 rounded-md bg-background border hover-elevate"
                           >
-                            <p className="flex-1 text-sm leading-relaxed">{example}</p>
+                            <p className="flex-1 text-sm leading-relaxed">
+                              {example}
+                            </p>
                             <Button
                               size="sm"
                               variant="outline"
-                              onClick={() => handleUseExample(example, category)}
+                              onClick={() =>
+                                handleUseExample(example, category)
+                              }
                               data-testid={`button-use-example-${index}`}
                               className="shrink-0"
                             >
@@ -195,7 +235,11 @@ export default function RitualsPage() {
                       className="min-h-24 resize-none"
                       data-testid="textarea-new-ritual"
                     />
-                    <Button type="submit" disabled={!newRitual.trim() || submitting} data-testid="button-add-ritual">
+                    <Button
+                      type="submit"
+                      disabled={!newRitual.trim() || submitting}
+                      data-testid="button-add-ritual"
+                    >
                       {submitting ? (
                         <>
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -218,13 +262,18 @@ export default function RitualsPage() {
                     <CardContent>
                       <Icon className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
                       <p className="text-muted-foreground">
-                        No rituals yet for {category.toLowerCase()}. Create your first one!
+                        No rituals yet for {category.toLowerCase()}. Create your
+                        first one!
                       </p>
                     </CardContent>
                   </Card>
                 ) : (
                   categoryRituals.map((ritual) => (
-                    <Card key={ritual.id} data-testid={`card-ritual-${ritual.id}`} className="hover-elevate">
+                    <Card
+                      key={ritual.id}
+                      data-testid={`card-ritual-${ritual.id}`}
+                      className="hover-elevate"
+                    >
                       <CardContent className="pt-6">
                         <p className="text-base leading-relaxed whitespace-pre-wrap">
                           {ritual.description}

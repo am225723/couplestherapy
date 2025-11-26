@@ -105,7 +105,7 @@ async function callPerplexity(
   userPrompt: string
 ): Promise<{ content: string; usage: any }> {
   const apiKey = Deno.env.get('PERPLEXITY_API_KEY');
-  
+
   if (!apiKey) {
     throw new Error('PERPLEXITY_API_KEY not configured');
   }
@@ -159,7 +159,7 @@ Deno.serve(async (req) => {
     // Verify therapist authentication
     const authHeader = req.headers.get('authorization');
     const authResult = await verifyTherapistSession(authHeader);
-    
+
     if (!authResult.success) {
       return new Response(
         JSON.stringify({ error: authResult.error }),
@@ -282,12 +282,12 @@ Deno.serve(async (req) => {
     // ENGAGEMENT METRICS
     userPrompt += `=== ENGAGEMENT OVERVIEW ===\n`;
     userPrompt += `Weekly Check-ins: ${checkins?.length || 0} completed\n`;
-    
+
     const partner1Checkins = checkins?.filter(c => c.user_id === couple.partner1_id).length || 0;
     const partner2Checkins = checkins?.filter(c => c.user_id === couple.partner2_id).length || 0;
     userPrompt += `  - Partner 1: ${partner1Checkins} check-ins\n`;
     userPrompt += `  - Partner 2: ${partner2Checkins} check-ins\n`;
-    
+
     userPrompt += `Gratitude Logs: ${gratitude?.length || 0} entries\n`;
     userPrompt += `Shared Goals: ${goals?.length || 0} total (${goals?.filter(g => g.status === 'done').length || 0} completed)\n`;
     userPrompt += `Hold Me Tight Conversations: ${conversations?.length || 0} sessions\n`;
@@ -300,54 +300,54 @@ Deno.serve(async (req) => {
     // CHECK-IN SCORES SUMMARY
     if (checkins && checkins.length > 0) {
       userPrompt += `=== WEEKLY CHECK-IN TRENDS ===\n`;
-      
+
       const connectednessScores = checkins.map(c => c.q_connectedness).filter(Boolean);
       const conflictScores = checkins.map(c => c.q_conflict).filter(Boolean);
-      
+
       if (connectednessScores.length > 0) {
         const avgConnectedness = (connectednessScores.reduce((a, b) => a + b, 0) / connectednessScores.length).toFixed(1);
         const minConnectedness = Math.min(...connectednessScores);
         const maxConnectedness = Math.max(...connectednessScores);
         userPrompt += `Connectedness Scores (1-10): Avg ${avgConnectedness}, Range ${minConnectedness}-${maxConnectedness}\n`;
       }
-      
+
       if (conflictScores.length > 0) {
         const avgConflict = (conflictScores.reduce((a, b) => a + b, 0) / conflictScores.length).toFixed(1);
         const minConflict = Math.min(...conflictScores);
         const maxConflict = Math.max(...conflictScores);
         userPrompt += `Conflict Scores (1-10): Avg ${avgConflict}, Range ${minConflict}-${maxConflict}\n`;
       }
-      
+
       userPrompt += '\n';
     }
 
     // CONCERNING PATTERNS
     userPrompt += `=== CONCERNING PATTERNS ===\n`;
-    
+
     if (horsemenIncidents && horsemenIncidents.length > 0) {
       const criticismCount = horsemenIncidents.filter(h => h.horseman_type === 'criticism').length;
       const contemptCount = horsemenIncidents.filter(h => h.horseman_type === 'contempt').length;
       const defensivenessCount = horsemenIncidents.filter(h => h.horseman_type === 'defensiveness').length;
       const stonewallCount = horsemenIncidents.filter(h => h.horseman_type === 'stonewalling').length;
-      
+
       userPrompt += `Four Horsemen Incidents: ${horsemenIncidents.length} total\n`;
       userPrompt += `  - Criticism: ${criticismCount}\n`;
       userPrompt += `  - Contempt: ${contemptCount}\n`;
       userPrompt += `  - Defensiveness: ${defensivenessCount}\n`;
       userPrompt += `  - Stonewalling: ${stonewallCount}\n`;
-      
+
       const antidotesPracticed = horsemenIncidents.filter(h => h.antidote_practiced).length;
       userPrompt += `  - Antidotes practiced: ${antidotesPracticed}/${horsemenIncidents.length}\n`;
     } else {
       userPrompt += `Four Horsemen Incidents: 0 (positive sign)\n`;
     }
-    
+
     if (demonDialogues && demonDialogues.length > 0) {
       const findBadGuyCount = demonDialogues.filter(d => d.dialogue_type === 'find_bad_guy').length;
       const protestPolkaCount = demonDialogues.filter(d => d.dialogue_type === 'protest_polka').length;
       const freezeFleeCount = demonDialogues.filter(d => d.dialogue_type === 'freeze_flee').length;
       const interruptedCount = demonDialogues.filter(d => d.interrupted).length;
-      
+
       userPrompt += `Demon Dialogues Recognized: ${demonDialogues.length} total\n`;
       userPrompt += `  - Find the Bad Guy: ${findBadGuyCount}\n`;
       userPrompt += `  - Protest Polka: ${protestPolkaCount}\n`;
@@ -356,12 +356,12 @@ Deno.serve(async (req) => {
     } else {
       userPrompt += `Demon Dialogues: 0 recognized\n`;
     }
-    
+
     userPrompt += '\n';
 
     // POSITIVE PATTERNS
     userPrompt += `=== POSITIVE PATTERNS ===\n`;
-    
+
     if (gratitude && gratitude.length > 0) {
       const partner1Gratitude = gratitude.filter(g => g.user_id === couple.partner1_id).length;
       const partner2Gratitude = gratitude.filter(g => g.user_id === couple.partner2_id).length;
@@ -369,20 +369,20 @@ Deno.serve(async (req) => {
       userPrompt += `  - Partner 1: ${partner1Gratitude} entries\n`;
       userPrompt += `  - Partner 2: ${partner2Gratitude} entries\n`;
     }
-    
+
     if (rituals && rituals.length > 0) {
       userPrompt += `Rituals of Connection: ${rituals.length} active rituals\n`;
     }
-    
+
     if (intimacyRatings && intimacyRatings.length > 0) {
       userPrompt += `Intimacy Tracking: ${intimacyRatings.length} ratings submitted\n`;
     }
-    
+
     if (intimacyGoals && intimacyGoals.length > 0) {
       const achievedGoals = intimacyGoals.filter(g => g.is_achieved).length;
       userPrompt += `Intimacy Goals: ${achievedGoals}/${intimacyGoals.length} achieved\n`;
     }
-    
+
     userPrompt += '\n';
 
     // REQUEST STRUCTURED OUTPUT
@@ -410,18 +410,18 @@ Format your response with clear section headings.`;
     // Parse and structure the response
     const rawAnalysis = analysisResult.content;
     const lines = rawAnalysis.split('\n').filter(line => line.trim());
-    
+
     let engagementSummary = '';
     const concerningPatterns: string[] = [];
     const positivePatterns: string[] = [];
     const sessionFocusAreas: string[] = [];
     const recommendedInterventions: string[] = [];
-    
+
     let currentSection = '';
-    
+
     lines.forEach(line => {
       const lowerLine = line.toLowerCase();
-      
+
       if (lowerLine.includes('engagement') && lowerLine.includes('summary')) {
         currentSection = 'engagement';
       } else if (lowerLine.includes('concerning') || lowerLine.includes('concern')) {

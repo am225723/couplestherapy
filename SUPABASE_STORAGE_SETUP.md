@@ -1,11 +1,13 @@
 # Supabase Storage Setup for Voice Memos
 
 ## Overview
+
 Voice memos are stored as audio files in a dedicated Supabase storage bucket with proper RLS policies to ensure privacy and security.
 
 ## Steps to Configure in Supabase Dashboard
 
 ### 1. Create Storage Bucket
+
 1. Navigate to **Storage** section in Supabase Dashboard
 2. Click **New bucket**
 3. Set bucket name: `voice-memos`
@@ -17,6 +19,7 @@ Voice memos are stored as audio files in a dedicated Supabase storage bucket wit
 Navigate to the newly created bucket's policies and add the following:
 
 #### Policy 1: Allow couples to upload voice memos
+
 ```sql
 CREATE POLICY "Couples can upload voice memos to their folder"
 ON storage.objects FOR INSERT
@@ -31,6 +34,7 @@ WITH CHECK (
 ```
 
 #### Policy 2: Allow couples to read their voice memos
+
 ```sql
 CREATE POLICY "Couples can read voice memos from their folder"
 ON storage.objects FOR SELECT
@@ -45,6 +49,7 @@ USING (
 ```
 
 #### Policy 3: Allow couples to delete their sent voice memos
+
 ```sql
 CREATE POLICY "Couples can delete their sent voice memos"
 ON storage.objects FOR DELETE
@@ -71,12 +76,14 @@ voice-memos/
 ```
 
 **File naming convention:**
+
 - Format: `{memo_id}.webm`
 - Example: `a1b2c3d4-e5f6-7890-abcd-ef1234567890.webm`
 
 ## Storage Path Reference
 
 The `storage_path` field in the `Couples_voice_memos` table stores the relative path:
+
 - Format: `{couple_id}/{memo_id}.webm`
 - Example: `a1b2c3d4-e5f6-7890-abcd-ef1234567890/b2c3d4e5-f6a7-8901-bcde-f12345678901.webm`
 
@@ -85,7 +92,7 @@ The `storage_path` field in the `Couples_voice_memos` table stores the relative 
 - **Recommended format:** WebM with Opus codec
 - **File extension:** `.webm`
 - **MIME type:** `audio/webm` or `audio/webm;codecs=opus`
-- **Why WebM?** 
+- **Why WebM?**
   - Native browser support for recording
   - Excellent compression
   - Good quality at low bitrates
@@ -101,6 +108,7 @@ The `storage_path` field in the `Couples_voice_memos` table stores the relative 
 ## Next Steps
 
 After configuring storage:
+
 1. Verify bucket exists: `voice-memos`
 2. Verify bucket is private (public: false)
 3. Verify all three RLS policies are active

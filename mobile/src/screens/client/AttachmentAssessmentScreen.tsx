@@ -1,6 +1,6 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
-import { colors, spacing, typography } from '../../constants/theme';
+import React from "react";
+import { View, Text, StyleSheet, ScrollView } from "react-native";
+import { colors, spacing, typography } from "../../constants/theme";
 
 export default function AttachmentAssessmentScreen() {
   return (

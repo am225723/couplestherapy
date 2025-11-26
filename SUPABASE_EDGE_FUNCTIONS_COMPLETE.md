@@ -15,8 +15,9 @@ Copy this entire file to your Supabase project at `supabase/functions/ai-date-ni
 // CORS Headers
 // ========================================
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
 };
 
 // ========================================
@@ -31,7 +32,7 @@ interface DateNightPreferences {
 }
 
 interface PerplexityMessage {
-  role: 'system' | 'user' | 'assistant';
+  role: "system" | "user" | "assistant";
   content: string;
 }
 
@@ -64,23 +65,31 @@ interface PerplexityResponse {
 // ========================================
 // Validation Functions
 // ========================================
-function validateDateNightPreferences(data: any): { 
-  valid: boolean; 
-  data?: DateNightPreferences; 
+function validateDateNightPreferences(data: any): {
+  valid: boolean;
+  data?: DateNightPreferences;
   error?: string;
 } {
-  if (!data || typeof data !== 'object') {
-    return { valid: false, error: 'Request body must be an object' };
+  if (!data || typeof data !== "object") {
+    return { valid: false, error: "Request body must be an object" };
   }
 
-  const requiredFields = ['time', 'location', 'price', 'participants', 'energy'];
-  
+  const requiredFields = [
+    "time",
+    "location",
+    "price",
+    "participants",
+    "energy",
+  ];
+
   // Check for missing or invalid fields
-  const missingFields = requiredFields.filter(field => !data[field] || typeof data[field] !== 'string');
+  const missingFields = requiredFields.filter(
+    (field) => !data[field] || typeof data[field] !== "string",
+  );
   if (missingFields.length > 0) {
-    return { 
-      valid: false, 
-      error: `Missing or invalid required fields: ${missingFields.join(', ')}` 
+    return {
+      valid: false,
+      error: `Missing or invalid required fields: ${missingFields.join(", ")}`,
     };
   }
 
@@ -99,9 +108,9 @@ function validateDateNightPreferences(data: any): {
     .map(([key, _]) => key);
 
   if (emptyFields.length > 0) {
-    return { 
-      valid: false, 
-      error: `Fields cannot be empty: ${emptyFields.join(', ')}` 
+    return {
+      valid: false,
+      error: `Fields cannot be empty: ${emptyFields.join(", ")}`,
     };
   }
 
@@ -112,9 +121,9 @@ function validateDateNightPreferences(data: any): {
     .map(([key, _]) => key);
 
   if (tooLongFields.length > 0) {
-    return { 
-      valid: false, 
-      error: `Fields exceed maximum length of ${maxLength} characters: ${tooLongFields.join(', ')}` 
+    return {
+      valid: false,
+      error: `Fields exceed maximum length of ${maxLength} characters: ${tooLongFields.join(", ")}`,
     };
   }
 
@@ -127,25 +136,27 @@ function validateDateNightPreferences(data: any): {
 function redactForLogging(data: any): string {
   // Redact ALL user inputs for production logging
   // This prevents accidentally logging extra fields that may contain sensitive data
-  if (!data || typeof data !== 'object') {
-    return '[invalid data]';
+  if (!data || typeof data !== "object") {
+    return "[invalid data]";
   }
 
   // Only log field presence, never actual values
   // Use an allowlist approach - only log known safe metadata
-  const knownFields = ['time', 'location', 'price', 'participants', 'energy'];
+  const knownFields = ["time", "location", "price", "participants", "energy"];
   const redacted: Record<string, string> = {};
 
   for (const field of knownFields) {
     if (field in data) {
-      redacted[field] = '[REDACTED]';
+      redacted[field] = "[REDACTED]";
     }
   }
 
   // Count any extra fields without logging their names or values
-  const extraFieldCount = Object.keys(data).filter(key => !knownFields.includes(key)).length;
+  const extraFieldCount = Object.keys(data).filter(
+    (key) => !knownFields.includes(key),
+  ).length;
   if (extraFieldCount > 0) {
-    redacted['_extra_fields'] = `[${extraFieldCount} fields redacted]`;
+    redacted["_extra_fields"] = `[${extraFieldCount} fields redacted]`;
   }
 
   return JSON.stringify(redacted);
@@ -156,29 +167,29 @@ function redactForLogging(data: any): string {
 // ========================================
 async function analyzeWithPerplexity(
   systemPrompt: string,
-  userPrompt: string
+  userPrompt: string,
 ): Promise<{ content: string; citations?: string[] }> {
-  const apiKey = Deno.env.get('PERPLEXITY_API_KEY');
+  const apiKey = Deno.env.get("PERPLEXITY_API_KEY");
 
   if (!apiKey) {
-    throw new Error('PERPLEXITY_API_KEY not configured');
+    throw new Error("PERPLEXITY_API_KEY not configured");
   }
 
   const requestBody: PerplexityRequest = {
-    model: 'sonar',
+    model: "sonar",
     messages: [
-      { role: 'system', content: systemPrompt },
-      { role: 'user', content: userPrompt },
+      { role: "system", content: systemPrompt },
+      { role: "user", content: userPrompt },
     ],
     temperature: 0.7,
     max_tokens: 2000,
   };
 
-  const response = await fetch('https://api.perplexity.ai/chat/completions', {
-    method: 'POST',
+  const response = await fetch("https://api.perplexity.ai/chat/completions", {
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
     },
     body: JSON.stringify(requestBody),
   });
@@ -191,7 +202,7 @@ async function analyzeWithPerplexity(
   const data: PerplexityResponse = await response.json();
 
   return {
-    content: data.choices[0]?.message?.content || '',
+    content: data.choices[0]?.message?.content || "",
     citations: data.citations,
   };
 }
@@ -201,28 +212,28 @@ async function analyzeWithPerplexity(
 // ========================================
 Deno.serve(async (req) => {
   // Handle CORS preflight
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
+  if (req.method === "OPTIONS") {
+    return new Response("ok", { headers: corsHeaders });
   }
 
   try {
     const rawBody = await req.json();
-    
+
     // Validate input with proper error messages
     const validation = validateDateNightPreferences(rawBody);
     if (!validation.valid) {
-      console.error('Validation failed:', redactForLogging(rawBody));
-      return new Response(
-        JSON.stringify({ error: validation.error }),
-        {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 400,
-        }
-      );
+      console.error("Validation failed:", redactForLogging(rawBody));
+      return new Response(JSON.stringify({ error: validation.error }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 400,
+      });
     }
 
     const prefs = validation.data!;
-    console.log('Generating date night ideas with preferences:', redactForLogging(prefs));
+    console.log(
+      "Generating date night ideas with preferences:",
+      redactForLogging(prefs),
+    );
 
     const systemPrompt = `You are a compassionate relationship expert and certified couples therapist specializing in Gottman Method, Emotionally Focused Therapy (EFT), and attachment theory. Your role is to suggest creative, evidence-based date night activities that foster emotional connection, communication, and intimacy between partners.
 
@@ -262,22 +273,20 @@ Now generate THREE unique date night ideas in this exact format.`;
         citations: result.citations,
       }),
       {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,
-      }
+      },
     );
   } catch (error) {
     // Don't log full error details in production to avoid leaking user data
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-    console.error('Error generating date night ideas:', errorMessage);
-    
-    return new Response(
-      JSON.stringify({ error: errorMessage }),
-      {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 500,
-      }
-    );
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error occurred";
+    console.error("Error generating date night ideas:", errorMessage);
+
+    return new Response(JSON.stringify({ error: errorMessage }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 500,
+    });
   }
 });
 ```
@@ -323,6 +332,7 @@ supabase secrets list
 ```
 
 **Note:** These are automatically provided by Supabase (no need to set):
+
 - `SUPABASE_URL`
 - `SUPABASE_ANON_KEY`
 - `SUPABASE_SERVICE_ROLE_KEY`
@@ -332,11 +342,13 @@ supabase secrets list
 ### 3. Test the Function
 
 **View Logs:**
+
 ```bash
 supabase functions logs ai-date-night --follow
 ```
 
 **Test with curl:**
+
 ```bash
 curl -X POST 'https://YOUR_PROJECT_REF.supabase.co/functions/v1/ai-date-night' \
   -H 'Authorization: Bearer YOUR_ANON_KEY' \
@@ -390,6 +402,7 @@ curl -X POST 'https://YOUR_PROJECT_REF.supabase.co/functions/v1/ai-date-night' \
 ## 📊 Example Request/Response
 
 **Request:**
+
 ```json
 {
   "time": "2-3 hours",
@@ -401,6 +414,7 @@ curl -X POST 'https://YOUR_PROJECT_REF.supabase.co/functions/v1/ai-date-night' \
 ```
 
 **Success Response (200):**
+
 ```json
 {
   "content": "# Cozy Connection Evening\n\n[AI-generated date night suggestion with research-backed relationship advice]",
@@ -409,6 +423,7 @@ curl -X POST 'https://YOUR_PROJECT_REF.supabase.co/functions/v1/ai-date-night' \
 ```
 
 **Validation Error (400):**
+
 ```json
 {
   "error": "Missing or invalid required fields: time, location"
@@ -416,6 +431,7 @@ curl -X POST 'https://YOUR_PROJECT_REF.supabase.co/functions/v1/ai-date-night' \
 ```
 
 **Server Error (500):**
+
 ```json
 {
   "error": "PERPLEXITY_API_KEY not configured"
@@ -440,6 +456,7 @@ supabase/
 ## 🎉 You're Done!
 
 The edge function is ready to deploy. It includes:
+
 - ✅ All utilities inlined (no shared imports)
 - ✅ CORS support built-in
 - ✅ Privacy-focused logging
@@ -448,32 +465,31 @@ The edge function is ready to deploy. It includes:
 - ✅ Production-ready error handling
 
 **Deploy it now:**
+
 ```bash
 supabase functions deploy ai-date-night
 ```
 
 Then test from your frontend:
+
 ```typescript
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-const response = await fetch(
-  `${supabaseUrl}/functions/v1/ai-date-night`,
-  {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${supabaseAnonKey}`,
-    },
-    body: JSON.stringify({
-      time: "2-3 hours",
-      location: "At home",
-      price: "Free or low-cost",
-      participants: "Just us two",
-      energy: "Relaxed and low-key"
-    }),
-  }
-);
+const response = await fetch(`${supabaseUrl}/functions/v1/ai-date-night`, {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${supabaseAnonKey}`,
+  },
+  body: JSON.stringify({
+    time: "2-3 hours",
+    location: "At home",
+    price: "Free or low-cost",
+    participants: "Just us two",
+    energy: "Relaxed and low-key",
+  }),
+});
 
 const data = await response.json();
 ```
@@ -487,6 +503,7 @@ const data = await response.json();
 This edge function analyzes weekly check-in data using Perplexity AI to generate clinical insights for therapists.
 
 **Features:**
+
 - ✅ **Secure Authentication**: Requires valid JWT, derives therapist_id from session (prevents access-control bypass)
 - ✅ **Privacy-focused**: Uses "Partner 1" and "Partner 2" labels (no real names sent to AI)
 - ✅ **Authorization**: Validates therapist access to couple data, rejects non-therapists
@@ -500,7 +517,7 @@ This edge function analyzes weekly check-in data using Perplexity AI to generate
 // Supabase Edge Function: AI Insights
 // ========================================
 // Analyzes weekly check-in data using Perplexity AI to generate clinical insights for therapists
-// 
+//
 // PRIVACY APPROACH:
 // - Uses anonymized labels ("Partner 1", "Partner 2") when sending data to Perplexity AI
 // - Never sends actual user names to external AI service
@@ -516,15 +533,16 @@ This edge function analyzes weekly check-in data using Perplexity AI to generate
 // CORS Headers
 // ========================================
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
 };
 
 // ========================================
 // Type Definitions
 // ========================================
 interface PerplexityMessage {
-  role: 'system' | 'user' | 'assistant';
+  role: "system" | "user" | "assistant";
   content: string;
 }
 
@@ -592,26 +610,26 @@ interface AIInsightResponse {
 // Privacy-Focused Logging Helper
 // ========================================
 function redactForLogging(data: any): any {
-  if (!data || typeof data !== 'object') {
-    return '[redacted]';
+  if (!data || typeof data !== "object") {
+    return "[redacted]";
   }
 
   const redacted: any = {};
-  
+
   // Allowlist approach: only log safe metadata
-  const safeFields = ['couple_id', 'therapist_id', 'timestamp'];
-  
+  const safeFields = ["couple_id", "therapist_id", "timestamp"];
+
   for (const key of safeFields) {
     if (key in data) {
       redacted[key] = data[key];
     }
   }
-  
+
   // Log counts instead of actual data
-  if ('checkins' in data && Array.isArray(data.checkins)) {
+  if ("checkins" in data && Array.isArray(data.checkins)) {
     redacted.checkins_count = data.checkins.length;
   }
-  
+
   return redacted;
 }
 
@@ -620,29 +638,29 @@ function redactForLogging(data: any): any {
 // ========================================
 async function analyzeWithPerplexity(
   systemPrompt: string,
-  userPrompt: string
+  userPrompt: string,
 ): Promise<{ content: string; citations?: string[] }> {
-  const apiKey = Deno.env.get('PERPLEXITY_API_KEY');
-  
+  const apiKey = Deno.env.get("PERPLEXITY_API_KEY");
+
   if (!apiKey) {
-    throw new Error('PERPLEXITY_API_KEY not configured');
+    throw new Error("PERPLEXITY_API_KEY not configured");
   }
 
   const requestBody: PerplexityRequest = {
-    model: 'sonar',
+    model: "sonar",
     messages: [
-      { role: 'system', content: systemPrompt },
-      { role: 'user', content: userPrompt },
+      { role: "system", content: systemPrompt },
+      { role: "user", content: userPrompt },
     ],
     temperature: 0.2,
     max_tokens: 1500,
   };
 
-  const response = await fetch('https://api.perplexity.ai/chat/completions', {
-    method: 'POST',
+  const response = await fetch("https://api.perplexity.ai/chat/completions", {
+    method: "POST",
     headers: {
-      'Authorization': `Bearer ${apiKey}`,
-      'Content-Type': 'application/json',
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
     },
     body: JSON.stringify(requestBody),
   });
@@ -655,7 +673,7 @@ async function analyzeWithPerplexity(
   const data: PerplexityResponse = await response.json();
 
   if (!data.choices || data.choices.length === 0) {
-    throw new Error('Perplexity API returned no choices');
+    throw new Error("Perplexity API returned no choices");
   }
 
   return {
@@ -669,79 +687,73 @@ async function analyzeWithPerplexity(
 // ========================================
 Deno.serve(async (req) => {
   // Handle CORS preflight
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
+  if (req.method === "OPTIONS") {
+    return new Response("ok", { headers: corsHeaders });
   }
 
   try {
     // Parse query parameters
     const url = new URL(req.url);
-    const coupleId = url.searchParams.get('couple_id');
+    const coupleId = url.searchParams.get("couple_id");
 
     if (!coupleId) {
-      console.error('Missing required parameter: couple_id');
-      return new Response(
-        JSON.stringify({ error: 'couple_id is required' }),
-        {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 400,
-        }
-      );
+      console.error("Missing required parameter: couple_id");
+      return new Response(JSON.stringify({ error: "couple_id is required" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 400,
+      });
     }
 
     // Initialize Supabase clients
-    const supabaseUrl = Deno.env.get('SUPABASE_URL');
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
-    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY');
-    
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY");
+
     if (!supabaseUrl || !supabaseServiceKey || !supabaseAnonKey) {
-      throw new Error('Supabase configuration missing');
+      throw new Error("Supabase configuration missing");
     }
 
     // SECURITY: Validate JWT and extract therapist_id from authenticated session
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
       return new Response(
-        JSON.stringify({ error: 'Missing or invalid authorization header' }),
+        JSON.stringify({ error: "Missing or invalid authorization header" }),
         {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
           status: 401,
-        }
+        },
       );
     }
 
-    const jwt = authHeader.replace('Bearer ', '');
+    const jwt = authHeader.replace("Bearer ", "");
 
     // Verify JWT and get user session using anon key
-    const sessionResponse = await fetch(
-      `${supabaseUrl}/auth/v1/user`,
-      {
-        headers: {
-          'apikey': supabaseAnonKey,
-          'Authorization': `Bearer ${jwt}`,
-        },
-      }
-    );
+    const sessionResponse = await fetch(`${supabaseUrl}/auth/v1/user`, {
+      headers: {
+        apikey: supabaseAnonKey,
+        Authorization: `Bearer ${jwt}`,
+      },
+    });
 
     if (!sessionResponse.ok) {
       return new Response(
-        JSON.stringify({ error: 'Invalid or expired session token' }),
+        JSON.stringify({ error: "Invalid or expired session token" }),
         {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
           status: 401,
-        }
+        },
       );
     }
 
     const user = await sessionResponse.json();
-    
+
     if (!user || !user.id) {
       return new Response(
-        JSON.stringify({ error: 'Unable to authenticate user' }),
+        JSON.stringify({ error: "Unable to authenticate user" }),
         {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
           status: 401,
-        }
+        },
       );
     }
 
@@ -750,69 +762,73 @@ Deno.serve(async (req) => {
       `${supabaseUrl}/rest/v1/Couples_profiles?id=eq.${user.id}&select=*`,
       {
         headers: {
-          'apikey': supabaseServiceKey,
-          'Authorization': `Bearer ${supabaseServiceKey}`,
-          'Content-Type': 'application/json',
+          apikey: supabaseServiceKey,
+          Authorization: `Bearer ${supabaseServiceKey}`,
+          "Content-Type": "application/json",
         },
-      }
+      },
     );
 
     if (!profileResponse.ok) {
-      throw new Error('Failed to fetch user profile');
+      throw new Error("Failed to fetch user profile");
     }
 
     const profiles = await profileResponse.json();
     const profile = profiles[0];
 
-    if (!profile || profile.user_type !== 'therapist') {
+    if (!profile || profile.user_type !== "therapist") {
       return new Response(
-        JSON.stringify({ error: 'Access denied. Only therapists can access insights.' }),
+        JSON.stringify({
+          error: "Access denied. Only therapists can access insights.",
+        }),
         {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
           status: 403,
-        }
+        },
       );
     }
 
     const therapistId = profile.id;
-    console.log('Generating AI insights for:', redactForLogging({ couple_id: coupleId, therapist_id: therapistId }));
+    console.log(
+      "Generating AI insights for:",
+      redactForLogging({ couple_id: coupleId, therapist_id: therapistId }),
+    );
 
     // 1. Validate therapist has access to this couple
     const coupleResponse = await fetch(
       `${supabaseUrl}/rest/v1/Couples_couples?id=eq.${coupleId}&select=*`,
       {
         headers: {
-          'apikey': supabaseServiceKey,
-          'Authorization': `Bearer ${supabaseServiceKey}`,
-          'Content-Type': 'application/json',
+          apikey: supabaseServiceKey,
+          Authorization: `Bearer ${supabaseServiceKey}`,
+          "Content-Type": "application/json",
         },
-      }
+      },
     );
 
     if (!coupleResponse.ok) {
-      throw new Error('Failed to fetch couple data');
+      throw new Error("Failed to fetch couple data");
     }
 
     const couples: Couple[] = await coupleResponse.json();
     const couple = couples[0];
 
     if (!couple) {
-      return new Response(
-        JSON.stringify({ error: 'Couple not found' }),
-        {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 404,
-        }
-      );
+      return new Response(JSON.stringify({ error: "Couple not found" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 404,
+      });
     }
 
     if (couple.therapist_id !== therapistId) {
       return new Response(
-        JSON.stringify({ error: "You don't have access to this couple's data" }),
+        JSON.stringify({
+          error: "You don't have access to this couple's data",
+        }),
         {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
           status: 403,
-        }
+        },
       );
     }
 
@@ -824,36 +840,39 @@ Deno.serve(async (req) => {
       `${supabaseUrl}/rest/v1/Couples_weekly_checkins?couple_id=eq.${coupleId}&created_at=gte.${twelveWeeksAgo.toISOString()}&order=year.asc,week_number.asc&select=*`,
       {
         headers: {
-          'apikey': supabaseServiceKey,
-          'Authorization': `Bearer ${supabaseServiceKey}`,
-          'Content-Type': 'application/json',
+          apikey: supabaseServiceKey,
+          Authorization: `Bearer ${supabaseServiceKey}`,
+          "Content-Type": "application/json",
         },
-      }
+      },
     );
 
     if (!checkinsResponse.ok) {
-      throw new Error('Failed to fetch check-ins');
+      throw new Error("Failed to fetch check-ins");
     }
 
     const checkins: WeeklyCheckIn[] = await checkinsResponse.json();
 
     if (!checkins || checkins.length === 0) {
       return new Response(
-        JSON.stringify({ error: 'No check-in data available for this couple in the last 12 weeks' }),
+        JSON.stringify({
+          error:
+            "No check-in data available for this couple in the last 12 weeks",
+        }),
         {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
           status: 400,
-        }
+        },
       );
     }
 
-    console.log('Fetched check-ins:', redactForLogging({ checkins }));
+    console.log("Fetched check-ins:", redactForLogging({ checkins }));
 
     // 3. Format data for Perplexity AI analysis
     // PRIVACY: Use anonymized labels instead of actual names
     const weeklyData: Record<string, any[]> = {};
-    
-    checkins.forEach(checkin => {
+
+    checkins.forEach((checkin) => {
       const weekKey = `${checkin.year}-W${checkin.week_number}`;
       if (!weeklyData[weekKey]) {
         weeklyData[weekKey] = [];
@@ -873,24 +892,25 @@ Deno.serve(async (req) => {
 
     // Build user prompt
     let userPrompt = `Analyze the following weekly check-in data for a couple in therapy:\n\n`;
-    
+
     const sortedWeeks = Object.keys(weeklyData).sort();
-    sortedWeeks.forEach(weekKey => {
+    sortedWeeks.forEach((weekKey) => {
       const weekCheckins = weeklyData[weekKey];
-      const [year, weekNum] = weekKey.split('-W');
-      const sampleDate = weekCheckins[0]?.createdAt ? 
-        new Date(weekCheckins[0].createdAt).toLocaleDateString() : '';
+      const [year, weekNum] = weekKey.split("-W");
+      const sampleDate = weekCheckins[0]?.createdAt
+        ? new Date(weekCheckins[0].createdAt).toLocaleDateString()
+        : "";
 
       userPrompt += `Week ${weekNum}, ${year} (${sampleDate}):\n`;
 
-      weekCheckins.forEach(checkin => {
+      weekCheckins.forEach((checkin) => {
         userPrompt += `- ${checkin.partnerLabel}: Connectedness: ${checkin.connectedness}/10, Conflict: ${checkin.conflict}/10\n`;
         userPrompt += `  Appreciation: "${checkin.appreciation}"\n`;
         userPrompt += `  Regrettable Incident: "${checkin.regrettableIncident}"\n`;
         userPrompt += `  Need: "${checkin.need}"\n`;
       });
 
-      userPrompt += '\n';
+      userPrompt += "\n";
     });
 
     userPrompt += `\nBased on this data, provide:\n`;
@@ -909,58 +929,64 @@ Deno.serve(async (req) => {
 Be precise, evidence-based, and therapeutically sensitive. Format your response as structured insights.`;
 
     // 4. Call Perplexity API
-    const analysisResult = await analyzeWithPerplexity(systemPrompt, userPrompt);
+    const analysisResult = await analyzeWithPerplexity(
+      systemPrompt,
+      userPrompt,
+    );
 
     // 5. Parse and structure the response
     const rawAnalysis = analysisResult.content;
-    
-    const lines = rawAnalysis.split('\n').filter(line => line.trim());
-    
-    let summary = '';
+
+    const lines = rawAnalysis.split("\n").filter((line) => line.trim());
+
+    let summary = "";
     const discrepancies: string[] = [];
     const patterns: string[] = [];
     const recommendations: string[] = [];
-    
-    let currentSection = '';
-    
-    lines.forEach(line => {
+
+    let currentSection = "";
+
+    lines.forEach((line) => {
       const lowerLine = line.toLowerCase();
-      
-      if (lowerLine.includes('summary') || lowerLine.includes('dynamic')) {
-        currentSection = 'summary';
-      } else if (lowerLine.includes('discrepanc')) {
-        currentSection = 'discrepancies';
-      } else if (lowerLine.includes('pattern') || lowerLine.includes('trend')) {
-        currentSection = 'patterns';
-      } else if (lowerLine.includes('recommendation') || lowerLine.includes('therapeutic')) {
-        currentSection = 'recommendations';
+
+      if (lowerLine.includes("summary") || lowerLine.includes("dynamic")) {
+        currentSection = "summary";
+      } else if (lowerLine.includes("discrepanc")) {
+        currentSection = "discrepancies";
+      } else if (lowerLine.includes("pattern") || lowerLine.includes("trend")) {
+        currentSection = "patterns";
+      } else if (
+        lowerLine.includes("recommendation") ||
+        lowerLine.includes("therapeutic")
+      ) {
+        currentSection = "recommendations";
       } else if (line.trim().match(/^[\d\-\*•]/)) {
         // This is a list item
-        const cleanedLine = line.trim().replace(/^[\d\-\*•.)\s]+/, '');
-        if (currentSection === 'discrepancies') {
+        const cleanedLine = line.trim().replace(/^[\d\-\*•.)\s]+/, "");
+        if (currentSection === "discrepancies") {
           discrepancies.push(cleanedLine);
-        } else if (currentSection === 'patterns') {
+        } else if (currentSection === "patterns") {
           patterns.push(cleanedLine);
-        } else if (currentSection === 'recommendations') {
+        } else if (currentSection === "recommendations") {
           recommendations.push(cleanedLine);
         }
-      } else if (currentSection === 'summary' && line.trim()) {
-        summary += line.trim() + ' ';
+      } else if (currentSection === "summary" && line.trim()) {
+        summary += line.trim() + " ";
       }
     });
 
     // Fallback if parsing didn't work well
     if (!summary) {
-      summary = rawAnalysis.substring(0, 300) + '...';
+      summary = rawAnalysis.substring(0, 300) + "...";
     }
     if (discrepancies.length === 0) {
-      discrepancies.push('Analysis completed - see raw analysis for details');
+      discrepancies.push("Analysis completed - see raw analysis for details");
     }
     if (patterns.length === 0) {
-      patterns.push('Analysis completed - see raw analysis for details');
+      patterns.push("Analysis completed - see raw analysis for details");
     }
     if (recommendations.length === 0) {
-      recommendations.push('Analysis completed - see raw analysis for details');
+      recommendations.push("Analysis completed - see raw analysis for details");
     }
 
     const insights: AIInsightResponse = {
@@ -974,44 +1000,45 @@ Be precise, evidence-based, and therapeutically sensitive. Format your response 
       citations: analysisResult.citations,
     };
 
-    console.log('Successfully generated insights for couple:', redactForLogging({ couple_id: coupleId }));
+    console.log(
+      "Successfully generated insights for couple:",
+      redactForLogging({ couple_id: coupleId }),
+    );
 
-    return new Response(
-      JSON.stringify(insights),
-      {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200,
-      }
-    );
+    return new Response(JSON.stringify(insights), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 200,
+    });
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-    console.error('Error generating AI insights:', errorMessage);
-    
-    return new Response(
-      JSON.stringify({ error: errorMessage }),
-      {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 500,
-      }
-    );
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error occurred";
+    console.error("Error generating AI insights:", errorMessage);
+
+    return new Response(JSON.stringify({ error: errorMessage }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 500,
+    });
   }
 });
 ```
+
 ```bash
 supabase functions deploy ai-date-night
 ```
 
 3. **Deploy ai-insights**:
+
 ```bash
 supabase functions deploy ai-insights
 ```
 
 4. **View logs**:
+
 ```bash
 # ai-date-night logs
 supabase functions logs ai-date-night --follow
 
-# ai-insights logs  
+# ai-insights logs
 supabase functions logs ai-insights --follow
 ```
 
@@ -1020,6 +1047,7 @@ supabase functions logs ai-insights --follow
 ## 🧪 Testing
 
 ### Test ai-date-night
+
 ```bash
 curl -i --location --request POST 'https://your-project-ref.supabase.co/functions/v1/ai-date-night' \
   --header 'Content-Type: application/json' \
@@ -1027,6 +1055,7 @@ curl -i --location --request POST 'https://your-project-ref.supabase.co/function
 ```
 
 ### Test ai-insights
+
 **Note:** ai-insights requires therapist authentication. Use a valid therapist JWT token:
 
 ```bash
@@ -1041,16 +1070,16 @@ curl -i --location --request GET 'https://your-project-ref.supabase.co/functions
 
 **Status:** ✅ All AI endpoints migrated to Supabase Edge Functions
 
-| Endpoint | Status | Description |
-|----------|--------|-------------|
-| `ai-date-night` | ✅ Migrated | Generates personalized date night ideas |
-| `ai-insights` | ✅ Migrated | Analyzes check-ins for clinical insights |
-| `ai-analytics` | ℹ️ No migration needed | Pure database aggregation (no AI) |
+| Endpoint        | Status                 | Description                              |
+| --------------- | ---------------------- | ---------------------------------------- |
+| `ai-date-night` | ✅ Migrated            | Generates personalized date night ideas  |
+| `ai-insights`   | ✅ Migrated            | Analyzes check-ins for clinical insights |
+| `ai-analytics`  | ℹ️ No migration needed | Pure database aggregation (no AI)        |
 
 **Benefits:**
+
 - 🌍 Global edge deployment (lower latency)
 - 💰 Pay-per-invocation pricing
 - 🚀 Simpler Vercel deployment (no Express server needed)
 - 🔒 Privacy-focused with allowlist logging
 - 📦 All code inlined (no shared imports to manage)
-

@@ -7,6 +7,7 @@ This guide explains the production-ready backend infrastructure for 4 new therap
 ## Features Implemented
 
 ### 1. Attachment Style Assessment
+
 - 30-question assessment measuring attachment styles (secure, anxious, avoidant, disorganized)
 - Individual sessions with progress tracking
 - Automated scoring with reverse-scored questions
@@ -15,6 +16,7 @@ This guide explains the production-ready backend infrastructure for 4 new therap
 - Repair scripts library for each attachment style
 
 ### 2. Enneagram Couple Dynamics
+
 - 36-question assessment covering all 9 Enneagram types
 - Individual sessions with progress tracking
 - Automated scoring identifying dominant and secondary types
@@ -22,6 +24,7 @@ This guide explains the production-ready backend infrastructure for 4 new therap
 - Growth opportunities identification
 
 ### 3. Shared Couple Journal
+
 - Multi-mode entries (individual or joint authorship)
 - Three visibility levels (private, shared with partner, shared with therapist)
 - Media attachments support (photos, videos via Supabase Storage)
@@ -31,6 +34,7 @@ This guide explains the production-ready backend infrastructure for 4 new therap
 - Therapist share tracking
 
 ### 4. Financial Communication Toolkit
+
 - Financial values alignment exercise
 - Monthly budget tracking by category
 - Shared financial goals with progress tracking
@@ -40,7 +44,9 @@ This guide explains the production-ready backend infrastructure for 4 new therap
 ## Files Created
 
 ### Database & Storage
+
 1. **supabase-new-features-migration.sql** (674 lines)
+
    - Creates 21 new database tables
    - Enables RLS on all tables
    - Implements 46 RLS policies for security
@@ -48,6 +54,7 @@ This guide explains the production-ready backend infrastructure for 4 new therap
    - Adds performance indexes
 
 2. **supabase-seed-questions.sql** (241 lines)
+
    - 30 attachment assessment questions
    - 36 enneagram assessment questions
    - 10 journal writing prompts
@@ -59,7 +66,9 @@ This guide explains the production-ready backend infrastructure for 4 new therap
    - Privacy-aware file sharing rules
 
 ### API Endpoints
+
 1. **server/routes/attachment.ts** (352 lines)
+
    - GET /questions - Fetch all questions
    - POST /sessions - Create assessment session
    - GET /sessions/my - Get user's sessions
@@ -70,6 +79,7 @@ This guide explains the production-ready backend infrastructure for 4 new therap
    - GET /repair-scripts - Get style-specific scripts
 
 2. **server/routes/enneagram.ts** (274 lines)
+
    - GET /questions - Fetch all questions
    - POST /sessions - Create assessment session
    - GET /sessions/my - Get user's sessions
@@ -79,6 +89,7 @@ This guide explains the production-ready backend infrastructure for 4 new therap
    - GET /results/couple - Get couple's results
 
 3. **server/routes/journal.ts** (356 lines)
+
    - GET /prompts - Get writing prompts
    - POST /entries - Create journal entry
    - GET /entries - Get couple's entries (with visibility filtering)
@@ -100,6 +111,7 @@ This guide explains the production-ready backend infrastructure for 4 new therap
    - GET /discussions - Get discussion history
 
 ### Infrastructure
+
 - **server/routes.ts** - Updated to register all 4 new routers
 
 ## Database Schema
@@ -107,6 +119,7 @@ This guide explains the production-ready backend infrastructure for 4 new therap
 All tables use the `Couples_` prefix and include:
 
 ### Attachment Tables
+
 - Couples_attachment_questions
 - Couples_attachment_sessions
 - Couples_attachment_responses
@@ -116,6 +129,7 @@ All tables use the `Couples_` prefix and include:
 - Couples_attachment_repair_scripts
 
 ### Enneagram Tables
+
 - Couples_enneagram_questions
 - Couples_enneagram_sessions
 - Couples_enneagram_responses
@@ -123,6 +137,7 @@ All tables use the `Couples_` prefix and include:
 - Couples_enneagram_couple_reports
 
 ### Journal Tables
+
 - Couples_journal_entries
 - Couples_journal_attachments
 - Couples_journal_milestones
@@ -130,6 +145,7 @@ All tables use the `Couples_` prefix and include:
 - Couples_journal_shares
 
 ### Financial Tables
+
 - Couples_financial_values
 - Couples_financial_budgets
 - Couples_financial_goals
@@ -144,12 +160,14 @@ All tables use the `Couples_` prefix and include:
 3. Click **New Query**
 
 **Migration 1: Main Tables & RLS**
+
 - Copy the entire contents of `supabase-new-features-migration.sql`
 - Paste into SQL Editor
 - Click **Run**
 - Expected result: "Success. No rows returned"
 
 **Migration 2: Seed Questions**
+
 - Click **New Query** again
 - Copy the entire contents of `supabase-seed-questions.sql`
 - Paste into SQL Editor
@@ -157,6 +175,7 @@ All tables use the `Couples_` prefix and include:
 - Expected result: Success with 84+ rows inserted
 
 **Migration 3: Journal Storage**
+
 - Click **New Query** again
 - Copy the entire contents of `supabase-journal-storage-setup.sql`
 - Paste into SQL Editor
@@ -174,6 +193,7 @@ After running the migrations, verify in Supabase:
 ### Step 3: Restart Application
 
 The API endpoints are already registered and will be available after restart:
+
 - `/api/attachment/*`
 - `/api/enneagram/*`
 - `/api/journal/*`
@@ -182,25 +202,31 @@ The API endpoints are already registered and will be available after restart:
 ## Security Implementation
 
 ### Row Level Security (RLS)
+
 Every table has comprehensive RLS policies:
 
 **Client Access:**
+
 - Users can only access data for their own couple
 - Partners can view each other's shared data
 - Private data remains private
 
 **Therapist Access:**
+
 - Read-only access to assigned couples' data
 - Can add comments and notes
 - Cannot modify couple's data directly
 
 **Journal Privacy Levels:**
+
 - Private: Only author can view
 - Shared with partner: Both partners can view
 - Shared with therapist: Therapist gets read access
 
 ### API Security
+
 All endpoints:
+
 - Require authentication via `verifyUserSession`
 - Verify couple membership before data access
 - Validate user ownership before mutations
@@ -209,19 +235,23 @@ All endpoints:
 ## What's Next (Not Yet Implemented)
 
 ### Frontend Integration
+
 The following pages need to be updated to use the new API endpoints instead of localStorage:
 
 1. **client/src/pages/attachment-assessment.tsx**
+
    - Replace localStorage with API calls to `/api/attachment`
    - Add real-time score calculation
    - Implement results visualization
 
 2. **client/src/pages/enneagram-assessment.tsx**
+
    - Replace localStorage with API calls to `/api/enneagram`
    - Add type descriptions and compatibility insights
    - Implement couple comparison view
 
 3. **client/src/pages/couple-journal.tsx**
+
    - Replace localStorage with API calls to `/api/journal`
    - Add media upload to Supabase Storage
    - Implement Realtime for collaborative writing
@@ -232,20 +262,24 @@ The following pages need to be updated to use the new API endpoints instead of l
    - Add financial goals visualization
 
 ### Therapist Admin Views
+
 Create 4 new admin views in the therapist dashboard:
 
 1. **Attachment Results View** (`/admin/couple/:id/attachment`)
+
    - Side-by-side attachment style comparison
    - Dynamic pattern identification
    - Trigger history timeline
    - Suggested repair scripts
 
 2. **Enneagram Results View** (`/admin/couple/:id/enneagram`)
+
    - Type compatibility matrix
    - Growth opportunities
    - Type-specific communication tips
 
 3. **Journal Entries View** (`/admin/couple/:id/journal`)
+
    - Shared entries only (respect privacy)
    - Milestones timeline
    - Mood trends visualization
@@ -257,13 +291,16 @@ Create 4 new admin views in the therapist dashboard:
    - Discussion log access
 
 ### Realtime Features
+
 Add Supabase Realtime subscriptions for:
+
 - Journal entries (collaborative writing)
 - Milestones (shared celebration)
 - Financial goals (progress updates)
 - Therapist comments (instant feedback)
 
 ### Testing
+
 - End-to-end playwright tests for all 4 features
 - Assessment scoring accuracy validation
 - RLS policy verification

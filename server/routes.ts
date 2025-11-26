@@ -33,7 +33,7 @@ import dashboardCustomizationRouter from "./routes/dashboardCustomization.js";
 export async function registerRoutes(app: Express): Promise<Server> {
   // Register all feature-based routers
   // Each router is mounted at its respective base path
-  
+
   app.use("/api/ai", aiRouter);
   app.use("/api/attachment", attachmentRouter);
   app.use("/api/calendar", calendarRouter);

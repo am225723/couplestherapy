@@ -2,18 +2,19 @@
 // CORS Headers
 // ========================================
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
 };
 
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 
 // ========================================
 // Supabase Client Setup
 // ========================================
 function createSupabaseClient(authHeader: string) {
-  const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-  const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+  const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+  const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
 
   return createClient(supabaseUrl, supabaseAnonKey, {
     global: {
@@ -26,7 +27,7 @@ function createSupabaseClient(authHeader: string) {
 // Type Definitions
 // ========================================
 interface PerplexityMessage {
-  role: 'system' | 'user' | 'assistant';
+  role: "system" | "user" | "assistant";
   content: string;
 }
 
@@ -60,29 +61,29 @@ interface PerplexityResponse {
 // ========================================
 async function analyzeWithPerplexity(
   systemPrompt: string,
-  userPrompt: string
+  userPrompt: string,
 ): Promise<{ content: string; usage: any }> {
-  const apiKey = Deno.env.get('PERPLEXITY_API_KEY');
+  const apiKey = Deno.env.get("PERPLEXITY_API_KEY");
 
   if (!apiKey) {
-    throw new Error('PERPLEXITY_API_KEY not configured');
+    throw new Error("PERPLEXITY_API_KEY not configured");
   }
 
   const requestBody: PerplexityRequest = {
-    model: 'sonar',
+    model: "sonar",
     messages: [
-      { role: 'system', content: systemPrompt },
-      { role: 'user', content: userPrompt },
+      { role: "system", content: systemPrompt },
+      { role: "user", content: userPrompt },
     ],
     temperature: 0.7,
     max_tokens: 2000,
   };
 
-  const response = await fetch('https://api.perplexity.ai/chat/completions', {
-    method: 'POST',
+  const response = await fetch("https://api.perplexity.ai/chat/completions", {
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
     },
     body: JSON.stringify(requestBody),
   });
@@ -95,7 +96,7 @@ async function analyzeWithPerplexity(
   const data: PerplexityResponse = await response.json();
 
   return {
-    content: data.choices[0]?.message?.content || '',
+    content: data.choices[0]?.message?.content || "",
     usage: data.usage,
   };
 }
@@ -105,41 +106,50 @@ async function analyzeWithPerplexity(
 // ========================================
 Deno.serve(async (req) => {
   // Handle CORS preflight
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
+  if (req.method === "OPTIONS") {
+    return new Response("ok", { headers: corsHeaders });
   }
 
   try {
     // Get user from auth header
-    const authHeader = req.headers.get('Authorization');
+    const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
       return new Response(
-        JSON.stringify({ error: 'Missing authorization header' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 401 }
+        JSON.stringify({ error: "Missing authorization header" }),
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 401,
+        },
       );
     }
 
     const supabase = createSupabaseClient(authHeader);
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
 
     if (userError || !user) {
-      return new Response(
-        JSON.stringify({ error: 'Unauthorized' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 401 }
-      );
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 401,
+      });
     }
 
     // Get couple_id for this user
     const { data: profile } = await supabase
-      .from('Couples_Profiles')
-      .select('couple_id')
-      .eq('id', user.id)
+      .from("Couples_Profiles")
+      .select("couple_id")
+      .eq("id", user.id)
       .single();
 
     if (!profile?.couple_id) {
       return new Response(
-        JSON.stringify({ error: 'No couple association found' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 403 }
+        JSON.stringify({ error: "No couple association found" }),
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 403,
+        },
       );
     }
 
@@ -147,50 +157,90 @@ Deno.serve(async (req) => {
 
     // Fetch usage data for all 13 therapy tools
     const tools = [
-      'love_languages', 'gratitude_log', 'weekly_checkins', 'shared_goals',
-      'rituals', 'hold_me_tight', 'echo_empathy', 'ifs_exercises',
-      'voice_memos', 'messages', 'calendar', 'love_map', 'pause_button'
+      "love_languages",
+      "gratitude_log",
+      "weekly_checkins",
+      "shared_goals",
+      "rituals",
+      "hold_me_tight",
+      "echo_empathy",
+      "ifs_exercises",
+      "voice_memos",
+      "messages",
+      "calendar",
+      "love_map",
+      "pause_button",
     ];
 
     const usageData: Record<string, number> = {};
-    
+
     // Simplified - just check if any records exist
     for (const tool of tools) {
-      let tableName = '';
-      let column = 'couple_id';
-      
-      switch(tool) {
-        case 'love_languages': tableName = 'Couples_LoveLanguageResults'; break;
-        case 'gratitude_log': tableName = 'Couples_GratitudeLogs'; break;
-        case 'weekly_checkins': tableName = 'Couples_WeeklyCheckIns'; column = 'user_id'; break;
-        case 'shared_goals': tableName = 'Couples_SharedGoals'; break;
-        case 'rituals': tableName = 'Couples_Rituals'; break;
-        case 'hold_me_tight': tableName = 'Couples_HoldMeTightConversations'; break;
-        case 'echo_empathy': tableName = 'Couples_EchoSessions'; break;
-        case 'ifs_exercises': tableName = 'Couples_IFSExercises'; column = 'user_id'; break;
-        case 'voice_memos': tableName = 'Couples_VoiceMemos'; column = 'sender_id'; break;
-        case 'messages': tableName = 'Couples_Messages'; column = 'sender_id'; break;
-        case 'calendar': tableName = 'Couples_CalendarEvents'; break;
-        case 'love_map': tableName = 'Couples_LoveMapSessions'; break;
-        case 'pause_button': tableName = 'Couples_PauseHistory'; break;
+      let tableName = "";
+      let column = "couple_id";
+
+      switch (tool) {
+        case "love_languages":
+          tableName = "Couples_LoveLanguageResults";
+          break;
+        case "gratitude_log":
+          tableName = "Couples_GratitudeLogs";
+          break;
+        case "weekly_checkins":
+          tableName = "Couples_WeeklyCheckIns";
+          column = "user_id";
+          break;
+        case "shared_goals":
+          tableName = "Couples_SharedGoals";
+          break;
+        case "rituals":
+          tableName = "Couples_Rituals";
+          break;
+        case "hold_me_tight":
+          tableName = "Couples_HoldMeTightConversations";
+          break;
+        case "echo_empathy":
+          tableName = "Couples_EchoSessions";
+          break;
+        case "ifs_exercises":
+          tableName = "Couples_IFSExercises";
+          column = "user_id";
+          break;
+        case "voice_memos":
+          tableName = "Couples_VoiceMemos";
+          column = "sender_id";
+          break;
+        case "messages":
+          tableName = "Couples_Messages";
+          column = "sender_id";
+          break;
+        case "calendar":
+          tableName = "Couples_CalendarEvents";
+          break;
+        case "love_map":
+          tableName = "Couples_LoveMapSessions";
+          break;
+        case "pause_button":
+          tableName = "Couples_PauseHistory";
+          break;
       }
 
-      if (column === 'couple_id') {
+      if (column === "couple_id") {
         const { count } = await supabase
           .from(tableName)
-          .select('*', { count: 'exact', head: true })
-          .eq('couple_id', couple_id);
+          .select("*", { count: "exact", head: true })
+          .eq("couple_id", couple_id);
         usageData[tool] = count || 0;
       } else {
         const { data: partners } = await supabase
-          .from('Couples_Profiles')
-          .select('id')
-          .eq('couple_id', couple_id);
-        
-        const partnerIds = partners?.map(p => p.id) || [];
+          .from("Couples_Profiles")
+          .select("id")
+          .eq("couple_id", couple_id);
+
+        const partnerIds = partners?.map((p) => p.id) || [];
         const { count } = await supabase
           .from(tableName)
-          .select('*', { count: 'exact', head: true })
+          .select("*", { count: "exact", head: true })
           .in(column, partnerIds);
         usageData[tool] = count || 0;
       }
@@ -208,7 +258,9 @@ Guidelines:
     const userPrompt = `Analyze this couple's therapy tool usage and provide recommendations:
 
 USAGE DATA:
-${Object.entries(usageData).map(([tool, count]) => `- ${tool}: ${count} uses`).join('\n')}
+${Object.entries(usageData)
+  .map(([tool, count]) => `- ${tool}: ${count} uses`)
+  .join("\n")}
 
 IMPORTANT: Respond ONLY with valid JSON in this exact format:
 {
@@ -227,7 +279,7 @@ IMPORTANT: Respond ONLY with valid JSON in this exact format:
 }`;
 
     const result = await analyzeWithPerplexity(systemPrompt, userPrompt);
-    
+
     // Parse JSON from AI response
     const parsed = JSON.parse(result.content);
 
@@ -241,20 +293,18 @@ IMPORTANT: Respond ONLY with valid JSON in this exact format:
         usage: result.usage,
       }),
       {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,
-      }
+      },
     );
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-    console.error('Error generating exercise recommendations:', errorMessage);
-    
-    return new Response(
-      JSON.stringify({ error: errorMessage }),
-      {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 500,
-      }
-    );
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error occurred";
+    console.error("Error generating exercise recommendations:", errorMessage);
+
+    return new Response(JSON.stringify({ error: errorMessage }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 500,
+    });
   }
 });

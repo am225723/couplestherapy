@@ -9,7 +9,9 @@ I've thoroughly reviewed `api/index.ts` and identified and fixed **critical issu
 ## ❌ Issues Found and Fixed
 
 ### Issue #1: Top-Level Await (CRITICAL)
+
 **Problem:**
+
 ```typescript
 // ❌ WRONG - causes FUNCTION_INVOCATION_FAILED in Vercel
 await registerRoutes(app);
@@ -17,12 +19,14 @@ export default app;
 ```
 
 **Why This Failed:**
+
 - Vercel serverless functions don't support top-level `await` at module initialization
 - This causes the function to fail with `FUNCTION_INVOCATION_FAILED` error
 - The error includes a Vercel function ID like: `iad1::2i6wf-1762479028837-78143a4fa23a`
 
 **Root Cause:**
-- `registerRoutes()` returns `Promise<Server>` 
+
+- `registerRoutes()` returns `Promise<Server>`
 - The previous code was using `await` at the top level to wait for this promise
 - Vercel's serverless environment can't handle this pattern
 
@@ -45,11 +49,13 @@ export default app;
 ### Why This Works:
 
 1. **Route Registration is Synchronous**
+
    - All routes are registered via `app.get()`, `app.post()`, etc.
    - These are synchronous operations that happen immediately
    - No await needed for routes to be available
 
 2. **We Don't Need the Server Instance**
+
    - In development (`server/index.ts`), the `Server` instance is used for:
      - Calling `server.listen()` to start the server
      - Passing to `setupVite()` for hot module replacement
@@ -74,18 +80,20 @@ import { registerRoutes } from "../server/routes";
 const app = express();
 
 // HTTP module augmentation for rawBody
-declare module 'http' {
+declare module "http" {
   interface IncomingMessage {
-    rawBody: unknown
+    rawBody: unknown;
   }
 }
 
 // JSON body parser with rawBody capture
-app.use(express.json({
-  verify: (req, _res, buf) => {
-    req.rawBody = buf;
-  }
-}));
+app.use(
+  express.json({
+    verify: (req, _res, buf) => {
+      req.rawBody = buf;
+    },
+  }),
+);
 
 // URL-encoded body parser
 app.use(express.urlencoded({ extended: false }));
@@ -141,16 +149,19 @@ export default app;
 ## ✅ Verification
 
 ### LSP Diagnostics: ✅ No errors
+
 - TypeScript types are correct
 - No syntax errors
 - No type mismatches
 
 ### Development Server: ✅ Working
+
 - Server starts successfully on port 5000
 - No errors in console
 - All routes registered correctly
 
 ### Vercel Compatibility: ✅ Fixed
+
 - No top-level await
 - Exports Express app (not Server)
 - Compatible with serverless architecture
@@ -160,14 +171,17 @@ export default app;
 ## 🚀 Deployment Instructions
 
 ### For Local Testing (Development):
+
 ```bash
 npm run dev
 ```
+
 ✅ Already verified - working perfectly
 
 ### For Vercel Deployment (Production):
 
 1. **Commit the fix:**
+
    ```bash
    git add api/index.ts
    git commit -m "Fix FUNCTION_INVOCATION_FAILED - remove top-level await"
@@ -175,6 +189,7 @@ npm run dev
    ```
 
 2. **Vercel Auto-Deploy:**
+
    - Vercel will automatically deploy if connected to GitHub
    - Wait 1-2 minutes for deployment to complete
    - Check Vercel dashboard for "Ready" status
@@ -189,13 +204,16 @@ npm run dev
 ## 📋 Additional Notes
 
 ### Middleware Order (Correct):
+
 1. ✅ Body parsers (JSON, URL-encoded)
 2. ✅ Logging middleware
 3. ✅ **Routes registration** ← Happens synchronously here
 4. ✅ Error handler (must be last)
 
 ### Environment Variables Required:
+
 All these must be set in Vercel Dashboard:
+
 - `VITE_SUPABASE_URL`
 - `VITE_SUPABASE_ANON_KEY`
 - `SUPABASE_SERVICE_ROLE_KEY`
@@ -203,6 +221,7 @@ All these must be set in Vercel Dashboard:
 - `PERPLEXITY_API_KEY`
 
 ### Vercel Configuration (`vercel.json`):
+
 ```json
 {
   "functions": {
@@ -212,6 +231,7 @@ All these must be set in Vercel Dashboard:
   }
 }
 ```
+
 ✅ Already configured with 30-second timeout
 
 ---
@@ -219,6 +239,7 @@ All these must be set in Vercel Dashboard:
 ## 🎯 Expected Behavior After Fix
 
 ### Before (Error):
+
 ```
 Error Creating Couple
 500: A server error has occurred
@@ -227,6 +248,7 @@ iad1::2i6wf-1762479028837-78143a4fa23a
 ```
 
 ### After (Success):
+
 ```
 ✅ Couple Created Successfully
 Join Code: ABCD1234
@@ -237,6 +259,7 @@ Join Code: ABCD1234
 ## 🔒 What Was NOT Changed
 
 These parts remain unchanged (and correct):
+
 - ✅ Request body parsing (JSON + URL-encoded)
 - ✅ Raw body capture for webhooks
 - ✅ Response logging middleware

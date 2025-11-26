@@ -1,23 +1,37 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
-import { colors, spacing, typography } from '../../constants/theme';
-import { useAuth } from '../../contexts/AuthContext';
+import React from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+} from "react-native";
+import { colors, spacing, typography } from "../../constants/theme";
+import { useAuth } from "../../contexts/AuthContext";
 
 export default function DashboardScreen({ navigation }: any) {
   const { profile } = useAuth();
 
   const quickActions = [
-    { title: 'Weekly Check-In', screen: 'WeeklyCheckin' },
-    { title: 'Love Language Quiz', screen: 'LoveLanguageQuiz' },
-    { title: 'Messages', screen: '../Communication', params: { screen: 'MessagesMain' } },
-    { title: 'Date Night Ideas', screen: '../Activities', params: { screen: 'DateNight' } },
+    { title: "Weekly Check-In", screen: "WeeklyCheckin" },
+    { title: "Love Language Quiz", screen: "LoveLanguageQuiz" },
+    {
+      title: "Messages",
+      screen: "../Communication",
+      params: { screen: "MessagesMain" },
+    },
+    {
+      title: "Date Night Ideas",
+      screen: "../Activities",
+      params: { screen: "DateNight" },
+    },
   ];
 
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.greeting}>Welcome back,</Text>
-        <Text style={styles.name}>{profile?.full_name || 'User'}</Text>
+        <Text style={styles.name}>{profile?.full_name || "User"}</Text>
       </View>
 
       <View style={styles.section}>
@@ -46,14 +60,26 @@ export default function DashboardScreen({ navigation }: any) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
-  header: { padding: spacing.xl, backgroundColor: colors.primary, paddingTop: spacing.xxl },
+  header: {
+    padding: spacing.xl,
+    backgroundColor: colors.primary,
+    paddingTop: spacing.xxl,
+  },
   greeting: { ...typography.body, color: colors.white, opacity: 0.9 },
-  name: { ...typography.h2, color: colors.white, fontWeight: '700' },
+  name: { ...typography.h2, color: colors.white, fontWeight: "700" },
   section: { padding: spacing.xl },
-  sectionTitle: { ...typography.h4, color: colors.text, marginBottom: spacing.md },
-  grid: { flexDirection: 'row', flexWrap: 'wrap', marginHorizontal: -spacing.sm },
+  sectionTitle: {
+    ...typography.h4,
+    color: colors.text,
+    marginBottom: spacing.md,
+  },
+  grid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    marginHorizontal: -spacing.sm,
+  },
   card: {
-    width: '48%',
+    width: "48%",
     margin: spacing.sm,
     padding: spacing.lg,
     backgroundColor: colors.surface,

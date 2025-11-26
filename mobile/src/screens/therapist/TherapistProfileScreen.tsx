@@ -1,8 +1,8 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
-import { useAuth } from '../../contexts/AuthContext';
-import Button from '../../components/Button';
-import { colors, spacing, typography } from '../../constants/theme';
+import React from "react";
+import { View, Text, StyleSheet, ScrollView } from "react-native";
+import { useAuth } from "../../contexts/AuthContext";
+import Button from "../../components/Button";
+import { colors, spacing, typography } from "../../constants/theme";
 
 export default function TherapistProfileScreen() {
   const { profile, signOut } = useAuth();
@@ -11,16 +11,16 @@ export default function TherapistProfileScreen() {
     <ScrollView style={styles.container}>
       <View style={styles.content}>
         <Text style={styles.title}>Therapist Profile</Text>
-        
+
         <View style={styles.infoCard}>
           <Text style={styles.label}>Name</Text>
-          <Text style={styles.value}>{profile?.full_name || 'N/A'}</Text>
-          
+          <Text style={styles.value}>{profile?.full_name || "N/A"}</Text>
+
           <Text style={styles.label}>Email</Text>
-          <Text style={styles.value}>{profile?.email || 'N/A'}</Text>
-          
+          <Text style={styles.value}>{profile?.email || "N/A"}</Text>
+
           <Text style={styles.label}>Role</Text>
-          <Text style={styles.value}>{profile?.role || 'N/A'}</Text>
+          <Text style={styles.value}>{profile?.role || "N/A"}</Text>
         </View>
 
         <Button
@@ -47,7 +47,11 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     marginBottom: spacing.lg,
   },
-  label: { ...typography.bodySmall, color: colors.textSecondary, marginTop: spacing.md },
+  label: {
+    ...typography.bodySmall,
+    color: colors.textSecondary,
+    marginTop: spacing.md,
+  },
   value: { ...typography.body, color: colors.text, marginTop: spacing.xs },
   signOutButton: { marginTop: spacing.lg },
 });

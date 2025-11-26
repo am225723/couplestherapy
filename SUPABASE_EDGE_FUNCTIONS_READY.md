@@ -5,51 +5,58 @@
 **Path:** `supabase/functions/ai-date-night/index.ts`
 
 ```typescript
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
-const PERPLEXITY_API_KEY = Deno.env.get('PERPLEXITY_API_KEY')
+const PERPLEXITY_API_KEY = Deno.env.get("PERPLEXITY_API_KEY");
 
 if (!PERPLEXITY_API_KEY) {
-  throw new Error('PERPLEXITY_API_KEY environment variable is required')
+  throw new Error("PERPLEXITY_API_KEY environment variable is required");
 }
 
 // Allowlist for logging - only log these specific fields
-const ALLOWLIST_FIELDS = ['status', 'model', 'duration_ms', 'prompt_length', 'response_length']
+const ALLOWLIST_FIELDS = [
+  "status",
+  "model",
+  "duration_ms",
+  "prompt_length",
+  "response_length",
+];
 
 function logSafe(message: string, data?: any) {
   if (!data) {
-    console.log(message)
-    return
+    console.log(message);
+    return;
   }
-  
-  const safeData = {}
+
+  const safeData = {};
   for (const key of ALLOWLIST_FIELDS) {
     if (data[key] !== undefined) {
-      safeData[key] = data[key]
+      safeData[key] = data[key];
     }
   }
-  console.log(message, safeData)
+  console.log(message, safeData);
 }
 
 serve(async (req) => {
-  if (req.method === 'OPTIONS') {
+  if (req.method === "OPTIONS") {
     return new Response(null, {
       status: 204,
       headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Headers":
+          "authorization, x-client-info, apikey, content-type",
       },
-    })
+    });
   }
 
   try {
-    const { preferences, location, budget } = await req.json()
-    
+    const { preferences, location, budget } = await req.json();
+
     const prompt = `You are a creative couples therapist and relationship coach. Generate 3 unique, thoughtful date night ideas based on these preferences:
     
-    Preferences: ${preferences || 'Open to anything'}
-    Location: ${location || 'Local area'}
-    Budget: ${budget || 'Flexible'}
+    Preferences: ${preferences || "Open to anything"}
+    Location: ${location || "Local area"}
+    Budget: ${budget || "Flexible"}
     
     For each date idea, provide:
     1. A catchy name/title
@@ -68,92 +75,99 @@ serve(async (req) => {
       }
     ]
     
-    Be creative, specific, and romantic. Focus on connection and intimacy.`
+    Be creative, specific, and romantic. Focus on connection and intimacy.`;
 
-    logSafe('Calling Perplexity API', {
+    logSafe("Calling Perplexity API", {
       prompt_length: prompt.length,
-      model: 'sonar'
-    })
+      model: "sonar",
+    });
 
-    const startTime = Date.now()
-    
-    const response = await fetch('https://api.perplexity.ai/chat/completions', {
-      method: 'POST',
+    const startTime = Date.now();
+
+    const response = await fetch("https://api.perplexity.ai/chat/completions", {
+      method: "POST",
       headers: {
-        'Authorization': `Bearer ${PERPLEXITY_API_KEY}`,
-        'Content-Type': 'application/json',
+        Authorization: `Bearer ${PERPLEXITY_API_KEY}`,
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: 'sonar',
+        model: "sonar",
         messages: [
           {
-            role: 'system',
-            content: 'You are a creative couples therapist. Always respond with valid JSON arrays.'
+            role: "system",
+            content:
+              "You are a creative couples therapist. Always respond with valid JSON arrays.",
           },
           {
-            role: 'user',
-            content: prompt
-          }
+            role: "user",
+            content: prompt,
+          },
         ],
         temperature: 0.7,
         max_tokens: 2000,
       }),
-    })
+    });
 
-    const duration_ms = Date.now() - startTime
+    const duration_ms = Date.now() - startTime;
 
     if (!response.ok) {
-      const errorText = await response.text()
-      logSafe('Perplexity API error', {
+      const errorText = await response.text();
+      logSafe("Perplexity API error", {
         status: response.status,
-        duration_ms
-      })
-      throw new Error(`Perplexity API error: ${response.status}`)
+        duration_ms,
+      });
+      throw new Error(`Perplexity API error: ${response.status}`);
     }
 
-    const data = await response.json()
-    const content = data.choices?.[0]?.message?.content || '[]'
-    
-    logSafe('Perplexity API success', {
+    const data = await response.json();
+    const content = data.choices?.[0]?.message?.content || "[]";
+
+    logSafe("Perplexity API success", {
       status: 200,
       duration_ms,
-      response_length: content.length
-    })
+      response_length: content.length,
+    });
 
     // Parse JSON from the response
-    let dateIdeas
+    let dateIdeas;
     try {
-      const jsonMatch = content.match(/\[[\s\S]*\]/)
+      const jsonMatch = content.match(/\[[\s\S]*\]/);
       if (jsonMatch) {
-        dateIdeas = JSON.parse(jsonMatch[0])
+        dateIdeas = JSON.parse(jsonMatch[0]);
       } else {
-        dateIdeas = JSON.parse(content)
+        dateIdeas = JSON.parse(content);
       }
     } catch (e) {
-      logSafe('JSON parse error - using fallback')
+      logSafe("JSON parse error - using fallback");
       dateIdeas = [
         {
           title: "Sunset Picnic & Stargazing",
-          description: "Pack a cozy blanket, your favorite snacks, and head to a scenic spot to watch the sunset together. Stay for stargazing and meaningful conversation.",
-          benefit: "Slowing down together in nature creates space for vulnerability and connection without daily distractions.",
+          description:
+            "Pack a cozy blanket, your favorite snacks, and head to a scenic spot to watch the sunset together. Stay for stargazing and meaningful conversation.",
+          benefit:
+            "Slowing down together in nature creates space for vulnerability and connection without daily distractions.",
           cost: "$20-40",
-          duration: "2-3 hours"
+          duration: "2-3 hours",
         },
         {
           title: "Cook a New Recipe Together",
-          description: "Choose a cuisine you've never tried making at home, shop for ingredients together, and cook side-by-side while sipping wine and talking.",
-          benefit: "Collaboration in the kitchen builds teamwork, creates shared memories, and the sensory experience enhances intimacy.",
+          description:
+            "Choose a cuisine you've never tried making at home, shop for ingredients together, and cook side-by-side while sipping wine and talking.",
+          benefit:
+            "Collaboration in the kitchen builds teamwork, creates shared memories, and the sensory experience enhances intimacy.",
           cost: "$30-50",
-          duration: "2-3 hours"
+          duration: "2-3 hours",
         },
         {
           title: "Memory Lane Date",
-          description: "Recreate your first date or visit meaningful places from your relationship journey. Take photos and share what you remember from those moments.",
-          benefit: "Reflecting on your history together reinforces your bond and reminds you why you fell in love.",
+          description:
+            "Recreate your first date or visit meaningful places from your relationship journey. Take photos and share what you remember from those moments.",
+          benefit:
+            "Reflecting on your history together reinforces your bond and reminds you why you fell in love.",
           cost: "$40-80",
-          duration: "3-4 hours"
-        }
-      ]
+          duration: "3-4 hours",
+        },
+      ];
     }
 
     return new Response(
@@ -161,28 +175,25 @@ serve(async (req) => {
       {
         status: 200,
         headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*",
         },
       },
-    )
+    );
   } catch (error) {
-    logSafe('Edge function error', {
-      status: 500
-    })
-    
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      {
-        status: 500,
-        headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
-        },
+    logSafe("Edge function error", {
+      status: 500,
+    });
+
+    return new Response(JSON.stringify({ error: error.message }), {
+      status: 500,
+      headers: {
+        "Content-Type": "application/json",
+        "Access-Control-Allow-Origin": "*",
       },
-    )
+    });
   }
-})
+});
 ```
 
 ---
@@ -192,113 +203,135 @@ serve(async (req) => {
 **Path:** `supabase/functions/ai-insights/index.ts`
 
 ```typescript
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const PERPLEXITY_API_KEY = Deno.env.get('PERPLEXITY_API_KEY')
+const PERPLEXITY_API_KEY = Deno.env.get("PERPLEXITY_API_KEY");
 
 if (!PERPLEXITY_API_KEY) {
-  throw new Error('PERPLEXITY_API_KEY environment variable is required')
+  throw new Error("PERPLEXITY_API_KEY environment variable is required");
 }
 
 // Allowlist for logging
-const ALLOWLIST_FIELDS = ['status', 'model', 'duration_ms', 'checkin_count', 'couple_id']
+const ALLOWLIST_FIELDS = [
+  "status",
+  "model",
+  "duration_ms",
+  "checkin_count",
+  "couple_id",
+];
 
 function logSafe(message: string, data?: any) {
   if (!data) {
-    console.log(message)
-    return
+    console.log(message);
+    return;
   }
-  
-  const safeData = {}
+
+  const safeData = {};
   for (const key of ALLOWLIST_FIELDS) {
     if (data[key] !== undefined) {
-      safeData[key] = data[key]
+      safeData[key] = data[key];
     }
   }
-  console.log(message, safeData)
+  console.log(message, safeData);
 }
 
 serve(async (req) => {
-  if (req.method === 'OPTIONS') {
+  if (req.method === "OPTIONS") {
     return new Response(null, {
       status: 204,
       headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Headers":
+          "authorization, x-client-info, apikey, content-type",
       },
-    })
+    });
   }
 
   try {
     const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-      { global: { headers: { Authorization: req.headers.get('Authorization')! } } }
-    )
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_ANON_KEY") ?? "",
+      {
+        global: {
+          headers: { Authorization: req.headers.get("Authorization")! },
+        },
+      },
+    );
 
-    const { couple_id } = await req.json()
-    
+    const { couple_id } = await req.json();
+
     if (!couple_id) {
-      return new Response(
-        JSON.stringify({ error: 'couple_id is required' }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
-      )
+      return new Response(JSON.stringify({ error: "couple_id is required" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
     }
 
-    logSafe('Fetching couple data', { couple_id })
+    logSafe("Fetching couple data", { couple_id });
 
     // Fetch couple info
     const { data: couple } = await supabaseClient
-      .from('Couples_couples')
-      .select('partner1_id, partner2_id')
-      .eq('id', couple_id)
-      .single()
+      .from("Couples_couples")
+      .select("partner1_id, partner2_id")
+      .eq("id", couple_id)
+      .single();
 
     if (!couple) {
-      return new Response(
-        JSON.stringify({ error: 'Couple not found' }),
-        { status: 404, headers: { 'Content-Type': 'application/json' } }
-      )
+      return new Response(JSON.stringify({ error: "Couple not found" }), {
+        status: 404,
+        headers: { "Content-Type": "application/json" },
+      });
     }
 
     // Fetch partner names
     const { data: profiles } = await supabaseClient
-      .from('Couples_profiles')
-      .select('id, full_name')
-      .in('id', [couple.partner1_id, couple.partner2_id])
+      .from("Couples_profiles")
+      .select("id, full_name")
+      .in("id", [couple.partner1_id, couple.partner2_id]);
 
-    const partner1Name = profiles?.find(p => p.id === couple.partner1_id)?.full_name || 'Partner 1'
-    const partner2Name = profiles?.find(p => p.id === couple.partner2_id)?.full_name || 'Partner 2'
+    const partner1Name =
+      profiles?.find((p) => p.id === couple.partner1_id)?.full_name ||
+      "Partner 1";
+    const partner2Name =
+      profiles?.find((p) => p.id === couple.partner2_id)?.full_name ||
+      "Partner 2";
 
     // Fetch last 8 weeks of check-ins
     const { data: checkins } = await supabaseClient
-      .from('Couples_weekly_checkins')
-      .select('*')
-      .eq('couple_id', couple_id)
-      .order('year', { ascending: false })
-      .order('week_number', { ascending: false })
-      .limit(16)
+      .from("Couples_weekly_checkins")
+      .select("*")
+      .eq("couple_id", couple_id)
+      .order("year", { ascending: false })
+      .order("week_number", { ascending: false })
+      .limit(16);
 
     if (!checkins || checkins.length === 0) {
       return new Response(
-        JSON.stringify({ 
-          summary: 'Not enough data yet. Couples need to complete more weekly check-ins.',
+        JSON.stringify({
+          summary:
+            "Not enough data yet. Couples need to complete more weekly check-ins.",
           discrepancies: [],
           patterns: [],
-          recommendations: []
+          recommendations: [],
         }),
-        { status: 200, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } }
-      )
+        {
+          status: 200,
+          headers: {
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*",
+          },
+        },
+      );
     }
 
-    logSafe('Building anonymized prompt', {
+    logSafe("Building anonymized prompt", {
       couple_id,
-      checkin_count: checkins.length
-    })
+      checkin_count: checkins.length,
+    });
 
     // Build anonymized dataset for AI
-    const anonymizedData = checkins.map(c => ({
+    const anonymizedData = checkins.map((c) => ({
       week: `Week ${c.week_number}, ${c.year}`,
       partner1: {
         connectedness: c.connectedness_rating_1,
@@ -306,9 +339,9 @@ serve(async (req) => {
         physical_intimacy: c.physical_intimacy_1,
         emotional_intimacy: c.emotional_intimacy_1,
         quality_time: c.quality_time_1,
-        highlight: c.highlight_1 ? '[REDACTED]' : null,
-        challenge: c.challenge_1 ? '[REDACTED]' : null,
-        gratitude: c.gratitude_1 ? '[REDACTED]' : null
+        highlight: c.highlight_1 ? "[REDACTED]" : null,
+        challenge: c.challenge_1 ? "[REDACTED]" : null,
+        gratitude: c.gratitude_1 ? "[REDACTED]" : null,
       },
       partner2: {
         connectedness: c.connectedness_rating_2,
@@ -316,11 +349,11 @@ serve(async (req) => {
         physical_intimacy: c.physical_intimacy_2,
         emotional_intimacy: c.emotional_intimacy_2,
         quality_time: c.quality_time_2,
-        highlight: c.highlight_2 ? '[REDACTED]' : null,
-        challenge: c.challenge_2 ? '[REDACTED]' : null,
-        gratitude: c.gratitude_2 ? '[REDACTED]' : null
-      }
-    }))
+        highlight: c.highlight_2 ? "[REDACTED]" : null,
+        challenge: c.challenge_2 ? "[REDACTED]" : null,
+        gratitude: c.gratitude_2 ? "[REDACTED]" : null,
+      },
+    }));
 
     const prompt = `You are an experienced couples therapist analyzing weekly check-in data. Review this anonymized data and provide clinical insights:
 
@@ -340,67 +373,68 @@ Format as JSON:
   "recommendations": ["Recommendation 1", "Recommendation 2", "Recommendation 3"]
 }
 
-Use "Partner 1" and "Partner 2" - never use real names.`
+Use "Partner 1" and "Partner 2" - never use real names.`;
 
-    const startTime = Date.now()
+    const startTime = Date.now();
 
-    const response = await fetch('https://api.perplexity.ai/chat/completions', {
-      method: 'POST',
+    const response = await fetch("https://api.perplexity.ai/chat/completions", {
+      method: "POST",
       headers: {
-        'Authorization': `Bearer ${PERPLEXITY_API_KEY}`,
-        'Content-Type': 'application/json',
+        Authorization: `Bearer ${PERPLEXITY_API_KEY}`,
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: 'sonar',
+        model: "sonar",
         messages: [
           {
-            role: 'system',
-            content: 'You are a licensed couples therapist. Respond only with valid JSON. Never include real names.'
+            role: "system",
+            content:
+              "You are a licensed couples therapist. Respond only with valid JSON. Never include real names.",
           },
           {
-            role: 'user',
-            content: prompt
-          }
+            role: "user",
+            content: prompt,
+          },
         ],
         temperature: 0.3,
         max_tokens: 2000,
       }),
-    })
+    });
 
-    const duration_ms = Date.now() - startTime
+    const duration_ms = Date.now() - startTime;
 
     if (!response.ok) {
-      logSafe('Perplexity API error', {
+      logSafe("Perplexity API error", {
         status: response.status,
-        duration_ms
-      })
-      throw new Error(`Perplexity API error: ${response.status}`)
+        duration_ms,
+      });
+      throw new Error(`Perplexity API error: ${response.status}`);
     }
 
-    const data = await response.json()
-    const content = data.choices?.[0]?.message?.content || '{}'
+    const data = await response.json();
+    const content = data.choices?.[0]?.message?.content || "{}";
 
-    logSafe('Perplexity API success', {
+    logSafe("Perplexity API success", {
       status: 200,
-      duration_ms
-    })
+      duration_ms,
+    });
 
     // Parse JSON
-    let insights
+    let insights;
     try {
-      const jsonMatch = content.match(/\{[\s\S]*\}/)
+      const jsonMatch = content.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
-        insights = JSON.parse(jsonMatch[0])
+        insights = JSON.parse(jsonMatch[0]);
       } else {
-        insights = JSON.parse(content)
+        insights = JSON.parse(content);
       }
     } catch (e) {
       insights = {
-        summary: 'Unable to generate insights at this time.',
+        summary: "Unable to generate insights at this time.",
         discrepancies: [],
         patterns: [],
-        recommendations: []
-      }
+        recommendations: [],
+      };
     }
 
     return new Response(
@@ -409,33 +443,30 @@ Use "Partner 1" and "Partner 2" - never use real names.`
         generated_at: new Date().toISOString(),
         ...insights,
         raw_analysis: content,
-        citations: data.citations || []
+        citations: data.citations || [],
       }),
       {
         status: 200,
         headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*",
         },
       },
-    )
+    );
   } catch (error) {
-    logSafe('Edge function error', {
-      status: 500
-    })
-    
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      {
-        status: 500,
-        headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
-        },
+    logSafe("Edge function error", {
+      status: 500,
+    });
+
+    return new Response(JSON.stringify({ error: error.message }), {
+      status: 500,
+      headers: {
+        "Content-Type": "application/json",
+        "Access-Control-Allow-Origin": "*",
       },
-    )
+    });
   }
-})
+});
 ```
 
 ---
@@ -443,27 +474,32 @@ Use "Partner 1" and "Partner 2" - never use real names.`
 ## Deployment Instructions
 
 1. **Install Supabase CLI:**
+
    ```bash
    npm install -g supabase
    ```
 
 2. **Link to your project:**
+
    ```bash
    supabase link --project-ref your-project-ref
    ```
 
 3. **Set secrets:**
+
    ```bash
    supabase secrets set PERPLEXITY_API_KEY=your_actual_perplexity_api_key_here
    ```
-   
-   **Important:** 
+
+   **Important:**
+
    - Never commit API keys to version control
    - Get your Perplexity API key from: https://www.perplexity.ai/settings/api
    - For development, set it in your `.env` file
    - For production, use Supabase secrets management
 
 4. **Deploy functions:**
+
    ```bash
    supabase functions deploy ai-date-night
    supabase functions deploy ai-insights
@@ -476,6 +512,7 @@ Use "Partner 1" and "Partner 2" - never use real names.`
 ## Frontend Integration
 
 Both functions are already integrated in the frontend:
+
 - `client/src/pages/date-night.tsx` calls `ai-date-night`
 - `client/src/pages/analytics.tsx` calls `ai-insights`
 

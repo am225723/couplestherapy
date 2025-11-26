@@ -1,48 +1,55 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TextInput, Alert } from 'react-native';
-import { Calendar } from 'react-native-calendars';
-import { useAuth } from '../../contexts/AuthContext';
-import { useApi, useApiMutation } from '../../hooks/useApi';
-import { CalendarEvent } from '../../types';
-import Button from '../../components/Button';
-import Card from '../../components/Card';
-import LoadingSpinner from '../../components/LoadingSpinner';
-import { colors, spacing, typography } from '../../constants/theme';
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TextInput,
+  Alert,
+} from "react-native";
+import { Calendar } from "react-native-calendars";
+import { useAuth } from "../../contexts/AuthContext";
+import { useApi, useApiMutation } from "../../hooks/useApi";
+import { CalendarEvent } from "../../types";
+import Button from "../../components/Button";
+import Card from "../../components/Card";
+import LoadingSpinner from "../../components/LoadingSpinner";
+import { colors, spacing, typography } from "../../constants/theme";
 
 export default function CalendarScreen() {
   const { profile } = useAuth();
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [selectedDate, setSelectedDate] = useState(
+    new Date().toISOString().split("T")[0],
+  );
   const [showForm, setShowForm] = useState(false);
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [time, setTime] = useState('19:00');
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [time, setTime] = useState("19:00");
 
   const { data: events, isLoading } = useApi<CalendarEvent[]>(
-    `/api/calendar/couple/${profile?.couple_id}`
+    `/api/calendar/couple/${profile?.couple_id}`,
   );
 
-  const createEvent = useApiMutation(
-    '/api/calendar/events',
-    'post',
-    {
-      invalidateQueries: [`/api/calendar/couple/${profile?.couple_id}`],
-      onSuccess: () => {
-        Alert.alert('Success', 'Event added to calendar!');
-        setTitle('');
-        setDescription('');
-        setShowForm(false);
-      },
-    }
-  );
+  const createEvent = useApiMutation("/api/calendar/events", "post", {
+    invalidateQueries: [`/api/calendar/couple/${profile?.couple_id}`],
+    onSuccess: () => {
+      Alert.alert("Success", "Event added to calendar!");
+      setTitle("");
+      setDescription("");
+      setShowForm(false);
+    },
+  });
 
   const handleSubmit = () => {
     if (!title.trim()) {
-      Alert.alert('Error', 'Please enter an event title');
+      Alert.alert("Error", "Please enter an event title");
       return;
     }
 
     const startDateTime = `${selectedDate}T${time}:00`;
-    const endDateTime = new Date(new Date(startDateTime).getTime() + 60 * 60 * 1000).toISOString();
+    const endDateTime = new Date(
+      new Date(startDateTime).getTime() + 60 * 60 * 1000,
+    ).toISOString();
 
     createEvent.mutate({
       title: title.trim(),
@@ -52,11 +59,12 @@ export default function CalendarScreen() {
     });
   };
 
-  const markedDates = events?.reduce((acc, event) => {
-    const dateKey = event.start_time.split('T')[0];
-    acc[dateKey] = { marked: true, dotColor: colors.primary };
-    return acc;
-  }, {} as any) || {};
+  const markedDates =
+    events?.reduce((acc, event) => {
+      const dateKey = event.start_time.split("T")[0];
+      acc[dateKey] = { marked: true, dotColor: colors.primary };
+      return acc;
+    }, {} as any) || {};
 
   markedDates[selectedDate] = {
     ...markedDates[selectedDate],
@@ -64,9 +72,8 @@ export default function CalendarScreen() {
     selectedColor: colors.primary,
   };
 
-  const eventsForSelectedDate = events?.filter(
-    event => event.start_time.startsWith(selectedDate)
-  ) || [];
+  const eventsForSelectedDate =
+    events?.filter((event) => event.start_time.startsWith(selectedDate)) || [];
 
   if (isLoading) {
     return <LoadingSpinner message="Loading calendar..." />;
@@ -102,10 +109,10 @@ export default function CalendarScreen() {
 
         <View style={styles.selectedDateSection}>
           <Text style={styles.selectedDateTitle}>
-            {new Date(selectedDate).toLocaleDateString('en-US', {
-              weekday: 'long',
-              month: 'long',
-              day: 'numeric',
+            {new Date(selectedDate).toLocaleDateString("en-US", {
+              weekday: "long",
+              month: "long",
+              day: "numeric",
             })}
           </Text>
 
@@ -159,8 +166,8 @@ export default function CalendarScreen() {
                   variant="outline"
                   onPress={() => {
                     setShowForm(false);
-                    setTitle('');
-                    setDescription('');
+                    setTitle("");
+                    setDescription("");
                   }}
                   style={styles.formButton}
                 />
@@ -182,18 +189,22 @@ export default function CalendarScreen() {
                   <Text style={styles.eventTitle}>{event.title}</Text>
                   <Text style={styles.eventTime}>
                     {new Date(event.start_time).toLocaleTimeString([], {
-                      hour: '2-digit',
-                      minute: '2-digit',
+                      hour: "2-digit",
+                      minute: "2-digit",
                     })}
                   </Text>
                   {event.description && (
-                    <Text style={styles.eventDescription}>{event.description}</Text>
+                    <Text style={styles.eventDescription}>
+                      {event.description}
+                    </Text>
                   )}
                 </Card>
               ))}
             </View>
-          ) : !showForm && (
-            <Text style={styles.noEvents}>No events for this day</Text>
+          ) : (
+            !showForm && (
+              <Text style={styles.noEvents}>No events for this day</Text>
+            )
           )}
         </View>
       </View>
@@ -205,10 +216,18 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   content: { padding: spacing.lg },
   title: { ...typography.h2, color: colors.text, marginBottom: spacing.xs },
-  subtitle: { ...typography.body, color: colors.textSecondary, marginBottom: spacing.lg },
+  subtitle: {
+    ...typography.body,
+    color: colors.textSecondary,
+    marginBottom: spacing.lg,
+  },
   calendarCard: { marginBottom: spacing.lg, padding: 0 },
   selectedDateSection: { marginTop: spacing.md },
-  selectedDateTitle: { ...typography.h5, color: colors.text, marginBottom: spacing.md },
+  selectedDateTitle: {
+    ...typography.h5,
+    color: colors.text,
+    marginBottom: spacing.md,
+  },
   addButton: { marginBottom: spacing.md },
   formCard: { marginBottom: spacing.md },
   inputGroup: { marginBottom: spacing.md },
@@ -232,13 +251,30 @@ const styles = StyleSheet.create({
     minHeight: 80,
     color: colors.text,
   },
-  formButtons: { flexDirection: 'row', gap: spacing.sm },
+  formButtons: { flexDirection: "row", gap: spacing.sm },
   formButton: { flex: 1 },
   eventsSection: { marginTop: spacing.md },
-  eventsTitle: { ...typography.h6, color: colors.text, marginBottom: spacing.sm },
+  eventsTitle: {
+    ...typography.h6,
+    color: colors.text,
+    marginBottom: spacing.sm,
+  },
   eventCard: { marginBottom: spacing.sm },
-  eventTitle: { ...typography.h6, color: colors.text, marginBottom: spacing.xs },
-  eventTime: { ...typography.bodySmall, color: colors.primary, marginBottom: spacing.xs },
+  eventTitle: {
+    ...typography.h6,
+    color: colors.text,
+    marginBottom: spacing.xs,
+  },
+  eventTime: {
+    ...typography.bodySmall,
+    color: colors.primary,
+    marginBottom: spacing.xs,
+  },
   eventDescription: { ...typography.body, color: colors.textSecondary },
-  noEvents: { ...typography.body, color: colors.textSecondary, textAlign: 'center', marginTop: spacing.md },
+  noEvents: {
+    ...typography.body,
+    color: colors.textSecondary,
+    textAlign: "center",
+    marginTop: spacing.md,
+  },
 });

@@ -1,20 +1,25 @@
-import { useState, useEffect } from 'react';
-import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { useAuth } from '@/lib/auth-context';
-import { supabase } from '@/lib/supabase';
-import { useToast } from '@/hooks/use-toast';
-import { Target, Plus, Loader2, GripVertical } from 'lucide-react';
-import { SharedGoal, Profile } from '@shared/schema';
+import { useState, useEffect } from "react";
+import {
+  DragDropContext,
+  Droppable,
+  Draggable,
+  DropResult,
+} from "react-beautiful-dnd";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { useAuth } from "@/lib/auth-context";
+import { supabase } from "@/lib/supabase";
+import { useToast } from "@/hooks/use-toast";
+import { Target, Plus, Loader2, GripVertical } from "lucide-react";
+import { SharedGoal, Profile } from "@shared/schema";
 
 type GoalWithAssignee = SharedGoal & { assignee?: Profile };
 
 export default function SharedGoalsPage() {
   const [goals, setGoals] = useState<GoalWithAssignee[]>([]);
-  const [newGoalTitle, setNewGoalTitle] = useState('');
+  const [newGoalTitle, setNewGoalTitle] = useState("");
   const [adding, setAdding] = useState(false);
   const [loading, setLoading] = useState(true);
   const { user, profile } = useAuth();
@@ -31,23 +36,25 @@ export default function SharedGoalsPage() {
 
     try {
       const { data: goalsData, error: goalsError } = await supabase
-        .from('Couples_shared_goals')
-        .select('*')
-        .eq('couple_id', profile.couple_id)
-        .order('created_at', { ascending: false });
+        .from("Couples_shared_goals")
+        .select("*")
+        .eq("couple_id", profile.couple_id)
+        .order("created_at", { ascending: false });
 
       if (goalsError) throw goalsError;
 
-      const assigneeIds = [...new Set(goalsData.map(g => g.assigned_to).filter(Boolean))];
+      const assigneeIds = [
+        ...new Set(goalsData.map((g) => g.assigned_to).filter(Boolean)),
+      ];
       if (assigneeIds.length > 0) {
         const { data: profiles } = await supabase
-          .from('Couples_profiles')
-          .select('*')
-          .in('id', assigneeIds);
+          .from("Couples_profiles")
+          .select("*")
+          .in("id", assigneeIds);
 
-        const goalsWithAssignees = goalsData.map(goal => ({
+        const goalsWithAssignees = goalsData.map((goal) => ({
           ...goal,
-          assignee: profiles?.find(p => p.id === goal.assigned_to),
+          assignee: profiles?.find((p) => p.id === goal.assigned_to),
         }));
 
         setGoals(goalsWithAssignees);
@@ -56,9 +63,9 @@ export default function SharedGoalsPage() {
       }
     } catch (error: any) {
       toast({
-        title: 'Error',
+        title: "Error",
         description: error.message,
-        variant: 'destructive',
+        variant: "destructive",
       });
     } finally {
       setLoading(false);
@@ -72,22 +79,22 @@ export default function SharedGoalsPage() {
     setAdding(true);
 
     try {
-      const { error } = await supabase.from('Couples_shared_goals').insert({
+      const { error } = await supabase.from("Couples_shared_goals").insert({
         couple_id: profile.couple_id,
         created_by: user.id,
         title: newGoalTitle.trim(),
-        status: 'backlog',
+        status: "backlog",
       });
 
       if (error) throw error;
 
-      setNewGoalTitle('');
+      setNewGoalTitle("");
       fetchGoals();
     } catch (error: any) {
       toast({
-        title: 'Error',
+        title: "Error",
         description: error.message,
-        variant: 'destructive',
+        variant: "destructive",
       });
     } finally {
       setAdding(false);
@@ -98,30 +105,42 @@ export default function SharedGoalsPage() {
     if (!result.destination) return;
 
     const { draggableId, destination } = result;
-    const newStatus = destination.droppableId as 'backlog' | 'doing' | 'done';
+    const newStatus = destination.droppableId as "backlog" | "doing" | "done";
 
     try {
       const { error } = await supabase
-        .from('Couples_shared_goals')
+        .from("Couples_shared_goals")
         .update({ status: newStatus })
-        .eq('id', draggableId);
+        .eq("id", draggableId);
 
       if (error) throw error;
 
       fetchGoals();
     } catch (error: any) {
       toast({
-        title: 'Error',
+        title: "Error",
         description: error.message,
-        variant: 'destructive',
+        variant: "destructive",
       });
     }
   };
 
   const columns = [
-    { id: 'backlog', title: 'Backlog', goals: goals.filter(g => g.status === 'backlog') },
-    { id: 'doing', title: 'In Progress', goals: goals.filter(g => g.status === 'doing') },
-    { id: 'done', title: 'Completed', goals: goals.filter(g => g.status === 'done') },
+    {
+      id: "backlog",
+      title: "Backlog",
+      goals: goals.filter((g) => g.status === "backlog"),
+    },
+    {
+      id: "doing",
+      title: "In Progress",
+      goals: goals.filter((g) => g.status === "doing"),
+    },
+    {
+      id: "done",
+      title: "Completed",
+      goals: goals.filter((g) => g.status === "done"),
+    },
   ];
 
   if (loading) {
@@ -154,7 +173,11 @@ export default function SharedGoalsPage() {
                 onChange={(e) => setNewGoalTitle(e.target.value)}
                 data-testid="input-new-goal"
               />
-              <Button type="submit" disabled={!newGoalTitle.trim() || adding} data-testid="button-add-goal">
+              <Button
+                type="submit"
+                disabled={!newGoalTitle.trim() || adding}
+                data-testid="button-add-goal"
+              >
                 {adding ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
@@ -174,7 +197,9 @@ export default function SharedGoalsPage() {
               <div key={column.id} className="space-y-4">
                 <h2 className="text-lg font-semibold flex items-center gap-2">
                   {column.title}
-                  <span className="text-sm text-muted-foreground">({column.goals.length})</span>
+                  <span className="text-sm text-muted-foreground">
+                    ({column.goals.length})
+                  </span>
                 </h2>
                 <Droppable droppableId={column.id}>
                   {(provided, snapshot) => (
@@ -182,22 +207,31 @@ export default function SharedGoalsPage() {
                       {...provided.droppableProps}
                       ref={provided.innerRef}
                       className={`min-h-64 rounded-lg border-2 border-dashed p-4 space-y-3 ${
-                        snapshot.isDraggingOver ? 'border-primary bg-primary/5' : 'border-border'
+                        snapshot.isDraggingOver
+                          ? "border-primary bg-primary/5"
+                          : "border-border"
                       }`}
                       data-testid={`droppable-${column.id}`}
                     >
                       {column.goals.map((goal, index) => (
-                        <Draggable key={goal.id} draggableId={goal.id} index={index}>
+                        <Draggable
+                          key={goal.id}
+                          draggableId={goal.id}
+                          index={index}
+                        >
                           {(provided, snapshot) => (
                             <Card
                               ref={provided.innerRef}
                               {...provided.draggableProps}
-                              className={`hover-elevate ${snapshot.isDragging ? 'shadow-lg' : ''}`}
+                              className={`hover-elevate ${snapshot.isDragging ? "shadow-lg" : ""}`}
                               data-testid={`card-goal-${goal.id}`}
                             >
                               <CardContent className="p-4">
                                 <div className="flex items-start gap-3">
-                                  <div {...provided.dragHandleProps} className="mt-1 cursor-grab active:cursor-grabbing">
+                                  <div
+                                    {...provided.dragHandleProps}
+                                    className="mt-1 cursor-grab active:cursor-grabbing"
+                                  >
                                     <GripVertical className="h-5 w-5 text-muted-foreground" />
                                   </div>
                                   <div className="flex-1 space-y-2">
@@ -206,7 +240,9 @@ export default function SharedGoalsPage() {
                                       <div className="flex items-center gap-2">
                                         <Avatar className="h-6 w-6">
                                           <AvatarFallback className="text-xs bg-secondary">
-                                            {goal.assignee.full_name?.charAt(0) || '?'}
+                                            {goal.assignee.full_name?.charAt(
+                                              0,
+                                            ) || "?"}
                                           </AvatarFallback>
                                         </Avatar>
                                         <span className="text-xs text-muted-foreground">

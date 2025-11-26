@@ -15,27 +15,27 @@ router.post("/values", async (req, res) => {
     const { value_statement, priority_level } = req.body;
 
     if (!value_statement) {
-      return res.status(400).json({ error: 'Value statement is required' });
+      return res.status(400).json({ error: "Value statement is required" });
     }
 
     // Get user's couple_id
     const { data: profile } = await supabaseAdmin
-      .from('Couples_profiles')
-      .select('couple_id')
-      .eq('id', authResult.userId)
+      .from("Couples_profiles")
+      .select("couple_id")
+      .eq("id", authResult.userId)
       .single();
 
     if (!profile?.couple_id) {
-      return res.status(400).json({ error: 'User is not part of a couple' });
+      return res.status(400).json({ error: "User is not part of a couple" });
     }
 
     const { data, error } = await supabaseAdmin
-      .from('Couples_financial_values')
+      .from("Couples_financial_values")
       .insert({
         couple_id: profile.couple_id,
         user_id: authResult.userId,
         value_statement,
-        priority_level: priority_level || null
+        priority_level: priority_level || null,
       })
       .select()
       .single();
@@ -44,8 +44,8 @@ router.post("/values", async (req, res) => {
 
     res.json(data);
   } catch (error: any) {
-    console.error('Error creating financial value:', error);
-    res.status(500).json({ error: error.message || 'Failed to create value' });
+    console.error("Error creating financial value:", error);
+    res.status(500).json({ error: error.message || "Failed to create value" });
   }
 });
 
@@ -59,33 +59,35 @@ router.get("/values", async (req, res) => {
 
     // Get user's couple_id
     const { data: profile } = await supabaseAdmin
-      .from('Couples_profiles')
-      .select('couple_id')
-      .eq('id', authResult.userId)
+      .from("Couples_profiles")
+      .select("couple_id")
+      .eq("id", authResult.userId)
       .single();
 
     if (!profile?.couple_id) {
-      return res.status(400).json({ error: 'User is not part of a couple' });
+      return res.status(400).json({ error: "User is not part of a couple" });
     }
 
     const { data, error } = await supabaseAdmin
-      .from('Couples_financial_values')
-      .select(`
+      .from("Couples_financial_values")
+      .select(
+        `
         *,
         Couples_profiles!Couples_financial_values_user_id_fkey (
           full_name
         )
-      `)
-      .eq('couple_id', profile.couple_id)
-      .order('priority_level', { ascending: false, nullsFirst: false })
-      .order('created_at', { ascending: false });
+      `,
+      )
+      .eq("couple_id", profile.couple_id)
+      .order("priority_level", { ascending: false, nullsFirst: false })
+      .order("created_at", { ascending: false });
 
     if (error) throw error;
 
     res.json(data);
   } catch (error: any) {
-    console.error('Error fetching financial values:', error);
-    res.status(500).json({ error: error.message || 'Failed to fetch values' });
+    console.error("Error fetching financial values:", error);
+    res.status(500).json({ error: error.message || "Failed to fetch values" });
   }
 });
 
@@ -97,38 +99,45 @@ router.post("/budgets", async (req, res) => {
       return res.status(authResult.status).json({ error: authResult.error });
     }
 
-    const { category_name, budgeted_amount, spent_amount, month_year } = req.body;
+    const { category_name, budgeted_amount, spent_amount, month_year } =
+      req.body;
 
     if (!category_name || budgeted_amount === undefined || !month_year) {
-      return res.status(400).json({ error: 'Missing required fields' });
+      return res.status(400).json({ error: "Missing required fields" });
     }
 
     // Validate amounts
-    if (budgeted_amount < 0 || (spent_amount !== undefined && spent_amount < 0)) {
-      return res.status(400).json({ error: 'Amounts cannot be negative' });
+    if (
+      budgeted_amount < 0 ||
+      (spent_amount !== undefined && spent_amount < 0)
+    ) {
+      return res.status(400).json({ error: "Amounts cannot be negative" });
     }
 
     // Get user's couple_id
     const { data: profile } = await supabaseAdmin
-      .from('Couples_profiles')
-      .select('couple_id')
-      .eq('id', authResult.userId)
+      .from("Couples_profiles")
+      .select("couple_id")
+      .eq("id", authResult.userId)
       .single();
 
     if (!profile?.couple_id) {
-      return res.status(400).json({ error: 'User is not part of a couple' });
+      return res.status(400).json({ error: "User is not part of a couple" });
     }
 
     const { data, error } = await supabaseAdmin
-      .from('Couples_financial_budgets')
-      .upsert({
-        couple_id: profile.couple_id,
-        category_name,
-        budgeted_amount,
-        spent_amount: spent_amount || 0,
-        month_year,
-        updated_at: new Date().toISOString()
-      }, { onConflict: 'couple_id,category_name,month_year' })
+      .from("Couples_financial_budgets")
+      .upsert(
+        {
+          couple_id: profile.couple_id,
+          category_name,
+          budgeted_amount,
+          spent_amount: spent_amount || 0,
+          month_year,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: "couple_id,category_name,month_year" },
+      )
       .select()
       .single();
 
@@ -136,8 +145,8 @@ router.post("/budgets", async (req, res) => {
 
     res.json(data);
   } catch (error: any) {
-    console.error('Error saving budget:', error);
-    res.status(500).json({ error: error.message || 'Failed to save budget' });
+    console.error("Error saving budget:", error);
+    res.status(500).json({ error: error.message || "Failed to save budget" });
   }
 });
 
@@ -153,32 +162,32 @@ router.get("/budgets", async (req, res) => {
 
     // Get user's couple_id
     const { data: profile } = await supabaseAdmin
-      .from('Couples_profiles')
-      .select('couple_id')
-      .eq('id', authResult.userId)
+      .from("Couples_profiles")
+      .select("couple_id")
+      .eq("id", authResult.userId)
       .single();
 
     if (!profile?.couple_id) {
-      return res.status(400).json({ error: 'User is not part of a couple' });
+      return res.status(400).json({ error: "User is not part of a couple" });
     }
 
     let query = supabaseAdmin
-      .from('Couples_financial_budgets')
-      .select('*')
-      .eq('couple_id', profile.couple_id);
+      .from("Couples_financial_budgets")
+      .select("*")
+      .eq("couple_id", profile.couple_id);
 
     if (month_year) {
-      query = query.eq('month_year', month_year);
+      query = query.eq("month_year", month_year);
     }
 
-    const { data, error } = await query.order('category_name');
+    const { data, error } = await query.order("category_name");
 
     if (error) throw error;
 
     res.json(data);
   } catch (error: any) {
-    console.error('Error fetching budgets:', error);
-    res.status(500).json({ error: error.message || 'Failed to fetch budgets' });
+    console.error("Error fetching budgets:", error);
+    res.status(500).json({ error: error.message || "Failed to fetch budgets" });
   }
 });
 
@@ -193,33 +202,38 @@ router.post("/goals", async (req, res) => {
     const { goal_title, target_amount, current_amount, target_date } = req.body;
 
     if (!goal_title || target_amount === undefined) {
-      return res.status(400).json({ error: 'Goal title and target amount are required' });
+      return res
+        .status(400)
+        .json({ error: "Goal title and target amount are required" });
     }
 
-    if (target_amount < 0 || (current_amount !== undefined && current_amount < 0)) {
-      return res.status(400).json({ error: 'Amounts cannot be negative' });
+    if (
+      target_amount < 0 ||
+      (current_amount !== undefined && current_amount < 0)
+    ) {
+      return res.status(400).json({ error: "Amounts cannot be negative" });
     }
 
     // Get user's couple_id
     const { data: profile } = await supabaseAdmin
-      .from('Couples_profiles')
-      .select('couple_id')
-      .eq('id', authResult.userId)
+      .from("Couples_profiles")
+      .select("couple_id")
+      .eq("id", authResult.userId)
       .single();
 
     if (!profile?.couple_id) {
-      return res.status(400).json({ error: 'User is not part of a couple' });
+      return res.status(400).json({ error: "User is not part of a couple" });
     }
 
     const { data, error } = await supabaseAdmin
-      .from('Couples_financial_goals')
+      .from("Couples_financial_goals")
       .insert({
         couple_id: profile.couple_id,
         goal_title,
         target_amount,
         current_amount: current_amount || 0,
         target_date: target_date || null,
-        is_achieved: false
+        is_achieved: false,
       })
       .select()
       .single();
@@ -228,8 +242,8 @@ router.post("/goals", async (req, res) => {
 
     res.json(data);
   } catch (error: any) {
-    console.error('Error creating financial goal:', error);
-    res.status(500).json({ error: error.message || 'Failed to create goal' });
+    console.error("Error creating financial goal:", error);
+    res.status(500).json({ error: error.message || "Failed to create goal" });
   }
 });
 
@@ -245,32 +259,34 @@ router.get("/goals", async (req, res) => {
 
     // Get user's couple_id
     const { data: profile } = await supabaseAdmin
-      .from('Couples_profiles')
-      .select('couple_id')
-      .eq('id', authResult.userId)
+      .from("Couples_profiles")
+      .select("couple_id")
+      .eq("id", authResult.userId)
       .single();
 
     if (!profile?.couple_id) {
-      return res.status(400).json({ error: 'User is not part of a couple' });
+      return res.status(400).json({ error: "User is not part of a couple" });
     }
 
     let query = supabaseAdmin
-      .from('Couples_financial_goals')
-      .select('*')
-      .eq('couple_id', profile.couple_id);
+      .from("Couples_financial_goals")
+      .select("*")
+      .eq("couple_id", profile.couple_id);
 
-    if (active_only === 'true') {
-      query = query.eq('is_achieved', false);
+    if (active_only === "true") {
+      query = query.eq("is_achieved", false);
     }
 
-    const { data, error } = await query.order('created_at', { ascending: false });
+    const { data, error } = await query.order("created_at", {
+      ascending: false,
+    });
 
     if (error) throw error;
 
     res.json(data);
   } catch (error: any) {
-    console.error('Error fetching financial goals:', error);
-    res.status(500).json({ error: error.message || 'Failed to fetch goals' });
+    console.error("Error fetching financial goals:", error);
+    res.status(500).json({ error: error.message || "Failed to fetch goals" });
   }
 });
 
@@ -287,33 +303,33 @@ router.patch("/goals/:id", async (req, res) => {
 
     // Get user's couple_id
     const { data: profile } = await supabaseAdmin
-      .from('Couples_profiles')
-      .select('couple_id')
-      .eq('id', authResult.userId)
+      .from("Couples_profiles")
+      .select("couple_id")
+      .eq("id", authResult.userId)
       .single();
 
     if (!profile?.couple_id) {
-      return res.status(400).json({ error: 'User is not part of a couple' });
+      return res.status(400).json({ error: "User is not part of a couple" });
     }
 
     // Verify goal belongs to couple
     const { data: goal } = await supabaseAdmin
-      .from('Couples_financial_goals')
-      .select('couple_id')
-      .eq('id', id)
+      .from("Couples_financial_goals")
+      .select("couple_id")
+      .eq("id", id)
       .single();
 
     if (!goal || goal.couple_id !== profile.couple_id) {
-      return res.status(403).json({ error: 'Access denied' });
+      return res.status(403).json({ error: "Access denied" });
     }
 
     const updateData: any = {
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
     };
 
     if (current_amount !== undefined) {
       if (current_amount < 0) {
-        return res.status(400).json({ error: 'Amount cannot be negative' });
+        return res.status(400).json({ error: "Amount cannot be negative" });
       }
       updateData.current_amount = current_amount;
     }
@@ -323,9 +339,9 @@ router.patch("/goals/:id", async (req, res) => {
     }
 
     const { data, error } = await supabaseAdmin
-      .from('Couples_financial_goals')
+      .from("Couples_financial_goals")
       .update(updateData)
-      .eq('id', id)
+      .eq("id", id)
       .select()
       .single();
 
@@ -333,8 +349,8 @@ router.patch("/goals/:id", async (req, res) => {
 
     res.json(data);
   } catch (error: any) {
-    console.error('Error updating financial goal:', error);
-    res.status(500).json({ error: error.message || 'Failed to update goal' });
+    console.error("Error updating financial goal:", error);
+    res.status(500).json({ error: error.message || "Failed to update goal" });
   }
 });
 
@@ -349,27 +365,27 @@ router.post("/discussions", async (req, res) => {
     const { discussion_topic, decisions_made, follow_up_needed } = req.body;
 
     if (!discussion_topic) {
-      return res.status(400).json({ error: 'Discussion topic is required' });
+      return res.status(400).json({ error: "Discussion topic is required" });
     }
 
     // Get user's couple_id
     const { data: profile } = await supabaseAdmin
-      .from('Couples_profiles')
-      .select('couple_id')
-      .eq('id', authResult.userId)
+      .from("Couples_profiles")
+      .select("couple_id")
+      .eq("id", authResult.userId)
       .single();
 
     if (!profile?.couple_id) {
-      return res.status(400).json({ error: 'User is not part of a couple' });
+      return res.status(400).json({ error: "User is not part of a couple" });
     }
 
     const { data, error } = await supabaseAdmin
-      .from('Couples_financial_discussions')
+      .from("Couples_financial_discussions")
       .insert({
         couple_id: profile.couple_id,
         discussion_topic,
         decisions_made: decisions_made || null,
-        follow_up_needed: follow_up_needed || false
+        follow_up_needed: follow_up_needed || false,
       })
       .select()
       .single();
@@ -378,8 +394,10 @@ router.post("/discussions", async (req, res) => {
 
     res.json(data);
   } catch (error: any) {
-    console.error('Error creating discussion log:', error);
-    res.status(500).json({ error: error.message || 'Failed to create discussion' });
+    console.error("Error creating discussion log:", error);
+    res
+      .status(500)
+      .json({ error: error.message || "Failed to create discussion" });
   }
 });
 
@@ -393,27 +411,29 @@ router.get("/discussions", async (req, res) => {
 
     // Get user's couple_id
     const { data: profile } = await supabaseAdmin
-      .from('Couples_profiles')
-      .select('couple_id')
-      .eq('id', authResult.userId)
+      .from("Couples_profiles")
+      .select("couple_id")
+      .eq("id", authResult.userId)
       .single();
 
     if (!profile?.couple_id) {
-      return res.status(400).json({ error: 'User is not part of a couple' });
+      return res.status(400).json({ error: "User is not part of a couple" });
     }
 
     const { data, error } = await supabaseAdmin
-      .from('Couples_financial_discussions')
-      .select('*')
-      .eq('couple_id', profile.couple_id)
-      .order('created_at', { ascending: false });
+      .from("Couples_financial_discussions")
+      .select("*")
+      .eq("couple_id", profile.couple_id)
+      .order("created_at", { ascending: false });
 
     if (error) throw error;
 
     res.json(data);
   } catch (error: any) {
-    console.error('Error fetching discussions:', error);
-    res.status(500).json({ error: error.message || 'Failed to fetch discussions' });
+    console.error("Error fetching discussions:", error);
+    res
+      .status(500)
+      .json({ error: error.message || "Failed to fetch discussions" });
   }
 });
 

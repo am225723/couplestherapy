@@ -20,15 +20,16 @@ This document contains complete, copy-paste ready code for all 5 AI endpoints as
 // CORS Headers
 // ========================================
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
 };
 
 // ========================================
 // Types
 // ========================================
 interface PerplexityMessage {
-  role: 'system' | 'user' | 'assistant';
+  role: "system" | "user" | "assistant";
   content: string;
 }
 
@@ -72,41 +73,52 @@ const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
 // ========================================
 // Auth Helper
 // ========================================
-async function verifyUserSession(authHeader: string | null): Promise<
+async function verifyUserSession(
+  authHeader: string | null,
+): Promise<
   | { success: false; error: string; status: number }
   | { success: true; userId: string; coupleId: string }
 > {
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return { success: false, error: 'No authorization header', status: 401 };
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return { success: false, error: "No authorization header", status: 401 };
   }
 
   const token = authHeader.substring(7);
 
   try {
-    const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2');
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const { createClient } = await import(
+      "https://esm.sh/@supabase/supabase-js@2"
+    );
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser(token);
 
     if (authError || !user) {
-      return { success: false, error: 'Invalid token', status: 401 };
+      return { success: false, error: "Invalid token", status: 401 };
     }
 
     const { data: profile, error: profileError } = await supabase
-      .from('Couples_profiles')
-      .select('couple_id')
-      .eq('id', user.id)
+      .from("Couples_profiles")
+      .select("couple_id")
+      .eq("id", user.id)
       .single();
 
     if (profileError || !profile || !profile.couple_id) {
-      return { success: false, error: 'User profile not found or not in a couple', status: 403 };
+      return {
+        success: false,
+        error: "User profile not found or not in a couple",
+        status: 403,
+      };
     }
 
     return { success: true, userId: user.id, coupleId: profile.couple_id };
   } catch (error) {
-    return { success: false, error: 'Auth verification failed', status: 500 };
+    return { success: false, error: "Auth verification failed", status: 500 };
   }
 }
 
@@ -115,29 +127,29 @@ async function verifyUserSession(authHeader: string | null): Promise<
 // ========================================
 async function callPerplexity(
   systemPrompt: string,
-  userPrompt: string
+  userPrompt: string,
 ): Promise<{ content: string; usage: any }> {
-  const apiKey = Deno.env.get('PERPLEXITY_API_KEY');
-  
+  const apiKey = Deno.env.get("PERPLEXITY_API_KEY");
+
   if (!apiKey) {
-    throw new Error('PERPLEXITY_API_KEY not configured');
+    throw new Error("PERPLEXITY_API_KEY not configured");
   }
 
   const requestBody: PerplexityRequest = {
-    model: 'sonar',
+    model: "sonar",
     messages: [
-      { role: 'system', content: systemPrompt },
-      { role: 'user', content: userPrompt },
+      { role: "system", content: systemPrompt },
+      { role: "user", content: userPrompt },
     ],
     temperature: 0.2,
     max_tokens: 2000,
   };
 
-  const response = await fetch('https://api.perplexity.ai/chat/completions', {
-    method: 'POST',
+  const response = await fetch("https://api.perplexity.ai/chat/completions", {
+    method: "POST",
     headers: {
-      'Authorization': `Bearer ${apiKey}`,
-      'Content-Type': 'application/json',
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
     },
     body: JSON.stringify(requestBody),
   });
@@ -150,7 +162,7 @@ async function callPerplexity(
   const data: PerplexityResponse = await response.json();
 
   if (!data.choices || data.choices.length === 0) {
-    throw new Error('Perplexity API returned no choices');
+    throw new Error("Perplexity API returned no choices");
   }
 
   return {
@@ -164,20 +176,20 @@ async function callPerplexity(
 // ========================================
 Deno.serve(async (req) => {
   // Handle CORS preflight
-  if (req.method === 'OPTIONS') {
+  if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
     // Verify authentication
-    const authHeader = req.headers.get('authorization');
+    const authHeader = req.headers.get("authorization");
     const authResult = await verifyUserSession(authHeader);
-    
+
     if (!authResult.success) {
-      return new Response(
-        JSON.stringify({ error: authResult.error }),
-        { status: authResult.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      return new Response(JSON.stringify({ error: authResult.error }), {
+        status: authResult.status,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     const { coupleId } = authResult;
@@ -185,17 +197,18 @@ Deno.serve(async (req) => {
     // Check cache
     const cacheKey = `recommendations:${coupleId}`;
     const cached = cache.get(cacheKey);
-    if (cached && (Date.now() - cached.timestamp) < CACHE_TTL_MS) {
-      return new Response(
-        JSON.stringify(cached.data),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+    if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
+      return new Response(JSON.stringify(cached.data), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     // Initialize Supabase client
-    const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2');
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const { createClient } = await import(
+      "https://esm.sh/@supabase/supabase-js@2"
+    );
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     // Calculate 30 days ago
@@ -228,50 +241,140 @@ Deno.serve(async (req) => {
       { data: calendarEvents },
       { data: loveMapSessions },
     ] = await Promise.all([
-      supabase.from('Couples_weekly_checkins').select('id').eq('couple_id', coupleId).gte('created_at', thirtyDaysAgoISO),
-      supabase.from('Couples_gratitude_logs').select('id').eq('couple_id', coupleId).gte('created_at', thirtyDaysAgoISO),
-      supabase.from('Couples_shared_goals').select('id').eq('couple_id', coupleId).gte('created_at', thirtyDaysAgoISO),
-      supabase.from('Couples_rituals').select('id').eq('couple_id', coupleId),
-      supabase.from('Couples_conversations').select('id').eq('couple_id', coupleId).gte('created_at', thirtyDaysAgoISO),
-      supabase.from('Couples_voice_memos').select('id').eq('couple_id', coupleId).gte('created_at', thirtyDaysAgoISO),
-      supabase.from('Couples_horsemen_incidents').select('id').eq('couple_id', coupleId).gte('created_at', thirtyDaysAgoISO),
-      supabase.from('Couples_demon_dialogues').select('id').eq('couple_id', coupleId).gte('created_at', thirtyDaysAgoISO),
-      supabase.from('Couples_meditation_sessions').select('id').eq('couple_id', coupleId).gte('created_at', thirtyDaysAgoISO),
-      supabase.from('Couples_intimacy_ratings').select('id').eq('couple_id', coupleId).gte('created_at', thirtyDaysAgoISO),
-      supabase.from('Couples_intimacy_goals').select('id').eq('couple_id', coupleId).gte('created_at', thirtyDaysAgoISO),
-      supabase.from('Couples_shared_dreams').select('id').eq('couple_id', coupleId).gte('created_at', thirtyDaysAgoISO),
-      supabase.from('Couples_vision_board_items').select('id').eq('couple_id', coupleId).gte('created_at', thirtyDaysAgoISO),
-      supabase.from('Couples_core_values').select('id').eq('couple_id', coupleId).gte('created_at', thirtyDaysAgoISO),
-      supabase.from('Couples_discipline_agreements').select('id').eq('couple_id', coupleId).gte('created_at', thirtyDaysAgoISO),
-      supabase.from('Couples_parenting_stress_checkins').select('id').eq('couple_id', coupleId).gte('created_at', thirtyDaysAgoISO),
-      supabase.from('Couples_echo_sessions').select('id').eq('couple_id', coupleId).gte('created_at', thirtyDaysAgoISO),
-      supabase.from('Couples_ifs_exercises').select('id').eq('couple_id', coupleId).gte('created_at', thirtyDaysAgoISO),
-      supabase.from('Couples_pause_events').select('id').eq('couple_id', coupleId).gte('started_at', thirtyDaysAgoISO),
-      supabase.from('Couples_messages').select('id').eq('couple_id', coupleId).gte('created_at', thirtyDaysAgoISO),
-      supabase.from('Couples_calendar_events').select('id').eq('couple_id', coupleId).gte('created_at', thirtyDaysAgoISO),
-      supabase.from('Couples_love_map_sessions').select('id').eq('couple_id', coupleId).gte('created_at', thirtyDaysAgoISO),
+      supabase
+        .from("Couples_weekly_checkins")
+        .select("id")
+        .eq("couple_id", coupleId)
+        .gte("created_at", thirtyDaysAgoISO),
+      supabase
+        .from("Couples_gratitude_logs")
+        .select("id")
+        .eq("couple_id", coupleId)
+        .gte("created_at", thirtyDaysAgoISO),
+      supabase
+        .from("Couples_shared_goals")
+        .select("id")
+        .eq("couple_id", coupleId)
+        .gte("created_at", thirtyDaysAgoISO),
+      supabase.from("Couples_rituals").select("id").eq("couple_id", coupleId),
+      supabase
+        .from("Couples_conversations")
+        .select("id")
+        .eq("couple_id", coupleId)
+        .gte("created_at", thirtyDaysAgoISO),
+      supabase
+        .from("Couples_voice_memos")
+        .select("id")
+        .eq("couple_id", coupleId)
+        .gte("created_at", thirtyDaysAgoISO),
+      supabase
+        .from("Couples_horsemen_incidents")
+        .select("id")
+        .eq("couple_id", coupleId)
+        .gte("created_at", thirtyDaysAgoISO),
+      supabase
+        .from("Couples_demon_dialogues")
+        .select("id")
+        .eq("couple_id", coupleId)
+        .gte("created_at", thirtyDaysAgoISO),
+      supabase
+        .from("Couples_meditation_sessions")
+        .select("id")
+        .eq("couple_id", coupleId)
+        .gte("created_at", thirtyDaysAgoISO),
+      supabase
+        .from("Couples_intimacy_ratings")
+        .select("id")
+        .eq("couple_id", coupleId)
+        .gte("created_at", thirtyDaysAgoISO),
+      supabase
+        .from("Couples_intimacy_goals")
+        .select("id")
+        .eq("couple_id", coupleId)
+        .gte("created_at", thirtyDaysAgoISO),
+      supabase
+        .from("Couples_shared_dreams")
+        .select("id")
+        .eq("couple_id", coupleId)
+        .gte("created_at", thirtyDaysAgoISO),
+      supabase
+        .from("Couples_vision_board_items")
+        .select("id")
+        .eq("couple_id", coupleId)
+        .gte("created_at", thirtyDaysAgoISO),
+      supabase
+        .from("Couples_core_values")
+        .select("id")
+        .eq("couple_id", coupleId)
+        .gte("created_at", thirtyDaysAgoISO),
+      supabase
+        .from("Couples_discipline_agreements")
+        .select("id")
+        .eq("couple_id", coupleId)
+        .gte("created_at", thirtyDaysAgoISO),
+      supabase
+        .from("Couples_parenting_stress_checkins")
+        .select("id")
+        .eq("couple_id", coupleId)
+        .gte("created_at", thirtyDaysAgoISO),
+      supabase
+        .from("Couples_echo_sessions")
+        .select("id")
+        .eq("couple_id", coupleId)
+        .gte("created_at", thirtyDaysAgoISO),
+      supabase
+        .from("Couples_ifs_exercises")
+        .select("id")
+        .eq("couple_id", coupleId)
+        .gte("created_at", thirtyDaysAgoISO),
+      supabase
+        .from("Couples_pause_events")
+        .select("id")
+        .eq("couple_id", coupleId)
+        .gte("started_at", thirtyDaysAgoISO),
+      supabase
+        .from("Couples_messages")
+        .select("id")
+        .eq("couple_id", coupleId)
+        .gte("created_at", thirtyDaysAgoISO),
+      supabase
+        .from("Couples_calendar_events")
+        .select("id")
+        .eq("couple_id", coupleId)
+        .gte("created_at", thirtyDaysAgoISO),
+      supabase
+        .from("Couples_love_map_sessions")
+        .select("id")
+        .eq("couple_id", coupleId)
+        .gte("created_at", thirtyDaysAgoISO),
     ]);
 
     // Calculate activity counts
     const activityCounts = {
-      'Weekly Check-ins': weeklyCheckins?.length || 0,
-      'Gratitude Log': gratitudeLogs?.length || 0,
-      'Shared Goals': sharedGoals?.length || 0,
-      'Rituals of Connection': rituals?.length || 0,
-      'Hold Me Tight Conversations': conversations?.length || 0,
-      'Voice Memos': voiceMemos?.length || 0,
-      'Four Horsemen Awareness': fourHorsemen?.length || 0,
-      'Demon Dialogues': demonDialogues?.length || 0,
-      'Meditation Library': meditationSessions?.length || 0,
-      'Intimacy Mapping': (intimacyRatings?.length || 0) + (intimacyGoals?.length || 0),
-      'Values & Vision': (sharedDreams?.length || 0) + (visionBoardItems?.length || 0) + (coreValues?.length || 0),
-      'Parenting Partners': (parentingAgreements?.length || 0) + (parentingStressCheckins?.length || 0),
-      'Echo & Empathy': echoSessions?.length || 0,
-      'IFS Introduction': ifsExercises?.length || 0,
-      'Pause Button': pauseEvents?.length || 0,
-      'Messages': messages?.length || 0,
-      'Shared Calendar': calendarEvents?.length || 0,
-      'Love Map Quiz': loveMapSessions?.length || 0,
+      "Weekly Check-ins": weeklyCheckins?.length || 0,
+      "Gratitude Log": gratitudeLogs?.length || 0,
+      "Shared Goals": sharedGoals?.length || 0,
+      "Rituals of Connection": rituals?.length || 0,
+      "Hold Me Tight Conversations": conversations?.length || 0,
+      "Voice Memos": voiceMemos?.length || 0,
+      "Four Horsemen Awareness": fourHorsemen?.length || 0,
+      "Demon Dialogues": demonDialogues?.length || 0,
+      "Meditation Library": meditationSessions?.length || 0,
+      "Intimacy Mapping":
+        (intimacyRatings?.length || 0) + (intimacyGoals?.length || 0),
+      "Values & Vision":
+        (sharedDreams?.length || 0) +
+        (visionBoardItems?.length || 0) +
+        (coreValues?.length || 0),
+      "Parenting Partners":
+        (parentingAgreements?.length || 0) +
+        (parentingStressCheckins?.length || 0),
+      "Echo & Empathy": echoSessions?.length || 0,
+      "IFS Introduction": ifsExercises?.length || 0,
+      "Pause Button": pauseEvents?.length || 0,
+      Messages: messages?.length || 0,
+      "Shared Calendar": calendarEvents?.length || 0,
+      "Love Map Quiz": loveMapSessions?.length || 0,
     };
 
     // Categorize activities
@@ -290,26 +393,27 @@ Deno.serve(async (req) => {
     });
 
     // Build AI prompts
-    const systemPrompt = "You are an expert couples therapist recommending therapeutic exercises and activities. Based on a couple's activity patterns, suggest 3-5 specific therapy tools they should try next to strengthen their relationship.";
+    const systemPrompt =
+      "You are an expert couples therapist recommending therapeutic exercises and activities. Based on a couple's activity patterns, suggest 3-5 specific therapy tools they should try next to strengthen their relationship.";
 
     let userPrompt = `Analyze this couple's therapy tool usage over the last 30 days:\n\n`;
 
     if (notStarted.length > 0) {
       userPrompt += `NOT STARTED (never used):\n`;
-      notStarted.forEach(tool => userPrompt += `- ${tool}\n`);
-      userPrompt += '\n';
+      notStarted.forEach((tool) => (userPrompt += `- ${tool}\n`));
+      userPrompt += "\n";
     }
 
     if (underutilized.length > 0) {
       userPrompt += `UNDERUTILIZED (1-3 uses):\n`;
-      underutilized.forEach(tool => userPrompt += `- ${tool}\n`);
-      userPrompt += '\n';
+      underutilized.forEach((tool) => (userPrompt += `- ${tool}\n`));
+      userPrompt += "\n";
     }
 
     if (active.length > 0) {
       userPrompt += `ACTIVE (4+ uses):\n`;
-      active.forEach(tool => userPrompt += `- ${tool}\n`);
-      userPrompt += '\n';
+      active.forEach((tool) => (userPrompt += `- ${tool}\n`));
+      userPrompt += "\n";
     }
 
     userPrompt += `Based on this data:\n`;
@@ -324,35 +428,43 @@ Deno.serve(async (req) => {
 
     // Parse recommendations
     const recommendations: Recommendation[] = [];
-    const lines = aiFullResponse.split('\n');
+    const lines = aiFullResponse.split("\n");
     let currentRecommendation: any = null;
-    let currentSection = '';
+    let currentSection = "";
 
     for (const line of lines) {
       const trimmedLine = line.trim();
-      
+
       const numberMatch = trimmedLine.match(/^(\d+)[\.\)]\s*(.+)$/);
       if (numberMatch) {
         if (currentRecommendation && currentRecommendation.tool_name) {
           recommendations.push(currentRecommendation);
         }
-        
+
         currentRecommendation = {
           tool_name: numberMatch[2].trim(),
-          rationale: '',
-          suggested_action: '',
+          rationale: "",
+          suggested_action: "",
         };
-        currentSection = '';
+        currentSection = "";
       } else if (currentRecommendation) {
-        if (trimmedLine.toLowerCase().includes('rationale') || trimmedLine.toLowerCase().includes('why')) {
-          currentSection = 'rationale';
-        } else if (trimmedLine.toLowerCase().includes('action') || trimmedLine.toLowerCase().includes('suggestion')) {
-          currentSection = 'suggested_action';
+        if (
+          trimmedLine.toLowerCase().includes("rationale") ||
+          trimmedLine.toLowerCase().includes("why")
+        ) {
+          currentSection = "rationale";
+        } else if (
+          trimmedLine.toLowerCase().includes("action") ||
+          trimmedLine.toLowerCase().includes("suggestion")
+        ) {
+          currentSection = "suggested_action";
         } else if (trimmedLine) {
-          if (currentSection === 'rationale') {
-            currentRecommendation.rationale += (currentRecommendation.rationale ? ' ' : '') + trimmedLine;
-          } else if (currentSection === 'suggested_action') {
-            currentRecommendation.suggested_action += (currentRecommendation.suggested_action ? ' ' : '') + trimmedLine;
+          if (currentSection === "rationale") {
+            currentRecommendation.rationale +=
+              (currentRecommendation.rationale ? " " : "") + trimmedLine;
+          } else if (currentSection === "suggested_action") {
+            currentRecommendation.suggested_action +=
+              (currentRecommendation.suggested_action ? " " : "") + trimmedLine;
           } else if (!currentRecommendation.rationale) {
             currentRecommendation.rationale = trimmedLine;
           } else if (!currentRecommendation.suggested_action) {
@@ -372,8 +484,8 @@ Deno.serve(async (req) => {
       generated_at: new Date().toISOString(),
       activity_summary: {
         not_started: notStarted,
-        underutilized: underutilized.map(t => t.replace(/ \(\d+ uses\)/, '')),
-        active: active.map(t => t.replace(/ \(\d+ uses\)/, '')),
+        underutilized: underutilized.map((t) => t.replace(/ \(\d+ uses\)/, "")),
+        active: active.map((t) => t.replace(/ \(\d+ uses\)/, "")),
       },
       recommendations: recommendations.slice(0, 5),
       ai_full_response: aiFullResponse,
@@ -386,16 +498,19 @@ Deno.serve(async (req) => {
       timestamp: Date.now(),
     });
 
-    return new Response(
-      JSON.stringify(responseData),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
-
+    return new Response(JSON.stringify(responseData), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   } catch (error: any) {
-    console.error('Exercise recommendations error:', error);
+    console.error("Exercise recommendations error:", error);
     return new Response(
-      JSON.stringify({ error: error.message || 'Failed to generate recommendations' }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      JSON.stringify({
+        error: error.message || "Failed to generate recommendations",
+      }),
+      {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      },
     );
   }
 });
@@ -406,6 +521,7 @@ Deno.serve(async (req) => {
 ## Function 2-5: Additional Edge Functions
 
 Due to character limits, I'll create separate documentation files for the remaining 4 functions. Each follows the same pattern:
+
 1. CORS headers
 2. Auth verification
 3. Cache checking
@@ -422,10 +538,12 @@ Update all frontend components to use Supabase Edge Functions:
 
 ```typescript
 // OLD: Direct fetch
-const response = await fetch('/api/ai/exercise-recommendations');
+const response = await fetch("/api/ai/exercise-recommendations");
 
 // NEW: Supabase functions
-const { data, error } = await supabase.functions.invoke('ai-exercise-recommendations');
+const { data, error } = await supabase.functions.invoke(
+  "ai-exercise-recommendations",
+);
 ```
 
 ## Deployment Checklist
@@ -438,5 +556,5 @@ const { data, error } = await supabase.functions.invoke('ai-exercise-recommendat
 - [ ] Set PERPLEXITY_API_KEY in Supabase secrets
 - [ ] Update all frontend API calls
 - [ ] Test each endpoint
-- [ ] Remove Express /api/ai/* routes
+- [ ] Remove Express /api/ai/\* routes
 - [ ] Update AI_FEATURES_COMPLETE.md

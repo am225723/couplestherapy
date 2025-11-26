@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -8,33 +8,33 @@ import {
   ScrollView,
   TouchableOpacity,
   Alert,
-} from 'react-native';
-import { useAuth } from '../../contexts/AuthContext';
-import Button from '../../components/Button';
-import Input from '../../components/Input';
-import { colors, spacing, typography } from '../../constants/theme';
-import { supabase } from '../../services/supabase';
+} from "react-native";
+import { useAuth } from "../../contexts/AuthContext";
+import Button from "../../components/Button";
+import Input from "../../components/Input";
+import { colors, spacing, typography } from "../../constants/theme";
+import { supabase } from "../../services/supabase";
 
 export default function TherapistSignupScreen({ navigation }: any) {
-  const [fullName, setFullName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleSignup = async () => {
     if (!fullName || !email || !password || !confirmPassword) {
-      Alert.alert('Error', 'Please fill in all fields');
+      Alert.alert("Error", "Please fill in all fields");
       return;
     }
 
     if (password !== confirmPassword) {
-      Alert.alert('Error', 'Passwords do not match');
+      Alert.alert("Error", "Passwords do not match");
       return;
     }
 
     if (password.length < 6) {
-      Alert.alert('Error', 'Password must be at least 6 characters');
+      Alert.alert("Error", "Password must be at least 6 characters");
       return;
     }
 
@@ -46,24 +46,24 @@ export default function TherapistSignupScreen({ navigation }: any) {
       });
 
       if (authError) throw authError;
-      if (!authData.user) throw new Error('Signup failed');
+      if (!authData.user) throw new Error("Signup failed");
 
       const { error: profileError } = await supabase
-        .from('Couples_profiles')
+        .from("Couples_profiles")
         .insert({
           id: authData.user.id,
           email,
           full_name: fullName,
-          role: 'therapist',
+          role: "therapist",
         });
 
       if (profileError) throw profileError;
 
-      Alert.alert('Success', 'Account created successfully!', [
-        { text: 'OK', onPress: () => navigation.navigate('Login') },
+      Alert.alert("Success", "Account created successfully!", [
+        { text: "OK", onPress: () => navigation.navigate("Login") },
       ]);
     } catch (error: any) {
-      Alert.alert('Signup Failed', error.message);
+      Alert.alert("Signup Failed", error.message);
     } finally {
       setLoading(false);
     }
@@ -72,7 +72,7 @@ export default function TherapistSignupScreen({ navigation }: any) {
   return (
     <KeyboardAvoidingView
       style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.header}>
@@ -122,9 +122,10 @@ export default function TherapistSignupScreen({ navigation }: any) {
             style={styles.signupButton}
           />
 
-          <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+          <TouchableOpacity onPress={() => navigation.navigate("Login")}>
             <Text style={styles.linkText}>
-              Already have an account? <Text style={styles.linkTextBold}>Sign in</Text>
+              Already have an account?{" "}
+              <Text style={styles.linkTextBold}>Sign in</Text>
             </Text>
           </TouchableOpacity>
         </View>
@@ -140,11 +141,11 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
-    justifyContent: 'center',
+    justifyContent: "center",
     padding: spacing.xl,
   },
   header: {
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: spacing.xxl,
   },
   title: {
@@ -157,7 +158,7 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
   },
   form: {
-    width: '100%',
+    width: "100%",
   },
   signupButton: {
     marginTop: spacing.md,
@@ -165,11 +166,11 @@ const styles = StyleSheet.create({
   linkText: {
     ...typography.body,
     color: colors.textSecondary,
-    textAlign: 'center',
+    textAlign: "center",
     marginTop: spacing.lg,
   },
   linkTextBold: {
     color: colors.primary,
-    fontWeight: '600',
+    fontWeight: "600",
   },
 });

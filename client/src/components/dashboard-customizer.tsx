@@ -1,5 +1,11 @@
 import { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -18,13 +24,13 @@ interface DashboardCustomizerProps {
 const WIDGET_LABELS: Record<string, string> = {
   "weekly-checkin": "Weekly Check-in",
   "love-languages": "Love Languages",
-  "gratitude": "Gratitude Log",
+  gratitude: "Gratitude Log",
   "shared-goals": "Shared Goals",
-  "conversations": "Hold Me Tight",
+  conversations: "Hold Me Tight",
   "love-map": "Love Map Quiz",
   "voice-memos": "Voice Memos",
-  "calendar": "Shared Calendar",
-  "rituals": "Rituals of Connection",
+  calendar: "Shared Calendar",
+  rituals: "Rituals of Connection",
 };
 
 export function DashboardCustomizer({
@@ -34,21 +40,28 @@ export function DashboardCustomizer({
   initialEnabled,
 }: DashboardCustomizerProps) {
   const [order, setOrder] = useState<string[]>(initialOrder);
-  const [enabled, setEnabled] = useState<Record<string, boolean>>(initialEnabled);
+  const [enabled, setEnabled] =
+    useState<Record<string, boolean>>(initialEnabled);
   const [draggedItem, setDraggedItem] = useState<string | null>(null);
   const { toast } = useToast();
 
   const saveMutation = useMutation({
     mutationFn: async () => {
-      return apiRequest("POST", `/api/dashboard-customization/couple/${coupleId}`, {
-        therapist_id: therapistId,
-        widget_order: order,
-        enabled_widgets: enabled,
-      });
+      return apiRequest(
+        "POST",
+        `/api/dashboard-customization/couple/${coupleId}`,
+        {
+          therapist_id: therapistId,
+          widget_order: order,
+          enabled_widgets: enabled,
+        },
+      );
     },
     onSuccess: () => {
       toast({ title: "Saved", description: "Dashboard customization updated" });
-      queryClient.invalidateQueries({ queryKey: [`/api/dashboard-customization/couple/${coupleId}`] });
+      queryClient.invalidateQueries({
+        queryKey: [`/api/dashboard-customization/couple/${coupleId}`],
+      });
     },
     onError: (error: any) => {
       toast({
@@ -72,7 +85,10 @@ export function DashboardCustomizer({
     const newOrder = [...order];
     const draggedIndex = newOrder.indexOf(draggedItem);
     const targetIndex = newOrder.indexOf(targetWidget);
-    [newOrder[draggedIndex], newOrder[targetIndex]] = [newOrder[targetIndex], newOrder[draggedIndex]];
+    [newOrder[draggedIndex], newOrder[targetIndex]] = [
+      newOrder[targetIndex],
+      newOrder[draggedIndex],
+    ];
     setOrder(newOrder);
     setDraggedItem(null);
   };
@@ -85,7 +101,9 @@ export function DashboardCustomizer({
     <Card>
       <CardHeader>
         <CardTitle>Customize Client Dashboard</CardTitle>
-        <CardDescription>Drag to reorder widgets. Uncheck to hide from client view.</CardDescription>
+        <CardDescription>
+          Drag to reorder widgets. Uncheck to hide from client view.
+        </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
@@ -104,7 +122,9 @@ export function DashboardCustomizer({
                 onCheckedChange={() => toggleEnabled(widget)}
                 data-testid={`checkbox-enable-${widget}`}
               />
-              <Label className="flex-1 cursor-pointer">{WIDGET_LABELS[widget] || widget}</Label>
+              <Label className="flex-1 cursor-pointer">
+                {WIDGET_LABELS[widget] || widget}
+              </Label>
             </div>
           ))}
         </div>

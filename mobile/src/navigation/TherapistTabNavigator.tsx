@@ -1,16 +1,16 @@
-import React from 'react';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { createStackNavigator } from '@react-navigation/stack';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { colors } from '../constants/theme';
+import React from "react";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { createStackNavigator } from "@react-navigation/stack";
+import Icon from "react-native-vector-icons/MaterialCommunityIcons";
+import { colors } from "../constants/theme";
 
 // Therapist Screens
-import TherapistDashboardScreen from '../screens/therapist/TherapistDashboardScreen';
-import CoupleListScreen from '../screens/therapist/CoupleListScreen';
-import CoupleDetailScreen from '../screens/therapist/CoupleDetailScreen';
-import InvitationCodesScreen from '../screens/therapist/InvitationCodesScreen';
-import TherapistMessagesScreen from '../screens/therapist/TherapistMessagesScreen';
-import TherapistProfileScreen from '../screens/therapist/TherapistProfileScreen';
+import TherapistDashboardScreen from "../screens/therapist/TherapistDashboardScreen";
+import CoupleListScreen from "../screens/therapist/CoupleListScreen";
+import CoupleDetailScreen from "../screens/therapist/CoupleDetailScreen";
+import InvitationCodesScreen from "../screens/therapist/InvitationCodesScreen";
+import TherapistMessagesScreen from "../screens/therapist/TherapistMessagesScreen";
+import TherapistProfileScreen from "../screens/therapist/TherapistProfileScreen";
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -18,10 +18,10 @@ const Stack = createStackNavigator();
 function DashboardStack() {
   return (
     <Stack.Navigator>
-      <Stack.Screen 
-        name="TherapistDashboardMain" 
-        component={TherapistDashboardScreen} 
-        options={{ headerTitle: 'Dashboard' }}
+      <Stack.Screen
+        name="TherapistDashboardMain"
+        component={TherapistDashboardScreen}
+        options={{ headerTitle: "Dashboard" }}
       />
     </Stack.Navigator>
   );
@@ -30,15 +30,15 @@ function DashboardStack() {
 function CouplesStack() {
   return (
     <Stack.Navigator>
-      <Stack.Screen 
-        name="CoupleList" 
-        component={CoupleListScreen} 
-        options={{ headerTitle: 'My Couples' }}
+      <Stack.Screen
+        name="CoupleList"
+        component={CoupleListScreen}
+        options={{ headerTitle: "My Couples" }}
       />
-      <Stack.Screen 
-        name="CoupleDetail" 
-        component={CoupleDetailScreen} 
-        options={{ headerTitle: 'Couple Details' }}
+      <Stack.Screen
+        name="CoupleDetail"
+        component={CoupleDetailScreen}
+        options={{ headerTitle: "Couple Details" }}
       />
     </Stack.Navigator>
   );
@@ -47,10 +47,10 @@ function CouplesStack() {
 function ManageStack() {
   return (
     <Stack.Navigator>
-      <Stack.Screen 
-        name="InvitationCodes" 
-        component={InvitationCodesScreen} 
-        options={{ headerTitle: 'Invitation Codes' }}
+      <Stack.Screen
+        name="InvitationCodes"
+        component={InvitationCodesScreen}
+        options={{ headerTitle: "Invitation Codes" }}
       />
     </Stack.Navigator>
   );
@@ -59,10 +59,10 @@ function ManageStack() {
 function MessagesStack() {
   return (
     <Stack.Navigator>
-      <Stack.Screen 
-        name="TherapistMessagesMain" 
-        component={TherapistMessagesScreen} 
-        options={{ headerTitle: 'Messages' }}
+      <Stack.Screen
+        name="TherapistMessagesMain"
+        component={TherapistMessagesScreen}
+        options={{ headerTitle: "Messages" }}
       />
     </Stack.Navigator>
   );
@@ -71,10 +71,10 @@ function MessagesStack() {
 function ProfileStack() {
   return (
     <Stack.Navigator>
-      <Stack.Screen 
-        name="TherapistProfileMain" 
-        component={TherapistProfileScreen} 
-        options={{ headerTitle: 'Profile' }}
+      <Stack.Screen
+        name="TherapistProfileMain"
+        component={TherapistProfileScreen}
+        options={{ headerTitle: "Profile" }}
       />
     </Stack.Navigator>
   );
@@ -93,7 +93,7 @@ export default function TherapistTabNavigator() {
         name="Dashboard"
         component={DashboardStack}
         options={{
-          tabBarLabel: 'Dashboard',
+          tabBarLabel: "Dashboard",
           tabBarIcon: ({ color, size }) => (
             <Icon name="view-dashboard" size={size} color={color} />
           ),
@@ -103,7 +103,7 @@ export default function TherapistTabNavigator() {
         name="Couples"
         component={CouplesStack}
         options={{
-          tabBarLabel: 'Couples',
+          tabBarLabel: "Couples",
           tabBarIcon: ({ color, size }) => (
             <Icon name="account-group" size={size} color={color} />
           ),
@@ -113,7 +113,7 @@ export default function TherapistTabNavigator() {
         name="Manage"
         component={ManageStack}
         options={{
-          tabBarLabel: 'Manage',
+          tabBarLabel: "Manage",
           tabBarIcon: ({ color, size }) => (
             <Icon name="cog" size={size} color={color} />
           ),
@@ -123,7 +123,7 @@ export default function TherapistTabNavigator() {
         name="Messages"
         component={MessagesStack}
         options={{
-          tabBarLabel: 'Messages',
+          tabBarLabel: "Messages",
           tabBarIcon: ({ color, size }) => (
             <Icon name="message-text" size={size} color={color} />
           ),
@@ -133,7 +133,7 @@ export default function TherapistTabNavigator() {
         name="Profile"
         component={ProfileStack}
         options={{
-          tabBarLabel: 'Profile',
+          tabBarLabel: "Profile",
           tabBarIcon: ({ color, size }) => (
             <Icon name="account" size={size} color={color} />
           ),

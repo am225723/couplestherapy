@@ -3,6 +3,7 @@
 ## 🚀 Quick Start
 
 ### Prerequisites
+
 - Node.js 18+ installed
 - iOS Simulator (Mac) or Android Emulator
 - Expo Go app on physical device (optional)
@@ -17,16 +18,19 @@ npm install
 ### Running the App
 
 #### Development Mode
+
 ```bash
 npx expo start
 ```
 
 Then:
+
 - Press `i` for iOS Simulator
-- Press `a` for Android Emulator  
+- Press `a` for Android Emulator
 - Scan QR code with Expo Go for physical device
 
 #### Production Build
+
 ```bash
 # iOS
 npx expo build:ios
@@ -60,6 +64,7 @@ The mobile app connects to the same Express.js backend as the web app. Make sure
 ### iOS (Apple App Store)
 
 1. **Configure app.json**:
+
    ```json
    {
      "ios": {
@@ -70,6 +75,7 @@ The mobile app connects to the same Express.js backend as the web app. Make sure
    ```
 
 2. **Build**:
+
    ```bash
    npx expo build:ios
    ```
@@ -79,6 +85,7 @@ The mobile app connects to the same Express.js backend as the web app. Make sure
 ### Android (Google Play)
 
 1. **Configure app.json**:
+
    ```json
    {
      "android": {
@@ -89,6 +96,7 @@ The mobile app connects to the same Express.js backend as the web app. Make sure
    ```
 
 2. **Build**:
+
    ```bash
    npx expo build:android
    ```
@@ -98,11 +106,13 @@ The mobile app connects to the same Express.js backend as the web app. Make sure
 ## 🔐 Security
 
 ### API Authentication
+
 - JWT tokens stored in Expo SecureStore
 - Auto-refresh on app launch
 - Logout clears all stored credentials
 
 ### Data Privacy
+
 - Three privacy levels: Private, Partner, Therapist
 - Row-level security enforced on backend
 - End-to-end encryption ready for messages
@@ -112,6 +122,7 @@ The mobile app connects to the same Express.js backend as the web app. Make sure
 ### Manual Testing Checklist
 
 **Authentication:**
+
 - [ ] Login with email/password
 - [ ] Therapist signup
 - [ ] Couple signup with invitation code
@@ -119,6 +130,7 @@ The mobile app connects to the same Express.js backend as the web app. Make sure
 - [ ] Logout
 
 **Client Features:**
+
 - [ ] Weekly Check-In submission
 - [ ] Love Language Quiz completion
 - [ ] Gratitude Log with photo upload
@@ -133,6 +145,7 @@ The mobile app connects to the same Express.js backend as the web app. Make sure
 - [ ] Profile editing
 
 **Therapist Features:**
+
 - [ ] View dashboard stats
 - [ ] Browse couple list
 - [ ] Generate invitation codes
@@ -151,16 +164,19 @@ npm run e2e
 ## 📊 Monitoring & Analytics
 
 ### Error Tracking
+
 - Use Sentry for crash reporting
 - Configure in `App.tsx`
 
 ### Analytics
+
 - Use Expo Analytics or custom solution
 - Track screen views, feature usage
 
 ## 🔄 Updates
 
 ### Over-the-Air (OTA) Updates
+
 ```bash
 npx expo publish
 ```
@@ -168,7 +184,9 @@ npx expo publish
 Users receive updates automatically without App Store review (for JS changes only).
 
 ### Native Updates
+
 For changes requiring native code:
+
 1. Increment version in `app.json`
 2. Rebuild binary
 3. Submit to app stores
@@ -178,19 +196,23 @@ For changes requiring native code:
 ### Common Issues
 
 **"Network request failed"**
+
 - Check backend URL in `.env`
 - Verify backend is running
 - Check network connectivity
 
 **"Unable to resolve module"**
+
 - Run `npm install` again
 - Clear cache: `npx expo start -c`
 
 **Images not uploading**
+
 - Implement Supabase Storage upload
 - Check permissions in `app.json`
 
 **Audio not recording**
+
 - Check microphone permissions
 - Test on physical device (simulators have limitations)
 
@@ -207,16 +229,19 @@ npx expo start --tunnel
 ## 📝 Notes
 
 ### Limitations
+
 - Some screens are placeholders (see FEATURES_IMPLEMENTED.md)
 - Image/audio uploads need Supabase Storage integration
 - Push notifications not configured yet
 
 ### Performance
+
 - Use `react-native-performance` for monitoring
 - Enable Hermes engine for better performance
 - Optimize images with `expo-image`
 
 ### Accessibility
+
 - Test with VoiceOver (iOS) and TalkBack (Android)
 - Ensure proper labels on interactive elements
 - Support dynamic font sizes
@@ -224,11 +249,13 @@ npx expo start --tunnel
 ## 🆘 Support
 
 ### Resources
+
 - [Expo Documentation](https://docs.expo.dev)
 - [React Native Documentation](https://reactnative.dev)
 - [Supabase Mobile Docs](https://supabase.com/docs/guides/getting-started/quickstarts/react-native)
 
 ### Getting Help
+
 - Check GitHub Issues
 - Expo Discord community
 - StackOverflow with `expo` tag

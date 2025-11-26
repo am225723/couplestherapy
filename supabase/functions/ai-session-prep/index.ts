@@ -2,19 +2,20 @@
 // CORS Headers
 // ========================================
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
 };
 
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
-import { safeJsonParse } from '../_shared/safe-json-parse.ts';
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import { safeJsonParse } from "../_shared/safe-json-parse.ts";
 
 // ========================================
 // Supabase Client Setup
 // ========================================
 function createSupabaseClient(authHeader: string) {
-  const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-  const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+  const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+  const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
 
   return createClient(supabaseUrl, supabaseAnonKey, {
     global: {
@@ -24,8 +25,8 @@ function createSupabaseClient(authHeader: string) {
 }
 
 function createSupabaseAdminClient() {
-  const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-  const supabaseServiceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+  const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+  const supabaseServiceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
   return createClient(supabaseUrl, supabaseServiceRoleKey);
 }
@@ -38,7 +39,7 @@ interface SessionPrepRequest {
 }
 
 interface PerplexityMessage {
-  role: 'system' | 'user' | 'assistant';
+  role: "system" | "user" | "assistant";
   content: string;
 }
 
@@ -71,12 +72,15 @@ interface PerplexityResponse {
 // Validation
 // ========================================
 function validateRequest(data: any): { valid: boolean; error?: string } {
-  if (!data || typeof data !== 'object') {
-    return { valid: false, error: 'Request body must be an object' };
+  if (!data || typeof data !== "object") {
+    return { valid: false, error: "Request body must be an object" };
   }
 
-  if (!data.couple_id || typeof data.couple_id !== 'string') {
-    return { valid: false, error: 'couple_id is required and must be a string' };
+  if (!data.couple_id || typeof data.couple_id !== "string") {
+    return {
+      valid: false,
+      error: "couple_id is required and must be a string",
+    };
   }
 
   return { valid: true };
@@ -87,29 +91,29 @@ function validateRequest(data: any): { valid: boolean; error?: string } {
 // ========================================
 async function analyzeWithPerplexity(
   systemPrompt: string,
-  userPrompt: string
+  userPrompt: string,
 ): Promise<{ content: string; usage: any }> {
-  const apiKey = Deno.env.get('PERPLEXITY_API_KEY');
+  const apiKey = Deno.env.get("PERPLEXITY_API_KEY");
 
   if (!apiKey) {
-    throw new Error('PERPLEXITY_API_KEY not configured');
+    throw new Error("PERPLEXITY_API_KEY not configured");
   }
 
   const requestBody: PerplexityRequest = {
-    model: 'sonar',
+    model: "sonar",
     messages: [
-      { role: 'system', content: systemPrompt },
-      { role: 'user', content: userPrompt },
+      { role: "system", content: systemPrompt },
+      { role: "user", content: userPrompt },
     ],
     temperature: 0.5,
     max_tokens: 3000,
   };
 
-  const response = await fetch('https://api.perplexity.ai/chat/completions', {
-    method: 'POST',
+  const response = await fetch("https://api.perplexity.ai/chat/completions", {
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
     },
     body: JSON.stringify(requestBody),
   });
@@ -122,7 +126,7 @@ async function analyzeWithPerplexity(
   const data: PerplexityResponse = await response.json();
 
   return {
-    content: data.choices[0]?.message?.content || '',
+    content: data.choices[0]?.message?.content || "",
     usage: data.usage,
   };
 }
@@ -132,54 +136,63 @@ async function analyzeWithPerplexity(
 // ========================================
 Deno.serve(async (req) => {
   // Handle CORS preflight
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
+  if (req.method === "OPTIONS") {
+    return new Response("ok", { headers: corsHeaders });
   }
 
   try {
     const rawBody = await req.json();
-    
+
     // Validate request
     const validation = validateRequest(rawBody);
     if (!validation.valid) {
-      return new Response(
-        JSON.stringify({ error: validation.error }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
-      );
+      return new Response(JSON.stringify({ error: validation.error }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 400,
+      });
     }
 
     const { couple_id } = rawBody as SessionPrepRequest;
 
     // Verify user is a therapist
-    const authHeader = req.headers.get('Authorization');
+    const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
       return new Response(
-        JSON.stringify({ error: 'Missing authorization header' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 401 }
+        JSON.stringify({ error: "Missing authorization header" }),
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 401,
+        },
       );
     }
 
     const supabase = createSupabaseClient(authHeader);
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
 
     if (userError || !user) {
-      return new Response(
-        JSON.stringify({ error: 'Unauthorized' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 401 }
-      );
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 401,
+      });
     }
 
     // Check if user is a therapist
     const { data: profile } = await supabase
-      .from('Couples_Profiles')
-      .select('role')
-      .eq('id', user.id)
+      .from("Couples_Profiles")
+      .select("role")
+      .eq("id", user.id)
       .single();
 
-    if (profile?.role !== 'therapist') {
+    if (profile?.role !== "therapist") {
       return new Response(
-        JSON.stringify({ error: 'Access denied. Therapist access required.' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 403 }
+        JSON.stringify({ error: "Access denied. Therapist access required." }),
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 403,
+        },
       );
     }
 
@@ -192,78 +205,81 @@ Deno.serve(async (req) => {
 
     // Get partner IDs
     const { data: partners } = await adminSupabase
-      .from('Couples_Profiles')
-      .select('id, full_name')
-      .eq('couple_id', couple_id)
-      .eq('role', 'client');
+      .from("Couples_Profiles")
+      .select("id, full_name")
+      .eq("couple_id", couple_id)
+      .eq("role", "client");
 
     if (!partners || partners.length < 2) {
       return new Response(
-        JSON.stringify({ error: 'Couple not found or incomplete' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 404 }
+        JSON.stringify({ error: "Couple not found or incomplete" }),
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 404,
+        },
       );
     }
 
-    const partnerIds = partners.map(p => p.id);
+    const partnerIds = partners.map((p) => p.id);
 
     // Gather activity counts
     const activityData: Record<string, number> = {};
 
     // Weekly check-ins
     const { count: checkinsCount } = await adminSupabase
-      .from('Couples_WeeklyCheckIns')
-      .select('*', { count: 'exact', head: true })
-      .in('user_id', partnerIds)
-      .gte('created_at', thirtyDaysAgo.toISOString());
-    activityData['weekly_checkins'] = checkinsCount || 0;
+      .from("Couples_WeeklyCheckIns")
+      .select("*", { count: "exact", head: true })
+      .in("user_id", partnerIds)
+      .gte("created_at", thirtyDaysAgo.toISOString());
+    activityData["weekly_checkins"] = checkinsCount || 0;
 
     // Gratitude logs
     const { count: gratitudeCount } = await adminSupabase
-      .from('Couples_GratitudeLogs')
-      .select('*', { count: 'exact', head: true })
-      .eq('couple_id', couple_id)
-      .gte('created_at', thirtyDaysAgo.toISOString());
-    activityData['gratitude_logs'] = gratitudeCount || 0;
+      .from("Couples_GratitudeLogs")
+      .select("*", { count: "exact", head: true })
+      .eq("couple_id", couple_id)
+      .gte("created_at", thirtyDaysAgo.toISOString());
+    activityData["gratitude_logs"] = gratitudeCount || 0;
 
     // Shared goals
     const { count: goalsCount } = await adminSupabase
-      .from('Couples_SharedGoals')
-      .select('*', { count: 'exact', head: true })
-      .eq('couple_id', couple_id)
-      .gte('created_at', thirtyDaysAgo.toISOString());
-    activityData['shared_goals'] = goalsCount || 0;
+      .from("Couples_SharedGoals")
+      .select("*", { count: "exact", head: true })
+      .eq("couple_id", couple_id)
+      .gte("created_at", thirtyDaysAgo.toISOString());
+    activityData["shared_goals"] = goalsCount || 0;
 
     // Rituals
     const { count: ritualsCount } = await adminSupabase
-      .from('Couples_Rituals')
-      .select('*', { count: 'exact', head: true })
-      .eq('couple_id', couple_id)
-      .gte('created_at', thirtyDaysAgo.toISOString());
-    activityData['rituals'] = ritualsCount || 0;
+      .from("Couples_Rituals")
+      .select("*", { count: "exact", head: true })
+      .eq("couple_id", couple_id)
+      .gte("created_at", thirtyDaysAgo.toISOString());
+    activityData["rituals"] = ritualsCount || 0;
 
     // Hold Me Tight conversations
     const { count: hmtCount } = await adminSupabase
-      .from('Couples_HoldMeTightConversations')
-      .select('*', { count: 'exact', head: true })
-      .eq('couple_id', couple_id)
-      .gte('created_at', thirtyDaysAgo.toISOString());
-    activityData['hold_me_tight'] = hmtCount || 0;
+      .from("Couples_HoldMeTightConversations")
+      .select("*", { count: "exact", head: true })
+      .eq("couple_id", couple_id)
+      .gte("created_at", thirtyDaysAgo.toISOString());
+    activityData["hold_me_tight"] = hmtCount || 0;
 
     // Echo & Empathy sessions
     const { count: echoCount } = await adminSupabase
-      .from('Couples_EchoSessions')
-      .select('*', { count: 'exact', head: true })
-      .eq('couple_id', couple_id)
-      .gte('created_at', thirtyDaysAgo.toISOString());
-    activityData['echo_empathy'] = echoCount || 0;
+      .from("Couples_EchoSessions")
+      .select("*", { count: "exact", head: true })
+      .eq("couple_id", couple_id)
+      .gte("created_at", thirtyDaysAgo.toISOString());
+    activityData["echo_empathy"] = echoCount || 0;
 
     // Pause button usage
     const { count: pauseCount } = await adminSupabase
-      .from('Couples_PauseHistory')
-      .select('*', { count: 'exact', head: true })
-      .eq('couple_id', couple_id)
-      .gte('created_at', thirtyDaysAgo.toISOString());
-    activityData['pause_button'] = pauseCount || 0;
+      .from("Couples_PauseHistory")
+      .select("*", { count: "exact", head: true })
+      .eq("couple_id", couple_id)
+      .gte("created_at", thirtyDaysAgo.toISOString());
+    activityData["pause_button"] = pauseCount || 0;
 
     const systemPrompt = `You are an expert couples therapist preparing for a session. Analyze the couple's recent engagement with 13 therapy tools and provide clinical insights based on Gottman Method, EFT, and IFS principles.
 
@@ -277,7 +293,9 @@ Guidelines:
     const userPrompt = `Prepare session notes for a couple. Recent activity (last 30 days):
 
 ANONYMIZED ACTIVITY DATA:
-${Object.entries(activityData).map(([tool, count]) => `- ${tool}: ${count} uses`).join('\n')}
+${Object.entries(activityData)
+  .map(([tool, count]) => `- ${tool}: ${count} uses`)
+  .join("\n")}
 
 IMPORTANT: Respond ONLY with valid JSON in this exact format:
 {
@@ -290,14 +308,17 @@ IMPORTANT: Respond ONLY with valid JSON in this exact format:
 }`;
 
     const result = await analyzeWithPerplexity(systemPrompt, userPrompt);
-    
+
     // Parse JSON from AI response
     const parsed = safeJsonParse(result.content);
 
     if (!parsed) {
       return new Response(
-        JSON.stringify({ error: 'Failed to parse AI response' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+        JSON.stringify({ error: "Failed to parse AI response" }),
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 500,
+        },
       );
     }
 
@@ -314,20 +335,18 @@ IMPORTANT: Respond ONLY with valid JSON in this exact format:
         usage: result.usage,
       }),
       {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,
-      }
+      },
     );
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-    console.error('Error generating session prep:', errorMessage);
-    
-    return new Response(
-      JSON.stringify({ error: errorMessage }),
-      {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 500,
-      }
-    );
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error occurred";
+    console.error("Error generating session prep:", errorMessage);
+
+    return new Response(JSON.stringify({ error: errorMessage }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 500,
+    });
   }
 });

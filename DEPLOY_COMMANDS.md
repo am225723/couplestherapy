@@ -60,16 +60,19 @@ curl -X POST 'https://YOUR_PROJECT_REF.supabase.co/functions/v1/ai-date-night' \
 ## Quick Reference
 
 **Set secret:**
+
 ```bash
 supabase secrets set PERPLEXITY_API_KEY=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
 ```
 
 **Deploy:**
+
 ```bash
 supabase functions deploy ai-date-night
 ```
 
 **Check logs:**
+
 ```bash
 supabase functions logs ai-date-night --follow
 ```

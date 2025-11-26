@@ -32,6 +32,7 @@ curl -X POST 'https://YOUR_PROJECT_REF.supabase.co/functions/v1/ai-date-night' \
    - **Anon/Public Key** (starts with `eyJ...`)
 
 **Example:**
+
 ```bash
 curl -X POST 'https://abcdefgh.supabase.co/functions/v1/ai-date-night' \
   -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...' \
@@ -56,21 +57,21 @@ const generateMutation = useMutation({
     const response = await fetch(
       `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-date-night`,
       {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
         },
         body: JSON.stringify(prefs),
-      }
+      },
     );
 
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.error || 'Failed to generate ideas');
+      throw new Error(error.error || "Failed to generate ideas");
     }
 
-    return await response.json() as DateNightResponse;
+    return (await response.json()) as DateNightResponse;
   },
 });
 ```
@@ -83,19 +84,21 @@ If you want to keep using `supabase.functions.invoke()`, make sure the user is l
 
 ```typescript
 // Check if user is authenticated
-const { data: { user } } = await supabase.auth.getUser();
+const {
+  data: { user },
+} = await supabase.auth.getUser();
 
 if (!user) {
   toast({
-    title: 'Authentication Required',
-    description: 'Please log in to generate date night ideas',
-    variant: 'destructive',
+    title: "Authentication Required",
+    description: "Please log in to generate date night ideas",
+    variant: "destructive",
   });
   return;
 }
 
 // Then invoke the function
-const { data, error } = await supabase.functions.invoke('ai-date-night', {
+const { data, error } = await supabase.functions.invoke("ai-date-night", {
   body: prefs,
 });
 ```
@@ -114,33 +117,30 @@ const generateMutation = useMutation({
     const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
     const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-    const response = await fetch(
-      `${supabaseUrl}/functions/v1/ai-date-night`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${supabaseAnonKey}`,
-        },
-        body: JSON.stringify(prefs),
-      }
-    );
+    const response = await fetch(`${supabaseUrl}/functions/v1/ai-date-night`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${supabaseAnonKey}`,
+      },
+      body: JSON.stringify(prefs),
+    });
 
     if (!response.ok) {
       const errorData = await response.json();
-      throw new Error(errorData.error || 'Failed to generate date night ideas');
+      throw new Error(errorData.error || "Failed to generate date night ideas");
     }
 
-    return await response.json() as DateNightResponse;
+    return (await response.json()) as DateNightResponse;
   },
   onSuccess: (data) => {
     setGeneratedIdeas(data.content);
   },
   onError: (error: any) => {
     toast({
-      title: 'Error',
-      description: error.message || 'Failed to generate date night ideas',
-      variant: 'destructive',
+      title: "Error",
+      description: error.message || "Failed to generate date night ideas",
+      variant: "destructive",
     });
   },
 });

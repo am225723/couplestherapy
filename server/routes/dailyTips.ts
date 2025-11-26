@@ -19,12 +19,18 @@ async function generateAiTip(category: string): Promise<string> {
   }
 
   const categoryPrompts: Record<string, string> = {
-    communication: "Give a concise, actionable tip for improving couple communication and active listening.",
-    intimacy: "Give a concise, actionable tip for deepening emotional or physical intimacy between partners.",
-    conflict: "Give a concise, actionable tip for navigating and resolving couple conflicts healthily.",
-    gratitude: "Give a concise, actionable tip for expressing gratitude and appreciation in a relationship.",
-    connection: "Give a concise, actionable tip for deepening emotional connection and bonding.",
-    growth: "Give a concise, actionable tip for personal and relationship growth.",
+    communication:
+      "Give a concise, actionable tip for improving couple communication and active listening.",
+    intimacy:
+      "Give a concise, actionable tip for deepening emotional or physical intimacy between partners.",
+    conflict:
+      "Give a concise, actionable tip for navigating and resolving couple conflicts healthily.",
+    gratitude:
+      "Give a concise, actionable tip for expressing gratitude and appreciation in a relationship.",
+    connection:
+      "Give a concise, actionable tip for deepening emotional connection and bonding.",
+    growth:
+      "Give a concise, actionable tip for personal and relationship growth.",
   };
 
   const prompt = categoryPrompts[category] || categoryPrompts.connection;
@@ -56,7 +62,10 @@ async function generateAiTip(category: string): Promise<string> {
     }
 
     const data = await response.json();
-    return data.choices?.[0]?.message?.content || "Start each day by sharing one specific thing you appreciate about your partner.";
+    return (
+      data.choices?.[0]?.message?.content ||
+      "Start each day by sharing one specific thing you appreciate about your partner."
+    );
   } catch (error) {
     console.error("Error generating AI tip:", error);
     return "Start each day by sharing one specific thing you appreciate about your partner.";
@@ -79,7 +88,9 @@ router.get("/couple/:coupleId", async (req: Request, res: Response) => {
       .from("Couples_couples")
       .select("id")
       .eq("id", coupleId)
-      .or(`partner1_id.eq.${authResult.userId},partner2_id.eq.${authResult.userId}`)
+      .or(
+        `partner1_id.eq.${authResult.userId},partner2_id.eq.${authResult.userId}`,
+      )
       .single();
 
     if (!couple) {
@@ -116,7 +127,9 @@ router.get("/couple/:coupleId/today", async (req: Request, res: Response) => {
       .from("Couples_couples")
       .select("id")
       .eq("id", coupleId)
-      .or(`partner1_id.eq.${authResult.userId},partner2_id.eq.${authResult.userId}`)
+      .or(
+        `partner1_id.eq.${authResult.userId},partner2_id.eq.${authResult.userId}`,
+      )
       .single();
 
     if (!couple) {
@@ -141,7 +154,14 @@ router.get("/couple/:coupleId/today", async (req: Request, res: Response) => {
     }
 
     // Generate a new tip if none exists
-    const categories = ["communication", "intimacy", "conflict", "gratitude", "connection", "growth"];
+    const categories = [
+      "communication",
+      "intimacy",
+      "conflict",
+      "gratitude",
+      "connection",
+      "growth",
+    ];
     const category = categories[Math.floor(Math.random() * categories.length)];
 
     try {
@@ -184,7 +204,9 @@ router.post("/couple/:coupleId", async (req: Request, res: Response) => {
       .from("Couples_couples")
       .select("id")
       .eq("id", coupleId)
-      .or(`partner1_id.eq.${authResult.userId},partner2_id.eq.${authResult.userId}`)
+      .or(
+        `partner1_id.eq.${authResult.userId},partner2_id.eq.${authResult.userId}`,
+      )
       .single();
 
     if (!couple) {

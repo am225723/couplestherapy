@@ -1,6 +1,11 @@
 import { Router } from "express";
 import { supabaseAdmin } from "../supabase.js";
-import type { TherapistAnalytics, CoupleAnalytics, AIInsight, SessionPrepResult } from "../../shared/schema.js";
+import type {
+  TherapistAnalytics,
+  CoupleAnalytics,
+  AIInsight,
+  SessionPrepResult,
+} from "../../shared/schema.js";
 import { analyzeCheckInsWithPerplexity } from "../perplexity.js";
 import { safeJsonParse } from "../_shared/safe-json-parse.js";
 import { verifyTherapistSession, verifyUserSession } from "../helpers.js";
@@ -10,10 +15,19 @@ const aiRouter = Router();
 
 // Simple in-memory cache for AI insights (5-minute TTL)
 // This prevents expensive repeated API calls and provides basic rate limiting
-const aiInsightsCache = new Map<string, { data: AIInsight; timestamp: number }>();
-const sessionPrepCache = new Map<string, { data: SessionPrepResult; timestamp: number }>();
+const aiInsightsCache = new Map<
+  string,
+  { data: AIInsight; timestamp: number }
+>();
+const sessionPrepCache = new Map<
+  string,
+  { data: SessionPrepResult; timestamp: number }
+>();
 const empathyPromptCache = new Map<string, { data: any; timestamp: number }>();
-const recommendationsCache = new Map<string, { data: any; timestamp: number }>();
+const recommendationsCache = new Map<
+  string,
+  { data: any; timestamp: number }
+>();
 const echoCoachingCache = new Map<string, { data: any; timestamp: number }>();
 const voiceSentimentCache = new Map<string, { data: any; timestamp: number }>();
 const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
@@ -35,9 +49,9 @@ aiRouter.get("/analytics", async (req, res) => {
 
     // Get all couples for this therapist
     const { data: couples, error: couplesError } = await supabaseAdmin
-      .from('Couples_couples')
-      .select('*')
-      .eq('therapist_id', therapistId);
+      .from("Couples_couples")
+      .select("*")
+      .eq("therapist_id", therapistId);
 
     if (couplesError) throw couplesError;
     if (!couples || couples.length === 0) {
@@ -52,14 +66,16 @@ aiRouter.get("/analytics", async (req, res) => {
       } as TherapistAnalytics);
     }
 
-    const coupleIds = couples.map(c => c.id);
-    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+    const coupleIds = couples.map((c) => c.id);
+    const thirtyDaysAgo = new Date(
+      Date.now() - 30 * 24 * 60 * 60 * 1000,
+    ).toISOString();
 
     // Fetch all profiles for partner names
     const { data: profiles } = await supabaseAdmin
-      .from('Couples_profiles')
-      .select('*')
-      .in('couple_id', coupleIds);
+      .from("Couples_profiles")
+      .select("*")
+      .in("couple_id", coupleIds);
 
     // Fetch all activity data in parallel
     const [
@@ -70,93 +86,161 @@ aiRouter.get("/analytics", async (req, res) => {
       { data: allRituals },
       { data: therapistComments },
     ] = await Promise.all([
-      supabaseAdmin.from('Couples_weekly_checkins').select('*').in('couple_id', coupleIds),
-      supabaseAdmin.from('Couples_gratitude_logs').select('*').in('couple_id', coupleIds),
-      supabaseAdmin.from('Couples_shared_goals').select('*').in('couple_id', coupleIds),
-      supabaseAdmin.from('Couples_conversations').select('*').in('couple_id', coupleIds),
-      supabaseAdmin.from('Couples_rituals').select('*').in('couple_id', coupleIds),
-      supabaseAdmin.from('Couples_therapist_comments').select('*').eq('therapist_id', therapistId),
+      supabaseAdmin
+        .from("Couples_weekly_checkins")
+        .select("*")
+        .in("couple_id", coupleIds),
+      supabaseAdmin
+        .from("Couples_gratitude_logs")
+        .select("*")
+        .in("couple_id", coupleIds),
+      supabaseAdmin
+        .from("Couples_shared_goals")
+        .select("*")
+        .in("couple_id", coupleIds),
+      supabaseAdmin
+        .from("Couples_conversations")
+        .select("*")
+        .in("couple_id", coupleIds),
+      supabaseAdmin
+        .from("Couples_rituals")
+        .select("*")
+        .in("couple_id", coupleIds),
+      supabaseAdmin
+        .from("Couples_therapist_comments")
+        .select("*")
+        .eq("therapist_id", therapistId),
     ]);
 
     // Calculate per-couple analytics
-    const coupleAnalytics: CoupleAnalytics[] = couples.map(couple => {
-      const partner1 = profiles?.find(p => p.id === couple.partner1_id);
-      const partner2 = profiles?.find(p => p.id === couple.partner2_id);
+    const coupleAnalytics: CoupleAnalytics[] = couples.map((couple) => {
+      const partner1 = profiles?.find((p) => p.id === couple.partner1_id);
+      const partner2 = profiles?.find((p) => p.id === couple.partner2_id);
 
-      const checkins = allCheckins?.filter(c => c.couple_id === couple.id) || [];
-      const gratitude = allGratitude?.filter(g => g.couple_id === couple.id) || [];
-      const goals = allGoals?.filter(g => g.couple_id === couple.id) || [];
-      const conversations = allConversations?.filter(c => c.couple_id === couple.id) || [];
-      const rituals = allRituals?.filter(r => r.couple_id === couple.id) || [];
+      const checkins =
+        allCheckins?.filter((c) => c.couple_id === couple.id) || [];
+      const gratitude =
+        allGratitude?.filter((g) => g.couple_id === couple.id) || [];
+      const goals = allGoals?.filter((g) => g.couple_id === couple.id) || [];
+      const conversations =
+        allConversations?.filter((c) => c.couple_id === couple.id) || [];
+      const rituals =
+        allRituals?.filter((r) => r.couple_id === couple.id) || [];
 
       // Calculate check-in completion rate (past 4 weeks)
       const currentDate = new Date();
-      const fourWeeksAgo = new Date(currentDate.getTime() - 28 * 24 * 60 * 60 * 1000);
-      const recentCheckins = checkins.filter(c => new Date(c.created_at) >= fourWeeksAgo);
-      
+      const fourWeeksAgo = new Date(
+        currentDate.getTime() - 28 * 24 * 60 * 60 * 1000,
+      );
+      const recentCheckins = checkins.filter(
+        (c) => new Date(c.created_at) >= fourWeeksAgo,
+      );
+
       // Group by week and count unique users
-      const weekGroups = recentCheckins.reduce((acc, c) => {
-        const key = `${c.year}-${c.week_number}`;
-        if (!acc[key]) acc[key] = new Set();
-        acc[key].add(c.user_id);
-        return acc;
-      }, {} as Record<string, Set<string>>);
+      const weekGroups = recentCheckins.reduce(
+        (acc, c) => {
+          const key = `${c.year}-${c.week_number}`;
+          if (!acc[key]) acc[key] = new Set();
+          acc[key].add(c.user_id);
+          return acc;
+        },
+        {} as Record<string, Set<string>>,
+      );
 
       const distinctWeeks = Object.keys(weekGroups).length;
-      const weeksWithBothPartners = (Object.values(weekGroups) as Set<string>[]).filter(s => s.size === 2).length;
+      const weeksWithBothPartners = (
+        Object.values(weekGroups) as Set<string>[]
+      ).filter((s) => s.size === 2).length;
       // Use actual distinct weeks as denominator, minimum 1 to avoid division by zero
       const denominator = Math.max(distinctWeeks, 1);
-      const checkinCompletionRate = Math.min(Math.round((weeksWithBothPartners / denominator) * 100), 100);
+      const checkinCompletionRate = Math.min(
+        Math.round((weeksWithBothPartners / denominator) * 100),
+        100,
+      );
 
       // Calculate average scores
-      const connectednessScores = checkins.map(c => c.q_connectedness).filter(Boolean);
-      const conflictScores = checkins.map(c => c.q_conflict).filter(Boolean);
-      const avgConnectedness = connectednessScores.length > 0
-        ? Math.round((connectednessScores.reduce((a, b) => a + b, 0) / connectednessScores.length) * 10) / 10
-        : 0;
-      const avgConflict = conflictScores.length > 0
-        ? Math.round((conflictScores.reduce((a, b) => a + b, 0) / conflictScores.length) * 10) / 10
-        : 0;
+      const connectednessScores = checkins
+        .map((c) => c.q_connectedness)
+        .filter(Boolean);
+      const conflictScores = checkins.map((c) => c.q_conflict).filter(Boolean);
+      const avgConnectedness =
+        connectednessScores.length > 0
+          ? Math.round(
+              (connectednessScores.reduce((a, b) => a + b, 0) /
+                connectednessScores.length) *
+                10,
+            ) / 10
+          : 0;
+      const avgConflict =
+        conflictScores.length > 0
+          ? Math.round(
+              (conflictScores.reduce((a, b) => a + b, 0) /
+                conflictScores.length) *
+                10,
+            ) / 10
+          : 0;
 
       // Find last activity date
       const allDates = [
-        ...checkins.map(c => c.created_at),
-        ...gratitude.map(g => g.created_at),
-        ...goals.map(g => g.created_at),
-        ...conversations.map(c => c.created_at),
-      ].filter(Boolean).map(d => new Date(d).getTime());
-      
-      const lastActivityDate = allDates.length > 0
-        ? new Date(Math.max(...allDates)).toISOString()
-        : null;
+        ...checkins.map((c) => c.created_at),
+        ...gratitude.map((g) => g.created_at),
+        ...goals.map((g) => g.created_at),
+        ...conversations.map((c) => c.created_at),
+      ]
+        .filter(Boolean)
+        .map((d) => new Date(d).getTime());
+
+      const lastActivityDate =
+        allDates.length > 0
+          ? new Date(Math.max(...allDates)).toISOString()
+          : null;
 
       // Calculate engagement score (0-100) - all metrics use last 30 days for consistency
       // Weighted: checkins (40%), gratitude (20%), goals (20%), conversations (10%), rituals (10%)
-      const thirtyDaysAgoTime = currentDate.getTime() - 30 * 24 * 60 * 60 * 1000;
-      const checkinsThisMonth = checkins.filter(c => new Date(c.created_at).getTime() >= thirtyDaysAgoTime).length;
-      const gratitudeThisMonth = gratitude.filter(g => new Date(g.created_at).getTime() >= thirtyDaysAgoTime).length;
-      const goalsCompletedThisMonth = goals.filter(g => g.status === 'done' && new Date(g.created_at).getTime() >= thirtyDaysAgoTime).length;
-      const conversationsThisMonth = conversations.filter(c => new Date(c.created_at).getTime() >= thirtyDaysAgoTime).length;
-      const ritualsThisMonth = rituals.filter(r => new Date(r.created_at || 0).getTime() >= thirtyDaysAgoTime).length;
-      
+      const thirtyDaysAgoTime =
+        currentDate.getTime() - 30 * 24 * 60 * 60 * 1000;
+      const checkinsThisMonth = checkins.filter(
+        (c) => new Date(c.created_at).getTime() >= thirtyDaysAgoTime,
+      ).length;
+      const gratitudeThisMonth = gratitude.filter(
+        (g) => new Date(g.created_at).getTime() >= thirtyDaysAgoTime,
+      ).length;
+      const goalsCompletedThisMonth = goals.filter(
+        (g) =>
+          g.status === "done" &&
+          new Date(g.created_at).getTime() >= thirtyDaysAgoTime,
+      ).length;
+      const conversationsThisMonth = conversations.filter(
+        (c) => new Date(c.created_at).getTime() >= thirtyDaysAgoTime,
+      ).length;
+      const ritualsThisMonth = rituals.filter(
+        (r) => new Date(r.created_at || 0).getTime() >= thirtyDaysAgoTime,
+      ).length;
+
       const checkinScore = Math.min((checkinsThisMonth / 8) * 40, 40); // 8 checkins/month = full score
       const gratitudeScore = Math.min((gratitudeThisMonth / 20) * 20, 20); // 20/month = full score
       const goalScore = Math.min((goalsCompletedThisMonth / 5) * 20, 20); // 5/month = full score
       const conversationScore = Math.min((conversationsThisMonth / 3) * 10, 10); // 3/month = full score
       const ritualScore = Math.min((ritualsThisMonth / 4) * 10, 10); // 4/month = full score
-      
-      const engagementScore = Math.round(checkinScore + gratitudeScore + goalScore + conversationScore + ritualScore);
+
+      const engagementScore = Math.round(
+        checkinScore +
+          gratitudeScore +
+          goalScore +
+          conversationScore +
+          ritualScore,
+      );
 
       return {
         couple_id: couple.id,
-        partner1_name: partner1?.full_name || 'Partner 1',
-        partner2_name: partner2?.full_name || 'Partner 2',
+        partner1_name: partner1?.full_name || "Partner 1",
+        partner2_name: partner2?.full_name || "Partner 2",
         total_checkins: checkins.length,
         checkins_this_month: checkinsThisMonth,
         checkin_completion_rate: checkinCompletionRate,
         gratitude_count: gratitude.length,
         goals_total: goals.length,
-        goals_completed: goals.filter(g => g.status === 'done').length,
+        goals_completed: goals.filter((g) => g.status === "done").length,
         conversations_count: conversations.length,
         rituals_count: rituals.length,
         avg_connectedness: avgConnectedness,
@@ -167,13 +251,22 @@ aiRouter.get("/analytics", async (req, res) => {
     });
 
     // Calculate therapist-wide stats
-    const activeCouples = coupleAnalytics.filter(c => {
-      return c.last_activity_date && new Date(c.last_activity_date) >= new Date(thirtyDaysAgo);
+    const activeCouples = coupleAnalytics.filter((c) => {
+      return (
+        c.last_activity_date &&
+        new Date(c.last_activity_date) >= new Date(thirtyDaysAgo)
+      );
     }).length;
 
-    const overallCheckinRate = coupleAnalytics.length > 0
-      ? Math.round(coupleAnalytics.reduce((sum, c) => sum + c.checkin_completion_rate, 0) / coupleAnalytics.length)
-      : 0;
+    const overallCheckinRate =
+      coupleAnalytics.length > 0
+        ? Math.round(
+            coupleAnalytics.reduce(
+              (sum, c) => sum + c.checkin_completion_rate,
+              0,
+            ) / coupleAnalytics.length,
+          )
+        : 0;
 
     const analytics: TherapistAnalytics = {
       therapist_id: therapistId,
@@ -187,7 +280,7 @@ aiRouter.get("/analytics", async (req, res) => {
 
     res.json(analytics);
   } catch (error: any) {
-    console.error('Analytics error:', error);
+    console.error("Analytics error:", error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -205,23 +298,23 @@ aiRouter.get("/insights", async (req, res) => {
     const coupleId = req.query.couple_id as string;
 
     if (!coupleId) {
-      return res.status(400).json({ 
-        error: "couple_id is required" 
+      return res.status(400).json({
+        error: "couple_id is required",
       });
     }
 
     // Check cache first to prevent expensive duplicate API calls
     const cacheKey = `${therapistId}:${coupleId}`;
     const cached = aiInsightsCache.get(cacheKey);
-    if (cached && (Date.now() - cached.timestamp) < CACHE_TTL_MS) {
+    if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
       return res.json(cached.data);
     }
 
     // 1. Validate therapist has access to this couple
     const { data: couple, error: coupleError } = await supabaseAdmin
-      .from('Couples_couples')
-      .select('*')
-      .eq('id', coupleId)
+      .from("Couples_couples")
+      .select("*")
+      .eq("id", coupleId)
       .single();
 
     if (coupleError || !couple) {
@@ -229,8 +322,8 @@ aiRouter.get("/insights", async (req, res) => {
     }
 
     if (couple.therapist_id !== therapistId) {
-      return res.status(403).json({ 
-        error: "You don't have access to this couple's data" 
+      return res.status(403).json({
+        error: "You don't have access to this couple's data",
       });
     }
 
@@ -239,28 +332,29 @@ aiRouter.get("/insights", async (req, res) => {
     twelveWeeksAgo.setDate(twelveWeeksAgo.getDate() - 84); // 12 weeks
 
     const { data: checkins, error: checkinsError } = await supabaseAdmin
-      .from('Couples_weekly_checkins')
-      .select('*')
-      .eq('couple_id', coupleId)
-      .gte('created_at', twelveWeeksAgo.toISOString())
-      .order('year', { ascending: true })
-      .order('week_number', { ascending: true });
+      .from("Couples_weekly_checkins")
+      .select("*")
+      .eq("couple_id", coupleId)
+      .gte("created_at", twelveWeeksAgo.toISOString())
+      .order("year", { ascending: true })
+      .order("week_number", { ascending: true });
 
     if (checkinsError) {
       throw checkinsError;
     }
 
     if (!checkins || checkins.length === 0) {
-      return res.status(400).json({ 
-        error: "No check-in data available for this couple in the last 12 weeks" 
+      return res.status(400).json({
+        error:
+          "No check-in data available for this couple in the last 12 weeks",
       });
     }
 
     // 3. Format data for Perplexity AI analysis
     // PRIVACY: Use anonymized labels instead of actual names when sending to external AI service
     const weeklyData: Record<string, any[]> = {};
-    
-    checkins.forEach(checkin => {
+
+    checkins.forEach((checkin) => {
       const weekKey = `${checkin.year}-W${checkin.week_number}`;
       if (!weeklyData[weekKey]) {
         weeklyData[weekKey] = [];
@@ -281,24 +375,25 @@ aiRouter.get("/insights", async (req, res) => {
 
     // Build user prompt
     let userPrompt = `Analyze the following weekly check-in data for a couple in therapy:\n\n`;
-    
+
     const sortedWeeks = Object.keys(weeklyData).sort();
-    sortedWeeks.forEach(weekKey => {
+    sortedWeeks.forEach((weekKey) => {
       const weekCheckins = weeklyData[weekKey];
-      const [year, weekNum] = weekKey.split('-W');
-      const sampleDate = weekCheckins[0]?.createdAt ? 
-        new Date(weekCheckins[0].createdAt).toLocaleDateString() : '';
+      const [year, weekNum] = weekKey.split("-W");
+      const sampleDate = weekCheckins[0]?.createdAt
+        ? new Date(weekCheckins[0].createdAt).toLocaleDateString()
+        : "";
 
       userPrompt += `Week ${weekNum}, ${year} (${sampleDate}):\n`;
 
-      weekCheckins.forEach(checkin => {
+      weekCheckins.forEach((checkin) => {
         userPrompt += `- ${checkin.partnerLabel}: Connectedness: ${checkin.connectedness}/10, Conflict: ${checkin.conflict}/10\n`;
         userPrompt += `  Appreciation: "${checkin.appreciation}"\n`;
         userPrompt += `  Regrettable Incident: "${checkin.regrettableIncident}"\n`;
         userPrompt += `  Need: "${checkin.need}"\n`;
       });
 
-      userPrompt += '\n';
+      userPrompt += "\n";
     });
 
     userPrompt += `\nBased on this data, provide:\n`;
@@ -327,16 +422,22 @@ Be precise, evidence-based, and therapeutically sensitive. Format your response 
     const parsed = safeJsonParse(rawAnalysis);
 
     if (!parsed) {
-      return res.status(500).json({ error: 'Failed to parse AI response' });
+      return res.status(500).json({ error: "Failed to parse AI response" });
     }
 
     const insights: AIInsight = {
       couple_id: coupleId,
       generated_at: new Date().toISOString(),
-      summary: parsed.summary || rawAnalysis.substring(0, 300) + '...',
-      discrepancies: parsed.discrepancies || ['Analysis completed - see raw analysis for details'],
-      patterns: parsed.patterns || ['Analysis completed - see raw analysis for details'],
-      recommendations: parsed.recommendations || ['Analysis completed - see raw analysis for details'],
+      summary: parsed.summary || rawAnalysis.substring(0, 300) + "...",
+      discrepancies: parsed.discrepancies || [
+        "Analysis completed - see raw analysis for details",
+      ],
+      patterns: parsed.patterns || [
+        "Analysis completed - see raw analysis for details",
+      ],
+      recommendations: parsed.recommendations || [
+        "Analysis completed - see raw analysis for details",
+      ],
       raw_analysis: rawAnalysis,
       citations: analysisResult.citations,
     };
@@ -349,9 +450,9 @@ Be precise, evidence-based, and therapeutically sensitive. Format your response 
 
     res.json(insights);
   } catch (error: any) {
-    console.error('AI Insights error:', error);
-    res.status(500).json({ 
-      error: error.message || 'Failed to generate AI insights' 
+    console.error("AI Insights error:", error);
+    res.status(500).json({
+      error: error.message || "Failed to generate AI insights",
     });
   }
 });
@@ -369,23 +470,23 @@ aiRouter.post("/session-prep/:couple_id", async (req, res) => {
     const coupleId = req.params.couple_id;
 
     if (!coupleId) {
-      return res.status(400).json({ 
-        error: "couple_id is required" 
+      return res.status(400).json({
+        error: "couple_id is required",
       });
     }
 
     // Check cache first to prevent expensive duplicate API calls
     const cacheKey = `session-prep:${therapistId}:${coupleId}`;
     const cached = sessionPrepCache.get(cacheKey);
-    if (cached && (Date.now() - cached.timestamp) < CACHE_TTL_MS) {
+    if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
       return res.json(cached.data);
     }
 
     // 1. Validate therapist has access to this couple
     const { data: couple, error: coupleError } = await supabaseAdmin
-      .from('Couples_couples')
-      .select('partner1_id, partner2_id, therapist_id')
-      .eq('id', coupleId)
+      .from("Couples_couples")
+      .select("partner1_id, partner2_id, therapist_id")
+      .eq("id", coupleId)
       .single();
 
     if (coupleError || !couple) {
@@ -393,8 +494,8 @@ aiRouter.post("/session-prep/:couple_id", async (req, res) => {
     }
 
     if (couple.therapist_id !== therapistId) {
-      return res.status(403).json({ 
-        error: "You don't have access to this couple's data" 
+      return res.status(403).json({
+        error: "You don't have access to this couple's data",
       });
     }
 
@@ -420,91 +521,91 @@ aiRouter.post("/session-prep/:couple_id", async (req, res) => {
       { data: pauseEvents },
     ] = await Promise.all([
       supabaseAdmin
-        .from('Couples_weekly_checkins')
-        .select('*')
-        .eq('couple_id', coupleId)
-        .gte('created_at', fourWeeksAgoISO)
-        .order('created_at', { ascending: true }),
+        .from("Couples_weekly_checkins")
+        .select("*")
+        .eq("couple_id", coupleId)
+        .gte("created_at", fourWeeksAgoISO)
+        .order("created_at", { ascending: true }),
       supabaseAdmin
-        .from('Couples_gratitude_logs')
-        .select('*')
-        .eq('couple_id', coupleId)
-        .gte('created_at', fourWeeksAgoISO)
-        .order('created_at', { ascending: true }),
+        .from("Couples_gratitude_logs")
+        .select("*")
+        .eq("couple_id", coupleId)
+        .gte("created_at", fourWeeksAgoISO)
+        .order("created_at", { ascending: true }),
       supabaseAdmin
-        .from('Couples_shared_goals')
-        .select('*')
-        .eq('couple_id', coupleId)
-        .gte('created_at', fourWeeksAgoISO)
-        .order('created_at', { ascending: true }),
+        .from("Couples_shared_goals")
+        .select("*")
+        .eq("couple_id", coupleId)
+        .gte("created_at", fourWeeksAgoISO)
+        .order("created_at", { ascending: true }),
       supabaseAdmin
-        .from('Couples_rituals')
-        .select('*')
-        .eq('couple_id', coupleId),
+        .from("Couples_rituals")
+        .select("*")
+        .eq("couple_id", coupleId),
       supabaseAdmin
-        .from('Couples_conversations')
-        .select('*')
-        .eq('couple_id', coupleId)
-        .gte('created_at', fourWeeksAgoISO)
-        .order('created_at', { ascending: true }),
+        .from("Couples_conversations")
+        .select("*")
+        .eq("couple_id", coupleId)
+        .gte("created_at", fourWeeksAgoISO)
+        .order("created_at", { ascending: true }),
       supabaseAdmin
-        .from('Couples_voice_memos')
-        .select('id, sender_id, recipient_id, created_at, is_listened')
-        .eq('couple_id', coupleId)
-        .gte('created_at', fourWeeksAgoISO)
-        .order('created_at', { ascending: true }),
+        .from("Couples_voice_memos")
+        .select("id, sender_id, recipient_id, created_at, is_listened")
+        .eq("couple_id", coupleId)
+        .gte("created_at", fourWeeksAgoISO)
+        .order("created_at", { ascending: true }),
       supabaseAdmin
-        .from('Couples_horsemen_incidents')
-        .select('*')
-        .eq('couple_id', coupleId)
-        .gte('created_at', fourWeeksAgoISO)
-        .order('created_at', { ascending: true }),
+        .from("Couples_horsemen_incidents")
+        .select("*")
+        .eq("couple_id", coupleId)
+        .gte("created_at", fourWeeksAgoISO)
+        .order("created_at", { ascending: true }),
       supabaseAdmin
-        .from('Couples_demon_dialogues')
-        .select('*')
-        .eq('couple_id', coupleId)
-        .gte('created_at', fourWeeksAgoISO)
-        .order('created_at', { ascending: true }),
+        .from("Couples_demon_dialogues")
+        .select("*")
+        .eq("couple_id", coupleId)
+        .gte("created_at", fourWeeksAgoISO)
+        .order("created_at", { ascending: true }),
       supabaseAdmin
-        .from('Couples_meditation_sessions')
-        .select('*')
-        .eq('couple_id', coupleId)
-        .gte('created_at', fourWeeksAgoISO)
-        .order('created_at', { ascending: true }),
+        .from("Couples_meditation_sessions")
+        .select("*")
+        .eq("couple_id", coupleId)
+        .gte("created_at", fourWeeksAgoISO)
+        .order("created_at", { ascending: true }),
       supabaseAdmin
-        .from('Couples_intimacy_ratings')
-        .select('*')
-        .eq('couple_id', coupleId)
-        .gte('created_at', fourWeeksAgoISO)
-        .order('created_at', { ascending: true }),
+        .from("Couples_intimacy_ratings")
+        .select("*")
+        .eq("couple_id", coupleId)
+        .gte("created_at", fourWeeksAgoISO)
+        .order("created_at", { ascending: true }),
       supabaseAdmin
-        .from('Couples_intimacy_goals')
-        .select('*')
-        .eq('couple_id', coupleId)
-        .gte('created_at', fourWeeksAgoISO)
-        .order('created_at', { ascending: true }),
+        .from("Couples_intimacy_goals")
+        .select("*")
+        .eq("couple_id", coupleId)
+        .gte("created_at", fourWeeksAgoISO)
+        .order("created_at", { ascending: true }),
       supabaseAdmin
-        .from('Couples_echo_sessions')
-        .select('*')
-        .eq('couple_id', coupleId)
-        .gte('created_at', fourWeeksAgoISO)
-        .order('created_at', { ascending: true }),
+        .from("Couples_echo_sessions")
+        .select("*")
+        .eq("couple_id", coupleId)
+        .gte("created_at", fourWeeksAgoISO)
+        .order("created_at", { ascending: true }),
       supabaseAdmin
-        .from('Couples_ifs_exercises')
-        .select('*')
-        .eq('couple_id', coupleId)
-        .gte('created_at', fourWeeksAgoISO)
-        .order('created_at', { ascending: true }),
+        .from("Couples_ifs_exercises")
+        .select("*")
+        .eq("couple_id", coupleId)
+        .gte("created_at", fourWeeksAgoISO)
+        .order("created_at", { ascending: true }),
       supabaseAdmin
-        .from('Couples_pause_events')
-        .select('*')
-        .eq('couple_id', coupleId)
-        .gte('started_at', fourWeeksAgoISO)
-        .order('started_at', { ascending: true }),
+        .from("Couples_pause_events")
+        .select("*")
+        .eq("couple_id", coupleId)
+        .gte("started_at", fourWeeksAgoISO)
+        .order("started_at", { ascending: true }),
     ]);
 
     // Check if there's any recent activity
-    const hasActivity = (
+    const hasActivity =
       (checkins && checkins.length > 0) ||
       (gratitude && gratitude.length > 0) ||
       (goals && goals.length > 0) ||
@@ -515,12 +616,12 @@ aiRouter.post("/session-prep/:couple_id", async (req, res) => {
       (intimacyRatings && intimacyRatings.length > 0) ||
       (echoSessions && echoSessions.length > 0) ||
       (ifsExercises && ifsExercises.length > 0) ||
-      (pauseEvents && pauseEvents.length > 0)
-    );
+      (pauseEvents && pauseEvents.length > 0);
 
     if (!hasActivity) {
-      return res.status(400).json({ 
-        error: "No recent activity data available for this couple in the last 4 weeks" 
+      return res.status(400).json({
+        error:
+          "No recent activity data available for this couple in the last 4 weeks",
       });
     }
 
@@ -530,15 +631,17 @@ aiRouter.post("/session-prep/:couple_id", async (req, res) => {
     // ENGAGEMENT METRICS
     userPrompt += `=== ENGAGEMENT OVERVIEW ===\n`;
     userPrompt += `Weekly Check-ins: ${checkins?.length || 0} completed\n`;
-    
+
     // Calculate check-in completion by partner
-    const partner1Checkins = checkins?.filter(c => c.user_id === couple.partner1_id).length || 0;
-    const partner2Checkins = checkins?.filter(c => c.user_id === couple.partner2_id).length || 0;
+    const partner1Checkins =
+      checkins?.filter((c) => c.user_id === couple.partner1_id).length || 0;
+    const partner2Checkins =
+      checkins?.filter((c) => c.user_id === couple.partner2_id).length || 0;
     userPrompt += `  - Partner 1: ${partner1Checkins} check-ins\n`;
     userPrompt += `  - Partner 2: ${partner2Checkins} check-ins\n`;
-    
+
     userPrompt += `Gratitude Logs: ${gratitude?.length || 0} entries\n`;
-    userPrompt += `Shared Goals: ${goals?.length || 0} total (${goals?.filter(g => g.status === 'done').length || 0} completed)\n`;
+    userPrompt += `Shared Goals: ${goals?.length || 0} total (${goals?.filter((g) => g.status === "done").length || 0} completed)\n`;
     userPrompt += `Hold Me Tight Conversations: ${conversations?.length || 0} sessions\n`;
     userPrompt += `Voice Memos Exchanged: ${voiceMemos?.length || 0} messages\n`;
     userPrompt += `Echo & Empathy Sessions: ${echoSessions?.length || 0} completed\n`;
@@ -549,54 +652,79 @@ aiRouter.post("/session-prep/:couple_id", async (req, res) => {
     // CHECK-IN SCORES SUMMARY
     if (checkins && checkins.length > 0) {
       userPrompt += `=== WEEKLY CHECK-IN TRENDS ===\n`;
-      
-      const connectednessScores = checkins.map(c => c.q_connectedness).filter(Boolean);
-      const conflictScores = checkins.map(c => c.q_conflict).filter(Boolean);
-      
+
+      const connectednessScores = checkins
+        .map((c) => c.q_connectedness)
+        .filter(Boolean);
+      const conflictScores = checkins.map((c) => c.q_conflict).filter(Boolean);
+
       if (connectednessScores.length > 0) {
-        const avgConnectedness = (connectednessScores.reduce((a, b) => a + b, 0) / connectednessScores.length).toFixed(1);
+        const avgConnectedness = (
+          connectednessScores.reduce((a, b) => a + b, 0) /
+          connectednessScores.length
+        ).toFixed(1);
         const minConnectedness = Math.min(...connectednessScores);
         const maxConnectedness = Math.max(...connectednessScores);
         userPrompt += `Connectedness Scores (1-10): Avg ${avgConnectedness}, Range ${minConnectedness}-${maxConnectedness}\n`;
       }
-      
+
       if (conflictScores.length > 0) {
-        const avgConflict = (conflictScores.reduce((a, b) => a + b, 0) / conflictScores.length).toFixed(1);
+        const avgConflict = (
+          conflictScores.reduce((a, b) => a + b, 0) / conflictScores.length
+        ).toFixed(1);
         const minConflict = Math.min(...conflictScores);
         const maxConflict = Math.max(...conflictScores);
         userPrompt += `Conflict Scores (1-10): Avg ${avgConflict}, Range ${minConflict}-${maxConflict}\n`;
       }
-      
-      userPrompt += '\n';
+
+      userPrompt += "\n";
     }
 
     // CONCERNING PATTERNS
     userPrompt += `=== CONCERNING PATTERNS ===\n`;
-    
+
     if (horsemenIncidents && horsemenIncidents.length > 0) {
-      const criticismCount = horsemenIncidents.filter(h => h.horseman_type === 'criticism').length;
-      const contemptCount = horsemenIncidents.filter(h => h.horseman_type === 'contempt').length;
-      const defensivenessCount = horsemenIncidents.filter(h => h.horseman_type === 'defensiveness').length;
-      const stonewallCount = horsemenIncidents.filter(h => h.horseman_type === 'stonewalling').length;
-      
+      const criticismCount = horsemenIncidents.filter(
+        (h) => h.horseman_type === "criticism",
+      ).length;
+      const contemptCount = horsemenIncidents.filter(
+        (h) => h.horseman_type === "contempt",
+      ).length;
+      const defensivenessCount = horsemenIncidents.filter(
+        (h) => h.horseman_type === "defensiveness",
+      ).length;
+      const stonewallCount = horsemenIncidents.filter(
+        (h) => h.horseman_type === "stonewalling",
+      ).length;
+
       userPrompt += `Four Horsemen Incidents: ${horsemenIncidents.length} total\n`;
       userPrompt += `  - Criticism: ${criticismCount}\n`;
       userPrompt += `  - Contempt: ${contemptCount}\n`;
       userPrompt += `  - Defensiveness: ${defensivenessCount}\n`;
       userPrompt += `  - Stonewalling: ${stonewallCount}\n`;
-      
-      const antidotesPracticed = horsemenIncidents.filter(h => h.antidote_practiced).length;
+
+      const antidotesPracticed = horsemenIncidents.filter(
+        (h) => h.antidote_practiced,
+      ).length;
       userPrompt += `  - Antidotes practiced: ${antidotesPracticed}/${horsemenIncidents.length}\n`;
     } else {
       userPrompt += `Four Horsemen Incidents: 0 (positive sign)\n`;
     }
-    
+
     if (demonDialogues && demonDialogues.length > 0) {
-      const findBadGuyCount = demonDialogues.filter(d => d.dialogue_type === 'find_bad_guy').length;
-      const protestPolkaCount = demonDialogues.filter(d => d.dialogue_type === 'protest_polka').length;
-      const freezeFleeCount = demonDialogues.filter(d => d.dialogue_type === 'freeze_flee').length;
-      const interruptedCount = demonDialogues.filter(d => d.interrupted).length;
-      
+      const findBadGuyCount = demonDialogues.filter(
+        (d) => d.dialogue_type === "find_bad_guy",
+      ).length;
+      const protestPolkaCount = demonDialogues.filter(
+        (d) => d.dialogue_type === "protest_polka",
+      ).length;
+      const freezeFleeCount = demonDialogues.filter(
+        (d) => d.dialogue_type === "freeze_flee",
+      ).length;
+      const interruptedCount = demonDialogues.filter(
+        (d) => d.interrupted,
+      ).length;
+
       userPrompt += `Demon Dialogues Recognized: ${demonDialogues.length} total\n`;
       userPrompt += `  - Find the Bad Guy: ${findBadGuyCount}\n`;
       userPrompt += `  - Protest Polka: ${protestPolkaCount}\n`;
@@ -605,34 +733,38 @@ aiRouter.post("/session-prep/:couple_id", async (req, res) => {
     } else {
       userPrompt += `Demon Dialogues: 0 recognized\n`;
     }
-    
-    userPrompt += '\n';
+
+    userPrompt += "\n";
 
     // POSITIVE PATTERNS
     userPrompt += `=== POSITIVE PATTERNS ===\n`;
-    
+
     if (gratitude && gratitude.length > 0) {
-      const partner1Gratitude = gratitude.filter(g => g.user_id === couple.partner1_id).length;
-      const partner2Gratitude = gratitude.filter(g => g.user_id === couple.partner2_id).length;
+      const partner1Gratitude = gratitude.filter(
+        (g) => g.user_id === couple.partner1_id,
+      ).length;
+      const partner2Gratitude = gratitude.filter(
+        (g) => g.user_id === couple.partner2_id,
+      ).length;
       userPrompt += `Gratitude Practice: ${gratitude.length} entries\n`;
       userPrompt += `  - Partner 1: ${partner1Gratitude} entries\n`;
       userPrompt += `  - Partner 2: ${partner2Gratitude} entries\n`;
     }
-    
+
     if (rituals && rituals.length > 0) {
       userPrompt += `Rituals of Connection: ${rituals.length} active rituals\n`;
     }
-    
+
     if (intimacyRatings && intimacyRatings.length > 0) {
       userPrompt += `Intimacy Tracking: ${intimacyRatings.length} ratings submitted\n`;
     }
-    
+
     if (intimacyGoals && intimacyGoals.length > 0) {
-      const achievedGoals = intimacyGoals.filter(g => g.is_achieved).length;
+      const achievedGoals = intimacyGoals.filter((g) => g.is_achieved).length;
       userPrompt += `Intimacy Goals: ${achievedGoals}/${intimacyGoals.length} achieved\n`;
     }
-    
-    userPrompt += '\n';
+
+    userPrompt += "\n";
 
     // REQUEST STRUCTURED OUTPUT
     userPrompt += `Based on this data, provide:\n`;
@@ -664,17 +796,26 @@ Format your response with clear section headings.`;
     const parsed = safeJsonParse(rawAnalysis);
 
     if (!parsed) {
-      return res.status(500).json({ error: 'Failed to parse AI response' });
+      return res.status(500).json({ error: "Failed to parse AI response" });
     }
 
     const sessionPrep: SessionPrepResult = {
       couple_id: coupleId,
       generated_at: new Date().toISOString(),
-      engagement_summary: parsed.engagement_summary || rawAnalysis.substring(0, 200) + '...',
-      concerning_patterns: parsed.concerning_patterns || ['See full analysis for details'],
-      positive_patterns: parsed.positive_patterns || ['See full analysis for details'],
-      session_focus_areas: parsed.session_focus_areas || ['See full analysis for details'],
-      recommended_interventions: parsed.recommended_interventions || ['See full analysis for details'],
+      engagement_summary:
+        parsed.engagement_summary || rawAnalysis.substring(0, 200) + "...",
+      concerning_patterns: parsed.concerning_patterns || [
+        "See full analysis for details",
+      ],
+      positive_patterns: parsed.positive_patterns || [
+        "See full analysis for details",
+      ],
+      session_focus_areas: parsed.session_focus_areas || [
+        "See full analysis for details",
+      ],
+      recommended_interventions: parsed.recommended_interventions || [
+        "See full analysis for details",
+      ],
       ai_analysis: rawAnalysis,
       usage: analysisResult.usage,
     };
@@ -687,9 +828,9 @@ Format your response with clear section headings.`;
 
     res.json(sessionPrep);
   } catch (error: any) {
-    console.error('AI Session Prep error:', error);
-    res.status(500).json({ 
-      error: error.message || 'Failed to generate session preparation summary' 
+    console.error("AI Session Prep error:", error);
+    res.status(500).json({
+      error: error.message || "Failed to generate session preparation summary",
     });
   }
 });
@@ -714,9 +855,9 @@ aiRouter.post("/empathy-prompt", async (req, res) => {
 
     const parseResult = requestBodySchema.safeParse(req.body);
     if (!parseResult.success) {
-      return res.status(400).json({ 
-        error: 'Invalid request body',
-        details: parseResult.error.errors 
+      return res.status(400).json({
+        error: "Invalid request body",
+        details: parseResult.error.errors,
       });
     }
 
@@ -724,49 +865,54 @@ aiRouter.post("/empathy-prompt", async (req, res) => {
 
     // Verify conversation exists and belongs to user's couple
     const { data: conversation, error: conversationError } = await supabaseAdmin
-      .from('Couples_conversations')
-      .select('couple_id, initiator_id')
-      .eq('id', conversation_id)
+      .from("Couples_conversations")
+      .select("couple_id, initiator_id")
+      .eq("id", conversation_id)
       .single();
 
     if (conversationError || !conversation) {
-      return res.status(404).json({ error: 'Conversation not found' });
+      return res.status(404).json({ error: "Conversation not found" });
     }
 
     if (conversation.couple_id !== coupleId) {
-      return res.status(403).json({ 
-        error: 'Access denied. This conversation does not belong to your couple.' 
+      return res.status(403).json({
+        error:
+          "Access denied. This conversation does not belong to your couple.",
       });
     }
 
     // Verify user is a participant in this conversation
     const { data: couple, error: coupleError } = await supabaseAdmin
-      .from('Couples_couples')
-      .select('partner1_id, partner2_id')
-      .eq('id', coupleId)
+      .from("Couples_couples")
+      .select("partner1_id, partner2_id")
+      .eq("id", coupleId)
       .single();
 
     if (coupleError || !couple) {
-      return res.status(404).json({ error: 'Couple not found' });
+      return res.status(404).json({ error: "Couple not found" });
     }
 
-    const isParticipant = couple.partner1_id === userId || couple.partner2_id === userId;
+    const isParticipant =
+      couple.partner1_id === userId || couple.partner2_id === userId;
     if (!isParticipant) {
-      return res.status(403).json({ 
-        error: 'Access denied. You are not a participant in this conversation.' 
+      return res.status(403).json({
+        error: "Access denied. You are not a participant in this conversation.",
       });
     }
 
     // Check cache first - use first 50 chars of user_response as cache key suffix
-    const responseSuffix = user_response.substring(0, 50).replace(/[^a-zA-Z0-9]/g, '_');
+    const responseSuffix = user_response
+      .substring(0, 50)
+      .replace(/[^a-zA-Z0-9]/g, "_");
     const cacheKey = `empathy:${conversation_id}:${step_number}:${responseSuffix}`;
     const cached = empathyPromptCache.get(cacheKey);
-    if (cached && (Date.now() - cached.timestamp) < EMPATHY_CACHE_TTL_MS) {
+    if (cached && Date.now() - cached.timestamp < EMPATHY_CACHE_TTL_MS) {
       return res.json(cached.data);
     }
 
     // Build Perplexity prompts
-    const systemPrompt = "You are an expert Emotionally Focused Therapy (EFT) therapist coaching couples through the Hold Me Tight conversation. Your role is to help the listening partner respond with empathy, validation, and emotional attunement.";
+    const systemPrompt =
+      "You are an expert Emotionally Focused Therapy (EFT) therapist coaching couples through the Hold Me Tight conversation. Your role is to help the listening partner respond with empathy, validation, and emotional attunement.";
 
     const userPrompt = `Step ${step_number} of the Hold Me Tight Conversation.
 
@@ -792,11 +938,13 @@ Format as a numbered list of suggested responses.`;
     const parsed = safeJsonParse(aiFullResponse);
 
     if (!parsed) {
-      return res.status(500).json({ error: 'Failed to parse AI response' });
+      return res.status(500).json({ error: "Failed to parse AI response" });
     }
 
     // Parse AI response to extract numbered suggestions
-    const suggestedResponses: string[] = parsed.suggested_responses || [aiFullResponse];
+    const suggestedResponses: string[] = parsed.suggested_responses || [
+      aiFullResponse,
+    ];
 
     // Build response
     const response = {
@@ -815,9 +963,9 @@ Format as a numbered list of suggested responses.`;
 
     res.json(response);
   } catch (error: any) {
-    console.error('AI Empathy Prompt error:', error);
-    res.status(500).json({ 
-      error: error.message || 'Failed to generate empathy prompts' 
+    console.error("AI Empathy Prompt error:", error);
+    res.status(500).json({
+      error: error.message || "Failed to generate empathy prompts",
     });
   }
 });
@@ -836,7 +984,10 @@ aiRouter.get("/exercise-recommendations", async (req, res) => {
     // Check cache first
     const cacheKey = `recommendations:${coupleId}`;
     const cached = recommendationsCache.get(cacheKey);
-    if (cached && (Date.now() - cached.timestamp) < RECOMMENDATIONS_CACHE_TTL_MS) {
+    if (
+      cached &&
+      Date.now() - cached.timestamp < RECOMMENDATIONS_CACHE_TTL_MS
+    ) {
       return res.json(cached.data);
     }
 
@@ -870,50 +1021,143 @@ aiRouter.get("/exercise-recommendations", async (req, res) => {
       { data: calendarEvents },
       { data: loveMapSessions },
     ] = await Promise.all([
-      supabaseAdmin.from('Couples_weekly_checkins').select('id').eq('couple_id', coupleId).gte('created_at', thirtyDaysAgoISO),
-      supabaseAdmin.from('Couples_gratitude_logs').select('id').eq('couple_id', coupleId).gte('created_at', thirtyDaysAgoISO),
-      supabaseAdmin.from('Couples_shared_goals').select('id').eq('couple_id', coupleId).gte('created_at', thirtyDaysAgoISO),
-      supabaseAdmin.from('Couples_rituals').select('id').eq('couple_id', coupleId),
-      supabaseAdmin.from('Couples_conversations').select('id').eq('couple_id', coupleId).gte('created_at', thirtyDaysAgoISO),
-      supabaseAdmin.from('Couples_voice_memos').select('id').eq('couple_id', coupleId).gte('created_at', thirtyDaysAgoISO),
-      supabaseAdmin.from('Couples_horsemen_incidents').select('id').eq('couple_id', coupleId).gte('created_at', thirtyDaysAgoISO),
-      supabaseAdmin.from('Couples_demon_dialogues').select('id').eq('couple_id', coupleId).gte('created_at', thirtyDaysAgoISO),
-      supabaseAdmin.from('Couples_meditation_sessions').select('id').eq('couple_id', coupleId).gte('created_at', thirtyDaysAgoISO),
-      supabaseAdmin.from('Couples_intimacy_ratings').select('id').eq('couple_id', coupleId).gte('created_at', thirtyDaysAgoISO),
-      supabaseAdmin.from('Couples_intimacy_goals').select('id').eq('couple_id', coupleId).gte('created_at', thirtyDaysAgoISO),
-      supabaseAdmin.from('Couples_shared_dreams').select('id').eq('couple_id', coupleId).gte('created_at', thirtyDaysAgoISO),
-      supabaseAdmin.from('Couples_vision_board_items').select('id').eq('couple_id', coupleId).gte('created_at', thirtyDaysAgoISO),
-      supabaseAdmin.from('Couples_core_values').select('id').eq('couple_id', coupleId).gte('created_at', thirtyDaysAgoISO),
-      supabaseAdmin.from('Couples_discipline_agreements').select('id').eq('couple_id', coupleId).gte('created_at', thirtyDaysAgoISO),
-      supabaseAdmin.from('Couples_parenting_stress_checkins').select('id').eq('couple_id', coupleId).gte('created_at', thirtyDaysAgoISO),
-      supabaseAdmin.from('Couples_echo_sessions').select('id').eq('couple_id', coupleId).gte('created_at', thirtyDaysAgoISO),
-      supabaseAdmin.from('Couples_ifs_exercises').select('id').eq('couple_id', coupleId).gte('created_at', thirtyDaysAgoISO),
-      supabaseAdmin.from('Couples_pause_events').select('id').eq('couple_id', coupleId).gte('started_at', thirtyDaysAgoISO),
-      supabaseAdmin.from('Couples_messages').select('id').eq('couple_id', coupleId).gte('created_at', thirtyDaysAgoISO),
-      supabaseAdmin.from('Couples_calendar_events').select('id').eq('couple_id', coupleId).gte('created_at', thirtyDaysAgoISO),
-      supabaseAdmin.from('Couples_love_map_sessions').select('id').eq('couple_id', coupleId).gte('created_at', thirtyDaysAgoISO),
+      supabaseAdmin
+        .from("Couples_weekly_checkins")
+        .select("id")
+        .eq("couple_id", coupleId)
+        .gte("created_at", thirtyDaysAgoISO),
+      supabaseAdmin
+        .from("Couples_gratitude_logs")
+        .select("id")
+        .eq("couple_id", coupleId)
+        .gte("created_at", thirtyDaysAgoISO),
+      supabaseAdmin
+        .from("Couples_shared_goals")
+        .select("id")
+        .eq("couple_id", coupleId)
+        .gte("created_at", thirtyDaysAgoISO),
+      supabaseAdmin
+        .from("Couples_rituals")
+        .select("id")
+        .eq("couple_id", coupleId),
+      supabaseAdmin
+        .from("Couples_conversations")
+        .select("id")
+        .eq("couple_id", coupleId)
+        .gte("created_at", thirtyDaysAgoISO),
+      supabaseAdmin
+        .from("Couples_voice_memos")
+        .select("id")
+        .eq("couple_id", coupleId)
+        .gte("created_at", thirtyDaysAgoISO),
+      supabaseAdmin
+        .from("Couples_horsemen_incidents")
+        .select("id")
+        .eq("couple_id", coupleId)
+        .gte("created_at", thirtyDaysAgoISO),
+      supabaseAdmin
+        .from("Couples_demon_dialogues")
+        .select("id")
+        .eq("couple_id", coupleId)
+        .gte("created_at", thirtyDaysAgoISO),
+      supabaseAdmin
+        .from("Couples_meditation_sessions")
+        .select("id")
+        .eq("couple_id", coupleId)
+        .gte("created_at", thirtyDaysAgoISO),
+      supabaseAdmin
+        .from("Couples_intimacy_ratings")
+        .select("id")
+        .eq("couple_id", coupleId)
+        .gte("created_at", thirtyDaysAgoISO),
+      supabaseAdmin
+        .from("Couples_intimacy_goals")
+        .select("id")
+        .eq("couple_id", coupleId)
+        .gte("created_at", thirtyDaysAgoISO),
+      supabaseAdmin
+        .from("Couples_shared_dreams")
+        .select("id")
+        .eq("couple_id", coupleId)
+        .gte("created_at", thirtyDaysAgoISO),
+      supabaseAdmin
+        .from("Couples_vision_board_items")
+        .select("id")
+        .eq("couple_id", coupleId)
+        .gte("created_at", thirtyDaysAgoISO),
+      supabaseAdmin
+        .from("Couples_core_values")
+        .select("id")
+        .eq("couple_id", coupleId)
+        .gte("created_at", thirtyDaysAgoISO),
+      supabaseAdmin
+        .from("Couples_discipline_agreements")
+        .select("id")
+        .eq("couple_id", coupleId)
+        .gte("created_at", thirtyDaysAgoISO),
+      supabaseAdmin
+        .from("Couples_parenting_stress_checkins")
+        .select("id")
+        .eq("couple_id", coupleId)
+        .gte("created_at", thirtyDaysAgoISO),
+      supabaseAdmin
+        .from("Couples_echo_sessions")
+        .select("id")
+        .eq("couple_id", coupleId)
+        .gte("created_at", thirtyDaysAgoISO),
+      supabaseAdmin
+        .from("Couples_ifs_exercises")
+        .select("id")
+        .eq("couple_id", coupleId)
+        .gte("created_at", thirtyDaysAgoISO),
+      supabaseAdmin
+        .from("Couples_pause_events")
+        .select("id")
+        .eq("couple_id", coupleId)
+        .gte("started_at", thirtyDaysAgoISO),
+      supabaseAdmin
+        .from("Couples_messages")
+        .select("id")
+        .eq("couple_id", coupleId)
+        .gte("created_at", thirtyDaysAgoISO),
+      supabaseAdmin
+        .from("Couples_calendar_events")
+        .select("id")
+        .eq("couple_id", coupleId)
+        .gte("created_at", thirtyDaysAgoISO),
+      supabaseAdmin
+        .from("Couples_love_map_sessions")
+        .select("id")
+        .eq("couple_id", coupleId)
+        .gte("created_at", thirtyDaysAgoISO),
     ]);
 
     // Calculate activity counts
     const activityCounts = {
-      'Weekly Check-ins': weeklyCheckins?.length || 0,
-      'Gratitude Log': gratitudeLogs?.length || 0,
-      'Shared Goals': sharedGoals?.length || 0,
-      'Rituals of Connection': rituals?.length || 0,
-      'Hold Me Tight Conversations': conversations?.length || 0,
-      'Voice Memos': voiceMemos?.length || 0,
-      'Four Horsemen Awareness': fourHorsemen?.length || 0,
-      'Demon Dialogues': demonDialogues?.length || 0,
-      'Meditation Library': meditationSessions?.length || 0,
-      'Intimacy Mapping': (intimacyRatings?.length || 0) + (intimacyGoals?.length || 0),
-      'Values & Vision': (sharedDreams?.length || 0) + (visionBoardItems?.length || 0) + (coreValues?.length || 0),
-      'Parenting Partners': (parentingAgreements?.length || 0) + (parentingStressCheckins?.length || 0),
-      'Echo & Empathy': echoSessions?.length || 0,
-      'IFS Introduction': ifsExercises?.length || 0,
-      'Pause Button': pauseEvents?.length || 0,
-      'Messages': messages?.length || 0,
-      'Shared Calendar': calendarEvents?.length || 0,
-      'Love Map Quiz': loveMapSessions?.length || 0,
+      "Weekly Check-ins": weeklyCheckins?.length || 0,
+      "Gratitude Log": gratitudeLogs?.length || 0,
+      "Shared Goals": sharedGoals?.length || 0,
+      "Rituals of Connection": rituals?.length || 0,
+      "Hold Me Tight Conversations": conversations?.length || 0,
+      "Voice Memos": voiceMemos?.length || 0,
+      "Four Horsemen Awareness": fourHorsemen?.length || 0,
+      "Demon Dialogues": demonDialogues?.length || 0,
+      "Meditation Library": meditationSessions?.length || 0,
+      "Intimacy Mapping":
+        (intimacyRatings?.length || 0) + (intimacyGoals?.length || 0),
+      "Values & Vision":
+        (sharedDreams?.length || 0) +
+        (visionBoardItems?.length || 0) +
+        (coreValues?.length || 0),
+      "Parenting Partners":
+        (parentingAgreements?.length || 0) +
+        (parentingStressCheckins?.length || 0),
+      "Echo & Empathy": echoSessions?.length || 0,
+      "IFS Introduction": ifsExercises?.length || 0,
+      "Pause Button": pauseEvents?.length || 0,
+      Messages: messages?.length || 0,
+      "Shared Calendar": calendarEvents?.length || 0,
+      "Love Map Quiz": loveMapSessions?.length || 0,
     };
 
     // Categorize activities
@@ -932,32 +1176,33 @@ aiRouter.get("/exercise-recommendations", async (req, res) => {
     });
 
     // Build Perplexity prompts
-    const systemPrompt = "You are an expert couples therapist recommending therapeutic exercises and activities. Based on a couple's activity patterns, suggest 3-5 specific therapy tools they should try next to strengthen their relationship. Always respond with valid JSON only.";
+    const systemPrompt =
+      "You are an expert couples therapist recommending therapeutic exercises and activities. Based on a couple's activity patterns, suggest 3-5 specific therapy tools they should try next to strengthen their relationship. Always respond with valid JSON only.";
 
     let userPrompt = `Analyze this couple's therapy tool usage over the last 30 days:\n\n`;
 
     if (notStarted.length > 0) {
       userPrompt += `NOT STARTED (never used):\n`;
-      notStarted.forEach(tool => {
+      notStarted.forEach((tool) => {
         userPrompt += `- ${tool}\n`;
       });
-      userPrompt += '\n';
+      userPrompt += "\n";
     }
 
     if (underutilized.length > 0) {
       userPrompt += `UNDERUTILIZED (1-3 uses):\n`;
-      underutilized.forEach(tool => {
+      underutilized.forEach((tool) => {
         userPrompt += `- ${tool}\n`;
       });
-      userPrompt += '\n';
+      userPrompt += "\n";
     }
 
     if (active.length > 0) {
       userPrompt += `ACTIVE (4+ uses):\n`;
-      active.forEach(tool => {
+      active.forEach((tool) => {
         userPrompt += `- ${tool}\n`;
       });
-      userPrompt += '\n';
+      userPrompt += "\n";
     }
 
     userPrompt += `Based on this data:\n`;
@@ -983,19 +1228,27 @@ aiRouter.get("/exercise-recommendations", async (req, res) => {
     });
 
     const aiFullResponse = analysisResult.content;
-    
+
     let parsed;
     try {
       parsed = safeJsonParse(aiFullResponse);
-      
-      if (!parsed || !parsed.recommendations || !Array.isArray(parsed.recommendations)) {
-        throw new Error('Invalid AI response structure');
+
+      if (
+        !parsed ||
+        !parsed.recommendations ||
+        !Array.isArray(parsed.recommendations)
+      ) {
+        throw new Error("Invalid AI response structure");
       }
     } catch (parseError: any) {
-      console.error('Failed to parse AI exercise recommendations:', parseError.message, aiFullResponse);
-      return res.status(500).json({ 
-        error: 'Failed to parse AI response. Please try again.',
-        details: parseError.message 
+      console.error(
+        "Failed to parse AI exercise recommendations:",
+        parseError.message,
+        aiFullResponse,
+      );
+      return res.status(500).json({
+        error: "Failed to parse AI response. Please try again.",
+        details: parseError.message,
       });
     }
 
@@ -1011,9 +1264,9 @@ aiRouter.get("/exercise-recommendations", async (req, res) => {
       couple_id: coupleId,
       generated_at: new Date().toISOString(),
       activity_summary: {
-        not_started: notStarted.map(t => t.replace(/ \(\d+ uses\)/, '')),
-        underutilized: underutilized.map(t => t.replace(/ \(\d+ uses\)/, '')),
-        active: active.map(t => t.replace(/ \(\d+ uses\)/, '')),
+        not_started: notStarted.map((t) => t.replace(/ \(\d+ uses\)/, "")),
+        underutilized: underutilized.map((t) => t.replace(/ \(\d+ uses\)/, "")),
+        active: active.map((t) => t.replace(/ \(\d+ uses\)/, "")),
       },
       recommendations,
       ai_full_response: aiFullResponse,
@@ -1028,9 +1281,9 @@ aiRouter.get("/exercise-recommendations", async (req, res) => {
 
     res.json(response);
   } catch (error: any) {
-    console.error('AI Exercise Recommendations error:', error);
-    res.status(500).json({ 
-      error: error.message || 'Failed to generate exercise recommendations' 
+    console.error("AI Exercise Recommendations error:", error);
+    res.status(500).json({
+      error: error.message || "Failed to generate exercise recommendations",
     });
   }
 });
@@ -1050,31 +1303,38 @@ aiRouter.post("/echo-coaching", async (req, res) => {
     const requestSchema = z.object({
       session_id: z.string().uuid("Invalid session ID"),
       turn_id: z.string().uuid("Invalid turn ID"),
-      speaker_message: z.string().min(1, "Speaker message is required").max(2000, "Speaker message too long (max 2000 characters)"),
-      listener_response: z.string().min(1, "Listener response is required").max(2000, "Listener response too long (max 2000 characters)"),
+      speaker_message: z
+        .string()
+        .min(1, "Speaker message is required")
+        .max(2000, "Speaker message too long (max 2000 characters)"),
+      listener_response: z
+        .string()
+        .min(1, "Listener response is required")
+        .max(2000, "Listener response too long (max 2000 characters)"),
     });
 
     const validationResult = requestSchema.safeParse(req.body);
     if (!validationResult.success) {
-      return res.status(400).json({ 
-        error: validationResult.error.errors[0].message 
+      return res.status(400).json({
+        error: validationResult.error.errors[0].message,
       });
     }
 
-    const { session_id, turn_id, speaker_message, listener_response } = validationResult.data;
+    const { session_id, turn_id, speaker_message, listener_response } =
+      validationResult.data;
 
     // Check cache first
     const cacheKey = `echo-coaching:${session_id}:${turn_id}`;
     const cached = echoCoachingCache.get(cacheKey);
-    if (cached && (Date.now() - cached.timestamp) < ECHO_COACHING_CACHE_TTL_MS) {
+    if (cached && Date.now() - cached.timestamp < ECHO_COACHING_CACHE_TTL_MS) {
       return res.json(cached.data);
     }
 
     // Verify session exists and belongs to user's couple
     const { data: session, error: sessionError } = await supabaseAdmin
-      .from('Couples_echo_sessions')
-      .select('*')
-      .eq('id', session_id)
+      .from("Couples_echo_sessions")
+      .select("*")
+      .eq("id", session_id)
       .single();
 
     if (sessionError || !session) {
@@ -1082,23 +1342,24 @@ aiRouter.post("/echo-coaching", async (req, res) => {
     }
 
     if (session.couple_id !== coupleId) {
-      return res.status(403).json({ 
-        error: "Unauthorized: Session does not belong to your couple" 
+      return res.status(403).json({
+        error: "Unauthorized: Session does not belong to your couple",
       });
     }
 
     // Verify user is the listener in this session
     if (session.listener_id !== userId) {
-      return res.status(403).json({ 
-        error: "Unauthorized: You must be the listener in this session to receive coaching" 
+      return res.status(403).json({
+        error:
+          "Unauthorized: You must be the listener in this session to receive coaching",
       });
     }
 
     // Verify turn exists and belongs to this session
     const { data: turn, error: turnError } = await supabaseAdmin
-      .from('Couples_echo_turns')
-      .select('*')
-      .eq('id', turn_id)
+      .from("Couples_echo_turns")
+      .select("*")
+      .eq("id", turn_id)
       .single();
 
     if (turnError || !turn) {
@@ -1106,13 +1367,14 @@ aiRouter.post("/echo-coaching", async (req, res) => {
     }
 
     if (turn.session_id !== session_id) {
-      return res.status(403).json({ 
-        error: "Unauthorized: Turn does not belong to this session" 
+      return res.status(403).json({
+        error: "Unauthorized: Turn does not belong to this session",
       });
     }
 
     // Build Perplexity prompts
-    const systemPrompt = "You are an expert communication coach specializing in active listening skills for couples. Your role is to provide constructive, encouraging feedback on how well the listener demonstrated active listening. Be supportive and specific.";
+    const systemPrompt =
+      "You are an expert communication coach specializing in active listening skills for couples. Your role is to provide constructive, encouraging feedback on how well the listener demonstrated active listening. Be supportive and specific.";
 
     const userPrompt = `SPEAKER SAID:
 "${speaker_message}"
@@ -1146,27 +1408,44 @@ Be encouraging and constructive. Focus on growth.`;
     const parsed = safeJsonParse(aiFullResponse);
 
     if (!parsed) {
-      return res.status(500).json({ error: 'Failed to parse AI response' });
+      return res.status(500).json({ error: "Failed to parse AI response" });
     }
 
     // Parse AI response to extract structured feedback
-    const whatWentWell: string[] = parsed.what_went_well || ["You showed effort in responding to your partner."];
-    const areasToImprove: string[] = parsed.areas_to_improve || ["Continue practicing active listening techniques."];
-    let suggestedResponse = parsed.suggested_response || "Try incorporating more reflective statements like 'It sounds like you're feeling...'";
+    const whatWentWell: string[] = parsed.what_went_well || [
+      "You showed effort in responding to your partner.",
+    ];
+    const areasToImprove: string[] = parsed.areas_to_improve || [
+      "Continue practicing active listening techniques.",
+    ];
+    let suggestedResponse =
+      parsed.suggested_response ||
+      "Try incorporating more reflective statements like 'It sounds like you're feeling...'";
 
     // Calculate overall score (1-10) based on positive indicators
     // Count positive indicators mentioned in the response
     const positiveKeywords = [
-      'paraphras', 'reflect', 'empathy', 'validat', 'acknowledg',
-      'understand', 'hear', 'sounds like', 'feel', 'clarif'
+      "paraphras",
+      "reflect",
+      "empathy",
+      "validat",
+      "acknowledg",
+      "understand",
+      "hear",
+      "sounds like",
+      "feel",
+      "clarif",
     ];
-    
+
     let positiveCount = 0;
     const lowerResponse = listener_response.toLowerCase();
     const lowerAiResponse = aiFullResponse.toLowerCase();
-    
-    positiveKeywords.forEach(keyword => {
-      if (lowerResponse.includes(keyword) || lowerAiResponse.includes(keyword)) {
+
+    positiveKeywords.forEach((keyword) => {
+      if (
+        lowerResponse.includes(keyword) ||
+        lowerAiResponse.includes(keyword)
+      ) {
         positiveCount++;
       }
     });
@@ -1184,7 +1463,8 @@ Be encouraging and constructive. Focus on growth.`;
       feedback: {
         what_went_well: whatWentWell,
         areas_to_improve: areasToImprove,
-        suggested_response: suggestedResponse || "Continue practicing empathetic responses.",
+        suggested_response:
+          suggestedResponse || "Continue practicing empathetic responses.",
       },
       overall_score: overallScore,
       ai_full_response: aiFullResponse,
@@ -1199,9 +1479,9 @@ Be encouraging and constructive. Focus on growth.`;
 
     res.json(response);
   } catch (error: any) {
-    console.error('AI Echo Coaching error:', error);
-    res.status(500).json({ 
-      error: error.message || 'Failed to generate coaching feedback' 
+    console.error("AI Echo Coaching error:", error);
+    res.status(500).json({
+      error: error.message || "Failed to generate coaching feedback",
     });
   }
 });
@@ -1224,8 +1504,8 @@ aiRouter.post("/voice-memo-sentiment", async (req, res) => {
 
     const validationResult = requestSchema.safeParse(req.body);
     if (!validationResult.success) {
-      return res.status(400).json({ 
-        error: validationResult.error.errors[0].message 
+      return res.status(400).json({
+        error: validationResult.error.errors[0].message,
       });
     }
 
@@ -1234,15 +1514,18 @@ aiRouter.post("/voice-memo-sentiment", async (req, res) => {
     // Check cache first
     const cacheKey = `voice-sentiment:${memo_id}`;
     const cached = voiceSentimentCache.get(cacheKey);
-    if (cached && (Date.now() - cached.timestamp) < VOICE_SENTIMENT_CACHE_TTL_MS) {
+    if (
+      cached &&
+      Date.now() - cached.timestamp < VOICE_SENTIMENT_CACHE_TTL_MS
+    ) {
       return res.json(cached.data);
     }
 
     // Fetch memo from database
     const { data: memo, error: memoError } = await supabaseAdmin
-      .from('Couples_voice_memos')
-      .select('*')
-      .eq('id', memo_id)
+      .from("Couples_voice_memos")
+      .select("*")
+      .eq("id", memo_id)
       .single();
 
     if (memoError || !memo) {
@@ -1251,34 +1534,37 @@ aiRouter.post("/voice-memo-sentiment", async (req, res) => {
 
     // Verify memo belongs to user's couple
     if (memo.couple_id !== coupleId) {
-      return res.status(403).json({ 
-        error: "Unauthorized: Memo does not belong to your couple" 
+      return res.status(403).json({
+        error: "Unauthorized: Memo does not belong to your couple",
       });
     }
 
     // Verify user is the sender of the memo
     if (memo.sender_id !== userId) {
-      return res.status(403).json({ 
-        error: "Unauthorized: You must be the sender of this memo to analyze it" 
+      return res.status(403).json({
+        error:
+          "Unauthorized: You must be the sender of this memo to analyze it",
       });
     }
 
     // Check if transcript is available
-    if (!memo.transcript_text || memo.transcript_text.trim() === '') {
-      return res.status(400).json({ 
-        error: "Transcript not available yet. Please try again later." 
+    if (!memo.transcript_text || memo.transcript_text.trim() === "") {
+      return res.status(400).json({
+        error: "Transcript not available yet. Please try again later.",
       });
     }
 
     // Validate transcript size to prevent Perplexity token overflow
     if (memo.transcript_text.length > 5000) {
-      return res.status(413).json({ 
-        error: "Voice memo transcript is too long for AI analysis (max 5000 characters). Please keep voice memos under 5 minutes." 
+      return res.status(413).json({
+        error:
+          "Voice memo transcript is too long for AI analysis (max 5000 characters). Please keep voice memos under 5 minutes.",
       });
     }
 
     // Build Perplexity prompts
-    const systemPrompt = "You are a compassionate communication coach helping couples express love and appreciation. Analyze the tone and sentiment of voice messages and provide gentle, supportive feedback. Be kind and encouraging.";
+    const systemPrompt =
+      "You are a compassionate communication coach helping couples express love and appreciation. Analyze the tone and sentiment of voice messages and provide gentle, supportive feedback. Be kind and encouraging.";
 
     const userPrompt = `Analyze the tone and sentiment of this voice message sent from one partner to another:
 
@@ -1303,7 +1589,7 @@ Be very gentle. Focus on the positive. Only suggest improvements if truly needed
     const parsed = safeJsonParse(aiFullResponse);
 
     if (!parsed) {
-      return res.status(500).json({ error: 'Failed to parse AI response' });
+      return res.status(500).json({ error: "Failed to parse AI response" });
     }
 
     // Build response
@@ -1311,9 +1597,12 @@ Be very gentle. Focus on the positive. Only suggest improvements if truly needed
       memo_id,
       tone: parsed.tone || "neutral",
       sentiment_score: Math.max(1, Math.min(10, parsed.sentiment_score || 7)),
-      whats_working: parsed.whats_working || ["Your message shows genuine effort to connect with your partner."],
+      whats_working: parsed.whats_working || [
+        "Your message shows genuine effort to connect with your partner.",
+      ],
       gentle_suggestions: parsed.gentle_suggestions || [],
-      encouragement: parsed.encouragement || "Keep expressing yourself authentically!",
+      encouragement:
+        parsed.encouragement || "Keep expressing yourself authentically!",
       ai_full_response: aiFullResponse,
       usage: analysisResult.usage,
     };
@@ -1326,9 +1615,9 @@ Be very gentle. Focus on the positive. Only suggest improvements if truly needed
 
     res.json(response);
   } catch (error: any) {
-    console.error('AI Voice Memo Sentiment error:', error);
-    res.status(500).json({ 
-      error: error.message || 'Failed to analyze voice memo sentiment' 
+    console.error("AI Voice Memo Sentiment error:", error);
+    res.status(500).json({
+      error: error.message || "Failed to analyze voice memo sentiment",
     });
   }
 });
@@ -1353,13 +1642,14 @@ aiRouter.post("/date-night", async (req, res) => {
     // Validate request body
     const validationResult = dateNightPreferencesSchema.safeParse(req.body);
     if (!validationResult.success) {
-      return res.status(400).json({ 
-        error: "Invalid preferences", 
-        details: validationResult.error.format() 
+      return res.status(400).json({
+        error: "Invalid preferences",
+        details: validationResult.error.format(),
       });
     }
 
-    const { time, location, price, participants, energy } = validationResult.data;
+    const { time, location, price, participants, energy } =
+      validationResult.data;
 
     // System prompt for the Connection Concierge
     const systemPrompt = `You are the "Connection Concierge," an AI assistant that helps couples design meaningful date nights. Your goal is to create positive memories and strengthen connections.
@@ -1389,38 +1679,42 @@ Be warm, creative, and encouraging. Emphasize connection, fun, and breaking rout
     // Call Perplexity API with custom temperature and max_tokens
     const apiKey = process.env.PERPLEXITY_API_KEY;
     if (!apiKey) {
-      return res.status(500).json({ error: 'Perplexity API key not configured' });
+      return res
+        .status(500)
+        .json({ error: "Perplexity API key not configured" });
     }
 
     const perplexityRequest = {
-      model: 'sonar',
+      model: "sonar",
       messages: [
-        { role: 'system' as const, content: systemPrompt },
-        { role: 'user' as const, content: userPrompt },
+        { role: "system" as const, content: systemPrompt },
+        { role: "user" as const, content: userPrompt },
       ],
       temperature: 0.7,
       max_tokens: 1500,
       stream: false,
     };
 
-    const response = await fetch('https://api.perplexity.ai/chat/completions', {
-      method: 'POST',
+    const response = await fetch("https://api.perplexity.ai/chat/completions", {
+      method: "POST",
       headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
       },
       body: JSON.stringify(perplexityRequest),
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      throw new Error(`Perplexity API error (${response.status}): ${errorText}`);
+      throw new Error(
+        `Perplexity API error (${response.status}): ${errorText}`,
+      );
     }
 
     const data = await response.json();
 
     if (!data.choices || data.choices.length === 0) {
-      throw new Error('Perplexity API returned no choices');
+      throw new Error("Perplexity API returned no choices");
     }
 
     const content = data.choices[0].message.content;
@@ -1432,9 +1726,9 @@ Be warm, creative, and encouraging. Emphasize connection, fun, and breaking rout
       citations: data.citations,
     });
   } catch (error: any) {
-    console.error('Date night generation error:', error);
-    res.status(500).json({ 
-      error: error.message || 'Failed to generate date night ideas' 
+    console.error("Date night generation error:", error);
+    res.status(500).json({
+      error: error.message || "Failed to generate date night ideas",
     });
   }
 });

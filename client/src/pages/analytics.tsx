@@ -1,40 +1,84 @@
-import { useAuth } from '@/lib/auth-context';
-import { useQuery } from '@tanstack/react-query';
-import { useState, useEffect } from 'react';
-import type { TherapistAnalytics, CoupleAnalytics, AIInsight } from '@shared/schema';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Users, Activity, ClipboardCheck, Sparkles, MessageSquare, TrendingUp, TrendingDown, Brain, Loader2, ChevronDown, AlertCircle, ExternalLink, Download } from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
-import { formatDistanceToNow } from 'date-fns';
-import { useToast } from '@/hooks/use-toast';
+import { useAuth } from "@/lib/auth-context";
+import { useQuery } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
+import type {
+  TherapistAnalytics,
+  CoupleAnalytics,
+  AIInsight,
+} from "@shared/schema";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  Users,
+  Activity,
+  ClipboardCheck,
+  Sparkles,
+  MessageSquare,
+  TrendingUp,
+  TrendingDown,
+  Brain,
+  Loader2,
+  ChevronDown,
+  AlertCircle,
+  ExternalLink,
+  Download,
+} from "lucide-react";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Legend,
+} from "recharts";
+import { formatDistanceToNow } from "date-fns";
+import { useToast } from "@/hooks/use-toast";
 
-function getEngagementBadgeVariant(score: number): 'default' | 'secondary' | 'destructive' {
-  if (score >= 80) return 'default'; // Green (using default which maps to primary)
-  if (score >= 50) return 'secondary'; // Yellow
-  return 'destructive'; // Red
+function getEngagementBadgeVariant(
+  score: number,
+): "default" | "secondary" | "destructive" {
+  if (score >= 80) return "default"; // Green (using default which maps to primary)
+  if (score >= 50) return "secondary"; // Yellow
+  return "destructive"; // Red
 }
 
 function getEngagementLabel(score: number): string {
-  if (score >= 80) return 'High';
-  if (score >= 50) return 'Medium';
-  return 'Low';
+  if (score >= 80) return "High";
+  if (score >= 50) return "Medium";
+  return "Low";
 }
 
-function KPICard({ 
-  title, 
-  value, 
-  icon: Icon, 
-  testId 
-}: { 
-  title: string; 
-  value: number | string; 
-  icon: React.ElementType; 
+function KPICard({
+  title,
+  value,
+  icon: Icon,
+  testId,
+}: {
+  title: string;
+  value: number | string;
+  icon: React.ElementType;
   testId: string;
 }) {
   return (
@@ -44,19 +88,21 @@ function KPICard({
         <Icon className="h-4 w-4 text-muted-foreground" />
       </CardHeader>
       <CardContent>
-        <div className="text-2xl font-bold" data-testid={`${testId}-value`}>{value}</div>
+        <div className="text-2xl font-bold" data-testid={`${testId}-value`}>
+          {value}
+        </div>
       </CardContent>
     </Card>
   );
 }
 
-function CoupleCard({ 
-  couple, 
-  onViewInsights, 
-  onExport, 
-  isExporting 
-}: { 
-  couple: CoupleAnalytics; 
+function CoupleCard({
+  couple,
+  onViewInsights,
+  onExport,
+  isExporting,
+}: {
+  couple: CoupleAnalytics;
   onViewInsights: () => void;
   onExport: () => void;
   isExporting: boolean;
@@ -65,7 +111,10 @@ function CoupleCard({
   const engagementLabel = getEngagementLabel(couple.engagement_score);
 
   return (
-    <Card data-testid={`card-couple-${couple.couple_id}`} className="hover-elevate">
+    <Card
+      data-testid={`card-couple-${couple.couple_id}`}
+      className="hover-elevate"
+    >
       <CardHeader>
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1 min-w-0">
@@ -73,12 +122,12 @@ function CoupleCard({
               {couple.partner1_name} & {couple.partner2_name}
             </CardTitle>
             <CardDescription className="text-xs mt-1">
-              {couple.last_activity_date 
+              {couple.last_activity_date
                 ? `Last active ${formatDistanceToNow(new Date(couple.last_activity_date), { addSuffix: true })}`
-                : 'No recent activity'}
+                : "No recent activity"}
             </CardDescription>
           </div>
-          <Badge 
+          <Badge
             variant={engagementVariant}
             data-testid={`badge-engagement-${couple.couple_id}`}
           >
@@ -89,13 +138,20 @@ function CoupleCard({
       <CardContent className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <div className="text-sm font-medium text-muted-foreground">Check-in Rate</div>
-            <div className="text-2xl font-bold" data-testid={`text-checkin-rate-${couple.couple_id}`}>
+            <div className="text-sm font-medium text-muted-foreground">
+              Check-in Rate
+            </div>
+            <div
+              className="text-2xl font-bold"
+              data-testid={`text-checkin-rate-${couple.couple_id}`}
+            >
               {couple.checkin_completion_rate}%
             </div>
           </div>
           <div>
-            <div className="text-sm font-medium text-muted-foreground">Total Check-ins</div>
+            <div className="text-sm font-medium text-muted-foreground">
+              Total Check-ins
+            </div>
             <div className="text-2xl font-bold">{couple.total_checkins}</div>
           </div>
         </div>
@@ -112,7 +168,9 @@ function CoupleCard({
             <ClipboardCheck className="h-4 w-4 text-muted-foreground" />
             <div>
               <div className="text-xs text-muted-foreground">Goals Done</div>
-              <div className="font-semibold">{couple.goals_completed}/{couple.goals_total}</div>
+              <div className="font-semibold">
+                {couple.goals_completed}/{couple.goals_total}
+              </div>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -137,20 +195,24 @@ function CoupleCard({
               <TrendingUp className="h-3 w-3" />
               Avg Connectedness
             </div>
-            <div className="text-xl font-bold">{couple.avg_connectedness.toFixed(1)}/10</div>
+            <div className="text-xl font-bold">
+              {couple.avg_connectedness.toFixed(1)}/10
+            </div>
           </div>
           <div>
             <div className="text-sm font-medium text-muted-foreground flex items-center gap-1">
               <TrendingDown className="h-3 w-3" />
               Avg Conflict
             </div>
-            <div className="text-xl font-bold">{couple.avg_conflict.toFixed(1)}/10</div>
+            <div className="text-xl font-bold">
+              {couple.avg_conflict.toFixed(1)}/10
+            </div>
           </div>
         </div>
 
         <div className="pt-4 border-t space-y-2">
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             className="w-full"
             onClick={onViewInsights}
             data-testid={`button-ai-insights-${couple.couple_id}`}
@@ -158,8 +220,8 @@ function CoupleCard({
             <Brain className="h-4 w-4 mr-2" />
             View AI Insights
           </Button>
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             className="w-full"
             onClick={onExport}
             disabled={isExporting}
@@ -183,27 +245,31 @@ function CoupleCard({
   );
 }
 
-function AIInsightsDialog({ 
-  coupleId, 
-  coupleName, 
-  therapistId, 
-  open, 
-  onOpenChange 
-}: { 
-  coupleId: string; 
-  coupleName: string; 
-  therapistId: string; 
-  open: boolean; 
+function AIInsightsDialog({
+  coupleId,
+  coupleName,
+  therapistId,
+  open,
+  onOpenChange,
+}: {
+  coupleId: string;
+  coupleName: string;
+  therapistId: string;
+  open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
   const { toast } = useToast();
   const [showRawAnalysis, setShowRawAnalysis] = useState(false);
 
-  const { data: insights, isLoading, error } = useQuery<AIInsight>({
-    queryKey: ['/api/ai/insights', coupleId],
+  const {
+    data: insights,
+    isLoading,
+    error,
+  } = useQuery<AIInsight>({
+    queryKey: ["/api/ai/insights", coupleId],
     queryFn: async () => {
       const url = `/api/ai/insights?couple_id=${coupleId}`;
-      const res = await fetch(url, { credentials: 'include' });
+      const res = await fetch(url, { credentials: "include" });
       if (!res.ok) {
         const text = await res.text();
         throw new Error(text || res.statusText);
@@ -217,16 +283,22 @@ function AIInsightsDialog({
   useEffect(() => {
     if (error) {
       toast({
-        title: 'Error loading AI insights',
-        description: error instanceof Error ? error.message : 'Failed to fetch AI insights',
-        variant: 'destructive',
+        title: "Error loading AI insights",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Failed to fetch AI insights",
+        variant: "destructive",
       });
     }
   }, [error, toast]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto" data-testid="dialog-ai-insights">
+      <DialogContent
+        className="max-w-3xl max-h-[80vh] overflow-y-auto"
+        data-testid="dialog-ai-insights"
+      >
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Brain className="h-5 w-5 text-primary" />
@@ -247,7 +319,9 @@ function AIInsightsDialog({
           <Alert>
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
-              No insights available. There may not be enough check-in data yet. At least 4 weeks of check-ins are needed to generate meaningful insights.
+              No insights available. There may not be enough check-in data yet.
+              At least 4 weeks of check-ins are needed to generate meaningful
+              insights.
             </AlertDescription>
           </Alert>
         )}
@@ -255,7 +329,10 @@ function AIInsightsDialog({
         {!isLoading && insights && (
           <div className="space-y-6 py-4">
             <div className="text-sm text-muted-foreground">
-              Generated {formatDistanceToNow(new Date(insights.generated_at), { addSuffix: true })}
+              Generated{" "}
+              {formatDistanceToNow(new Date(insights.generated_at), {
+                addSuffix: true,
+              })}
             </div>
 
             <Card>
@@ -263,7 +340,10 @@ function AIInsightsDialog({
                 <CardTitle className="text-lg">Summary</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-sm leading-relaxed" data-testid="text-ai-summary">
+                <p
+                  className="text-sm leading-relaxed"
+                  data-testid="text-ai-summary"
+                >
                   {insights.summary}
                 </p>
               </CardContent>
@@ -309,25 +389,29 @@ function AIInsightsDialog({
               </Card>
             )}
 
-            {insights.recommendations && insights.recommendations.length > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <Badge variant="default">Recommendations</Badge>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ul className="space-y-2" data-testid="list-ai-recommendations">
-                    {insights.recommendations.map((item, index) => (
-                      <li key={index} className="flex gap-2 text-sm">
-                        <span className="text-muted-foreground mt-1">•</span>
-                        <span>{item}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </CardContent>
-              </Card>
-            )}
+            {insights.recommendations &&
+              insights.recommendations.length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <Badge variant="default">Recommendations</Badge>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ul
+                      className="space-y-2"
+                      data-testid="list-ai-recommendations"
+                    >
+                      {insights.recommendations.map((item, index) => (
+                        <li key={index} className="flex gap-2 text-sm">
+                          <span className="text-muted-foreground mt-1">•</span>
+                          <span>{item}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </CardContent>
+                </Card>
+              )}
 
             {insights.citations && insights.citations.length > 0 && (
               <Card>
@@ -338,9 +422,9 @@ function AIInsightsDialog({
                   <ul className="space-y-1">
                     {insights.citations.map((citation, index) => (
                       <li key={index} className="text-xs">
-                        <a 
-                          href={citation} 
-                          target="_blank" 
+                        <a
+                          href={citation}
+                          target="_blank"
                           rel="noopener noreferrer"
                           className="text-primary hover:underline flex items-center gap-1"
                         >
@@ -355,11 +439,16 @@ function AIInsightsDialog({
             )}
 
             {insights.raw_analysis && (
-              <Collapsible open={showRawAnalysis} onOpenChange={setShowRawAnalysis}>
+              <Collapsible
+                open={showRawAnalysis}
+                onOpenChange={setShowRawAnalysis}
+              >
                 <CollapsibleTrigger asChild>
                   <Button variant="ghost" className="w-full justify-between">
                     <span className="text-sm">View Raw Analysis</span>
-                    <ChevronDown className={`h-4 w-4 transition-transform ${showRawAnalysis ? 'rotate-180' : ''}`} />
+                    <ChevronDown
+                      className={`h-4 w-4 transition-transform ${showRawAnalysis ? "rotate-180" : ""}`}
+                    />
                   </Button>
                 </CollapsibleTrigger>
                 <CollapsibleContent>
@@ -384,46 +473,51 @@ export default function AnalyticsPage() {
   const { profile } = useAuth();
   const { toast } = useToast();
   const [selectedCoupleId, setSelectedCoupleId] = useState<string | null>(null);
-  const [exportingCoupleId, setExportingCoupleId] = useState<string | null>(null);
+  const [exportingCoupleId, setExportingCoupleId] = useState<string | null>(
+    null,
+  );
 
   const { data, isLoading, error } = useQuery<TherapistAnalytics>({
-    queryKey: ['/api/ai/analytics'],
+    queryKey: ["/api/ai/analytics"],
     enabled: !!profile?.id,
   });
 
-  const selectedCouple = data?.couples.find(c => c.couple_id === selectedCoupleId);
+  const selectedCouple = data?.couples.find(
+    (c) => c.couple_id === selectedCoupleId,
+  );
 
   const handleExport = async (coupleId: string) => {
     if (!profile?.id) return;
-    
+
     try {
       setExportingCoupleId(coupleId);
-      
+
       const url = `/api/therapist/export-couple-report?couple_id=${coupleId}&format=csv`;
-      
-      const response = await fetch(url, { credentials: 'include' });
-      
+
+      const response = await fetch(url, { credentials: "include" });
+
       if (!response.ok) {
-        throw new Error('Failed to export report');
+        throw new Error("Failed to export report");
       }
-      
+
       const blob = await response.blob();
       const downloadUrl = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
+      const link = document.createElement("a");
       link.href = downloadUrl;
       link.download = `couple-report-${coupleId}-${Date.now()}.csv`;
       link.click();
       window.URL.revokeObjectURL(downloadUrl);
-      
+
       toast({
-        title: 'Export started',
-        description: 'Your report is downloading...',
+        title: "Export started",
+        description: "Your report is downloading...",
       });
     } catch (error) {
       toast({
-        title: 'Export failed',
-        description: error instanceof Error ? error.message : 'Failed to export report',
-        variant: 'destructive',
+        title: "Export failed",
+        description:
+          error instanceof Error ? error.message : "Failed to export report",
+        variant: "destructive",
       });
     } finally {
       setExportingCoupleId(null);
@@ -434,9 +528,12 @@ export default function AnalyticsPage() {
   useEffect(() => {
     if (error) {
       toast({
-        title: 'Error loading analytics',
-        description: error instanceof Error ? error.message : 'Failed to fetch analytics data',
-        variant: 'destructive',
+        title: "Error loading analytics",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Failed to fetch analytics data",
+        variant: "destructive",
       });
     }
   }, [error, toast]);
@@ -485,8 +582,8 @@ export default function AnalyticsPage() {
 
   // Prepare data for visualizations
   const engagementChartData = data.couples
-    .map(c => ({
-      name: `${c.partner1_name.split(' ')[0]} & ${c.partner2_name.split(' ')[0]}`,
+    .map((c) => ({
+      name: `${c.partner1_name.split(" ")[0]} & ${c.partner2_name.split(" ")[0]}`,
       score: c.engagement_score,
       couple_id: c.couple_id,
     }))
@@ -494,8 +591,8 @@ export default function AnalyticsPage() {
     .slice(0, 10); // Top 10 couples
 
   const completionRateChartData = data.couples
-    .map(c => ({
-      name: `${c.partner1_name.split(' ')[0]} & ${c.partner2_name.split(' ')[0]}`,
+    .map((c) => ({
+      name: `${c.partner1_name.split(" ")[0]} & ${c.partner2_name.split(" ")[0]}`,
       rate: c.checkin_completion_rate,
       couple_id: c.couple_id,
     }))
@@ -505,7 +602,9 @@ export default function AnalyticsPage() {
   return (
     <div className="container max-w-7xl mx-auto p-6 space-y-8">
       <div className="space-y-2">
-        <h1 className="text-4xl font-bold" data-testid="heading-analytics">Analytics Dashboard</h1>
+        <h1 className="text-4xl font-bold" data-testid="heading-analytics">
+          Analytics Dashboard
+        </h1>
         <p className="text-muted-foreground text-lg">
           Comprehensive insights across all your couples
         </p>
@@ -551,14 +650,16 @@ export default function AnalyticsPage() {
           <Card>
             <CardHeader>
               <CardTitle>Engagement Scores</CardTitle>
-              <CardDescription>Top 10 couples by engagement level</CardDescription>
+              <CardDescription>
+                Top 10 couples by engagement level
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={engagementChartData}>
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis 
-                    dataKey="name" 
+                  <XAxis
+                    dataKey="name"
                     angle={-45}
                     textAnchor="end"
                     height={100}
@@ -575,14 +676,16 @@ export default function AnalyticsPage() {
           <Card>
             <CardHeader>
               <CardTitle>Check-in Completion Rates</CardTitle>
-              <CardDescription>Top 10 couples by completion rate</CardDescription>
+              <CardDescription>
+                Top 10 couples by completion rate
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={completionRateChartData}>
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis 
-                    dataKey="name" 
+                  <XAxis
+                    dataKey="name"
                     angle={-45}
                     textAnchor="end"
                     height={100}
@@ -610,8 +713,8 @@ export default function AnalyticsPage() {
         ) : (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {data.couples.map((couple) => (
-              <CoupleCard 
-                key={couple.couple_id} 
+              <CoupleCard
+                key={couple.couple_id}
                 couple={couple}
                 onViewInsights={() => setSelectedCoupleId(couple.couple_id)}
                 onExport={() => handleExport(couple.couple_id)}

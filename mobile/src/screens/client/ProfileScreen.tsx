@@ -1,31 +1,34 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TextInput, Alert } from 'react-native';
-import { useAuth } from '../../contexts/AuthContext';
-import { useApiMutation } from '../../hooks/useApi';
-import Button from '../../components/Button';
-import Card from '../../components/Card';
-import { colors, spacing, typography } from '../../constants/theme';
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TextInput,
+  Alert,
+} from "react-native";
+import { useAuth } from "../../contexts/AuthContext";
+import { useApiMutation } from "../../hooks/useApi";
+import Button from "../../components/Button";
+import Card from "../../components/Card";
+import { colors, spacing, typography } from "../../constants/theme";
 
 export default function ProfileScreen() {
   const { profile, signOut, refreshProfile } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
-  const [fullName, setFullName] = useState(profile?.full_name || '');
+  const [fullName, setFullName] = useState(profile?.full_name || "");
 
-  const updateProfile = useApiMutation(
-    '/api/profile',
-    'put',
-    {
-      onSuccess: () => {
-        Alert.alert('Success', 'Profile updated!');
-        refreshProfile();
-        setIsEditing(false);
-      },
-    }
-  );
+  const updateProfile = useApiMutation("/api/profile", "put", {
+    onSuccess: () => {
+      Alert.alert("Success", "Profile updated!");
+      refreshProfile();
+      setIsEditing(false);
+    },
+  });
 
   const handleSave = () => {
     if (!fullName.trim()) {
-      Alert.alert('Error', 'Please enter your name');
+      Alert.alert("Error", "Please enter your name");
       return;
     }
 
@@ -35,21 +38,17 @@ export default function ProfileScreen() {
   };
 
   const handleSignOut = () => {
-    Alert.alert(
-      'Sign Out',
-      'Are you sure you want to sign out?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Sign Out', style: 'destructive', onPress: signOut },
-      ]
-    );
+    Alert.alert("Sign Out", "Are you sure you want to sign out?", [
+      { text: "Cancel", style: "cancel" },
+      { text: "Sign Out", style: "destructive", onPress: signOut },
+    ]);
   };
 
   return (
     <ScrollView style={styles.container}>
       <View style={styles.content}>
         <Text style={styles.title}>Profile</Text>
-        
+
         <Card style={styles.infoCard}>
           {isEditing ? (
             <>
@@ -70,7 +69,7 @@ export default function ProfileScreen() {
                   variant="outline"
                   onPress={() => {
                     setIsEditing(false);
-                    setFullName(profile?.full_name || '');
+                    setFullName(profile?.full_name || "");
                   }}
                   style={styles.formButton}
                 />
@@ -86,18 +85,20 @@ export default function ProfileScreen() {
             <>
               <View style={styles.infoRow}>
                 <Text style={styles.infoLabel}>Name</Text>
-                <Text style={styles.infoValue}>{profile?.full_name || 'Not set'}</Text>
+                <Text style={styles.infoValue}>
+                  {profile?.full_name || "Not set"}
+                </Text>
               </View>
-              
+
               <View style={styles.infoRow}>
                 <Text style={styles.infoLabel}>Email</Text>
-                <Text style={styles.infoValue}>{profile?.email || 'N/A'}</Text>
+                <Text style={styles.infoValue}>{profile?.email || "N/A"}</Text>
               </View>
-              
+
               <View style={styles.infoRow}>
                 <Text style={styles.infoLabel}>Role</Text>
                 <Text style={styles.infoValue}>
-                  {profile?.role === 'client' ? 'Couple Member' : 'Therapist'}
+                  {profile?.role === "client" ? "Couple Member" : "Therapist"}
                 </Text>
               </View>
 
@@ -121,7 +122,9 @@ export default function ProfileScreen() {
 
         <Card style={styles.preferencesCard}>
           <Text style={styles.cardTitle}>Preferences</Text>
-          <Text style={styles.comingSoon}>Notification settings and preferences coming soon...</Text>
+          <Text style={styles.comingSoon}>
+            Notification settings and preferences coming soon...
+          </Text>
         </Card>
 
         <Button
@@ -144,8 +147,12 @@ const styles = StyleSheet.create({
   title: { ...typography.h2, color: colors.text, marginBottom: spacing.lg },
   infoCard: { marginBottom: spacing.lg },
   infoRow: { marginBottom: spacing.md },
-  infoLabel: { ...typography.bodySmall, color: colors.textSecondary, marginBottom: spacing.xs },
-  infoValue: { ...typography.body, color: colors.text, fontWeight: '600' },
+  infoLabel: {
+    ...typography.bodySmall,
+    color: colors.textSecondary,
+    marginBottom: spacing.xs,
+  },
+  infoValue: { ...typography.body, color: colors.text, fontWeight: "600" },
   editButton: { marginTop: spacing.md },
   inputGroup: { marginBottom: spacing.md },
   label: { ...typography.h6, color: colors.text, marginBottom: spacing.sm },
@@ -158,16 +165,20 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     color: colors.text,
   },
-  formButtons: { flexDirection: 'row', gap: spacing.sm },
+  formButtons: { flexDirection: "row", gap: spacing.sm },
   formButton: { flex: 1 },
   preferencesCard: { marginBottom: spacing.lg },
   cardTitle: { ...typography.h5, color: colors.text, marginBottom: spacing.sm },
-  comingSoon: { ...typography.body, color: colors.textSecondary, fontStyle: 'italic' },
+  comingSoon: {
+    ...typography.body,
+    color: colors.textSecondary,
+    fontStyle: "italic",
+  },
   signOutButton: { marginTop: spacing.lg },
   version: {
     ...typography.bodySmall,
     color: colors.textSecondary,
-    textAlign: 'center',
+    textAlign: "center",
     marginTop: spacing.xl,
   },
 });

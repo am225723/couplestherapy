@@ -1,13 +1,26 @@
-import { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Sparkles, Loader2, ArrowLeft, ArrowRight, Heart, CalendarPlus } from 'lucide-react';
-import { useMutation } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
-import { useToast } from '@/hooks/use-toast';
-import { useLocation } from 'wouter';
-import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
+import { useState } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import {
+  Sparkles,
+  Loader2,
+  ArrowLeft,
+  ArrowRight,
+  Heart,
+  CalendarPlus,
+} from "lucide-react";
+import { useMutation } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
+import { useToast } from "@/hooks/use-toast";
+import { useLocation } from "wouter";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
 
 interface DateNightPreferences {
   interests: string[];
@@ -39,33 +52,33 @@ const STEPS = {
 };
 
 const INTEREST_OPTIONS = [
-  { label: 'Cooking & Food', value: 'cooking-food' },
-  { label: 'Movies & TV Shows', value: 'movies-tv' },
-  { label: 'Outdoor Adventures', value: 'outdoor-adventures' },
-  { label: 'Art & Creativity', value: 'art-creativity' },
-  { label: 'Music & Concerts', value: 'music-concerts' },
-  { label: 'Sports & Fitness', value: 'sports-fitness' },
-  { label: 'Games & Puzzles', value: 'games-puzzles' },
-  { label: 'Learning & Education', value: 'learning-education' },
-  { label: 'Reading & Writing', value: 'reading-writing' },
-  { label: 'Dancing', value: 'dancing' },
-  { label: 'Travel & Exploration', value: 'travel-exploration' },
-  { label: 'Wellness & Relaxation', value: 'wellness-relaxation' },
+  { label: "Cooking & Food", value: "cooking-food" },
+  { label: "Movies & TV Shows", value: "movies-tv" },
+  { label: "Outdoor Adventures", value: "outdoor-adventures" },
+  { label: "Art & Creativity", value: "art-creativity" },
+  { label: "Music & Concerts", value: "music-concerts" },
+  { label: "Sports & Fitness", value: "sports-fitness" },
+  { label: "Games & Puzzles", value: "games-puzzles" },
+  { label: "Learning & Education", value: "learning-education" },
+  { label: "Reading & Writing", value: "reading-writing" },
+  { label: "Dancing", value: "dancing" },
+  { label: "Travel & Exploration", value: "travel-exploration" },
+  { label: "Wellness & Relaxation", value: "wellness-relaxation" },
 ];
 
 export default function DateNightPage() {
   const [currentStep, setCurrentStep] = useState(STEPS.GREETING);
   const [preferences, setPreferences] = useState<DateNightPreferences>({
     interests: [],
-    time: '',
-    zipCode: '',
-    travelDistance: '',
-    activityLocation: '',
-    price: '',
-    participants: '',
-    energy: '',
+    time: "",
+    zipCode: "",
+    travelDistance: "",
+    activityLocation: "",
+    price: "",
+    participants: "",
+    energy: "",
   });
-  const [generatedIdeas, setGeneratedIdeas] = useState<string>('');
+  const [generatedIdeas, setGeneratedIdeas] = useState<string>("");
   const { toast } = useToast();
   const [, setLocation] = useLocation();
 
@@ -77,37 +90,39 @@ export default function DateNightPage() {
       const response = await fetch(
         `${supabaseUrl}/functions/v1/ai-date-night`,
         {
-          method: 'POST',
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${supabaseAnonKey}`,
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${supabaseAnonKey}`,
           },
           body: JSON.stringify(prefs),
-        }
+        },
       );
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to generate date night ideas');
+        throw new Error(
+          errorData.error || "Failed to generate date night ideas",
+        );
       }
 
-      return await response.json() as DateNightResponse;
+      return (await response.json()) as DateNightResponse;
     },
     onSuccess: (data) => {
       setGeneratedIdeas(data.content);
     },
     onError: (error: any) => {
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to generate date night ideas',
-        variant: 'destructive',
+        title: "Error",
+        description: error.message || "Failed to generate date night ideas",
+        variant: "destructive",
       });
     },
   });
 
   const handleAnswer = (field: keyof DateNightPreferences, value: string) => {
     setPreferences((prev) => ({ ...prev, [field]: value }));
-    
+
     if (currentStep === STEPS.ENERGY) {
       setCurrentStep(STEPS.RESULTS);
       generateMutation.mutate({ ...preferences, energy: value });
@@ -126,15 +141,15 @@ export default function DateNightPage() {
     setCurrentStep(STEPS.GREETING);
     setPreferences({
       interests: [],
-      time: '',
-      zipCode: '',
-      travelDistance: '',
-      activityLocation: '',
-      price: '',
-      participants: '',
-      energy: '',
+      time: "",
+      zipCode: "",
+      travelDistance: "",
+      activityLocation: "",
+      price: "",
+      participants: "",
+      energy: "",
     });
-    setGeneratedIdeas('');
+    setGeneratedIdeas("");
   };
 
   const handleInterestToggle = (value: string) => {
@@ -149,9 +164,10 @@ export default function DateNightPage() {
   const handleInterestsContinue = () => {
     if (preferences.interests.length === 0) {
       toast({
-        title: 'Select at least one interest',
-        description: 'Please choose what you both enjoy to get personalized ideas',
-        variant: 'destructive',
+        title: "Select at least one interest",
+        description:
+          "Please choose what you both enjoy to get personalized ideas",
+        variant: "destructive",
       });
       return;
     }
@@ -160,42 +176,45 @@ export default function DateNightPage() {
 
   const handleAddToCalendar = (title: string, description: string) => {
     // Store the pre-filled event data in localStorage for the calendar page to pick up
-    localStorage.setItem('prefilled_event', JSON.stringify({
-      title,
-      description,
-    }));
-    
+    localStorage.setItem(
+      "prefilled_event",
+      JSON.stringify({
+        title,
+        description,
+      }),
+    );
+
     toast({
-      title: 'Navigating to Calendar',
-      description: 'Event details will be pre-filled for you',
+      title: "Navigating to Calendar",
+      description: "Event details will be pre-filled for you",
     });
 
     // Navigate to calendar page
-    setLocation('/calendar');
+    setLocation("/calendar");
   };
 
   const getStepTitle = () => {
     switch (currentStep) {
       case STEPS.GREETING:
-        return 'Welcome to the Connection Concierge';
+        return "Welcome to the Connection Concierge";
       case STEPS.INTERESTS:
-        return 'What do you both enjoy?';
+        return "What do you both enjoy?";
       case STEPS.TIME:
-        return 'How much time can you set aside?';
+        return "How much time can you set aside?";
       case STEPS.ZIP_CODE:
-        return 'Where are you located?';
+        return "Where are you located?";
       case STEPS.TRAVEL_DISTANCE:
-        return 'How far are you willing to travel?';
+        return "How far are you willing to travel?";
       case STEPS.ACTIVITY_LOCATION:
-        return 'At-home or out of the house?';
+        return "At-home or out of the house?";
       case STEPS.PRICE:
         return "What's the ideal price point?";
       case STEPS.PARTICIPANTS:
-        return 'Kid-friendly or adults only?';
+        return "Kid-friendly or adults only?";
       case STEPS.ENERGY:
-        return 'Energy level?';
+        return "Energy level?";
       default:
-        return 'Your Date Night Ideas';
+        return "Your Date Night Ideas";
     }
   };
 
@@ -213,9 +232,12 @@ export default function DateNightPage() {
         <div className="flex items-center justify-center mb-4">
           <Sparkles className="h-12 w-12 text-primary" />
         </div>
-        <CardTitle className="text-3xl text-center">Welcome to the Connection Concierge</CardTitle>
+        <CardTitle className="text-3xl text-center">
+          Welcome to the Connection Concierge
+        </CardTitle>
         <CardDescription className="text-center text-lg">
-          Let's plan something special together! I'll ask you a few questions to create personalized date night ideas that strengthen your connection.
+          Let's plan something special together! I'll ask you a few questions to
+          create personalized date night ideas that strengthen your connection.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -234,18 +256,23 @@ export default function DateNightPage() {
 
   const renderQuestion = (
     field: keyof DateNightPreferences,
-    options: { label: string; value: string }[]
+    options: { label: string; value: string }[],
   ) => (
     <Card className="max-w-2xl mx-auto" data-testid={`card-question-${field}`}>
       <CardHeader>
         <div className="flex items-center justify-between mb-2">
-          <span className="text-sm font-medium text-muted-foreground" data-testid="text-progress">
+          <span
+            className="text-sm font-medium text-muted-foreground"
+            data-testid="text-progress"
+          >
             {getProgress()}
           </span>
           <Heart className="h-5 w-5 text-primary" />
         </div>
         <CardTitle className="text-2xl">{getStepTitle()}</CardTitle>
-        <CardDescription>Choose the option that feels right for you</CardDescription>
+        <CardDescription>
+          Choose the option that feels right for you
+        </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="grid grid-cols-1 gap-4">
@@ -255,13 +282,13 @@ export default function DateNightPage() {
               onClick={() => handleAnswer(field, option.value)}
               variant="outline"
               className="h-auto py-6 text-lg justify-start hover-elevate active-elevate-2"
-              data-testid={`button-option-${option.value.toLowerCase().replace(/\s+/g, '-')}`}
+              data-testid={`button-option-${option.value.toLowerCase().replace(/\s+/g, "-")}`}
             >
               {option.label}
             </Button>
           ))}
         </div>
-        
+
         {currentStep > STEPS.INTERESTS && (
           <div className="flex justify-start mt-6">
             <Button
@@ -294,16 +321,21 @@ export default function DateNightPage() {
       );
     }
 
-    const ideas = generatedIdeas.split('✨').filter(Boolean);
+    const ideas = generatedIdeas.split("✨").filter(Boolean);
 
     return (
-      <div className="max-w-4xl mx-auto space-y-8" data-testid="container-results">
+      <div
+        className="max-w-4xl mx-auto space-y-8"
+        data-testid="container-results"
+      >
         <Card>
           <CardHeader>
             <div className="flex items-center gap-3">
               <Sparkles className="h-8 w-8 text-primary" />
               <div>
-                <CardTitle className="text-3xl">Your Date Night Ideas</CardTitle>
+                <CardTitle className="text-3xl">
+                  Your Date Night Ideas
+                </CardTitle>
                 <CardDescription className="text-lg">
                   Three personalized suggestions to strengthen your connection
                 </CardDescription>
@@ -313,13 +345,25 @@ export default function DateNightPage() {
         </Card>
 
         {ideas.map((idea, index) => {
-          const lines = idea.trim().split('\n').filter(Boolean);
+          const lines = idea.trim().split("\n").filter(Boolean);
           const title = lines[0]?.trim() || `Date Idea ${index + 1}`;
-          const description = lines.find(l => l.startsWith('Description:'))?.replace('Description:', '').trim() || '';
-          const connectionTip = lines.find(l => l.startsWith('Connection Tip:'))?.replace('Connection Tip:', '').trim() || '';
+          const description =
+            lines
+              .find((l) => l.startsWith("Description:"))
+              ?.replace("Description:", "")
+              .trim() || "";
+          const connectionTip =
+            lines
+              .find((l) => l.startsWith("Connection Tip:"))
+              ?.replace("Connection Tip:", "")
+              .trim() || "";
 
           return (
-            <Card key={index} className="hover-elevate" data-testid={`card-idea-${index}`}>
+            <Card
+              key={index}
+              className="hover-elevate"
+              data-testid={`card-idea-${index}`}
+            >
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-2xl">
                   <Sparkles className="h-6 w-6 text-primary" />
@@ -329,18 +373,38 @@ export default function DateNightPage() {
               <CardContent className="space-y-4">
                 {description && (
                   <div>
-                    <p className="text-lg" data-testid={`text-description-${index}`}>{description}</p>
+                    <p
+                      className="text-lg"
+                      data-testid={`text-description-${index}`}
+                    >
+                      {description}
+                    </p>
                   </div>
                 )}
                 {connectionTip && (
                   <div className="bg-primary/10 p-4 rounded-lg border-l-4 border-primary">
-                    <p className="font-medium text-sm text-primary mb-1">Connection Tip</p>
-                    <p className="text-sm" data-testid={`text-connection-tip-${index}`}>{connectionTip}</p>
+                    <p className="font-medium text-sm text-primary mb-1">
+                      Connection Tip
+                    </p>
+                    <p
+                      className="text-sm"
+                      data-testid={`text-connection-tip-${index}`}
+                    >
+                      {connectionTip}
+                    </p>
                   </div>
                 )}
                 <div className="pt-2">
                   <Button
-                    onClick={() => handleAddToCalendar(title, description + (connectionTip ? `\n\nConnection Tip: ${connectionTip}` : ''))}
+                    onClick={() =>
+                      handleAddToCalendar(
+                        title,
+                        description +
+                          (connectionTip
+                            ? `\n\nConnection Tip: ${connectionTip}`
+                            : ""),
+                      )
+                    }
                     variant="outline"
                     className="w-full"
                     data-testid={`button-add-to-calendar-${index}`}
@@ -368,14 +432,14 @@ export default function DateNightPage() {
     );
   };
 
-  const [zipCodeInput, setZipCodeInput] = useState('');
+  const [zipCodeInput, setZipCodeInput] = useState("");
 
   const handleZipCodeContinue = () => {
     if (!zipCodeInput.trim()) {
       toast({
-        title: 'Location required',
-        description: 'Please enter your ZIP code or city',
-        variant: 'destructive',
+        title: "Location required",
+        description: "Please enter your ZIP code or city",
+        variant: "destructive",
       });
       return;
     }
@@ -387,13 +451,18 @@ export default function DateNightPage() {
     <Card className="max-w-2xl mx-auto" data-testid="card-zipcode">
       <CardHeader>
         <div className="flex items-center justify-between mb-2">
-          <span className="text-sm font-medium text-muted-foreground" data-testid="text-progress">
+          <span
+            className="text-sm font-medium text-muted-foreground"
+            data-testid="text-progress"
+          >
             Step 3 of 8
           </span>
           <Heart className="h-5 w-5 text-primary" />
         </div>
         <CardTitle className="text-2xl">{getStepTitle()}</CardTitle>
-        <CardDescription>Enter your ZIP code or city to get local recommendations</CardDescription>
+        <CardDescription>
+          Enter your ZIP code or city to get local recommendations
+        </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         <div>
@@ -432,13 +501,19 @@ export default function DateNightPage() {
     <Card className="max-w-2xl mx-auto" data-testid="card-interests">
       <CardHeader>
         <div className="flex items-center justify-between mb-2">
-          <span className="text-sm font-medium text-muted-foreground" data-testid="text-progress">
+          <span
+            className="text-sm font-medium text-muted-foreground"
+            data-testid="text-progress"
+          >
             Step 1 of 8
           </span>
           <Heart className="h-5 w-5 text-primary" />
         </div>
         <CardTitle className="text-2xl">{getStepTitle()}</CardTitle>
-        <CardDescription>Select all the activities and interests you share (or want to explore together)</CardDescription>
+        <CardDescription>
+          Select all the activities and interests you share (or want to explore
+          together)
+        </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="grid grid-cols-2 gap-3">
@@ -448,7 +523,7 @@ export default function DateNightPage() {
               <Button
                 key={option.value}
                 onClick={() => handleInterestToggle(option.value)}
-                variant={isSelected ? 'default' : 'outline'}
+                variant={isSelected ? "default" : "outline"}
                 className="h-auto py-4 justify-start hover-elevate active-elevate-2"
                 data-testid={`button-interest-${option.value}`}
               >
@@ -460,12 +535,20 @@ export default function DateNightPage() {
 
         {preferences.interests.length > 0 && (
           <div className="space-y-2">
-            <p className="text-sm font-medium text-muted-foreground">Selected interests:</p>
+            <p className="text-sm font-medium text-muted-foreground">
+              Selected interests:
+            </p>
             <div className="flex flex-wrap gap-2">
               {preferences.interests.map((interest) => {
-                const option = INTEREST_OPTIONS.find(o => o.value === interest);
+                const option = INTEREST_OPTIONS.find(
+                  (o) => o.value === interest,
+                );
                 return (
-                  <Badge key={interest} variant="secondary" data-testid={`badge-${interest}`}>
+                  <Badge
+                    key={interest}
+                    variant="secondary"
+                    data-testid={`badge-${interest}`}
+                  >
                     {option?.label}
                   </Badge>
                 );
@@ -500,46 +583,55 @@ export default function DateNightPage() {
     <div className="min-h-screen bg-background p-6">
       <div className="py-12">
         {currentStep === STEPS.GREETING && renderGreeting()}
-        
+
         {currentStep === STEPS.INTERESTS && renderInterests()}
-        
-        {currentStep === STEPS.TIME && renderQuestion('time', [
-          { label: '1-2 hours', value: '1-2 hours' },
-          { label: 'Full evening', value: 'Full evening' },
-          { label: 'Whole afternoon', value: 'Whole afternoon' },
-        ])}
+
+        {currentStep === STEPS.TIME &&
+          renderQuestion("time", [
+            { label: "1-2 hours", value: "1-2 hours" },
+            { label: "Full evening", value: "Full evening" },
+            { label: "Whole afternoon", value: "Whole afternoon" },
+          ])}
 
         {currentStep === STEPS.ZIP_CODE && renderZipCode()}
 
-        {currentStep === STEPS.TRAVEL_DISTANCE && renderQuestion('travelDistance', [
-          { label: 'Within 5 miles', value: 'Within 5 miles' },
-          { label: 'Within 10 miles', value: 'Within 10 miles' },
-          { label: 'Within 15 miles', value: 'Within 15 miles' },
-          { label: 'Within 20 miles', value: 'Within 20 miles' },
-          { label: '30+ miles / anywhere', value: '30+ miles' },
-        ])}
-        
-        {currentStep === STEPS.ACTIVITY_LOCATION && renderQuestion('activityLocation', [
-          { label: 'At home', value: 'At home' },
-          { label: 'Out of the house', value: 'Out of the house' },
-        ])}
-        
-        {currentStep === STEPS.PRICE && renderQuestion('price', [
-          { label: 'Totally free', value: 'Totally free' },
-          { label: 'Budget-friendly', value: 'Budget-friendly' },
-          { label: "Let's splurge a little", value: "Let's splurge a little" },
-        ])}
-        
-        {currentStep === STEPS.PARTICIPANTS && renderQuestion('participants', [
-          { label: 'Kid-friendly', value: 'Kid-friendly' },
-          { label: 'Adults only', value: 'Adults only' },
-        ])}
-        
-        {currentStep === STEPS.ENERGY && renderQuestion('energy', [
-          { label: 'Low-key and relaxing', value: 'Low-key and relaxing' },
-          { label: 'Active and engaging', value: 'Active and engaging' },
-        ])}
-        
+        {currentStep === STEPS.TRAVEL_DISTANCE &&
+          renderQuestion("travelDistance", [
+            { label: "Within 5 miles", value: "Within 5 miles" },
+            { label: "Within 10 miles", value: "Within 10 miles" },
+            { label: "Within 15 miles", value: "Within 15 miles" },
+            { label: "Within 20 miles", value: "Within 20 miles" },
+            { label: "30+ miles / anywhere", value: "30+ miles" },
+          ])}
+
+        {currentStep === STEPS.ACTIVITY_LOCATION &&
+          renderQuestion("activityLocation", [
+            { label: "At home", value: "At home" },
+            { label: "Out of the house", value: "Out of the house" },
+          ])}
+
+        {currentStep === STEPS.PRICE &&
+          renderQuestion("price", [
+            { label: "Totally free", value: "Totally free" },
+            { label: "Budget-friendly", value: "Budget-friendly" },
+            {
+              label: "Let's splurge a little",
+              value: "Let's splurge a little",
+            },
+          ])}
+
+        {currentStep === STEPS.PARTICIPANTS &&
+          renderQuestion("participants", [
+            { label: "Kid-friendly", value: "Kid-friendly" },
+            { label: "Adults only", value: "Adults only" },
+          ])}
+
+        {currentStep === STEPS.ENERGY &&
+          renderQuestion("energy", [
+            { label: "Low-key and relaxing", value: "Low-key and relaxing" },
+            { label: "Active and engaging", value: "Active and engaging" },
+          ])}
+
         {currentStep === STEPS.RESULTS && renderResults()}
       </div>
     </div>

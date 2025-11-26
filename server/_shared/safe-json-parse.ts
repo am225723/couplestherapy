@@ -5,13 +5,13 @@
  * @returns The parsed object or the default value.
  */
 export function safeJsonParse(jsonString: string, defaultValue: any = null) {
-  if (!jsonString || typeof jsonString !== 'string') {
+  if (!jsonString || typeof jsonString !== "string") {
     return defaultValue;
   }
   try {
     return JSON.parse(jsonString);
   } catch (error) {
-    console.error('Failed to parse JSON:', error);
+    console.error("Failed to parse JSON:", error);
     return defaultValue;
   }
 }

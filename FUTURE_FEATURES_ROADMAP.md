@@ -1,6 +1,7 @@
 # ALEIC Platform - Future Features Roadmap
 
 ## Overview
+
 This document outlines 10 strategic feature additions that would enhance the ALEIC couples therapy platform, building on the current foundation of 19+ therapy tools and 5 AI-powered features.
 
 ---
@@ -10,6 +11,7 @@ This document outlines 10 strategic feature additions that would enhance the ALE
 **Description**: Built-in secure video conferencing for therapist-led sessions with couples.
 
 **Key Features**:
+
 - HD video/audio with end-to-end encryption
 - Screen sharing for reviewing exercises together
 - In-session note-taking by therapist
@@ -18,12 +20,14 @@ This document outlines 10 strategic feature additions that would enhance the ALE
 - Waiting room with couple check-in questions
 
 **Value Proposition**:
+
 - Eliminates need for third-party video tools (Zoom, etc.)
 - Therapist can reference couple's ALEIC data during session
 - Seamless transition from async tools to live therapy
 - Reduces no-shows with integrated reminders
 
 **Technical Implementation**:
+
 - WebRTC for real-time communication
 - Supabase Realtime for presence detection
 - Supabase Storage for encrypted session recordings
@@ -36,6 +40,7 @@ This document outlines 10 strategic feature additions that would enhance the ALE
 **Description**: Structured tools for couples to navigate money conversations and financial planning together.
 
 **Key Features**:
+
 - **Money Values Assessment**: Identify financial priorities and values
 - **Budget Collaboration**: Shared budget creation and tracking
 - **Spending Patterns Visualization**: Charts showing spending habits
@@ -44,12 +49,14 @@ This document outlines 10 strategic feature additions that would enhance the ALE
 - **Spending Transparency Pledges**: Commit to dollar thresholds for discussion
 
 **Value Proposition**:
+
 - Money is a top conflict source for couples
 - Provides neutral space for sensitive conversations
 - Therapists gain insight into financial stress factors
 - Combines practical tools with emotional processing
 
 **Technical Implementation**:
+
 - Optional bank account integration (Plaid API)
 - Manual entry for privacy-conscious users
 - AI analysis of spending patterns and conflict triggers
@@ -63,6 +70,7 @@ This document outlines 10 strategic feature additions that would enhance the ALE
 **Description**: Comprehensive assessment of attachment patterns with personalized guidance.
 
 **Key Features**:
+
 - **Attachment Quiz**: Scientifically-validated assessment for each partner
 - **Attachment Profile**: Secure, Anxious, Avoidant, or Disorganized with detailed explanations
 - **Partner Dynamics Map**: Visualize how attachment styles interact
@@ -72,12 +80,14 @@ This document outlines 10 strategic feature additions that would enhance the ALE
 - **Couples "Dance" Visualization**: Show push-pull patterns in the relationship
 
 **Value Proposition**:
+
 - Foundational understanding for many relationship patterns
 - Personalizes all other interventions based on attachment insights
 - Helps couples understand reactivity and triggers
 - Therapists can tailor approaches to attachment combinations
 
 **Technical Implementation**:
+
 - Multi-page quiz similar to Love Map implementation
 - AI-powered pattern detection from other activities (messages, check-ins)
 - D3.js or similar for attachment dynamics visualization
@@ -90,6 +100,7 @@ This document outlines 10 strategic feature additions that would enhance the ALE
 **Description**: Private digital journal for couples to document their relationship journey together.
 
 **Key Features**:
+
 - **Joint Entry Mode**: Both partners write simultaneously on shared entry
 - **Individual Reflections**: Private thoughts that can optionally be shared later
 - **Photo & Memory Attachments**: Add photos, voice notes, screenshots
@@ -100,12 +111,14 @@ This document outlines 10 strategic feature additions that would enhance the ALE
 - **Relationship Timeline**: Visual timeline of journal entries and milestones
 
 **Value Proposition**:
+
 - Creates positive relationship narrative
 - Documents growth and progress
 - Provides data for therapist to understand couple's perspective
 - Helps couples reflect on patterns over time
 
 **Technical Implementation**:
+
 - Rich text editor with markdown support
 - Supabase Storage for media attachments
 - Supabase Realtime for collaborative editing
@@ -119,6 +132,7 @@ This document outlines 10 strategic feature additions that would enhance the ALE
 **Description**: Real-time intervention tools for couples in high-conflict moments.
 
 **Key Features**:
+
 - **Crisis Button**: Instant access to de-escalation resources
 - **Cooling Off Timer**: Structured time-outs with check-in prompts
 - **Grounding Exercises**: Breathing, 5-4-3-2-1 sensory awareness
@@ -129,12 +143,14 @@ This document outlines 10 strategic feature additions that would enhance the ALE
 - **Post-Conflict Debriefing**: Structured reflection after both partners calm down
 
 **Value Proposition**:
+
 - Prevents escalation before serious damage occurs
 - Provides immediate support outside therapy hours
 - Teaches self-regulation skills
 - Gives therapist crucial data about conflict patterns
 
 **Technical Implementation**:
+
 - Push notifications for cooling off timer
 - SMS/email alerts for therapist (with consent)
 - Audio-guided exercises for grounding
@@ -148,6 +164,7 @@ This document outlines 10 strategic feature additions that would enhance the ALE
 **Description**: Comprehensive tracking and celebration of relationship progress.
 
 **Key Features**:
+
 - **Milestone Library**: Relationship anniversaries, therapy anniversaries, goal achievements
 - **Progress Dashboard**: Visual representation of growth across all tools
 - **Before/After Comparisons**: Weekly check-in trends, conflict frequency changes
@@ -158,13 +175,15 @@ This document outlines 10 strategic feature additions that would enhance the ALE
 - **Growth Journal**: Auto-generated summary of relationship evolution
 
 **Value Proposition**:
+
 - Maintains motivation during difficult therapy work
 - Provides evidence of progress for discouraged couples
 - Creates positive reinforcement loop
 - Helps therapists identify effective interventions
 
 **Technical Implementation**:
-- Aggregate queries across all Couples_ tables
+
+- Aggregate queries across all Couples\_ tables
 - Historical data visualization with trend lines
 - Supabase Functions for health score calculation
 - Push notifications for milestone reminders
@@ -177,6 +196,7 @@ This document outlines 10 strategic feature additions that would enhance the ALE
 **Description**: Personalized date ideas based on couple's preferences, location, and relationship needs.
 
 **Key Features**:
+
 - **Preference Quiz**: Interests, budget, adventure level, mobility needs
 - **AI Recommendations**: Date ideas tailored to current relationship dynamics
 - **Therapy-Aligned Suggestions**: Dates that practice skills from therapy (e.g., Intimacy Mapping → sensory date)
@@ -187,12 +207,14 @@ This document outlines 10 strategic feature additions that would enhance the ALE
 - **Reflection Prompts**: Post-date questions to deepen connection
 
 **Value Proposition**:
+
 - Reduces decision fatigue around quality time
 - Ensures dates align with therapeutic goals
 - Maintains romance during intense therapy work
 - Provides structured fun to balance serious exercises
 
 **Technical Implementation**:
+
 - Perplexity AI for personalized recommendations
 - Geolocation for local suggestions
 - Integration with Google Maps/Yelp APIs
@@ -206,6 +228,7 @@ This document outlines 10 strategic feature additions that would enhance the ALE
 **Description**: Facilitated group sessions and peer support for couples.
 
 **Key Features**:
+
 - **Virtual Group Sessions**: Video-based group therapy led by therapist
 - **Topic-Based Groups**: Parenting, blended families, infidelity recovery, etc.
 - **Anonymous Community Forum**: Moderated discussions with other couples
@@ -216,12 +239,14 @@ This document outlines 10 strategic feature additions that would enhance the ALE
 - **Privacy Controls**: Opt-in for community features with anonymity options
 
 **Value Proposition**:
+
 - Reduces isolation - couples see they're not alone
 - Cost-effective supplement to individual therapy
 - Creates supportive network
 - Therapists can offer group rates
 
 **Technical Implementation**:
+
 - WebRTC for group video sessions
 - Forum with moderation tools (Supabase + manual review)
 - Anonymous profile system separate from couple profiles
@@ -235,6 +260,7 @@ This document outlines 10 strategic feature additions that would enhance the ALE
 **Description**: Intelligent session scheduling with automated homework tracking and reminders.
 
 **Key Features**:
+
 - **Smart Scheduling**: AI suggests optimal session times based on check-in data
 - **Homework Assignment System**: Therapists assign specific exercises
 - **Completion Tracking**: Automatic detection of exercise completion
@@ -245,12 +271,14 @@ This document outlines 10 strategic feature additions that would enhance the ALE
 - **Goal Setting Integration**: Link homework to couple's shared goals
 
 **Value Proposition**:
+
 - Increases homework completion rates
 - Maximizes session efficiency with prep work
 - Provides accountability between sessions
 - Gives therapists better session continuity
 
 **Technical Implementation**:
+
 - Calendar API integration (Google Calendar, Apple Calendar)
 - Push notifications and email reminders
 - Automated task detection from existing tables
@@ -264,6 +292,7 @@ This document outlines 10 strategic feature additions that would enhance the ALE
 **Description**: Enneagram personality assessment with relationship-specific insights.
 
 **Key Features**:
+
 - **Full Enneagram Assessment**: Validated test for each partner
 - **Couple Type Report**: Detailed analysis of type combination
 - **Conflict Patterns by Type**: How different Enneagram types clash
@@ -274,12 +303,14 @@ This document outlines 10 strategic feature additions that would enhance the ALE
 - **Integration with Other Tools**: Enneagram-informed prompts across platform
 
 **Value Proposition**:
+
 - Complements attachment theory with personality insights
 - Provides language for understanding differences
 - Reduces blame - "it's my type" vs. "it's my fault"
 - Highly popular self-development framework
 
 **Technical Implementation**:
+
 - 90-question assessment with AI scoring
 - Type descriptions and couple dynamics content library
 - Integration with existing analytics to detect type patterns
@@ -291,21 +322,25 @@ This document outlines 10 strategic feature additions that would enhance the ALE
 ## Implementation Priority Matrix
 
 ### High Impact, Low Effort (Implement First)
+
 1. **Smart Therapy Scheduling** - Leverages existing infrastructure
 2. **Relationship Milestones** - Uses existing data, high motivation boost
 3. **AI Date Night Generator** - Single AI integration, high user engagement
 
 ### High Impact, High Effort (Strategic Priorities)
+
 4. **Integrated Video Therapy** - Differentiator, requires significant dev
 5. **Financial Communication Toolkit** - High demand, complex integrations
 6. **Attachment Style Assessment** - Foundational for other features
 
 ### Medium Impact, Medium Effort (Phase 2)
+
 7. **Shared Couple Journal** - Nice-to-have, requires careful UX
 8. **Emergency De-Escalation** - Important safety feature, needs clinical validation
 9. **Enneagram Dynamics** - Popular but niche, content-heavy
 
 ### Lower Priority (Future Exploration)
+
 10. **Group Therapy Features** - Requires moderation infrastructure, legal considerations
 
 ---
@@ -313,12 +348,14 @@ This document outlines 10 strategic feature additions that would enhance the ALE
 ## Revenue Opportunities
 
 ### Premium Features (Subscription Tiers)
+
 - **Free Tier**: Basic tools (love languages, gratitude, check-ins)
 - **Couples Tier** ($15/mo): Full tool access, basic AI features
 - **Premium Tier** ($30/mo): Video therapy credit, advanced AI, financial toolkit
 - **Therapist Pro** ($50/mo per therapist): Unlimited couples, group features, analytics
 
 ### Add-On Services
+
 - **AI Date Night Credits**: $5 for 10 personalized date ideas
 - **Video Session Minutes**: $2/minute for integrated video therapy
 - **Relationship Assessment Reports**: $20 one-time for comprehensive PDF
@@ -329,21 +366,25 @@ This document outlines 10 strategic feature additions that would enhance the ALE
 ## Technical Architecture Considerations
 
 ### AI Infrastructure
+
 - Expand Perplexity AI usage for new features (date nights, smart scheduling)
 - Consider OpenAI GPT-4 for more complex analysis (attachment, Enneagram)
 - Implement caching strategies to manage AI costs
 
 ### Scalability
+
 - Video infrastructure (Twilio, Daily.co, or Agora for WebRTC)
 - CDN for media storage (Cloudflare for video/audio)
 - Database sharding for multi-tenant growth
 
 ### Privacy & Security
+
 - HIPAA compliance for video therapy features
 - End-to-end encryption for financial data
 - Granular consent management for data sharing
 
 ### Mobile Considerations
+
 - React Native app for better push notifications
 - Offline mode for journaling and exercises
 - Location services for date night recommendations
@@ -353,17 +394,20 @@ This document outlines 10 strategic feature additions that would enhance the ALE
 ## Success Metrics
 
 ### User Engagement
+
 - Daily Active Users (DAU)
 - Exercise completion rates
 - Video session attendance
 - Date night planning rate
 
 ### Therapeutic Outcomes
+
 - Relationship satisfaction scores (pre/post)
 - Conflict frequency reduction
 - Couples staying together vs. baseline
 
 ### Business Metrics
+
 - Monthly Recurring Revenue (MRR)
 - Customer Acquisition Cost (CAC)
 - Lifetime Value (LTV)
@@ -376,6 +420,7 @@ This document outlines 10 strategic feature additions that would enhance the ALE
 These 10 features represent strategic growth opportunities for ALEIC, balancing user needs, therapeutic effectiveness, and business viability. The platform is already strong with 19+ tools and 5 AI features - these additions would create a truly comprehensive, best-in-class couples therapy ecosystem.
 
 **Recommended Next Steps**:
+
 1. User research to validate highest-demand features
 2. Therapist survey for clinical priorities
 3. Technical feasibility assessment for top 3 features

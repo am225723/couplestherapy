@@ -15,6 +15,7 @@ All `apiRequest` calls in the codebase have been reviewed and fixed.
 These files were using `apiRequest` correctly from the start:
 
 ### 1. **client/src/pages/voice-memos.tsx** ✅
+
 ```typescript
 ✅ apiRequest('PATCH', `/api/voice-memos/${memoId}/listened`)
 ✅ apiRequest('POST', '/api/voice-memos', {...})
@@ -22,6 +23,7 @@ These files were using `apiRequest` correctly from the start:
 ```
 
 ### 2. **client/src/pages/calendar.tsx** ✅
+
 ```typescript
 ✅ apiRequest('POST', '/api/calendar', {...})
 ✅ apiRequest('PATCH', `/api/calendar/${id}`, {...})
@@ -29,11 +31,13 @@ These files were using `apiRequest` correctly from the start:
 ```
 
 ### 3. **client/src/pages/date-night.tsx** ✅
+
 ```typescript
 ✅ apiRequest('POST', '/api/ai/date-night', prefs)
 ```
 
 ### 4. **client/src/pages/user-management.tsx** ✅
+
 ```typescript
 ✅ apiRequest('POST', '/api/therapist/create-couple', data)
 ✅ apiRequest('POST', '/api/therapist/create-therapist', data)
@@ -42,16 +46,19 @@ These files were using `apiRequest` correctly from the start:
 ```
 
 ### 5. **client/src/pages/messages.tsx** ✅
+
 ```typescript
 ✅ apiRequest('POST', '/api/messages', {...})
 ```
 
 ### 6. **client/src/pages/admin-dashboard.tsx** ✅
+
 ```typescript
 ✅ apiRequest('POST', '/api/messages', {...})
 ```
 
 ### 7. **client/src/pages/therapist-management.tsx** ✅
+
 ```typescript
 ✅ apiRequest('POST', '/api/therapist/create-couple', coupleForm)
 ✅ apiRequest('POST', '/api/therapist/create-therapist', therapistForm)
@@ -60,6 +67,7 @@ These files were using `apiRequest` correctly from the start:
 ```
 
 ### 8. **client/src/pages/love-map.tsx** ✅
+
 ```typescript
 ✅ apiRequest('POST', '/api/love-map/truths', {...})
 ✅ apiRequest('POST', '/api/love-map/guesses', {...})
@@ -74,6 +82,7 @@ These files were using `apiRequest` correctly from the start:
 **2 mutations fixed:**
 
 #### Activate Pause Mutation (Line 145-153)
+
 ```typescript
 // BEFORE ❌
 apiRequest('/api/pause/activate', {
@@ -87,6 +96,7 @@ return response.json();
 ```
 
 #### End Pause Mutation (Line 171-176)
+
 ```typescript
 // BEFORE ❌
 apiRequest('/api/pause/end/${id}', {
@@ -106,6 +116,7 @@ return response.json();
 **3 mutations fixed:**
 
 #### Start Session Mutation (Line 44-55)
+
 ```typescript
 // BEFORE ❌
 apiRequest('/api/echo/session', {
@@ -119,6 +130,7 @@ return response.json();
 ```
 
 #### Submit Turn Mutation (Line 73-83)
+
 ```typescript
 // BEFORE ❌
 apiRequest('/api/echo/turn', {
@@ -132,14 +144,18 @@ return response.json();
 ```
 
 #### Complete Session Mutation (Line 117-122)
+
 ```typescript
 // BEFORE ❌
-apiRequest('/api/echo/session/${session_id}/complete', {
-  method: 'PATCH',
-})
+apiRequest("/api/echo/session/${session_id}/complete", {
+  method: "PATCH",
+});
 
 // AFTER ✅
-const response = await apiRequest('PATCH', `/api/echo/session/${session_id}/complete`);
+const response = await apiRequest(
+  "PATCH",
+  `/api/echo/session/${session_id}/complete`,
+);
 return response.json();
 ```
 
@@ -150,6 +166,7 @@ return response.json();
 **4 mutations fixed:**
 
 #### Create Exercise Mutation (Line 46-55)
+
 ```typescript
 // BEFORE ❌
 apiRequest('/api/ifs/exercise', {
@@ -163,6 +180,7 @@ return response.json();
 ```
 
 #### Add Part Mutation (Line 73-85)
+
 ```typescript
 // BEFORE ❌
 apiRequest('/api/ifs/part', {
@@ -176,27 +194,29 @@ return response.json();
 ```
 
 #### Update Part Mutation (Line 106-111)
+
 ```typescript
 // BEFORE ❌
-apiRequest('/api/ifs/part/${id}', {
-  method: 'PATCH',
+apiRequest("/api/ifs/part/${id}", {
+  method: "PATCH",
   body: JSON.stringify(updates),
-})
+});
 
 // AFTER ✅
-const response = await apiRequest('PATCH', `/api/ifs/part/${id}`, updates);
+const response = await apiRequest("PATCH", `/api/ifs/part/${id}`, updates);
 return response.json();
 ```
 
 #### Delete Part Mutation (Line 132-137)
+
 ```typescript
 // BEFORE ❌
-apiRequest('/api/ifs/part/${id}', {
-  method: 'DELETE',
-})
+apiRequest("/api/ifs/part/${id}", {
+  method: "DELETE",
+});
 
 // AFTER ✅
-const response = await apiRequest('DELETE', `/api/ifs/part/${id}`);
+const response = await apiRequest("DELETE", `/api/ifs/part/${id}`);
 return response.json();
 ```
 
@@ -204,12 +224,12 @@ return response.json();
 
 ## 📊 **Breakdown by HTTP Method**
 
-| Method | Total Calls | Fixed | Already Correct |
-|--------|-------------|-------|-----------------|
-| POST   | 20          | 7     | 13              |
-| PATCH  | 4           | 2     | 2               |
-| DELETE | 2           | 2     | 0               |
-| **Total** | **26**   | **11** | **15**         |
+| Method    | Total Calls | Fixed  | Already Correct |
+| --------- | ----------- | ------ | --------------- |
+| POST      | 20          | 7      | 13              |
+| PATCH     | 4           | 2      | 2               |
+| DELETE    | 2           | 2      | 0               |
+| **Total** | **26**      | **11** | **15**          |
 
 ---
 
@@ -225,23 +245,23 @@ apiRequest(method: string, url: string, data?: unknown): Promise<Response>
 
 ```typescript
 // GET (no body)
-const response = await apiRequest('GET', '/api/endpoint');
+const response = await apiRequest("GET", "/api/endpoint");
 const data = await response.json();
 
 // POST (with body)
-const response = await apiRequest('POST', '/api/endpoint', {
-  key: 'value'
+const response = await apiRequest("POST", "/api/endpoint", {
+  key: "value",
 });
 const data = await response.json();
 
 // PATCH (with body)
-const response = await apiRequest('PATCH', `/api/endpoint/${id}`, {
-  updates: 'here'
+const response = await apiRequest("PATCH", `/api/endpoint/${id}`, {
+  updates: "here",
 });
 const data = await response.json();
 
 // DELETE (no body)
-const response = await apiRequest('DELETE', `/api/endpoint/${id}`);
+const response = await apiRequest("DELETE", `/api/endpoint/${id}`);
 const data = await response.json();
 ```
 
@@ -252,17 +272,20 @@ const data = await response.json();
 After deploying these fixes, test these features:
 
 ### Pause Button (`/pause`)
+
 - ✅ Activate pause button
 - ✅ End pause with reflection
 - ✅ View pause history
 
 ### Echo & Empathy (`/echo-empathy`)
+
 - ✅ Start new session
 - ✅ Submit speaker content
 - ✅ Submit listener reflection
 - ✅ Complete session
 
 ### IFS Introduction (`/ifs-intro`)
+
 - ✅ Start new exercise
 - ✅ Add protective part
 - ✅ Edit protective part
@@ -275,13 +298,16 @@ After deploying these fixes, test these features:
 For each fixed mutation:
 
 1. **Changed parameter order:**
+
    - From: `apiRequest(url, { method, body })`
    - To: `apiRequest(method, url, data)`
 
 2. **Removed manual JSON.stringify:**
+
    - The `apiRequest` function handles serialization internally
 
 3. **Added response.json() parsing:**
+
    - To properly extract and return parsed JSON data
 
 4. **Added await keyword:**
@@ -301,6 +327,7 @@ For each fixed mutation:
 ## 🚀 **Next Steps**
 
 1. **Commit changes:**
+
    ```bash
    git add .
    git commit -m "Fix all apiRequest calls to use correct parameter order"

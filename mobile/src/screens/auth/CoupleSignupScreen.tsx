@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -8,20 +8,20 @@ import {
   ScrollView,
   TouchableOpacity,
   Alert,
-} from 'react-native';
-import Button from '../../components/Button';
-import Input from '../../components/Input';
-import { colors, spacing, typography } from '../../constants/theme';
-import { apiClient } from '../../services/api';
+} from "react-native";
+import Button from "../../components/Button";
+import Input from "../../components/Input";
+import { colors, spacing, typography } from "../../constants/theme";
+import { apiClient } from "../../services/api";
 
 export default function CoupleSignupScreen({ navigation }: any) {
-  const [invitationCode, setInvitationCode] = useState('');
-  const [partner1Name, setPartner1Name] = useState('');
-  const [partner1Email, setPartner1Email] = useState('');
-  const [partner1Password, setPartner1Password] = useState('');
-  const [partner2Name, setPartner2Name] = useState('');
-  const [partner2Email, setPartner2Email] = useState('');
-  const [partner2Password, setPartner2Password] = useState('');
+  const [invitationCode, setInvitationCode] = useState("");
+  const [partner1Name, setPartner1Name] = useState("");
+  const [partner1Email, setPartner1Email] = useState("");
+  const [partner1Password, setPartner1Password] = useState("");
+  const [partner2Name, setPartner2Name] = useState("");
+  const [partner2Email, setPartner2Email] = useState("");
+  const [partner2Password, setPartner2Password] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleSignup = async () => {
@@ -34,18 +34,18 @@ export default function CoupleSignupScreen({ navigation }: any) {
       !partner2Email ||
       !partner2Password
     ) {
-      Alert.alert('Error', 'Please fill in all fields');
+      Alert.alert("Error", "Please fill in all fields");
       return;
     }
 
     if (partner1Password.length < 6 || partner2Password.length < 6) {
-      Alert.alert('Error', 'Passwords must be at least 6 characters');
+      Alert.alert("Error", "Passwords must be at least 6 characters");
       return;
     }
 
     setLoading(true);
     try {
-      await apiClient.post('/api/public/register-couple', {
+      await apiClient.post("/api/public/register-couple", {
         invitation_code: invitationCode,
         partner1_name: partner1Name,
         partner1_email: partner1Email,
@@ -56,12 +56,12 @@ export default function CoupleSignupScreen({ navigation }: any) {
       });
 
       Alert.alert(
-        'Success',
-        'Couple account created successfully! You can now sign in with your email and password.',
-        [{ text: 'OK', onPress: () => navigation.navigate('Login') }]
+        "Success",
+        "Couple account created successfully! You can now sign in with your email and password.",
+        [{ text: "OK", onPress: () => navigation.navigate("Login") }],
       );
     } catch (error: any) {
-      Alert.alert('Signup Failed', error.message);
+      Alert.alert("Signup Failed", error.message);
     } finally {
       setLoading(false);
     }
@@ -70,7 +70,7 @@ export default function CoupleSignupScreen({ navigation }: any) {
   return (
     <KeyboardAvoidingView
       style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.header}>
@@ -143,9 +143,10 @@ export default function CoupleSignupScreen({ navigation }: any) {
             style={styles.signupButton}
           />
 
-          <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+          <TouchableOpacity onPress={() => navigation.navigate("Login")}>
             <Text style={styles.linkText}>
-              Already have an account? <Text style={styles.linkTextBold}>Sign in</Text>
+              Already have an account?{" "}
+              <Text style={styles.linkTextBold}>Sign in</Text>
             </Text>
           </TouchableOpacity>
         </View>
@@ -165,7 +166,7 @@ const styles = StyleSheet.create({
     paddingTop: spacing.xxl,
   },
   header: {
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: spacing.xl,
   },
   title: {
@@ -178,7 +179,7 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
   },
   form: {
-    width: '100%',
+    width: "100%",
   },
   sectionTitle: {
     ...typography.h5,
@@ -192,11 +193,11 @@ const styles = StyleSheet.create({
   linkText: {
     ...typography.body,
     color: colors.textSecondary,
-    textAlign: 'center',
+    textAlign: "center",
     marginTop: spacing.lg,
   },
   linkTextBold: {
     color: colors.primary,
-    fontWeight: '600',
+    fontWeight: "600",
   },
 });

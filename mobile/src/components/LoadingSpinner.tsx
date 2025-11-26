@@ -1,13 +1,16 @@
-import React from 'react';
-import { View, ActivityIndicator, StyleSheet, Text } from 'react-native';
-import { colors, spacing, typography } from '../constants/theme';
+import React from "react";
+import { View, ActivityIndicator, StyleSheet, Text } from "react-native";
+import { colors, spacing, typography } from "../constants/theme";
 
 interface LoadingSpinnerProps {
   message?: string;
-  size?: 'small' | 'large';
+  size?: "small" | "large";
 }
 
-export default function LoadingSpinner({ message, size = 'large' }: LoadingSpinnerProps) {
+export default function LoadingSpinner({
+  message,
+  size = "large",
+}: LoadingSpinnerProps) {
   return (
     <View style={styles.container}>
       <ActivityIndicator size={size} color={colors.primary} />
@@ -19,14 +22,14 @@ export default function LoadingSpinner({ message, size = 'large' }: LoadingSpinn
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     padding: spacing.xl,
   },
   message: {
     ...typography.body,
     color: colors.textSecondary,
     marginTop: spacing.md,
-    textAlign: 'center',
+    textAlign: "center",
   },
 });

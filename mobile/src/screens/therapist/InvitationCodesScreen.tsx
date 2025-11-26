@@ -1,11 +1,19 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Alert, Share, Clipboard } from 'react-native';
-import { useAuth } from '../../contexts/AuthContext';
-import { useApi, useApiMutation } from '../../hooks/useApi';
-import Button from '../../components/Button';
-import Card from '../../components/Card';
-import LoadingSpinner from '../../components/LoadingSpinner';
-import { colors, spacing, typography } from '../../constants/theme';
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  Alert,
+  Share,
+  Clipboard,
+} from "react-native";
+import { useAuth } from "../../contexts/AuthContext";
+import { useApi, useApiMutation } from "../../hooks/useApi";
+import Button from "../../components/Button";
+import Card from "../../components/Card";
+import LoadingSpinner from "../../components/LoadingSpinner";
+import { colors, spacing, typography } from "../../constants/theme";
 
 interface InvitationCode {
   id: number;
@@ -20,31 +28,27 @@ export default function InvitationCodesScreen() {
   const { profile } = useAuth();
 
   const { data: codes, isLoading } = useApi<InvitationCode[]>(
-    `/api/therapist/${profile?.id}/invitation-codes`
+    `/api/therapist/${profile?.id}/invitation-codes`,
   );
 
   const generateCode = useApiMutation(
-    '/api/therapist/invitation-codes',
-    'post',
+    "/api/therapist/invitation-codes",
+    "post",
     {
       invalidateQueries: [`/api/therapist/${profile?.id}/invitation-codes`],
       onSuccess: (data) => {
-        Alert.alert(
-          'Code Generated!',
-          `Invitation code: ${data.code}`,
-          [
-            { text: 'Copy', onPress: () => copyToClipboard(data.code) },
-            { text: 'Share', onPress: () => shareCode(data.code) },
-            { text: 'OK' },
-          ]
-        );
+        Alert.alert("Code Generated!", `Invitation code: ${data.code}`, [
+          { text: "Copy", onPress: () => copyToClipboard(data.code) },
+          { text: "Share", onPress: () => shareCode(data.code) },
+          { text: "OK" },
+        ]);
       },
-    }
+    },
   );
 
   const copyToClipboard = (code: string) => {
     Clipboard.setString(code);
-    Alert.alert('Copied!', 'Invitation code copied to clipboard');
+    Alert.alert("Copied!", "Invitation code copied to clipboard");
   };
 
   const shareCode = async (code: string) => {
@@ -53,7 +57,7 @@ export default function InvitationCodesScreen() {
         message: `Join ALEIC couples therapy with invitation code: ${code}`,
       });
     } catch (error) {
-      console.error('Error sharing code', error);
+      console.error("Error sharing code", error);
     }
   };
 
@@ -61,8 +65,8 @@ export default function InvitationCodesScreen() {
     return <LoadingSpinner message="Loading invitation codes..." />;
   }
 
-  const activeCodes = codes?.filter(c => !c.is_used) || [];
-  const usedCodes = codes?.filter(c => c.is_used) || [];
+  const activeCodes = codes?.filter((c) => !c.is_used) || [];
+  const usedCodes = codes?.filter((c) => c.is_used) || [];
 
   return (
     <ScrollView style={styles.container}>
@@ -108,7 +112,9 @@ export default function InvitationCodesScreen() {
             ))
           ) : (
             <Card>
-              <Text style={styles.emptyText}>No active codes. Generate one to get started!</Text>
+              <Text style={styles.emptyText}>
+                No active codes. Generate one to get started!
+              </Text>
             </Card>
           )}
         </View>
@@ -136,22 +142,38 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   content: { padding: spacing.lg },
   title: { ...typography.h2, color: colors.text, marginBottom: spacing.xs },
-  subtitle: { ...typography.body, color: colors.textSecondary, marginBottom: spacing.lg },
+  subtitle: {
+    ...typography.body,
+    color: colors.textSecondary,
+    marginBottom: spacing.lg,
+  },
   generateButton: { marginBottom: spacing.xl },
   section: { marginBottom: spacing.xl },
-  sectionTitle: { ...typography.h5, color: colors.text, marginBottom: spacing.md },
+  sectionTitle: {
+    ...typography.h5,
+    color: colors.text,
+    marginBottom: spacing.md,
+  },
   codeCard: { marginBottom: spacing.md },
   codeHeader: { marginBottom: spacing.sm },
   codeText: {
     ...typography.h4,
     color: colors.primary,
-    fontFamily: 'monospace',
+    fontFamily: "monospace",
     marginBottom: spacing.sm,
   },
-  codeActions: { flexDirection: 'row', gap: spacing.sm },
+  codeActions: { flexDirection: "row", gap: spacing.sm },
   codeButton: { flex: 1 },
   codeDate: { ...typography.bodySmall, color: colors.textSecondary },
   usedCodeCard: { marginBottom: spacing.md, opacity: 0.6 },
-  usedText: { ...typography.bodySmall, color: colors.success, marginBottom: spacing.xs },
-  emptyText: { ...typography.body, color: colors.textSecondary, textAlign: 'center' },
+  usedText: {
+    ...typography.bodySmall,
+    color: colors.success,
+    marginBottom: spacing.xs,
+  },
+  emptyText: {
+    ...typography.body,
+    color: colors.textSecondary,
+    textAlign: "center",
+  },
 });

@@ -3,6 +3,7 @@
 ## ✅ Completed Features (15+ screens)
 
 ### Authentication & Profile
+
 - **Login** - Email/password authentication with Supabase
 - **Therapist Signup** - Account creation for therapists
 - **Couple Signup** - Registration using therapist invitation codes
@@ -11,17 +12,21 @@
 ### Client Features (Couples)
 
 #### Assessments
+
 - **Weekly Check-In** - Mood, connection, and stress ratings with private/shared toggle
 - **Love Language Quiz** - 5-question assessment with results breakdown
 - Dashboard integration showing primary and secondary love languages
 
 #### Communication Tools
+
 - **Secure Messages** - Realtime chat with partner and therapist
+
   - Live message updates via Supabase Realtime
   - Message history with timestamps
   - Typing indicators ready
 
 - **Voice Memos** - Audio recording and playback
+
   - Record voice notes for partner
   - Play/pause controls
   - AI sentiment analysis integration ready
@@ -34,24 +39,29 @@
   - Resume functionality
 
 #### Activities & Connection
+
 - **Gratitude Log** - Daily gratitude with photos
+
   - Camera and photo library integration
   - Image preview and upload
   - Shared timeline view
   - Entry history
 
 - **Shared Goals** - Kanban-style goal tracker
+
   - Three columns: Backlog, In Progress, Completed
   - Drag-and-drop ready (status buttons for now)
   - Goal descriptions and target dates
 
 - **Date Night Generator** - AI-powered date ideas
+
   - 12 interest categories
   - Location-based suggestions
   - Distance filtering (5-30+ miles)
   - Perplexity AI integration
 
 - **Rituals of Connection** - Routine tracker
+
   - Daily, weekly, monthly frequencies
   - Completion tracking
   - Last completed timestamps
@@ -63,6 +73,7 @@
   - Chronological timeline
 
 #### Planning & Organization
+
 - **Shared Calendar** - Event coordination
   - Calendar view with marked dates
   - Event creation with time selection
@@ -72,6 +83,7 @@
 ### Therapist Features
 
 #### Dashboard
+
 - **Therapist Dashboard** - Analytics overview
   - Total couples count
   - Active this week counter
@@ -80,7 +92,9 @@
   - Quick action buttons
 
 #### Couple Management
+
 - **Couple List** - View all assigned couples
+
   - Couple names display
   - Last activity tracking
   - Tap to view details
@@ -98,15 +112,18 @@
 The following screens exist with navigation but need feature implementation:
 
 ### Client Assessments
+
 - Love Map Quiz (multi-phase flow)
 - Attachment Style Assessment
 - Enneagram Assessment
 
 ### Client Communication
+
 - Echo & Empathy (active listening tool)
 - Hold Me Tight Conversation (EFT guide)
 
 ### Client Personal Growth
+
 - IFS Introduction
 - Meditation Library
 - Values & Vision Board
@@ -115,10 +132,12 @@ The following screens exist with navigation but need feature implementation:
 - Intimacy Mapping
 
 ### Client Planning
+
 - Financial Communication Toolkit
 - Parenting as Partners
 
 ### Therapist Features
+
 - Couple Detail View (assessment results, activity feed)
 - Therapist Messages (separate from couple messages)
 - Therapist Profile
@@ -126,22 +145,26 @@ The following screens exist with navigation but need feature implementation:
 ## 🏗️ Architecture & Infrastructure
 
 ### Core Components
+
 - **Button** - Primary, Secondary, Outline, Ghost variants
 - **Input** - Text input with labels and error states
 - **Card** - Elevated surface component
 - **LoadingSpinner** - Loading state indicator
 
 ### Hooks & Utilities
+
 - **useApi** - Data fetching with TanStack Query
 - **useApiMutation** - Server mutations with cache invalidation
 - **AuthContext** - Session management and profile access
 
 ### Services
+
 - **API Client** - Axios-based with auto auth headers
 - **Supabase Client** - Auth, database, realtime, storage
 - **Theme System** - Colors, spacing, typography constants
 
 ### Navigation
+
 - **AppNavigator** - Auth flow (Login, Signups)
 - **ClientTabNavigator** - 5 tabs (Home, Connect, Activities, Plan, Profile)
 - **TherapistTabNavigator** - 5 tabs (Dashboard, Couples, Manage, Messages, Profile)
@@ -149,18 +172,21 @@ The following screens exist with navigation but need feature implementation:
 ## 📱 Platform Features Used
 
 ### Expo Modules
+
 - **expo-image-picker** - Camera and photo library access
 - **expo-av** - Audio recording and playback
 - **expo-secure-store** - Secure token storage
 - **react-native-calendars** - Calendar component
 
 ### Native Integrations
+
 - **Share API** - System share sheet for invitation codes
 - **Clipboard** - Copy functionality
 - **KeyboardAvoidingView** - Keyboard handling for forms
 - **Animated API** - Pulse animation for Pause Button
 
 ### Backend Integrations
+
 - **Supabase Realtime** - Live message updates, pause notifications
 - **Supabase Storage** - Image and audio uploads (ready)
 - **Perplexity AI** - Date night suggestions
@@ -198,6 +224,7 @@ The following screens exist with navigation but need feature implementation:
 ## 📈 Next Steps
 
 ### High Priority
+
 1. Love Map Quiz implementation
 2. Attachment & Enneagram assessments
 3. Echo & Empathy tool
@@ -205,6 +232,7 @@ The following screens exist with navigation but need feature implementation:
 5. Couple Detail screen for therapists
 
 ### Medium Priority
+
 1. IFS exercises
 2. Meditation library with audio
 3. Financial toolkit
@@ -212,6 +240,7 @@ The following screens exist with navigation but need feature implementation:
 5. Push notifications setup
 
 ### Polish
+
 1. Image upload to Supabase Storage
 2. Audio upload to Supabase Storage
 3. Offline support

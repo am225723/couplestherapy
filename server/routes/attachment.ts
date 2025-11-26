@@ -13,16 +13,18 @@ router.get("/questions", async (req, res) => {
     }
 
     const { data, error } = await supabaseAdmin
-      .from('Couples_attachment_questions')
-      .select('*')
-      .order('id');
+      .from("Couples_attachment_questions")
+      .select("*")
+      .order("id");
 
     if (error) throw error;
 
     res.json(data);
   } catch (error: any) {
-    console.error('Error fetching attachment questions:', error);
-    res.status(500).json({ error: error.message || 'Failed to fetch questions' });
+    console.error("Error fetching attachment questions:", error);
+    res
+      .status(500)
+      .json({ error: error.message || "Failed to fetch questions" });
   }
 });
 
@@ -36,21 +38,21 @@ router.post("/sessions", async (req, res) => {
 
     // Get user's couple_id from their profile
     const { data: profile } = await supabaseAdmin
-      .from('Couples_profiles')
-      .select('couple_id')
-      .eq('id', authResult.userId)
+      .from("Couples_profiles")
+      .select("couple_id")
+      .eq("id", authResult.userId)
       .single();
 
     if (!profile?.couple_id) {
-      return res.status(400).json({ error: 'User is not part of a couple' });
+      return res.status(400).json({ error: "User is not part of a couple" });
     }
 
     const { data, error } = await supabaseAdmin
-      .from('Couples_attachment_sessions')
+      .from("Couples_attachment_sessions")
       .insert({
         user_id: authResult.userId,
         couple_id: profile.couple_id,
-        is_completed: false
+        is_completed: false,
       })
       .select()
       .single();
@@ -59,8 +61,10 @@ router.post("/sessions", async (req, res) => {
 
     res.json(data);
   } catch (error: any) {
-    console.error('Error creating attachment session:', error);
-    res.status(500).json({ error: error.message || 'Failed to create session' });
+    console.error("Error creating attachment session:", error);
+    res
+      .status(500)
+      .json({ error: error.message || "Failed to create session" });
   }
 });
 
@@ -73,17 +77,19 @@ router.get("/sessions/my", async (req, res) => {
     }
 
     const { data, error } = await supabaseAdmin
-      .from('Couples_attachment_sessions')
-      .select('*')
-      .eq('user_id', authResult.userId)
-      .order('created_at', { ascending: false });
+      .from("Couples_attachment_sessions")
+      .select("*")
+      .eq("user_id", authResult.userId)
+      .order("created_at", { ascending: false });
 
     if (error) throw error;
 
     res.json(data);
   } catch (error: any) {
-    console.error('Error fetching attachment sessions:', error);
-    res.status(500).json({ error: error.message || 'Failed to fetch sessions' });
+    console.error("Error fetching attachment sessions:", error);
+    res
+      .status(500)
+      .json({ error: error.message || "Failed to fetch sessions" });
   }
 });
 
@@ -99,27 +105,32 @@ router.post("/responses", async (req, res) => {
 
     // Verify the session belongs to the user
     const { data: session } = await supabaseAdmin
-      .from('Couples_attachment_sessions')
-      .select('user_id')
-      .eq('id', session_id)
+      .from("Couples_attachment_sessions")
+      .select("user_id")
+      .eq("id", session_id)
       .single();
 
     if (!session || session.user_id !== authResult.userId) {
-      return res.status(403).json({ error: 'Access denied' });
+      return res.status(403).json({ error: "Access denied" });
     }
 
     // Validate response value
     if (!response_value || response_value < 1 || response_value > 5) {
-      return res.status(400).json({ error: 'Response value must be between 1 and 5' });
+      return res
+        .status(400)
+        .json({ error: "Response value must be between 1 and 5" });
     }
 
     const { data, error } = await supabaseAdmin
-      .from('Couples_attachment_responses')
-      .upsert({
-        session_id,
-        question_id,
-        response_value
-      }, { onConflict: 'session_id,question_id' })
+      .from("Couples_attachment_responses")
+      .upsert(
+        {
+          session_id,
+          question_id,
+          response_value,
+        },
+        { onConflict: "session_id,question_id" },
+      )
       .select()
       .single();
 
@@ -127,8 +138,8 @@ router.post("/responses", async (req, res) => {
 
     res.json(data);
   } catch (error: any) {
-    console.error('Error saving attachment response:', error);
-    res.status(500).json({ error: error.message || 'Failed to save response' });
+    console.error("Error saving attachment response:", error);
+    res.status(500).json({ error: error.message || "Failed to save response" });
   }
 });
 
@@ -144,29 +155,33 @@ router.post("/sessions/:id/complete", async (req, res) => {
 
     // Verify the session belongs to the user
     const { data: session } = await supabaseAdmin
-      .from('Couples_attachment_sessions')
-      .select('user_id, couple_id')
-      .eq('id', id)
+      .from("Couples_attachment_sessions")
+      .select("user_id, couple_id")
+      .eq("id", id)
       .single();
 
     if (!session || session.user_id !== authResult.userId) {
-      return res.status(403).json({ error: 'Access denied' });
+      return res.status(403).json({ error: "Access denied" });
     }
 
     // Get all responses for this session with question details
     const { data: responses } = await supabaseAdmin
-      .from('Couples_attachment_responses')
-      .select(`
+      .from("Couples_attachment_responses")
+      .select(
+        `
         response_value,
         Couples_attachment_questions!inner (
           attachment_category,
           reverse_scored
         )
-      `)
-      .eq('session_id', id);
+      `,
+      )
+      .eq("session_id", id);
 
     if (!responses || responses.length < 20) {
-      return res.status(400).json({ error: 'Not enough responses to calculate results' });
+      return res
+        .status(400)
+        .json({ error: "Not enough responses to calculate results" });
     }
 
     // Calculate scores for each attachment style
@@ -174,14 +189,14 @@ router.post("/sessions/:id/complete", async (req, res) => {
       secure: 0,
       anxious: 0,
       avoidant: 0,
-      disorganized: 0
+      disorganized: 0,
     };
 
     const counts = {
       secure: 0,
       anxious: 0,
       avoidant: 0,
-      disorganized: 0
+      disorganized: 0,
     };
 
     for (const response of responses) {
@@ -189,7 +204,7 @@ router.post("/sessions/:id/complete", async (req, res) => {
       const category = question.attachment_category;
       const isReversed = question.reverse_scored;
       let value = response.response_value;
-      
+
       // Reverse score if needed
       if (isReversed) {
         value = 6 - value;
@@ -201,35 +216,50 @@ router.post("/sessions/:id/complete", async (req, res) => {
 
     // Normalize scores (average per category)
     const normalizedScores = {
-      secure: counts.secure > 0 ? Math.round((scores.secure / counts.secure) * 20) : 0,
-      anxious: counts.anxious > 0 ? Math.round((scores.anxious / counts.anxious) * 20) : 0,
-      avoidant: counts.avoidant > 0 ? Math.round((scores.avoidant / counts.avoidant) * 20) : 0,
-      disorganized: counts.disorganized > 0 ? Math.round((scores.disorganized / counts.disorganized) * 20) : 0
+      secure:
+        counts.secure > 0
+          ? Math.round((scores.secure / counts.secure) * 20)
+          : 0,
+      anxious:
+        counts.anxious > 0
+          ? Math.round((scores.anxious / counts.anxious) * 20)
+          : 0,
+      avoidant:
+        counts.avoidant > 0
+          ? Math.round((scores.avoidant / counts.avoidant) * 20)
+          : 0,
+      disorganized:
+        counts.disorganized > 0
+          ? Math.round((scores.disorganized / counts.disorganized) * 20)
+          : 0,
     };
 
     // Determine primary attachment style
-    const primaryStyle = Object.entries(normalizedScores).reduce((a, b) => 
-      normalizedScores[b[0] as keyof typeof normalizedScores] > normalizedScores[a[0] as keyof typeof normalizedScores] ? b : a
+    const primaryStyle = Object.entries(normalizedScores).reduce((a, b) =>
+      normalizedScores[b[0] as keyof typeof normalizedScores] >
+      normalizedScores[a[0] as keyof typeof normalizedScores]
+        ? b
+        : a,
     )[0];
 
     // Mark session as completed
     await supabaseAdmin
-      .from('Couples_attachment_sessions')
-      .update({ 
+      .from("Couples_attachment_sessions")
+      .update({
         is_completed: true,
-        completed_at: new Date().toISOString()
+        completed_at: new Date().toISOString(),
       })
-      .eq('id', id);
+      .eq("id", id);
 
     // Save results
     const { data: result, error } = await supabaseAdmin
-      .from('Couples_attachment_results')
+      .from("Couples_attachment_results")
       .insert({
         session_id: id,
         user_id: authResult.userId,
         couple_id: session.couple_id,
         primary_attachment_style: primaryStyle,
-        attachment_scores: normalizedScores
+        attachment_scores: normalizedScores,
       })
       .select()
       .single();
@@ -238,8 +268,10 @@ router.post("/sessions/:id/complete", async (req, res) => {
 
     res.json(result);
   } catch (error: any) {
-    console.error('Error completing attachment session:', error);
-    res.status(500).json({ error: error.message || 'Failed to complete session' });
+    console.error("Error completing attachment session:", error);
+    res
+      .status(500)
+      .json({ error: error.message || "Failed to complete session" });
   }
 });
 
@@ -252,17 +284,17 @@ router.get("/results/my", async (req, res) => {
     }
 
     const { data, error } = await supabaseAdmin
-      .from('Couples_attachment_results')
-      .select('*')
-      .eq('user_id', authResult.userId)
-      .order('created_at', { ascending: false });
+      .from("Couples_attachment_results")
+      .select("*")
+      .eq("user_id", authResult.userId)
+      .order("created_at", { ascending: false });
 
     if (error) throw error;
 
     res.json(data);
   } catch (error: any) {
-    console.error('Error fetching attachment results:', error);
-    res.status(500).json({ error: error.message || 'Failed to fetch results' });
+    console.error("Error fetching attachment results:", error);
+    res.status(500).json({ error: error.message || "Failed to fetch results" });
   }
 });
 
@@ -276,32 +308,36 @@ router.get("/results/couple", async (req, res) => {
 
     // Get user's couple_id
     const { data: profile } = await supabaseAdmin
-      .from('Couples_profiles')
-      .select('couple_id')
-      .eq('id', authResult.userId)
+      .from("Couples_profiles")
+      .select("couple_id")
+      .eq("id", authResult.userId)
       .single();
 
     if (!profile?.couple_id) {
-      return res.status(400).json({ error: 'User is not part of a couple' });
+      return res.status(400).json({ error: "User is not part of a couple" });
     }
 
     const { data, error } = await supabaseAdmin
-      .from('Couples_attachment_results')
-      .select(`
+      .from("Couples_attachment_results")
+      .select(
+        `
         *,
         Couples_profiles!Couples_attachment_results_user_id_fkey (
           full_name
         )
-      `)
-      .eq('couple_id', profile.couple_id)
-      .order('created_at', { ascending: false });
+      `,
+      )
+      .eq("couple_id", profile.couple_id)
+      .order("created_at", { ascending: false });
 
     if (error) throw error;
 
     res.json(data);
   } catch (error: any) {
-    console.error('Error fetching couple attachment results:', error);
-    res.status(500).json({ error: error.message || 'Failed to fetch couple results' });
+    console.error("Error fetching couple attachment results:", error);
+    res
+      .status(500)
+      .json({ error: error.message || "Failed to fetch couple results" });
   }
 });
 
@@ -316,11 +352,11 @@ router.get("/repair-scripts", async (req, res) => {
     const { style } = req.query;
 
     let query = supabaseAdmin
-      .from('Couples_attachment_repair_scripts')
-      .select('*');
+      .from("Couples_attachment_repair_scripts")
+      .select("*");
 
     if (style) {
-      query = query.eq('attachment_style', style);
+      query = query.eq("attachment_style", style);
     }
 
     const { data, error } = await query;
@@ -329,8 +365,10 @@ router.get("/repair-scripts", async (req, res) => {
 
     res.json(data);
   } catch (error: any) {
-    console.error('Error fetching repair scripts:', error);
-    res.status(500).json({ error: error.message || 'Failed to fetch repair scripts' });
+    console.error("Error fetching repair scripts:", error);
+    res
+      .status(500)
+      .json({ error: error.message || "Failed to fetch repair scripts" });
   }
 });
 

@@ -1,17 +1,23 @@
-import React from 'react';
-import { TouchableOpacity, Text, StyleSheet, ActivityIndicator, TouchableOpacityProps } from 'react-native';
-import { colors, borderRadius, typography, spacing } from '../constants/theme';
+import React from "react";
+import {
+  TouchableOpacity,
+  Text,
+  StyleSheet,
+  ActivityIndicator,
+  TouchableOpacityProps,
+} from "react-native";
+import { colors, borderRadius, typography, spacing } from "../constants/theme";
 
 interface ButtonProps extends TouchableOpacityProps {
   title: string;
-  variant?: 'primary' | 'secondary' | 'outline' | 'ghost';
+  variant?: "primary" | "secondary" | "outline" | "ghost";
   loading?: boolean;
   fullWidth?: boolean;
 }
 
 export default function Button({
   title,
-  variant = 'primary',
+  variant = "primary",
   loading = false,
   fullWidth = false,
   disabled,
@@ -21,14 +27,14 @@ export default function Button({
   const getBackgroundColor = () => {
     if (disabled) return colors.border;
     switch (variant) {
-      case 'primary':
+      case "primary":
         return colors.primary;
-      case 'secondary':
+      case "secondary":
         return colors.secondary;
-      case 'outline':
-        return 'transparent';
-      case 'ghost':
-        return 'transparent';
+      case "outline":
+        return "transparent";
+      case "ghost":
+        return "transparent";
       default:
         return colors.primary;
     }
@@ -37,11 +43,11 @@ export default function Button({
   const getTextColor = () => {
     if (disabled) return colors.textSecondary;
     switch (variant) {
-      case 'primary':
-      case 'secondary':
+      case "primary":
+      case "secondary":
         return colors.white;
-      case 'outline':
-      case 'ghost':
+      case "outline":
+      case "ghost":
         return colors.primary;
       default:
         return colors.white;
@@ -54,9 +60,9 @@ export default function Button({
         styles.button,
         {
           backgroundColor: getBackgroundColor(),
-          borderColor: variant === 'outline' ? colors.primary : 'transparent',
-          borderWidth: variant === 'outline' ? 1 : 0,
-          width: fullWidth ? '100%' : 'auto',
+          borderColor: variant === "outline" ? colors.primary : "transparent",
+          borderWidth: variant === "outline" ? 1 : 0,
+          width: fullWidth ? "100%" : "auto",
         },
         style,
       ]}
@@ -77,8 +83,8 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.lg,
     borderRadius: borderRadius.md,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     minHeight: 48,
   },
   text: {

@@ -4,21 +4,36 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { useLocation } from "wouter";
 
-const therapistSignupSchema = z.object({
-  email: z.string().email("Invalid email address"),
-  password: z.string().min(8, "Password must be at least 8 characters"),
-  confirm_password: z.string(),
-  full_name: z.string().min(1, "Full name is required"),
-}).refine(data => data.password === data.confirm_password, {
-  message: "Passwords do not match",
-  path: ["confirm_password"],
-});
+const therapistSignupSchema = z
+  .object({
+    email: z.string().email("Invalid email address"),
+    password: z.string().min(8, "Password must be at least 8 characters"),
+    confirm_password: z.string(),
+    full_name: z.string().min(1, "Full name is required"),
+  })
+  .refine((data) => data.password === data.confirm_password, {
+    message: "Passwords do not match",
+    path: ["confirm_password"],
+  });
 
 type TherapistSignupForm = z.infer<typeof therapistSignupSchema>;
 
@@ -52,11 +67,11 @@ export default function TherapistSignup() {
 
       // Step 2: Create therapist profile
       const { error: profileError } = await supabase
-        .from('Couples_profiles')
+        .from("Couples_profiles")
         .insert({
           id: authData.user.id,
           full_name: data.full_name,
-          role: 'therapist',
+          role: "therapist",
           couple_id: null,
         });
 
@@ -70,10 +85,11 @@ export default function TherapistSignup() {
       // Redirect to login
       setLocation("/auth/login");
     } catch (error: any) {
-      console.error('Therapist signup error:', error);
+      console.error("Therapist signup error:", error);
       toast({
         title: "Signup Failed",
-        description: error.message || "Failed to create account. Please try again.",
+        description:
+          error.message || "Failed to create account. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -174,7 +190,9 @@ export default function TherapistSignup() {
                 disabled={isSubmitting}
                 data-testid="button-signup"
               >
-                {isSubmitting ? "Creating Account..." : "Create Therapist Account"}
+                {isSubmitting
+                  ? "Creating Account..."
+                  : "Create Therapist Account"}
               </Button>
 
               <div className="text-center text-sm text-muted-foreground">

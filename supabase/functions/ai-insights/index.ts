@@ -2,7 +2,7 @@
 // Supabase Edge Function: AI Insights
 // ========================================
 // Analyzes weekly check-in data using Perplexity AI to generate clinical insights for therapists
-// 
+//
 // PRIVACY APPROACH:
 // - Uses anonymized labels ("Partner 1", "Partner 2") when sending data to Perplexity AI
 // - Never sends actual user names to external AI service
@@ -18,15 +18,16 @@
 // CORS Headers
 // ========================================
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
 };
 
 // ========================================
 // Type Definitions
 // ========================================
 interface PerplexityMessage {
-  role: 'system' | 'user' | 'assistant';
+  role: "system" | "user" | "assistant";
   content: string;
 }
 
@@ -94,26 +95,26 @@ interface AIInsightResponse {
 // Privacy-Focused Logging Helper
 // ========================================
 function redactForLogging(data: any): any {
-  if (!data || typeof data !== 'object') {
-    return '[redacted]';
+  if (!data || typeof data !== "object") {
+    return "[redacted]";
   }
 
   const redacted: any = {};
-  
+
   // Allowlist approach: only log safe metadata
-  const safeFields = ['couple_id', 'therapist_id', 'timestamp'];
-  
+  const safeFields = ["couple_id", "therapist_id", "timestamp"];
+
   for (const key of safeFields) {
     if (key in data) {
       redacted[key] = data[key];
     }
   }
-  
+
   // Log counts instead of actual data
-  if ('checkins' in data && Array.isArray(data.checkins)) {
+  if ("checkins" in data && Array.isArray(data.checkins)) {
     redacted.checkins_count = data.checkins.length;
   }
-  
+
   return redacted;
 }
 
@@ -122,29 +123,29 @@ function redactForLogging(data: any): any {
 // ========================================
 async function analyzeWithPerplexity(
   systemPrompt: string,
-  userPrompt: string
+  userPrompt: string,
 ): Promise<{ content: string; citations?: string[] }> {
-  const apiKey = Deno.env.get('PERPLEXITY_API_KEY');
-  
+  const apiKey = Deno.env.get("PERPLEXITY_API_KEY");
+
   if (!apiKey) {
-    throw new Error('PERPLEXITY_API_KEY not configured');
+    throw new Error("PERPLEXITY_API_KEY not configured");
   }
 
   const requestBody: PerplexityRequest = {
-    model: 'sonar',
+    model: "sonar",
     messages: [
-      { role: 'system', content: systemPrompt },
-      { role: 'user', content: userPrompt },
+      { role: "system", content: systemPrompt },
+      { role: "user", content: userPrompt },
     ],
     temperature: 0.2,
     max_tokens: 1500,
   };
 
-  const response = await fetch('https://api.perplexity.ai/chat/completions', {
-    method: 'POST',
+  const response = await fetch("https://api.perplexity.ai/chat/completions", {
+    method: "POST",
     headers: {
-      'Authorization': `Bearer ${apiKey}`,
-      'Content-Type': 'application/json',
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
     },
     body: JSON.stringify(requestBody),
   });
@@ -157,7 +158,7 @@ async function analyzeWithPerplexity(
   const data: PerplexityResponse = await response.json();
 
   if (!data.choices || data.choices.length === 0) {
-    throw new Error('Perplexity API returned no choices');
+    throw new Error("Perplexity API returned no choices");
   }
 
   return {
@@ -171,79 +172,73 @@ async function analyzeWithPerplexity(
 // ========================================
 Deno.serve(async (req) => {
   // Handle CORS preflight
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
+  if (req.method === "OPTIONS") {
+    return new Response("ok", { headers: corsHeaders });
   }
 
   try {
     // Parse query parameters
     const url = new URL(req.url);
-    const coupleId = url.searchParams.get('couple_id');
+    const coupleId = url.searchParams.get("couple_id");
 
     if (!coupleId) {
-      console.error('Missing required parameter: couple_id');
-      return new Response(
-        JSON.stringify({ error: 'couple_id is required' }),
-        {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 400,
-        }
-      );
+      console.error("Missing required parameter: couple_id");
+      return new Response(JSON.stringify({ error: "couple_id is required" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 400,
+      });
     }
 
     // Initialize Supabase clients
-    const supabaseUrl = Deno.env.get('SUPABASE_URL');
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
-    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY');
-    
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY");
+
     if (!supabaseUrl || !supabaseServiceKey || !supabaseAnonKey) {
-      throw new Error('Supabase configuration missing');
+      throw new Error("Supabase configuration missing");
     }
 
     // SECURITY: Validate JWT and extract therapist_id from authenticated session
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
       return new Response(
-        JSON.stringify({ error: 'Missing or invalid authorization header' }),
+        JSON.stringify({ error: "Missing or invalid authorization header" }),
         {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
           status: 401,
-        }
+        },
       );
     }
 
-    const jwt = authHeader.replace('Bearer ', '');
+    const jwt = authHeader.replace("Bearer ", "");
 
     // Verify JWT and get user session using anon key
-    const sessionResponse = await fetch(
-      `${supabaseUrl}/auth/v1/user`,
-      {
-        headers: {
-          'apikey': supabaseAnonKey,
-          'Authorization': `Bearer ${jwt}`,
-        },
-      }
-    );
+    const sessionResponse = await fetch(`${supabaseUrl}/auth/v1/user`, {
+      headers: {
+        apikey: supabaseAnonKey,
+        Authorization: `Bearer ${jwt}`,
+      },
+    });
 
     if (!sessionResponse.ok) {
       return new Response(
-        JSON.stringify({ error: 'Invalid or expired session token' }),
+        JSON.stringify({ error: "Invalid or expired session token" }),
         {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
           status: 401,
-        }
+        },
       );
     }
 
     const user = await sessionResponse.json();
-    
+
     if (!user || !user.id) {
       return new Response(
-        JSON.stringify({ error: 'Unable to authenticate user' }),
+        JSON.stringify({ error: "Unable to authenticate user" }),
         {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
           status: 401,
-        }
+        },
       );
     }
 
@@ -252,69 +247,73 @@ Deno.serve(async (req) => {
       `${supabaseUrl}/rest/v1/Couples_profiles?id=eq.${user.id}&select=*`,
       {
         headers: {
-          'apikey': supabaseServiceKey,
-          'Authorization': `Bearer ${supabaseServiceKey}`,
-          'Content-Type': 'application/json',
+          apikey: supabaseServiceKey,
+          Authorization: `Bearer ${supabaseServiceKey}`,
+          "Content-Type": "application/json",
         },
-      }
+      },
     );
 
     if (!profileResponse.ok) {
-      throw new Error('Failed to fetch user profile');
+      throw new Error("Failed to fetch user profile");
     }
 
     const profiles = await profileResponse.json();
     const profile = profiles[0];
 
-    if (!profile || profile.user_type !== 'therapist') {
+    if (!profile || profile.user_type !== "therapist") {
       return new Response(
-        JSON.stringify({ error: 'Access denied. Only therapists can access insights.' }),
+        JSON.stringify({
+          error: "Access denied. Only therapists can access insights.",
+        }),
         {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
           status: 403,
-        }
+        },
       );
     }
 
     const therapistId = profile.id;
-    console.log('Generating AI insights for:', redactForLogging({ couple_id: coupleId, therapist_id: therapistId }));
+    console.log(
+      "Generating AI insights for:",
+      redactForLogging({ couple_id: coupleId, therapist_id: therapistId }),
+    );
 
     // 1. Validate therapist has access to this couple
     const coupleResponse = await fetch(
       `${supabaseUrl}/rest/v1/Couples_couples?id=eq.${coupleId}&select=*`,
       {
         headers: {
-          'apikey': supabaseServiceKey,
-          'Authorization': `Bearer ${supabaseServiceKey}`,
-          'Content-Type': 'application/json',
+          apikey: supabaseServiceKey,
+          Authorization: `Bearer ${supabaseServiceKey}`,
+          "Content-Type": "application/json",
         },
-      }
+      },
     );
 
     if (!coupleResponse.ok) {
-      throw new Error('Failed to fetch couple data');
+      throw new Error("Failed to fetch couple data");
     }
 
     const couples: Couple[] = await coupleResponse.json();
     const couple = couples[0];
 
     if (!couple) {
-      return new Response(
-        JSON.stringify({ error: 'Couple not found' }),
-        {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 404,
-        }
-      );
+      return new Response(JSON.stringify({ error: "Couple not found" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 404,
+      });
     }
 
     if (couple.therapist_id !== therapistId) {
       return new Response(
-        JSON.stringify({ error: "You don't have access to this couple's data" }),
+        JSON.stringify({
+          error: "You don't have access to this couple's data",
+        }),
         {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
           status: 403,
-        }
+        },
       );
     }
 
@@ -326,36 +325,39 @@ Deno.serve(async (req) => {
       `${supabaseUrl}/rest/v1/Couples_weekly_checkins?couple_id=eq.${coupleId}&created_at=gte.${twelveWeeksAgo.toISOString()}&order=year.asc,week_number.asc&select=*`,
       {
         headers: {
-          'apikey': supabaseServiceKey,
-          'Authorization': `Bearer ${supabaseServiceKey}`,
-          'Content-Type': 'application/json',
+          apikey: supabaseServiceKey,
+          Authorization: `Bearer ${supabaseServiceKey}`,
+          "Content-Type": "application/json",
         },
-      }
+      },
     );
 
     if (!checkinsResponse.ok) {
-      throw new Error('Failed to fetch check-ins');
+      throw new Error("Failed to fetch check-ins");
     }
 
     const checkins: WeeklyCheckIn[] = await checkinsResponse.json();
 
     if (!checkins || checkins.length === 0) {
       return new Response(
-        JSON.stringify({ error: 'No check-in data available for this couple in the last 12 weeks' }),
+        JSON.stringify({
+          error:
+            "No check-in data available for this couple in the last 12 weeks",
+        }),
         {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
           status: 400,
-        }
+        },
       );
     }
 
-    console.log('Fetched check-ins:', redactForLogging({ checkins }));
+    console.log("Fetched check-ins:", redactForLogging({ checkins }));
 
     // 3. Format data for Perplexity AI analysis
     // PRIVACY: Use anonymized labels instead of actual names
     const weeklyData: Record<string, any[]> = {};
-    
-    checkins.forEach(checkin => {
+
+    checkins.forEach((checkin) => {
       const weekKey = `${checkin.year}-W${checkin.week_number}`;
       if (!weeklyData[weekKey]) {
         weeklyData[weekKey] = [];
@@ -375,24 +377,25 @@ Deno.serve(async (req) => {
 
     // Build user prompt
     let userPrompt = `Analyze the following weekly check-in data for a couple in therapy:\n\n`;
-    
+
     const sortedWeeks = Object.keys(weeklyData).sort();
-    sortedWeeks.forEach(weekKey => {
+    sortedWeeks.forEach((weekKey) => {
       const weekCheckins = weeklyData[weekKey];
-      const [year, weekNum] = weekKey.split('-W');
-      const sampleDate = weekCheckins[0]?.createdAt ? 
-        new Date(weekCheckins[0].createdAt).toLocaleDateString() : '';
+      const [year, weekNum] = weekKey.split("-W");
+      const sampleDate = weekCheckins[0]?.createdAt
+        ? new Date(weekCheckins[0].createdAt).toLocaleDateString()
+        : "";
 
       userPrompt += `Week ${weekNum}, ${year} (${sampleDate}):\n`;
 
-      weekCheckins.forEach(checkin => {
+      weekCheckins.forEach((checkin) => {
         userPrompt += `- ${checkin.partnerLabel}: Connectedness: ${checkin.connectedness}/10, Conflict: ${checkin.conflict}/10\n`;
         userPrompt += `  Appreciation: "${checkin.appreciation}"\n`;
         userPrompt += `  Regrettable Incident: "${checkin.regrettableIncident}"\n`;
         userPrompt += `  Need: "${checkin.need}"\n`;
       });
 
-      userPrompt += '\n';
+      userPrompt += "\n";
     });
 
     userPrompt += `\nBased on this data, provide:\n`;
@@ -411,58 +414,64 @@ Deno.serve(async (req) => {
 Be precise, evidence-based, and therapeutically sensitive. Format your response as structured insights.`;
 
     // 4. Call Perplexity API
-    const analysisResult = await analyzeWithPerplexity(systemPrompt, userPrompt);
+    const analysisResult = await analyzeWithPerplexity(
+      systemPrompt,
+      userPrompt,
+    );
 
     // 5. Parse and structure the response
     const rawAnalysis = analysisResult.content;
-    
-    const lines = rawAnalysis.split('\n').filter(line => line.trim());
-    
-    let summary = '';
+
+    const lines = rawAnalysis.split("\n").filter((line) => line.trim());
+
+    let summary = "";
     const discrepancies: string[] = [];
     const patterns: string[] = [];
     const recommendations: string[] = [];
-    
-    let currentSection = '';
-    
-    lines.forEach(line => {
+
+    let currentSection = "";
+
+    lines.forEach((line) => {
       const lowerLine = line.toLowerCase();
-      
-      if (lowerLine.includes('summary') || lowerLine.includes('dynamic')) {
-        currentSection = 'summary';
-      } else if (lowerLine.includes('discrepanc')) {
-        currentSection = 'discrepancies';
-      } else if (lowerLine.includes('pattern') || lowerLine.includes('trend')) {
-        currentSection = 'patterns';
-      } else if (lowerLine.includes('recommendation') || lowerLine.includes('therapeutic')) {
-        currentSection = 'recommendations';
+
+      if (lowerLine.includes("summary") || lowerLine.includes("dynamic")) {
+        currentSection = "summary";
+      } else if (lowerLine.includes("discrepanc")) {
+        currentSection = "discrepancies";
+      } else if (lowerLine.includes("pattern") || lowerLine.includes("trend")) {
+        currentSection = "patterns";
+      } else if (
+        lowerLine.includes("recommendation") ||
+        lowerLine.includes("therapeutic")
+      ) {
+        currentSection = "recommendations";
       } else if (line.trim().match(/^[\d\-\*•]/)) {
         // This is a list item
-        const cleanedLine = line.trim().replace(/^[\d\-\*•.)\s]+/, '');
-        if (currentSection === 'discrepancies') {
+        const cleanedLine = line.trim().replace(/^[\d\-\*•.)\s]+/, "");
+        if (currentSection === "discrepancies") {
           discrepancies.push(cleanedLine);
-        } else if (currentSection === 'patterns') {
+        } else if (currentSection === "patterns") {
           patterns.push(cleanedLine);
-        } else if (currentSection === 'recommendations') {
+        } else if (currentSection === "recommendations") {
           recommendations.push(cleanedLine);
         }
-      } else if (currentSection === 'summary' && line.trim()) {
-        summary += line.trim() + ' ';
+      } else if (currentSection === "summary" && line.trim()) {
+        summary += line.trim() + " ";
       }
     });
 
     // Fallback if parsing didn't work well
     if (!summary) {
-      summary = rawAnalysis.substring(0, 300) + '...';
+      summary = rawAnalysis.substring(0, 300) + "...";
     }
     if (discrepancies.length === 0) {
-      discrepancies.push('Analysis completed - see raw analysis for details');
+      discrepancies.push("Analysis completed - see raw analysis for details");
     }
     if (patterns.length === 0) {
-      patterns.push('Analysis completed - see raw analysis for details');
+      patterns.push("Analysis completed - see raw analysis for details");
     }
     if (recommendations.length === 0) {
-      recommendations.push('Analysis completed - see raw analysis for details');
+      recommendations.push("Analysis completed - see raw analysis for details");
     }
 
     const insights: AIInsightResponse = {
@@ -476,25 +485,23 @@ Be precise, evidence-based, and therapeutically sensitive. Format your response 
       citations: analysisResult.citations,
     };
 
-    console.log('Successfully generated insights for couple:', redactForLogging({ couple_id: coupleId }));
+    console.log(
+      "Successfully generated insights for couple:",
+      redactForLogging({ couple_id: coupleId }),
+    );
 
-    return new Response(
-      JSON.stringify(insights),
-      {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200,
-      }
-    );
+    return new Response(JSON.stringify(insights), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 200,
+    });
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-    console.error('Error generating AI insights:', errorMessage);
-    
-    return new Response(
-      JSON.stringify({ error: errorMessage }),
-      {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 500,
-      }
-    );
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error occurred";
+    console.error("Error generating AI insights:", errorMessage);
+
+    return new Response(JSON.stringify({ error: errorMessage }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 500,
+    });
   }
 });

@@ -1,5 +1,5 @@
-import { supabase } from './supabase';
-import * as FileSystem from 'expo-file-system';
+import { supabase } from "./supabase";
+import * as FileSystem from "expo-file-system";
 
 export class StorageService {
   /**
@@ -9,31 +9,37 @@ export class StorageService {
    * @param path - Path within bucket (e.g., 'gratitude/couple-id/filename.jpg')
    * @returns Public URL of uploaded file
    */
-  async uploadImage(uri: string, bucket: string, path: string): Promise<string> {
+  async uploadImage(
+    uri: string,
+    bucket: string,
+    path: string,
+  ): Promise<string> {
     try {
       // Use Expo FileSystem to upload directly
-      const { data, error } = await supabase.storage
-        .from(bucket)
-        .upload(path, {
+      const { data, error } = await supabase.storage.from(bucket).upload(
+        path,
+        {
           uri,
-          type: 'image/jpeg',
-          name: path.split('/').pop() || 'image.jpg',
-        } as any, {
-          contentType: 'image/jpeg',
+          type: "image/jpeg",
+          name: path.split("/").pop() || "image.jpg",
+        } as any,
+        {
+          contentType: "image/jpeg",
           upsert: false,
-        });
+        },
+      );
 
       if (error) throw error;
 
       // Get public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from(bucket)
-        .getPublicUrl(data.path);
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from(bucket).getPublicUrl(data.path);
 
       return publicUrl;
     } catch (error) {
-      console.error('Image upload error:', error);
-      throw new Error('Failed to upload image');
+      console.error("Image upload error:", error);
+      throw new Error("Failed to upload image");
     }
   }
 
@@ -43,7 +49,7 @@ export class StorageService {
   async uploadImages(
     uris: string[],
     bucket: string,
-    pathPrefix: string
+    pathPrefix: string,
   ): Promise<string[]> {
     const uploadPromises = uris.map((uri, index) => {
       const timestamp = Date.now();
@@ -61,31 +67,37 @@ export class StorageService {
    * @param path - Path within bucket
    * @returns Public URL of uploaded file
    */
-  async uploadAudio(uri: string, bucket: string, path: string): Promise<string> {
+  async uploadAudio(
+    uri: string,
+    bucket: string,
+    path: string,
+  ): Promise<string> {
     try {
       // Use Expo FileSystem to upload directly
-      const { data, error } = await supabase.storage
-        .from(bucket)
-        .upload(path, {
+      const { data, error } = await supabase.storage.from(bucket).upload(
+        path,
+        {
           uri,
-          type: 'audio/m4a',
-          name: path.split('/').pop() || 'audio.m4a',
-        } as any, {
-          contentType: 'audio/m4a',
+          type: "audio/m4a",
+          name: path.split("/").pop() || "audio.m4a",
+        } as any,
+        {
+          contentType: "audio/m4a",
           upsert: false,
-        });
+        },
+      );
 
       if (error) throw error;
 
       // Get public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from(bucket)
-        .getPublicUrl(data.path);
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from(bucket).getPublicUrl(data.path);
 
       return publicUrl;
     } catch (error) {
-      console.error('Audio upload error:', error);
-      throw new Error('Failed to upload audio');
+      console.error("Audio upload error:", error);
+      throw new Error("Failed to upload audio");
     }
   }
 

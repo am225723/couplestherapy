@@ -10,20 +10,20 @@
  */
 export function escapeCsvValue(value: any): string {
   if (value === null || value === undefined) {
-    return '';
+    return "";
   }
 
   const stringValue = String(value);
-  
+
   // Check if value needs quoting (contains comma, quote, or newline)
   const needsQuoting = /[",\n\r]/.test(stringValue);
-  
+
   if (needsQuoting) {
     // Escape existing quotes by doubling them
     const escaped = stringValue.replace(/"/g, '""');
     return `"${escaped}"`;
   }
-  
+
   return stringValue;
 }
 
@@ -31,37 +31,37 @@ export function escapeCsvValue(value: any): string {
  * Converts an array of values to a CSV row
  */
 export function toCsvRow(values: any[]): string {
-  return values.map(escapeCsvValue).join(',');
+  return values.map(escapeCsvValue).join(",");
 }
 
 /**
  * Generates UTF-8 BOM for Excel compatibility
  */
 export function getUtf8Bom(): string {
-  return '\uFEFF';
+  return "\uFEFF";
 }
 
 /**
  * Formats a date to YYYY-MM-DD
  */
 export function formatDate(date: string | Date | null): string {
-  if (!date) return '';
+  if (!date) return "";
   const d = new Date(date);
-  return d.toISOString().split('T')[0];
+  return d.toISOString().split("T")[0];
 }
 
 /**
  * Formats a timestamp to a readable date-time string
  */
 export function formatDateTime(date: string | Date | null): string {
-  if (!date) return '';
+  if (!date) return "";
   const d = new Date(date);
-  return d.toLocaleString('en-US', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
+  return d.toLocaleString("en-US", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
   });
 }
 
@@ -113,150 +113,143 @@ interface CoupleReportData {
  */
 export function generateCoupleReport(data: CoupleReportData): string {
   const lines: string[] = [];
-  
+
   // UTF-8 BOM for Excel compatibility
-  lines.push(getUtf8Bom() + 'Couple Progress Report');
-  
+  lines.push(getUtf8Bom() + "Couple Progress Report");
+
   // SECTION 1: Couple Information Header
-  lines.push(toCsvRow([
-    'Partner 1',
-    'Partner 2',
-    'Therapist',
-    'Report Generated'
-  ]));
-  
-  lines.push(toCsvRow([
-    data.couple.partner1_name,
-    data.couple.partner2_name,
-    data.couple.therapist_name,
-    formatDate(new Date())
-  ]));
-  
-  lines.push(''); // Empty line separator
-  
+  lines.push(
+    toCsvRow(["Partner 1", "Partner 2", "Therapist", "Report Generated"]),
+  );
+
+  lines.push(
+    toCsvRow([
+      data.couple.partner1_name,
+      data.couple.partner2_name,
+      data.couple.therapist_name,
+      formatDate(new Date()),
+    ]),
+  );
+
+  lines.push(""); // Empty line separator
+
   // SECTION 2: Weekly Check-ins
-  lines.push('WEEKLY CHECK-INS');
-  lines.push(toCsvRow([
-    'Week',
-    'Year',
-    'Date',
-    'Partner',
-    'Connectedness',
-    'Conflict',
-    'Appreciation',
-    'Regrettable Incident',
-    'My Need'
-  ]));
-  
+  lines.push("WEEKLY CHECK-INS");
+  lines.push(
+    toCsvRow([
+      "Week",
+      "Year",
+      "Date",
+      "Partner",
+      "Connectedness",
+      "Conflict",
+      "Appreciation",
+      "Regrettable Incident",
+      "My Need",
+    ]),
+  );
+
   if (data.weeklyCheckins.length === 0) {
-    lines.push(toCsvRow(['No check-in data available']));
+    lines.push(toCsvRow(["No check-in data available"]));
   } else {
-    data.weeklyCheckins.forEach(checkin => {
-      lines.push(toCsvRow([
-        checkin.week_number,
-        checkin.year,
-        formatDate(checkin.created_at),
-        `Partner ${checkin.partner}`,
-        checkin.q_connectedness,
-        checkin.q_conflict,
-        checkin.q_appreciation,
-        checkin.q_regrettable_incident,
-        checkin.q_my_need
-      ]));
+    data.weeklyCheckins.forEach((checkin) => {
+      lines.push(
+        toCsvRow([
+          checkin.week_number,
+          checkin.year,
+          formatDate(checkin.created_at),
+          `Partner ${checkin.partner}`,
+          checkin.q_connectedness,
+          checkin.q_conflict,
+          checkin.q_appreciation,
+          checkin.q_regrettable_incident,
+          checkin.q_my_need,
+        ]),
+      );
     });
   }
-  
-  lines.push(''); // Empty line separator
-  
+
+  lines.push(""); // Empty line separator
+
   // SECTION 3: Gratitude Log
-  lines.push('GRATITUDE LOG');
-  lines.push(toCsvRow([
-    'Date',
-    'Partner',
-    'Gratitude',
-    'Photo URL'
-  ]));
-  
+  lines.push("GRATITUDE LOG");
+  lines.push(toCsvRow(["Date", "Partner", "Gratitude", "Photo URL"]));
+
   if (data.gratitudeLogs.length === 0) {
-    lines.push(toCsvRow(['No gratitude log entries']));
+    lines.push(toCsvRow(["No gratitude log entries"]));
   } else {
-    data.gratitudeLogs.forEach(log => {
-      lines.push(toCsvRow([
-        formatDate(log.created_at),
-        `Partner ${log.partner}`,
-        log.text_content || '',
-        log.image_url || ''
-      ]));
+    data.gratitudeLogs.forEach((log) => {
+      lines.push(
+        toCsvRow([
+          formatDate(log.created_at),
+          `Partner ${log.partner}`,
+          log.text_content || "",
+          log.image_url || "",
+        ]),
+      );
     });
   }
-  
-  lines.push(''); // Empty line separator
-  
+
+  lines.push(""); // Empty line separator
+
   // SECTION 4: Shared Goals
-  lines.push('SHARED GOALS');
-  lines.push(toCsvRow([
-    'Goal',
-    'Status',
-    'Created',
-    'Completed'
-  ]));
-  
+  lines.push("SHARED GOALS");
+  lines.push(toCsvRow(["Goal", "Status", "Created", "Completed"]));
+
   if (data.sharedGoals.length === 0) {
-    lines.push(toCsvRow(['No shared goals']));
+    lines.push(toCsvRow(["No shared goals"]));
   } else {
-    data.sharedGoals.forEach(goal => {
-      lines.push(toCsvRow([
-        goal.title,
-        goal.status,
-        formatDate(goal.created_at),
-        goal.completed_at ? formatDate(goal.completed_at) : ''
-      ]));
+    data.sharedGoals.forEach((goal) => {
+      lines.push(
+        toCsvRow([
+          goal.title,
+          goal.status,
+          formatDate(goal.created_at),
+          goal.completed_at ? formatDate(goal.completed_at) : "",
+        ]),
+      );
     });
   }
-  
-  lines.push(''); // Empty line separator
-  
+
+  lines.push(""); // Empty line separator
+
   // SECTION 5: Conversations
-  lines.push('CONVERSATIONS');
-  lines.push(toCsvRow([
-    'Type',
-    'Date',
-    'Notes Summary'
-  ]));
-  
+  lines.push("CONVERSATIONS");
+  lines.push(toCsvRow(["Type", "Date", "Notes Summary"]));
+
   if (data.conversations.length === 0) {
-    lines.push(toCsvRow(['No conversations']));
+    lines.push(toCsvRow(["No conversations"]));
   } else {
-    data.conversations.forEach(conv => {
-      lines.push(toCsvRow([
-        conv.conversation_type,
-        formatDate(conv.created_at),
-        conv.notes_summary
-      ]));
+    data.conversations.forEach((conv) => {
+      lines.push(
+        toCsvRow([
+          conv.conversation_type,
+          formatDate(conv.created_at),
+          conv.notes_summary,
+        ]),
+      );
     });
   }
-  
-  lines.push(''); // Empty line separator
-  
+
+  lines.push(""); // Empty line separator
+
   // SECTION 6: Rituals
-  lines.push('RITUALS OF CONNECTION');
-  lines.push(toCsvRow([
-    'Category',
-    'Ritual Description',
-    'Created Date'
-  ]));
-  
+  lines.push("RITUALS OF CONNECTION");
+  lines.push(toCsvRow(["Category", "Ritual Description", "Created Date"]));
+
   if (data.rituals.length === 0) {
-    lines.push(toCsvRow(['No rituals']));
+    lines.push(toCsvRow(["No rituals"]));
   } else {
-    data.rituals.forEach(ritual => {
-      lines.push(toCsvRow([
-        ritual.category,
-        ritual.description,
-        formatDate(ritual.created_at)
-      ]));
+    data.rituals.forEach((ritual) => {
+      lines.push(
+        toCsvRow([
+          ritual.category,
+          ritual.description,
+          formatDate(ritual.created_at),
+        ]),
+      );
     });
   }
-  
-  return lines.join('\n');
+
+  return lines.join("\n");
 }

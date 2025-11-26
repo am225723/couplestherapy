@@ -1,11 +1,13 @@
 # Gratitude Log Image Upload Feature
 
 ## Overview
+
 The gratitude log now supports uploading images alongside text entries, allowing couples to share visual moments of appreciation and connection.
 
 ## What's New
 
 ### 1. Image Upload Capability
+
 - **Upload Button**: Easy-to-use "Add Image" button in the gratitude form
 - **Image Preview**: See uploaded image before posting
 - **File Validation**: Automatic validation of file type and size
@@ -13,6 +15,7 @@ The gratitude log now supports uploading images alongside text entries, allowing
 - **Supported Formats**: All standard image formats (JPEG, PNG, GIF, WebP, etc.)
 
 ### 2. Supabase Storage Integration
+
 - **Secure Storage**: Images stored in **PRIVATE** Supabase Storage bucket with strict RLS policies
 - **Organized Structure**: Files organized by couple_id/user_id/timestamp_filename
 - **Signed URLs**: Images accessible only via time-limited signed URLs (1 hour expiry)
@@ -20,6 +23,7 @@ The gratitude log now supports uploading images alongside text entries, allowing
 - **Strict Upload Control**: Users can only upload to their own folder (couple_id + user_id enforced)
 
 ### 3. Enhanced Feed Display
+
 - **Image Display**: Images shown at full width within gratitude cards
 - **Text Optional**: Can post image-only gratitude entries
 - **Combined Posts**: Support for both text and image in same entry
@@ -35,6 +39,7 @@ The gratitude log now supports uploading images alongside text entries, allowing
 4. Click **"Run"**
 
 This script will:
+
 - Create the `gratitude-images` storage bucket (**PRIVATE** access)
 - Set up strict RLS policies for secure upload/view/delete
 - Configure folder structure for organized storage
@@ -59,6 +64,7 @@ This script will:
 ## Technical Details
 
 ### Storage Structure
+
 ```
 gratitude-images/
   └── {couple_id}/
@@ -69,6 +75,7 @@ gratitude-images/
 ### RLS Policies
 
 **Upload Policy**: Users can upload ONLY to their own folder (couple_id + user_id)
+
 ```sql
 bucket_id = 'gratitude-images'
 AND (storage.foldername(name))[1] = get_my_couple_id()::text
@@ -76,6 +83,7 @@ AND (storage.foldername(name))[2] = auth.uid()::text
 ```
 
 **View Policy**: Users and therapists can view couple's images
+
 ```sql
 bucket_id = 'gratitude-images'
 AND (
@@ -85,6 +93,7 @@ AND (
 ```
 
 **Delete Policy**: Users can only delete their own uploads
+
 ```sql
 bucket_id = 'gratitude-images'
 AND (storage.foldername(name))[1] = get_my_couple_id()::text
@@ -94,6 +103,7 @@ AND (storage.foldername(name))[2] = auth.uid()::text
 ### Frontend Implementation
 
 **Image Upload Component** (gratitude-log.tsx):
+
 - File input with validation
 - Preview before upload
 - Progress indicators (uploading/posting states)
@@ -101,6 +111,7 @@ AND (storage.foldername(name))[2] = auth.uid()::text
 - Remove image button for changing selection
 
 **Schema Validation**:
+
 - Text content is optional
 - Image URL is optional
 - At least one (text OR image) must be provided
@@ -109,11 +120,13 @@ AND (storage.foldername(name))[2] = auth.uid()::text
 ### File Validation
 
 **Client-Side Validation**:
+
 1. File type must start with "image/"
 2. File size must be ≤ 5MB
 3. Clear error messages for invalid files
 
 **Upload Process**:
+
 1. Validate file on client (type and size)
 2. Generate unique filename with timestamp
 3. Upload to Supabase Storage (private bucket)
@@ -171,6 +184,7 @@ AND (storage.foldername(name))[2] = auth.uid()::text
 ## Future Enhancements
 
 Potential improvements:
+
 - Image compression before upload
 - Multiple images per post
 - Image galleries/carousels

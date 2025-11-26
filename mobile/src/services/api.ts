@@ -1,5 +1,5 @@
-import config from '../constants/config';
-import { supabase } from './supabase';
+import config from "../constants/config";
+import { supabase } from "./supabase";
 
 class ApiClient {
   private baseUrl: string;
@@ -9,13 +9,15 @@ class ApiClient {
   }
 
   private async getAuthHeaders(): Promise<HeadersInit> {
-    const { data: { session } } = await supabase.auth.getSession();
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
     const headers: HeadersInit = {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     };
 
     if (session?.access_token) {
-      headers['Authorization'] = `Bearer ${session.access_token}`;
+      headers["Authorization"] = `Bearer ${session.access_token}`;
     }
 
     return headers;
@@ -24,13 +26,13 @@ class ApiClient {
   async get<T>(endpoint: string): Promise<T> {
     const headers = await this.getAuthHeaders();
     const response = await fetch(`${this.baseUrl}${endpoint}`, {
-      method: 'GET',
+      method: "GET",
       headers,
     });
 
     if (!response.ok) {
       const error = await response.text();
-      throw new Error(error || 'Request failed');
+      throw new Error(error || "Request failed");
     }
 
     return response.json();
@@ -39,14 +41,14 @@ class ApiClient {
   async post<T>(endpoint: string, data?: any): Promise<T> {
     const headers = await this.getAuthHeaders();
     const response = await fetch(`${this.baseUrl}${endpoint}`, {
-      method: 'POST',
+      method: "POST",
       headers,
       body: data ? JSON.stringify(data) : undefined,
     });
 
     if (!response.ok) {
       const error = await response.text();
-      throw new Error(error || 'Request failed');
+      throw new Error(error || "Request failed");
     }
 
     return response.json();
@@ -55,14 +57,14 @@ class ApiClient {
   async put<T>(endpoint: string, data?: any): Promise<T> {
     const headers = await this.getAuthHeaders();
     const response = await fetch(`${this.baseUrl}${endpoint}`, {
-      method: 'PUT',
+      method: "PUT",
       headers,
       body: data ? JSON.stringify(data) : undefined,
     });
 
     if (!response.ok) {
       const error = await response.text();
-      throw new Error(error || 'Request failed');
+      throw new Error(error || "Request failed");
     }
 
     return response.json();
@@ -71,13 +73,13 @@ class ApiClient {
   async delete<T>(endpoint: string): Promise<T> {
     const headers = await this.getAuthHeaders();
     const response = await fetch(`${this.baseUrl}${endpoint}`, {
-      method: 'DELETE',
+      method: "DELETE",
       headers,
     });
 
     if (!response.ok) {
       const error = await response.text();
-      throw new Error(error || 'Request failed');
+      throw new Error(error || "Request failed");
     }
 
     return response.json();

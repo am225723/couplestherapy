@@ -1,38 +1,43 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
-import { useAuth } from '../../contexts/AuthContext';
-import { useApi, useApiMutation } from '../../hooks/useApi';
-import Button from '../../components/Button';
-import Card from '../../components/Card';
-import LoadingSpinner from '../../components/LoadingSpinner';
-import { colors, spacing, typography } from '../../constants/theme';
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  Alert,
+} from "react-native";
+import { useAuth } from "../../contexts/AuthContext";
+import { useApi, useApiMutation } from "../../hooks/useApi";
+import Button from "../../components/Button";
+import Card from "../../components/Card";
+import LoadingSpinner from "../../components/LoadingSpinner";
+import { colors, spacing, typography } from "../../constants/theme";
 
 export default function EnneagramScreen() {
   const { profile } = useAuth();
   const [answers, setAnswers] = useState<{ [key: number]: number }>({});
   const [showResults, setShowResults] = useState(false);
 
-  const { data: questions, isLoading } = useApi<any[]>('/api/enneagram/questions');
+  const { data: questions, isLoading } = useApi<any[]>(
+    "/api/enneagram/questions",
+  );
 
   const { data: results } = useApi<any>(
     `/api/enneagram/couple/${profile?.couple_id}/results`,
-    { enabled: showResults }
+    { enabled: showResults },
   );
 
-  const submitAssessment = useApiMutation(
-    '/api/enneagram/submit',
-    'post',
-    {
-      onSuccess: () => {
-        Alert.alert('Complete!', 'Your Enneagram results are ready!');
-        setShowResults(true);
-      },
-    }
-  );
+  const submitAssessment = useApiMutation("/api/enneagram/submit", "post", {
+    onSuccess: () => {
+      Alert.alert("Complete!", "Your Enneagram results are ready!");
+      setShowResults(true);
+    },
+  });
 
   const handleSubmit = () => {
     if (Object.keys(answers).length < (questions?.length || 0)) {
-      Alert.alert('Incomplete', 'Please answer all questions.');
+      Alert.alert("Incomplete", "Please answer all questions.");
       return;
     }
 
@@ -71,7 +76,9 @@ export default function EnneagramScreen() {
             {results.compatibility && (
               <View style={styles.compatibilitySection}>
                 <Text style={styles.sectionTitle}>Couple Compatibility</Text>
-                <Text style={styles.compatibilityText}>{results.compatibility}</Text>
+                <Text style={styles.compatibilityText}>
+                  {results.compatibility}
+                </Text>
               </View>
             )}
 
@@ -113,14 +120,18 @@ export default function EnneagramScreen() {
                   key={value}
                   style={[
                     styles.optionButton,
-                    answers[question.id] === value && styles.optionButtonSelected,
+                    answers[question.id] === value &&
+                      styles.optionButtonSelected,
                   ]}
-                  onPress={() => setAnswers({ ...answers, [question.id]: value })}
+                  onPress={() =>
+                    setAnswers({ ...answers, [question.id]: value })
+                  }
                 >
                   <Text
                     style={[
                       styles.optionText,
-                      answers[question.id] === value && styles.optionTextSelected,
+                      answers[question.id] === value &&
+                        styles.optionTextSelected,
                     ]}
                   >
                     {value}
@@ -151,49 +162,91 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   content: { padding: spacing.lg },
   title: { ...typography.h2, color: colors.text, marginBottom: spacing.xs },
-  subtitle: { ...typography.body, color: colors.textSecondary, marginBottom: spacing.lg },
-  progressCard: { marginBottom: spacing.lg, alignItems: 'center' },
+  subtitle: {
+    ...typography.body,
+    color: colors.textSecondary,
+    marginBottom: spacing.lg,
+  },
+  progressCard: { marginBottom: spacing.lg, alignItems: "center" },
   progressText: { ...typography.h6, color: colors.primary },
   questionCard: { marginBottom: spacing.lg },
-  questionNumber: { ...typography.bodySmall, color: colors.textSecondary, marginBottom: spacing.xs },
-  questionText: { ...typography.body, color: colors.text, marginBottom: spacing.md },
-  optionsContainer: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: spacing.xs },
+  questionNumber: {
+    ...typography.bodySmall,
+    color: colors.textSecondary,
+    marginBottom: spacing.xs,
+  },
+  questionText: {
+    ...typography.body,
+    color: colors.text,
+    marginBottom: spacing.md,
+  },
+  optionsContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: spacing.xs,
+  },
   optionButton: {
     width: 48,
     height: 48,
     borderRadius: 24,
     borderWidth: 2,
     borderColor: colors.border,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
-  optionButtonSelected: { borderColor: colors.primary, backgroundColor: colors.primary },
+  optionButtonSelected: {
+    borderColor: colors.primary,
+    backgroundColor: colors.primary,
+  },
   optionText: { ...typography.h6, color: colors.text },
-  optionTextSelected: { color: '#FFFFFF' },
-  scaleLabels: { flexDirection: 'row', justifyContent: 'space-between' },
+  optionTextSelected: { color: "#FFFFFF" },
+  scaleLabels: { flexDirection: "row", justifyContent: "space-between" },
   scaleLabel: { ...typography.bodySmall, color: colors.textSecondary },
   submitButton: { marginTop: spacing.lg, marginBottom: spacing.xxl },
   resultCard: { marginBottom: spacing.lg },
-  typeNumber: { ...typography.h2, color: colors.primary, textAlign: 'center', marginBottom: spacing.xs },
-  typeName: { ...typography.h4, color: colors.text, textAlign: 'center', marginBottom: spacing.md },
-  typeDescription: { ...typography.body, color: colors.textSecondary, textAlign: 'center', marginBottom: spacing.xl },
+  typeNumber: {
+    ...typography.h2,
+    color: colors.primary,
+    textAlign: "center",
+    marginBottom: spacing.xs,
+  },
+  typeName: {
+    ...typography.h4,
+    color: colors.text,
+    textAlign: "center",
+    marginBottom: spacing.md,
+  },
+  typeDescription: {
+    ...typography.body,
+    color: colors.textSecondary,
+    textAlign: "center",
+    marginBottom: spacing.xl,
+  },
   scoresGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
     marginBottom: spacing.xl,
   },
   scoreItem: {
-    width: '30%',
-    alignItems: 'center',
+    width: "30%",
+    alignItems: "center",
     marginBottom: spacing.md,
     padding: spacing.md,
     backgroundColor: colors.background,
     borderRadius: 8,
   },
-  scoreType: { ...typography.bodySmall, color: colors.textSecondary, marginBottom: spacing.xs },
+  scoreType: {
+    ...typography.bodySmall,
+    color: colors.textSecondary,
+    marginBottom: spacing.xs,
+  },
   scoreValue: { ...typography.h5, color: colors.primary },
   compatibilitySection: { marginBottom: spacing.xl },
-  sectionTitle: { ...typography.h5, color: colors.text, marginBottom: spacing.md },
+  sectionTitle: {
+    ...typography.h5,
+    color: colors.text,
+    marginBottom: spacing.md,
+  },
   compatibilityText: { ...typography.body, color: colors.text },
 });

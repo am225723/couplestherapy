@@ -1,18 +1,26 @@
-import { useState } from 'react';
-import { useLocation } from 'wouter';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { useAuth } from '@/lib/auth-context';
-import { supabase } from '@/lib/supabase';
-import { useToast } from '@/hooks/use-toast';
-import { Heart, Loader2, Users, Copy, Check } from 'lucide-react';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useState } from "react";
+import { useLocation } from "wouter";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useAuth } from "@/lib/auth-context";
+import { supabase } from "@/lib/supabase";
+import { useToast } from "@/hooks/use-toast";
+import { Heart, Loader2, Users, Copy, Check } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export default function CoupleSetup() {
-  const [coupleCode, setCoupleCode] = useState('');
-  const [myCouple, setMyCouple] = useState<{ id: string; code: string } | null>(null);
+  const [coupleCode, setCoupleCode] = useState("");
+  const [myCouple, setMyCouple] = useState<{ id: string; code: string } | null>(
+    null,
+  );
   const [loading, setLoading] = useState(false);
   const [creating, setCreating] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -28,7 +36,7 @@ export default function CoupleSetup() {
     try {
       // First create the couple record (it will auto-generate join_code)
       const { data: coupleData, error: coupleError } = await supabase
-        .from('Couples_couples')
+        .from("Couples_couples")
         .insert({
           partner1_id: user.id,
           partner2_id: null,
@@ -44,17 +52,17 @@ export default function CoupleSetup() {
 
       // Update the couple with the join_code
       const { error: codeError } = await supabase
-        .from('Couples_couples')
+        .from("Couples_couples")
         .update({ join_code: joinCode })
-        .eq('id', coupleData.id);
+        .eq("id", coupleData.id);
 
       if (codeError) throw codeError;
 
       // Update the user's profile with couple_id
       const { error: updateError } = await supabase
-        .from('Couples_profiles')
+        .from("Couples_profiles")
         .update({ couple_id: coupleData.id })
-        .eq('id', user.id);
+        .eq("id", user.id);
 
       if (updateError) throw updateError;
 
@@ -63,14 +71,14 @@ export default function CoupleSetup() {
       setMyCouple({ id: coupleData.id, code: joinCode });
 
       toast({
-        title: 'Couple created!',
-        description: 'Share your Couple ID with your partner so they can join.',
+        title: "Couple created!",
+        description: "Share your Couple ID with your partner so they can join.",
       });
     } catch (error: any) {
       toast({
-        title: 'Error',
+        title: "Error",
         description: error.message,
-        variant: 'destructive',
+        variant: "destructive",
       });
     } finally {
       setCreating(false);
@@ -86,14 +94,18 @@ export default function CoupleSetup() {
     try {
       // Securely join the couple using RPC function
       // This atomically checks the join_code and sets partner2_id
-      const { data: coupleId, error: joinError } = await supabase
-        .rpc('join_couple_as_partner2', { code: coupleCode });
+      const { data: coupleId, error: joinError } = await supabase.rpc(
+        "join_couple_as_partner2",
+        { code: coupleCode },
+      );
 
       if (joinError) {
         toast({
-          title: 'Failed to join',
-          description: joinError.message || 'Please check the Couple ID or the couple may already be full.',
-          variant: 'destructive',
+          title: "Failed to join",
+          description:
+            joinError.message ||
+            "Please check the Couple ID or the couple may already be full.",
+          variant: "destructive",
         });
         setLoading(false);
         return;
@@ -101,9 +113,10 @@ export default function CoupleSetup() {
 
       if (!coupleId) {
         toast({
-          title: 'Couple not found',
-          description: 'Please check the Couple ID or the couple may already be full.',
-          variant: 'destructive',
+          title: "Couple not found",
+          description:
+            "Please check the Couple ID or the couple may already be full.",
+          variant: "destructive",
         });
         setLoading(false);
         return;
@@ -111,25 +124,25 @@ export default function CoupleSetup() {
 
       // Update profile with couple_id
       const { error: profileError } = await supabase
-        .from('Couples_profiles')
+        .from("Couples_profiles")
         .update({ couple_id: coupleId })
-        .eq('id', user.id);
+        .eq("id", user.id);
 
       if (profileError) throw profileError;
 
       await refreshProfile();
 
       toast({
-        title: 'Joined couple!',
-        description: 'You are now paired with your partner.',
+        title: "Joined couple!",
+        description: "You are now paired with your partner.",
       });
 
-      navigate('/dashboard');
+      navigate("/dashboard");
     } catch (error: any) {
       toast({
-        title: 'Error',
+        title: "Error",
         description: error.message,
-        variant: 'destructive',
+        variant: "destructive",
       });
     } finally {
       setLoading(false);
@@ -142,8 +155,8 @@ export default function CoupleSetup() {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
       toast({
-        title: 'Copied!',
-        description: 'Couple ID copied to clipboard',
+        title: "Copied!",
+        description: "Couple ID copied to clipboard",
       });
     }
   };
@@ -163,7 +176,9 @@ export default function CoupleSetup() {
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="p-6 bg-muted rounded-lg text-center">
-              <Label className="text-sm text-muted-foreground mb-2 block">Your Couple ID</Label>
+              <Label className="text-sm text-muted-foreground mb-2 block">
+                Your Couple ID
+              </Label>
               <div className="text-3xl font-bold tracking-wider text-primary mb-4">
                 {myCouple.code}
               </div>
@@ -190,12 +205,13 @@ export default function CoupleSetup() {
             <Alert>
               <Users className="h-4 w-4" />
               <AlertDescription>
-                Your partner should use the "Join a Couple" option and enter this ID to complete the pairing.
+                Your partner should use the "Join a Couple" option and enter
+                this ID to complete the pairing.
               </AlertDescription>
             </Alert>
 
             <Button
-              onClick={() => navigate('/dashboard')}
+              onClick={() => navigate("/dashboard")}
               className="w-full"
               data-testid="button-continue"
             >
@@ -216,22 +232,27 @@ export default function CoupleSetup() {
             <CardTitle className="text-3xl">Set Up Your Couple</CardTitle>
           </div>
           <CardDescription>
-            Before you can start your journey together, you need to create or join a couple
+            Before you can start your journey together, you need to create or
+            join a couple
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <Alert>
             <Users className="h-4 w-4" />
             <AlertDescription>
-              One partner should create a couple and share the ID. The other partner can then join using that ID.
+              One partner should create a couple and share the ID. The other
+              partner can then join using that ID.
             </AlertDescription>
           </Alert>
 
           <div className="space-y-4">
             <div className="text-center">
-              <h3 className="text-lg font-semibold mb-2">Option 1: Create a New Couple</h3>
+              <h3 className="text-lg font-semibold mb-2">
+                Option 1: Create a New Couple
+              </h3>
               <p className="text-sm text-muted-foreground mb-4">
-                Start a new couple and get a unique ID to share with your partner.
+                Start a new couple and get a unique ID to share with your
+                partner.
               </p>
               <Button
                 onClick={handleCreateCouple}
@@ -258,15 +279,20 @@ export default function CoupleSetup() {
                 <div className="w-full border-t"></div>
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="bg-background px-4 text-muted-foreground">OR</span>
+                <span className="bg-background px-4 text-muted-foreground">
+                  OR
+                </span>
               </div>
             </div>
 
             <form onSubmit={handleJoinCouple} className="space-y-4">
               <div className="text-center">
-                <h3 className="text-lg font-semibold mb-2">Option 2: Join Your Partner's Couple</h3>
+                <h3 className="text-lg font-semibold mb-2">
+                  Option 2: Join Your Partner's Couple
+                </h3>
                 <p className="text-sm text-muted-foreground mb-4">
-                  If your partner already created a couple, enter their Couple ID below.
+                  If your partner already created a couple, enter their Couple
+                  ID below.
                 </p>
               </div>
               <div className="space-y-2 max-w-md mx-auto">
