@@ -40,7 +40,7 @@ export default function ChoreChart() {
   });
 
   const createMutation = useMutation({
-    mutationFn: async (data) => {
+    mutationFn: async (data: any) => {
       if (!profile?.couple_id) throw new Error("No couple ID");
       return apiRequest("POST", `/api/chores/couple/${profile.couple_id}`, data);
     },

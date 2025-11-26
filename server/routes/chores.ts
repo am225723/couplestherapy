@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { supabaseAdmin } from "../supabaseAdmin.js";
+import { supabaseAdmin } from "../supabase.js";
 import { z } from "zod";
 import { insertChoreSchema } from "@shared/schema";
 
@@ -10,7 +10,7 @@ router.get("/couple/:coupleId", async (req, res) => {
   try {
     const { coupleId } = req.params;
 
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from("Couples_chores")
       .select("*")
       .eq("couple_id", coupleId)
@@ -30,7 +30,7 @@ router.post("/couple/:coupleId", async (req, res) => {
     const { coupleId } = req.params;
     const validated = insertChoreSchema.parse(req.body);
 
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from("Couples_chores")
       .insert([{ ...validated, couple_id: coupleId }])
       .select();
@@ -48,7 +48,7 @@ router.patch("/:choreId/complete", async (req, res) => {
     const { choreId } = req.params;
     const { completed_by } = req.body;
 
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from("Couples_chores")
       .update({
         is_completed: true,
@@ -70,7 +70,7 @@ router.patch("/:choreId/incomplete", async (req, res) => {
   try {
     const { choreId } = req.params;
 
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from("Couples_chores")
       .update({
         is_completed: false,
@@ -92,7 +92,7 @@ router.patch("/:choreId", async (req, res) => {
   try {
     const { choreId } = req.params;
 
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from("Couples_chores")
       .update(req.body)
       .eq("id", choreId)
@@ -110,7 +110,7 @@ router.delete("/:choreId", async (req, res) => {
   try {
     const { choreId } = req.params;
 
-    const { error } = await supabase
+    const { error } = await supabaseAdmin
       .from("Couples_chores")
       .delete()
       .eq("id", choreId);

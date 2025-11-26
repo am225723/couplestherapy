@@ -366,6 +366,7 @@ function AuthenticatedApp() {
                   <Route path="/date-night" component={DateNightPage} />
                   <Route path="/messages" component={MessagesPage} />
                   <Route path="/calendar" component={CalendarPage} />
+                  <Route path="/chores" component={ChoreChart} />
                   <Route path="/echo-empathy" component={EchoEmpathyPage} />
                   <Route path="/ifs-intro" component={IfsIntroPage} />
                   <Route path="/pause" component={PauseButtonPage} />
