@@ -169,29 +169,15 @@ export default function AdminDashboard() {
   // AI Session Prep mutation
   const sessionPrepMutation = useMutation({
     mutationFn: async (couple_id: string) => {
-      const response = await fetch(`/api/ai/session-prep/${couple_id}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const response = await apiRequest("POST", `/api/ai/session-prep/${couple_id}`);
+      return response.json();
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to generate session prep",
+        variant: "destructive",
       });
-
-      // Read response as text first (body can only be read once)
-      const text = await response.text();
-
-      if (!response.ok) {
-        // Try to parse as JSON error, fall back to raw text
-        let errorMessage = "Failed to generate session prep";
-        try {
-          const error = JSON.parse(text);
-          errorMessage = error.error || error.message || errorMessage;
-        } catch (e) {
-          // Response wasn't JSON, use raw text
-          errorMessage = text || `Server error (${response.status})`;
-        }
-        throw new Error(errorMessage);
-      }
-
-      // Parse successful response
-      return JSON.parse(text);
     },
   });
 
