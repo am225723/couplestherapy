@@ -854,7 +854,11 @@ export default function AdminDashboard() {
                       </CardHeader>
                       <CardContent>
                         {selectedCouple && (
-                          <TherapistThoughtsPanel coupleId={selectedCouple.id} />
+                          <TherapistThoughtsPanel 
+                            coupleId={selectedCouple.id}
+                            partner1={selectedCouple.partner1 && selectedCouple.partner1_id ? { id: selectedCouple.partner1_id, full_name: selectedCouple.partner1.full_name } : null}
+                            partner2={selectedCouple.partner2 && selectedCouple.partner2_id ? { id: selectedCouple.partner2_id, full_name: selectedCouple.partner2.full_name } : null}
+                          />
                         )}
                       </CardContent>
                     </Card>
@@ -3282,16 +3286,25 @@ interface TherapistThought {
   content?: string;
   priority?: "low" | "medium" | "high";
   is_complete?: boolean;
+  individual_id?: string | null;
 }
 
-function TherapistThoughtsPanel({ coupleId }: { coupleId: string }) {
+interface TherapistThoughtsPanelProps {
+  coupleId: string;
+  partner1?: { id: string; full_name: string | null } | null;
+  partner2?: { id: string; full_name: string | null } | null;
+}
+
+function TherapistThoughtsPanel({ coupleId, partner1, partner2 }: TherapistThoughtsPanelProps) {
   const { toast } = useToast();
   const [isOpen, setIsOpen] = useState(false);
+  const [filterTarget, setFilterTarget] = useState<string>("all");
   const [newThought, setNewThought] = useState({
     type: "todo" as "todo" | "message" | "file",
     title: "",
     content: "",
     priority: "medium" as "low" | "medium" | "high",
+    individual_id: null as string | null,
   });
 
   const thoughtsQuery = useQuery({
@@ -3304,7 +3317,13 @@ function TherapistThoughtsPanel({ coupleId }: { coupleId: string }) {
       return apiRequest(
         "POST",
         `/api/therapist-thoughts/couple/${coupleId}`,
-        newThought,
+        {
+          type: newThought.type,
+          title: newThought.title,
+          content: newThought.content,
+          priority: newThought.priority,
+          individual_id: newThought.individual_id,
+        },
       );
     },
     onSuccess: () => {
@@ -3313,6 +3332,7 @@ function TherapistThoughtsPanel({ coupleId }: { coupleId: string }) {
         title: "",
         content: "",
         priority: "medium",
+        individual_id: null,
       });
       setIsOpen(false);
       toast({ title: "Success", description: "Thought added" });
@@ -3341,13 +3361,43 @@ function TherapistThoughtsPanel({ coupleId }: { coupleId: string }) {
     },
   });
 
-  const thoughts = (thoughtsQuery.data || []) as TherapistThought[];
+  const allThoughts = (thoughtsQuery.data || []) as TherapistThought[];
+  
+  const thoughts = filterTarget === "all" 
+    ? allThoughts 
+    : allThoughts.filter((t) => t.individual_id === filterTarget);
+  
   const todos = thoughts.filter((t) => t.type === "todo");
   const messages = thoughts.filter((t) => t.type === "message");
+  
+  const getPartnerName = (individualId: string | null | undefined) => {
+    if (!individualId) return null;
+    if (partner1?.id === individualId) return partner1.full_name || "Partner 1";
+    if (partner2?.id === individualId) return partner2.full_name || "Partner 2";
+    return null;
+  };
 
   return (
     <div className="space-y-3">
-      <div className="flex justify-end">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <Select value={filterTarget} onValueChange={setFilterTarget}>
+          <SelectTrigger className="h-8 text-xs w-36" data-testid="select-thought-filter">
+            <SelectValue placeholder="Filter by..." />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Thoughts</SelectItem>
+            {partner1 && (
+              <SelectItem value={partner1.id}>
+                {partner1.full_name || "Partner 1"}
+              </SelectItem>
+            )}
+            {partner2 && (
+              <SelectItem value={partner2.id}>
+                {partner2.full_name || "Partner 2"}
+              </SelectItem>
+            )}
+          </SelectContent>
+        </Select>
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
           <DialogTrigger asChild>
             <Button
@@ -3365,10 +3415,40 @@ function TherapistThoughtsPanel({ coupleId }: { coupleId: string }) {
                 Add Therapist Thought
               </DialogTitle>
               <DialogDescription className="text-xs">
-                Create a to-do, message, or file reference
+                Create a to-do, message, or file reference for the couple or individual
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-3">
+              <div>
+                <label className="text-xs font-medium mb-1 block">For</label>
+                <Select
+                  value={newThought.individual_id || "couple"}
+                  onValueChange={(value: string) =>
+                    setNewThought({ ...newThought, individual_id: value === "couple" ? null : value })
+                  }
+                >
+                  <SelectTrigger
+                    className="h-8 text-xs"
+                    data-testid="select-thought-target"
+                  >
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="couple">Couple (Both Partners)</SelectItem>
+                    {partner1 && (
+                      <SelectItem value={partner1.id}>
+                        {partner1.full_name || "Partner 1"}
+                      </SelectItem>
+                    )}
+                    {partner2 && (
+                      <SelectItem value={partner2.id}>
+                        {partner2.full_name || "Partner 2"}
+                      </SelectItem>
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
+
               <div>
                 <label className="text-xs font-medium mb-1 block">Type</label>
                 <Select
@@ -3482,9 +3562,16 @@ function TherapistThoughtsPanel({ coupleId }: { coupleId: string }) {
                   >
                     <CheckCircle2 className="w-3 h-3 mt-0.5 flex-shrink-0" />
                     <div className="flex-1 min-w-0">
-                      <p className="font-semibold break-words">
-                        {thought.title}
-                      </p>
+                      <div className="flex items-center gap-1.5">
+                        <p className="font-semibold break-words">
+                          {thought.title}
+                        </p>
+                        {thought.individual_id && (
+                          <Badge variant="outline" className="text-xs h-4 px-1">
+                            {getPartnerName(thought.individual_id)}
+                          </Badge>
+                        )}
+                      </div>
                       {thought.content && (
                         <p className="text-muted-foreground break-words line-clamp-2">
                           {thought.content}
@@ -3533,9 +3620,16 @@ function TherapistThoughtsPanel({ coupleId }: { coupleId: string }) {
                   >
                     <MessageSquare className="w-3 h-3 mt-0.5 flex-shrink-0" />
                     <div className="flex-1 min-w-0">
-                      <p className="font-semibold break-words">
-                        {thought.title}
-                      </p>
+                      <div className="flex items-center gap-1.5">
+                        <p className="font-semibold break-words">
+                          {thought.title}
+                        </p>
+                        {thought.individual_id && (
+                          <Badge variant="outline" className="text-xs h-4 px-1">
+                            {getPartnerName(thought.individual_id)}
+                          </Badge>
+                        )}
+                      </div>
                       {thought.content && (
                         <p className="text-muted-foreground break-words line-clamp-2">
                           {thought.content}

@@ -14,6 +14,7 @@ const thoughtSchema = z.object({
   file_url: z.string().optional(),
   priority: z.enum(["low", "medium", "high"]).optional(),
   is_complete: z.boolean().optional(),
+  individual_id: z.string().uuid().optional().nullable(),
 });
 
 // GET /couple/:coupleId - Get all therapist thoughts for a couple
@@ -38,12 +39,20 @@ router.get("/couple/:coupleId", async (req: Request, res: Response) => {
       return res.status(403).json({ error: "Access denied" });
     }
 
-    // Fetch therapist thoughts
-    const { data, error } = await supabaseAdmin
+    // Fetch therapist thoughts with optional individual filtering
+    const { individual_id } = req.query;
+    
+    let query = supabaseAdmin
       .from("Couples_therapist_thoughts")
       .select("*")
-      .eq("couple_id", coupleId)
-      .order("created_at", { ascending: false });
+      .eq("couple_id", coupleId);
+    
+    // If individual_id is specified, filter by it; otherwise get all for the couple
+    if (individual_id && typeof individual_id === "string") {
+      query = query.eq("individual_id", individual_id);
+    }
+    
+    const { data, error } = await query.order("created_at", { ascending: false });
 
     if (error) throw error;
     res.json(data || []);
@@ -87,6 +96,7 @@ router.post("/couple/:coupleId", async (req: Request, res: Response) => {
         file_url: body.file_url,
         priority: body.priority || "medium",
         is_complete: false,
+        individual_id: body.individual_id || null,
       })
       .select()
       .single();
