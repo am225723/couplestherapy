@@ -2,7 +2,7 @@ import { Router } from "express";
 import type { Request, Response } from "express";
 import { supabaseAdmin } from "../supabase.js";
 import { z } from "zod";
-import { verifyTherapistSession } from "../helpers.js";
+import { verifyTherapistSession, verifyUserSession } from "../helpers.js";
 
 const router = Router();
 
@@ -58,6 +58,52 @@ router.get("/couple/:coupleId", async (req: Request, res: Response) => {
     res.json(data || []);
   } catch (error: any) {
     console.error("Error fetching therapist thoughts:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// GET /client/messages - Get therapist messages for the logged-in client (client-facing endpoint)
+// Security: This endpoint uses verifyUserSession which fetches the couple_id from the
+// authenticated user's profile in the database. The coupleId is never taken from client input.
+router.get("/client/messages", async (req: Request, res: Response) => {
+  try {
+    const authResult = await verifyUserSession(req);
+    if (!authResult.success) {
+      return res.status(authResult.status).json({ error: authResult.error });
+    }
+
+    // coupleId is fetched from the authenticated user's profile (server-side),
+    // not from any client-provided input, ensuring couple-level authorization
+    const { coupleId, userId } = authResult;
+
+    // Verify coupleId is valid (defensive check)
+    if (!coupleId || typeof coupleId !== "string") {
+      return res.status(403).json({ error: "User is not associated with a couple" });
+    }
+
+    // Fetch only "message" type thoughts that are either:
+    // 1. For the entire couple (individual_id is null)
+    // 2. For this specific partner (individual_id matches userId)
+    const { data, error } = await supabaseAdmin
+      .from("Couples_therapist_thoughts")
+      .select("id, title, content, created_at, individual_id")
+      .eq("couple_id", coupleId)
+      .eq("type", "message")
+      .or(`individual_id.is.null,individual_id.eq.${userId}`)
+      .order("created_at", { ascending: false })
+      .limit(50);
+
+    if (error) throw error;
+
+    // Transform to include audience type for UI
+    const messages = (data || []).map(msg => ({
+      ...msg,
+      audience: msg.individual_id === null ? "couple" : "individual"
+    }));
+
+    res.json(messages);
+  } catch (error: any) {
+    console.error("Error fetching therapist messages for client:", error);
     res.status(500).json({ error: error.message });
   }
 });

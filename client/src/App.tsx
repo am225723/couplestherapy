@@ -79,6 +79,7 @@ import MoodTrackerPage from "./pages/mood-tracker";
 import DailyTipsPage from "./pages/daily-tips";
 import CoupleCompatibility from "./pages/couple-compatibility";
 import ChoreChart from "./pages/chore-chart";
+import TherapistMessagesPage from "./pages/therapist-messages";
 import NotFound from "./pages/not-found";
 
 function AppSidebar() {
@@ -516,6 +517,10 @@ function AuthenticatedApp() {
                   />
                   <Route path="/mood-tracker" component={MoodTrackerPage} />
                   <Route path="/daily-tips" component={DailyTipsPage} />
+                  <Route
+                    path="/therapist-messages"
+                    component={TherapistMessagesPage}
+                  />
                   <Route path="/">
                     {profile.couple_id ? (
                       <Redirect to="/dashboard" />

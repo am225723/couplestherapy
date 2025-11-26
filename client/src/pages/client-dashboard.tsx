@@ -49,6 +49,8 @@ import {
   Lightbulb,
   ChevronDown,
   Trash2,
+  User,
+  Users,
 } from "lucide-react";
 import { LoveLanguage } from "@shared/schema";
 import clientHeroImage from "@assets/generated_images/Client_app_hero_image_9fd4eaf0.png";
@@ -77,6 +79,20 @@ export default function ClientDashboard() {
   }>({
     queryKey: [`/api/dashboard-customization/couple/${profile?.couple_id}`],
     enabled: !!profile?.couple_id,
+  });
+
+  // Therapist messages query
+  const therapistMessagesQuery = useQuery<{
+    id: string;
+    title: string;
+    content: string | null;
+    created_at: string;
+    individual_id: string | null;
+    audience: "couple" | "individual";
+  }[]>({
+    queryKey: ["/api/therapist-thoughts/client/messages"],
+    enabled: !!profile?.couple_id,
+    staleTime: 1000 * 60 * 5, // 5 minutes
   });
 
   // Delete love language mutation
@@ -385,6 +401,69 @@ export default function ClientDashboard() {
             </CardHeader>
           </Card>
         </Link>
+
+        {therapistMessagesQuery.isSuccess && therapistMessagesQuery.data && therapistMessagesQuery.data.length > 0 && (
+          <Card
+            className="shadow-lg border-primary/20 bg-gradient-to-br from-blue-50/50 to-indigo-50/50 dark:from-blue-950/20 dark:to-indigo-950/20"
+            data-testid="card-therapist-messages"
+          >
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    <MessageCircle className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                    Messages from Your Therapist
+                  </CardTitle>
+                  <CardDescription>
+                    Notes and guidance from your therapy sessions
+                  </CardDescription>
+                </div>
+                <Link href="/therapist-messages">
+                  <Button variant="ghost" size="sm" className="text-primary" data-testid="button-view-all-messages">
+                    View All
+                    <ArrowRight className="ml-1 h-4 w-4" />
+                  </Button>
+                </Link>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {therapistMessagesQuery.data.slice(0, 3).map((message) => (
+                <div
+                  key={message.id}
+                  className="p-3 bg-background/80 rounded-lg border border-border/50"
+                  data-testid={`message-item-${message.id}`}
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <p className="font-medium text-sm">{message.title}</p>
+                        {message.audience === "individual" ? (
+                          <Badge variant="outline" className="text-xs h-5 px-1.5 flex items-center gap-1">
+                            <User className="h-3 w-3" />
+                            Just for you
+                          </Badge>
+                        ) : (
+                          <Badge variant="secondary" className="text-xs h-5 px-1.5 flex items-center gap-1">
+                            <Users className="h-3 w-3" />
+                            For both
+                          </Badge>
+                        )}
+                      </div>
+                      {message.content && (
+                        <p className="text-sm text-muted-foreground line-clamp-2">
+                          {message.content}
+                        </p>
+                      )}
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {new Date(message.created_at).toLocaleDateString()}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        )}
 
         {recommendationsQuery.isSuccess && recommendationsQuery.data && (
           <Card
