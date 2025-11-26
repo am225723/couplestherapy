@@ -73,6 +73,7 @@ export default function ClientDashboard() {
   const customizationQuery = useQuery<{
     widget_order: string[];
     enabled_widgets: Record<string, boolean>;
+    widget_sizes?: Record<string, "small" | "medium" | "large">;
   }>({
     queryKey: [`/api/dashboard-customization/couple/${profile?.couple_id}`],
     enabled: !!profile?.couple_id,
@@ -278,7 +279,7 @@ export default function ClientDashboard() {
       return allActivities; // Show all if no customization
     }
 
-    const { widget_order, enabled_widgets } = customization;
+    const { widget_order, enabled_widgets, widget_sizes = {} } = customization;
 
     // Filter to only enabled widgets
     const enabledActivities = allActivities.filter((activity) => {
@@ -296,6 +297,18 @@ export default function ClientDashboard() {
       return indexA - indexB;
     });
   })();
+
+  // Get widget size utility function
+  const getWidgetClass = (widgetId: string) => {
+    const customization = customizationQuery.data;
+    const size = customization?.widget_sizes?.[widgetId] || "medium";
+    const sizeClasses = {
+      small: "md:col-span-1",
+      medium: "md:col-span-2",
+      large: "md:col-span-3",
+    };
+    return sizeClasses[size as keyof typeof sizeClasses] || sizeClasses.medium;
+  };
 
   return (
     <div className="min-h-screen bg-background">

@@ -47,6 +47,17 @@ dashboardCustomizationRouter.get(
             calendar: true,
             rituals: true,
           },
+          widget_sizes: {
+            "weekly-checkin": "medium",
+            "love-languages": "medium",
+            gratitude: "medium",
+            "shared-goals": "medium",
+            conversations: "medium",
+            "love-map": "medium",
+            "voice-memos": "medium",
+            calendar: "medium",
+            rituals: "medium",
+          },
         });
       }
 
@@ -64,7 +75,7 @@ dashboardCustomizationRouter.post(
   async (req: Request, res: Response) => {
     try {
       const { coupleId } = req.params;
-      const { therapist_id, widget_order, enabled_widgets } = req.body;
+      const { therapist_id, widget_order, enabled_widgets, widget_sizes } = req.body;
 
       const { data, error } = await supabaseAdmin
         .from("Couples_dashboard_customization")
@@ -83,6 +94,7 @@ dashboardCustomizationRouter.post(
             "rituals",
           ],
           enabled_widgets: enabled_widgets || {},
+          widget_sizes: widget_sizes || {},
           updated_at: new Date().toISOString(),
         })
         .select()

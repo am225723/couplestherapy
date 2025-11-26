@@ -970,6 +970,11 @@ export const couplesDashboardCustomization = pgTable(
       .default(
         '{"weekly-checkin":true,"love-languages":true,"gratitude":true,"shared-goals":true,"conversations":true,"love-map":true,"voice-memos":true,"calendar":true,"rituals":true}',
       ),
+    widget_sizes: jsonb("widget_sizes")
+      .notNull()
+      .default(
+        '{"weekly-checkin":"medium","love-languages":"medium","gratitude":"medium","shared-goals":"medium","conversations":"medium","love-map":"medium","voice-memos":"medium","calendar":"medium","rituals":"medium"}',
+      ),
     updated_at: timestamp("updated_at").defaultNow(),
   },
 );
