@@ -13,7 +13,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertChoreSchema, type Profile, type Chore } from "@shared/schema";
 import { Loader2, Plus, Trash2, RotateCcw } from "lucide-react";
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 
 interface ChoreWithCreator extends Chore {
   creator_name?: string;
@@ -30,17 +30,11 @@ export default function ChoreChart() {
     resolver: zodResolver(insertChoreSchema),
     defaultValues: {
       title: "",
-      assigned_to: "",
+      assigned_to: profile?.id || "",
       recurrence: "daily",
     },
+    mode: "onChange",
   });
-
-  // Update form when profile loads
-  const [initialized, setInitialized] = useState(false);
-  if (profile?.id && !initialized) {
-    form.setValue("assigned_to", profile.id);
-    setInitialized(true);
-  }
 
   const choresQuery = useQuery({
     queryKey: [`/api/chores/couple/${profile?.couple_id}`],
@@ -48,21 +42,16 @@ export default function ChoreChart() {
 
   const createMutation = useMutation({
     mutationFn: async (data: any) => {
-      console.log("Creating chore with data:", data);
       if (!profile?.couple_id) throw new Error("No couple ID");
-      const response = await apiRequest("POST", `/api/chores/couple/${profile.couple_id}`, data);
-      console.log("Chore creation response:", response);
-      return response;
+      return apiRequest("POST", `/api/chores/couple/${profile.couple_id}`, data);
     },
     onSuccess: () => {
-      console.log("Chore created successfully");
       toast({ title: "Success", description: "Chore added" });
       queryClient.invalidateQueries({ queryKey: [`/api/chores/couple/${profile?.couple_id}`] });
       form.reset({ title: "", assigned_to: profile?.id || "", recurrence: "daily" });
       setIsOpen(false);
     },
     onError: (error: any) => {
-      console.error("Error creating chore:", error);
       toast({ title: "Error", description: error?.message || "Failed to add chore", variant: "destructive" });
     },
   });
@@ -127,9 +116,12 @@ export default function ChoreChart() {
 
   const getPartnerName = (userId?: string) => {
     if (!userId) return "Unassigned";
-    // Simple logic - would need to fetch from profiles in real implementation
     return userId === profile?.id ? "You" : "Your Partner";
   };
+
+  if (!profile) {
+    return <div className="p-4">Loading...</div>;
+  }
 
   return (
     <div className="max-w-6xl mx-auto p-4 md:p-6 space-y-6">
@@ -166,11 +158,7 @@ export default function ChoreChart() {
                 <DialogDescription>Create a new chore and assign it to a partner.</DialogDescription>
               </DialogHeader>
               <Form {...form}>
-                <form onSubmit={form.handleSubmit((data) => {
-                  console.log("Form submitted with data:", data);
-                  console.log("Form errors:", form.formState.errors);
-                  createMutation.mutate(data);
-                })} className="space-y-4">
+                <form onSubmit={form.handleSubmit((data) => createMutation.mutate(data), (errors) => console.log("Validation errors:", errors))} className="space-y-4">
                   <FormField
                     control={form.control}
                     name="title"
@@ -193,10 +181,10 @@ export default function ChoreChart() {
                         <FormControl>
                           <Select value={field.value} onValueChange={field.onChange}>
                             <SelectTrigger data-testid="select-assigned-to">
-                              <SelectValue />
+                              <SelectValue placeholder="Select who..." />
                             </SelectTrigger>
                             <SelectContent>
-                              {profile?.id && <SelectItem value={profile.id}>Me</SelectItem>}
+                              <SelectItem value={profile.id}>Me</SelectItem>
                               <SelectItem value="partner">My Partner</SelectItem>
                             </SelectContent>
                           </Select>
@@ -214,7 +202,7 @@ export default function ChoreChart() {
                         <FormControl>
                           <Select value={field.value} onValueChange={field.onChange}>
                             <SelectTrigger data-testid="select-frequency">
-                              <SelectValue />
+                              <SelectValue placeholder="Select frequency..." />
                             </SelectTrigger>
                             <SelectContent>
                               <SelectItem value="daily">Daily</SelectItem>
@@ -233,11 +221,11 @@ export default function ChoreChart() {
                     )}
                   />
 
-                  <Button type="submit" disabled={createMutation.isPending} className="w-full" data-testid="button-submit-chore">
+                  <Button type="submit" className="w-full" disabled={createMutation.isPending} data-testid="button-submit-chore">
                     {createMutation.isPending ? (
                       <>
                         <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                        Creating...
+                        Adding...
                       </>
                     ) : (
                       "Add Chore"
@@ -273,38 +261,41 @@ export default function ChoreChart() {
                   className={chore.is_completed ? "opacity-60" : ""}
                   data-testid={`card-chore-${chore.id}`}
                 >
-                  <CardContent className="flex items-center gap-4 p-4">
-                    <Checkbox
-                      checked={chore.is_completed ?? false}
-                      onCheckedChange={(checked) => {
-                        if (checked) {
-                          completeMutation.mutate({ choreId: chore.id, completed_by: profile?.id || "" });
-                        } else {
-                          incompleteMutation.mutate(chore.id);
-                        }
-                      }}
-                      data-testid={`checkbox-chore-${chore.id}`}
-                    />
-                    <div className="flex-1">
-                      <p className={`font-medium ${chore.is_completed ? "line-through text-muted-foreground" : ""}`}>
-                        {chore.title}
-                      </p>
-                      <p className="text-xs text-muted-foreground">{getPartnerName(chore.assigned_to)}</p>
-                      {chore.completed_at && (
-                        <p className="text-xs text-green-600 dark:text-green-400">
-                          ✓ Completed at {new Date(chore.completed_at).toLocaleTimeString()}
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-3">
+                      <Checkbox
+                        checked={chore.is_completed}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            completeMutation.mutate({ choreId: chore.id, completed_by: profile.id });
+                          } else {
+                            incompleteMutation.mutate(chore.id);
+                          }
+                        }}
+                        data-testid={`checkbox-chore-${chore.id}`}
+                      />
+                      <div className="flex-1">
+                        <p className={`font-medium ${chore.is_completed ? "line-through text-muted-foreground" : ""}`}>
+                          {chore.title}
                         </p>
-                      )}
+                        <p className="text-sm text-muted-foreground">
+                          Assigned to: {getPartnerName(chore.assigned_to)}
+                        </p>
+                        {chore.completed_at && (
+                          <p className="text-xs text-muted-foreground">
+                            Completed: {new Date(chore.completed_at).toLocaleTimeString()}
+                          </p>
+                        )}
+                      </div>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={() => deleteMutation.mutate(chore.id)}
+                        data-testid={`button-delete-chore-${chore.id}`}
+                      >
+                        <Trash2 className="w-4 h-4 text-destructive" />
+                      </Button>
                     </div>
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      onClick={() => deleteMutation.mutate(chore.id)}
-                      disabled={deleteMutation.isPending}
-                      data-testid={`button-delete-chore-${chore.id}`}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
                   </CardContent>
                 </Card>
               ))}
@@ -313,130 +304,147 @@ export default function ChoreChart() {
         </div>
       ) : (
         /* Weekly View */
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-6">
           {/* Daily Chores */}
-          {dailyChores.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Daily Chores</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
+          <div>
+            <h2 className="text-xl font-semibold mb-3">Daily Chores</h2>
+            {dailyChores.length === 0 ? (
+              <Card>
+                <CardContent className="py-6 text-center text-muted-foreground">No daily chores</CardContent>
+              </Card>
+            ) : (
+              <div className="space-y-3">
                 {dailyChores.map((chore) => (
-                  <div key={chore.id} className="flex items-center gap-3 p-2 rounded hover-elevate" data-testid={`daily-chore-${chore.id}`}>
-                    <Checkbox
-                      checked={chore.is_completed ?? false}
-                      onCheckedChange={(checked) => {
-                        if (checked) {
-                          completeMutation.mutate({ choreId: chore.id, completed_by: profile?.id || "" });
-                        } else {
-                          incompleteMutation.mutate(chore.id);
-                        }
-                      }}
-                    />
-                    <div className="flex-1 min-w-0">
-                      <p className={`text-sm font-medium truncate ${chore.is_completed ? "line-through text-muted-foreground" : ""}`}>
-                        {chore.title}
-                      </p>
-                      <p className="text-xs text-muted-foreground">{getPartnerName(chore.assigned_to)}</p>
-                    </div>
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      onClick={() => deleteMutation.mutate(chore.id)}
-                      disabled={deleteMutation.isPending}
-                    >
-                      <Trash2 className="w-3 h-3" />
-                    </Button>
-                  </div>
+                  <Card key={chore.id} data-testid={`card-chore-${chore.id}`}>
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-3">
+                        <Checkbox
+                          checked={chore.is_completed}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              completeMutation.mutate({ choreId: chore.id, completed_by: profile.id });
+                            } else {
+                              incompleteMutation.mutate(chore.id);
+                            }
+                          }}
+                          data-testid={`checkbox-chore-${chore.id}`}
+                        />
+                        <div className="flex-1">
+                          <p className={`font-medium ${chore.is_completed ? "line-through text-muted-foreground" : ""}`}>
+                            {chore.title}
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            {getPartnerName(chore.assigned_to)}
+                          </p>
+                        </div>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          onClick={() => deleteMutation.mutate(chore.id)}
+                          data-testid={`button-delete-chore-${chore.id}`}
+                        >
+                          <Trash2 className="w-4 h-4 text-destructive" />
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
                 ))}
-              </CardContent>
-            </Card>
-          )}
+              </div>
+            )}
+          </div>
 
           {/* Weekly Chores */}
-          {weeklyChores.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Weekly Chores</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
+          <div>
+            <h2 className="text-xl font-semibold mb-3">Weekly Chores</h2>
+            {weeklyChores.length === 0 ? (
+              <Card>
+                <CardContent className="py-6 text-center text-muted-foreground">No weekly chores</CardContent>
+              </Card>
+            ) : (
+              <div className="space-y-3">
                 {weeklyChores.map((chore) => (
-                  <div key={chore.id} className="flex items-center gap-3 p-2 rounded hover-elevate" data-testid={`weekly-chore-${chore.id}`}>
-                    <Checkbox
-                      checked={chore.is_completed ?? false}
-                      onCheckedChange={(checked) => {
-                        if (checked) {
-                          completeMutation.mutate({ choreId: chore.id, completed_by: profile?.id || "" });
-                        } else {
-                          incompleteMutation.mutate(chore.id);
-                        }
-                      }}
-                    />
-                    <div className="flex-1 min-w-0">
-                      <p className={`text-sm font-medium truncate ${chore.is_completed ? "line-through text-muted-foreground" : ""}`}>
-                        {chore.title}
-                      </p>
-                      <p className="text-xs text-muted-foreground">{getPartnerName(chore.assigned_to)}</p>
-                    </div>
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      onClick={() => deleteMutation.mutate(chore.id)}
-                      disabled={deleteMutation.isPending}
-                    >
-                      <Trash2 className="w-3 h-3" />
-                    </Button>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Specific Day Chores */}
-          {chores.some((c) =>
-            ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"].includes(c.recurrence)
-          ) && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Day-Specific Chores</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {chores
-                  .filter((c) =>
-                    ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"].includes(c.recurrence)
-                  )
-                  .map((chore) => (
-                    <div key={chore.id} className="flex items-center gap-3 p-2 rounded hover-elevate" data-testid={`day-chore-${chore.id}`}>
-                      <Checkbox
-                        checked={chore.is_completed ?? false}
-                        onCheckedChange={(checked) => {
-                          if (checked) {
-                            completeMutation.mutate({ choreId: chore.id, completed_by: profile?.id || "" });
-                          } else {
-                            incompleteMutation.mutate(chore.id);
-                          }
-                        }}
-                      />
-                      <div className="flex-1 min-w-0">
-                        <p className={`text-sm font-medium truncate ${chore.is_completed ? "line-through text-muted-foreground" : ""}`}>
-                          {chore.title}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {chore.recurrence.charAt(0).toUpperCase() + chore.recurrence.slice(1)} · {getPartnerName(chore.assigned_to)}
-                        </p>
+                  <Card key={chore.id} data-testid={`card-chore-${chore.id}`}>
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-3">
+                        <Checkbox
+                          checked={chore.is_completed}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              completeMutation.mutate({ choreId: chore.id, completed_by: profile.id });
+                            } else {
+                              incompleteMutation.mutate(chore.id);
+                            }
+                          }}
+                          data-testid={`checkbox-chore-${chore.id}`}
+                        />
+                        <div className="flex-1">
+                          <p className={`font-medium ${chore.is_completed ? "line-through text-muted-foreground" : ""}`}>
+                            {chore.title}
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            {getPartnerName(chore.assigned_to)}
+                          </p>
+                        </div>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          onClick={() => deleteMutation.mutate(chore.id)}
+                          data-testid={`button-delete-chore-${chore.id}`}
+                        >
+                          <Trash2 className="w-4 h-4 text-destructive" />
+                        </Button>
                       </div>
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        onClick={() => deleteMutation.mutate(chore.id)}
-                        disabled={deleteMutation.isPending}
-                      >
-                        <Trash2 className="w-3 h-3" />
-                      </Button>
-                    </div>
-                  ))}
-              </CardContent>
-            </Card>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Day-specific Chores */}
+          {specificDayChores.length > 0 && (
+            <div>
+              <h2 className="text-xl font-semibold mb-3 capitalize">
+                {dayName}'s Chores
+              </h2>
+              <div className="space-y-3">
+                {specificDayChores.map((chore) => (
+                  <Card key={chore.id} data-testid={`card-chore-${chore.id}`}>
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-3">
+                        <Checkbox
+                          checked={chore.is_completed}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              completeMutation.mutate({ choreId: chore.id, completed_by: profile.id });
+                            } else {
+                              incompleteMutation.mutate(chore.id);
+                            }
+                          }}
+                          data-testid={`checkbox-chore-${chore.id}`}
+                        />
+                        <div className="flex-1">
+                          <p className={`font-medium ${chore.is_completed ? "line-through text-muted-foreground" : ""}`}>
+                            {chore.title}
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            {getPartnerName(chore.assigned_to)}
+                          </p>
+                        </div>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          onClick={() => deleteMutation.mutate(chore.id)}
+                          data-testid={`button-delete-chore-${chore.id}`}
+                        >
+                          <Trash2 className="w-4 h-4 text-destructive" />
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
           )}
         </div>
       )}
