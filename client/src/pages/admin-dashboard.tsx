@@ -36,8 +36,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { AdminSidebar } from "@/components/admin-sidebar";
+import { AdminNavigation } from "@/components/admin-navigation";
+import { AddCoupleModal } from "@/components/add-couple-modal";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
@@ -156,6 +156,7 @@ export default function AdminDashboard() {
   const [messageText, setMessageText] = useState("");
   const [dashboardCustomization, setDashboardCustomization] =
     useState<DashboardCustomization | null>(null);
+  const [showAddCoupleModal, setShowAddCoupleModal] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { profile, user } = useAuth();
   const { toast } = useToast();
@@ -456,12 +457,28 @@ export default function AdminDashboard() {
         </div>
 
         <div className="max-w-6xl mx-auto px-4 py-12">
-          <h2 className="text-3xl font-bold mb-6">Your Couples</h2>
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-3xl font-bold">Your Couples</h2>
+            <Button
+              onClick={() => setShowAddCoupleModal(true)}
+              className="gap-2"
+              data-testid="button-add-couple"
+            >
+              <Users className="h-4 w-4" />
+              Add New Couple
+            </Button>
+          </div>
           {couples.length === 0 ? (
             <Card className="text-center py-12">
               <CardContent>
                 <Users className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                <p className="text-muted-foreground">No couples assigned yet</p>
+                <p className="text-muted-foreground mb-4">No couples assigned yet</p>
+                <Button
+                  onClick={() => setShowAddCoupleModal(true)}
+                  data-testid="button-add-first-couple"
+                >
+                  Add Your First Couple
+                </Button>
               </CardContent>
             </Card>
           ) : (
@@ -495,67 +512,63 @@ export default function AdminDashboard() {
             </div>
           )}
         </div>
+
+        <AddCoupleModal
+          open={showAddCoupleModal}
+          onOpenChange={setShowAddCoupleModal}
+          therapistId={profile?.id || ""}
+          onSuccess={() => {
+            fetchCouples();
+          }}
+        />
       </div>
     );
   }
 
-  const sidebarStyle = {
-    "--sidebar-width": "20rem",
-    "--sidebar-width-icon": "4rem",
-  };
-
   return (
-    <SidebarProvider style={sidebarStyle as React.CSSProperties}>
-      <div className="flex h-screen w-full">
-        <AdminSidebar
-          couples={couples}
-          selectedCoupleId={selectedCouple?.id || null}
-          onSelectCouple={handleSelectCouple}
-          currentSection={currentSection}
-          onSelectSection={handleSelectSection}
-        />
+    <div className="flex flex-col h-screen w-full">
+      <AdminNavigation
+        couples={couples}
+        selectedCoupleId={selectedCouple?.id || null}
+        onSelectCouple={handleSelectCouple}
+        currentSection={currentSection}
+        onSelectSection={handleSelectSection}
+        onAddCouple={() => setShowAddCoupleModal(true)}
+      />
 
-        <div className="flex flex-col flex-1 overflow-hidden">
-          <header className="flex items-center justify-between p-4 border-b gap-4 shrink-0">
-            <div className="flex items-center gap-4">
-              <SidebarTrigger data-testid="button-sidebar-toggle" />
+      <div className="flex flex-col flex-1 overflow-hidden">
+        <header className="flex items-center justify-between p-4 border-b gap-4 shrink-0">
+          <div className="flex items-center gap-4">
+            {selectedCouple && (
+              <h1 className="text-xl font-semibold">
+                {selectedCouple.partner1?.full_name} &{" "}
+                {selectedCouple.partner2?.full_name}
+              </h1>
+            )}
+          </div>
+
+          <Dialog>
+            <DialogTrigger asChild>
               <Button
-                variant="ghost"
-                onClick={() => setLocation("/admin")}
-                data-testid="button-back-to-couples"
+                variant="default"
+                className="gap-2"
+                onClick={() => sessionPrepMutation.mutate(selectedCouple.id)}
+                disabled={sessionPrepMutation.isPending}
+                data-testid="button-ai-session-prep"
               >
-                ← Back to Couples
+                {sessionPrepMutation.isPending ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Analyzing...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="h-4 w-4" />
+                    AI Session Prep
+                  </>
+                )}
               </Button>
-              {selectedCouple && (
-                <h1 className="text-2xl font-bold">
-                  {selectedCouple.partner1?.full_name} &{" "}
-                  {selectedCouple.partner2?.full_name}
-                </h1>
-              )}
-            </div>
-
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button
-                  variant="default"
-                  className="gap-2"
-                  onClick={() => sessionPrepMutation.mutate(selectedCouple.id)}
-                  disabled={sessionPrepMutation.isPending}
-                  data-testid="button-ai-session-prep"
-                >
-                  {sessionPrepMutation.isPending ? (
-                    <>
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      Analyzing...
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="h-4 w-4" />
-                      AI Session Prep
-                    </>
-                  )}
-                </Button>
-              </DialogTrigger>
+            </DialogTrigger>
               <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle className="flex items-center gap-2">
@@ -1322,8 +1335,16 @@ export default function AdminDashboard() {
             </ScrollArea>
           </main>
         </div>
-      </div>
-    </SidebarProvider>
+
+      <AddCoupleModal
+        open={showAddCoupleModal}
+        onOpenChange={setShowAddCoupleModal}
+        therapistId={profile?.id || ""}
+        onSuccess={() => {
+          fetchCouples();
+        }}
+      />
+    </div>
   );
 }
 
