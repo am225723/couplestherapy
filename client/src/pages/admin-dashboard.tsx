@@ -837,16 +837,15 @@ export default function AdminDashboard() {
                     </div>
                     <Card>
                       <CardHeader>
-                        <CardTitle>Quick Actions</CardTitle>
+                        <CardTitle>Therapist Thoughts</CardTitle>
                         <CardDescription>
-                          Navigate to different sections to view couple data
+                          Manage your to-dos, messages, and notes for this couple
                         </CardDescription>
                       </CardHeader>
                       <CardContent>
-                        <p className="text-sm text-muted-foreground">
-                          Use the sidebar to navigate between different therapy
-                          tools and insights.
-                        </p>
+                        {selectedCouple && (
+                          <TherapistThoughtsPanel coupleId={selectedCouple.id} />
+                        )}
                       </CardContent>
                     </Card>
                   </TabsContent>
@@ -3262,6 +3261,293 @@ function ParentingPartnersTab({ coupleId }: { coupleId: string }) {
           )}
         </CardContent>
       </Card>
+    </div>
+  );
+}
+
+interface TherapistThought {
+  id: string;
+  type: "todo" | "message" | "file";
+  title: string;
+  content?: string;
+  priority?: "low" | "medium" | "high";
+  is_complete?: boolean;
+}
+
+function TherapistThoughtsPanel({ coupleId }: { coupleId: string }) {
+  const { toast } = useToast();
+  const [isOpen, setIsOpen] = useState(false);
+  const [newThought, setNewThought] = useState({
+    type: "todo" as "todo" | "message" | "file",
+    title: "",
+    content: "",
+    priority: "medium" as "low" | "medium" | "high",
+  });
+
+  const thoughtsQuery = useQuery({
+    queryKey: [`/api/therapist-thoughts/couple/${coupleId}`],
+    retry: 1,
+  });
+
+  const createMutation = useMutation({
+    mutationFn: async () => {
+      return apiRequest(
+        "POST",
+        `/api/therapist-thoughts/couple/${coupleId}`,
+        newThought,
+      );
+    },
+    onSuccess: () => {
+      setNewThought({
+        type: "todo",
+        title: "",
+        content: "",
+        priority: "medium",
+      });
+      setIsOpen(false);
+      toast({ title: "Success", description: "Thought added" });
+      queryClient.invalidateQueries({
+        queryKey: [`/api/therapist-thoughts/couple/${coupleId}`],
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error?.message || "Failed to add thought",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      return apiRequest("DELETE", `/api/therapist-thoughts/${id}`);
+    },
+    onSuccess: () => {
+      toast({ title: "Success", description: "Thought deleted" });
+      queryClient.invalidateQueries({
+        queryKey: [`/api/therapist-thoughts/couple/${coupleId}`],
+      });
+    },
+  });
+
+  const thoughts = (thoughtsQuery.data || []) as TherapistThought[];
+  const todos = thoughts.filter((t) => t.type === "todo");
+  const messages = thoughts.filter((t) => t.type === "message");
+
+  return (
+    <div className="space-y-3">
+      <div className="flex justify-end">
+        <Dialog open={isOpen} onOpenChange={setIsOpen}>
+          <DialogTrigger asChild>
+            <Button
+              size="sm"
+              className="text-xs md:text-sm h-8 md:h-9"
+              data-testid="button-add-thought"
+            >
+              <Plus className="w-4 h-4" />
+              <span className="hidden sm:inline ml-1">Add Thought</span>
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="w-full max-w-sm">
+            <DialogHeader>
+              <DialogTitle className="text-base">
+                Add Therapist Thought
+              </DialogTitle>
+              <DialogDescription className="text-xs">
+                Create a to-do, message, or file reference
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-3">
+              <div>
+                <label className="text-xs font-medium mb-1 block">Type</label>
+                <Select
+                  value={newThought.type}
+                  onValueChange={(value: any) =>
+                    setNewThought({ ...newThought, type: value })
+                  }
+                >
+                  <SelectTrigger
+                    className="h-8 text-xs"
+                    data-testid="select-thought-type"
+                  >
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="todo">To-Do</SelectItem>
+                    <SelectItem value="message">Message to Client</SelectItem>
+                    <SelectItem value="file">File Reference</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <label className="text-xs font-medium mb-1 block">Title</label>
+                <Input
+                  placeholder="Title..."
+                  value={newThought.title}
+                  onChange={(e) =>
+                    setNewThought({ ...newThought, title: e.target.value })
+                  }
+                  className="h-8 text-xs"
+                  data-testid="input-thought-title"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-medium mb-1 block">
+                  Content (Optional)
+                </label>
+                <Textarea
+                  placeholder="Add details..."
+                  value={newThought.content}
+                  onChange={(e) =>
+                    setNewThought({ ...newThought, content: e.target.value })
+                  }
+                  className="resize-none text-xs min-h-16"
+                  data-testid="textarea-thought-content"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-medium mb-1 block">
+                  Priority
+                </label>
+                <Select
+                  value={newThought.priority}
+                  onValueChange={(value: any) =>
+                    setNewThought({ ...newThought, priority: value })
+                  }
+                >
+                  <SelectTrigger
+                    className="h-8 text-xs"
+                    data-testid="select-thought-priority"
+                  >
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="low">Low</SelectItem>
+                    <SelectItem value="medium">Medium</SelectItem>
+                    <SelectItem value="high">High</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <Button
+                onClick={() => createMutation.mutate()}
+                disabled={!newThought.title || createMutation.isPending}
+                className="w-full text-xs h-8"
+                data-testid="button-submit-thought"
+              >
+                {createMutation.isPending ? "Adding..." : "Add Thought"}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      </div>
+
+      {thoughtsQuery.isLoading ? (
+        <div className="flex justify-center py-8">
+          <Loader2 className="w-4 h-4 animate-spin" />
+        </div>
+      ) : thoughts.length === 0 ? (
+        <Alert className="text-xs">
+          <AlertCircle className="h-3 w-3" />
+          <AlertDescription className="text-xs">
+            No therapist thoughts yet.
+          </AlertDescription>
+        </Alert>
+      ) : (
+        <>
+          {todos.length > 0 && (
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm">To-Do Items</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {todos.map((thought) => (
+                  <div
+                    key={thought.id}
+                    className="flex items-start gap-2 p-2 bg-muted rounded text-xs group"
+                  >
+                    <CheckCircle2 className="w-3 h-3 mt-0.5 flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold break-words">
+                        {thought.title}
+                      </p>
+                      {thought.content && (
+                        <p className="text-muted-foreground break-words line-clamp-2">
+                          {thought.content}
+                        </p>
+                      )}
+                      {thought.priority && (
+                        <Badge
+                          className="mt-1 text-xs"
+                          variant={
+                            thought.priority === "high"
+                              ? "destructive"
+                              : thought.priority === "medium"
+                                ? "secondary"
+                                : "outline"
+                          }
+                        >
+                          {thought.priority}
+                        </Badge>
+                      )}
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => deleteMutation.mutate(thought.id)}
+                      className="h-6 w-6 flex-shrink-0 opacity-0 group-hover:opacity-100"
+                      data-testid={`button-delete-thought-${thought.id}`}
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </Button>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          )}
+
+          {messages.length > 0 && (
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm">Messages to Clients</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {messages.map((thought) => (
+                  <div
+                    key={thought.id}
+                    className="flex items-start gap-2 p-2 bg-muted rounded text-xs group"
+                  >
+                    <MessageSquare className="w-3 h-3 mt-0.5 flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold break-words">
+                        {thought.title}
+                      </p>
+                      {thought.content && (
+                        <p className="text-muted-foreground break-words line-clamp-2">
+                          {thought.content}
+                        </p>
+                      )}
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => deleteMutation.mutate(thought.id)}
+                      className="h-6 w-6 flex-shrink-0 opacity-0 group-hover:opacity-100"
+                      data-testid={`button-delete-thought-${thought.id}`}
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </Button>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          )}
+        </>
+      )}
     </div>
   );
 }
