@@ -436,10 +436,10 @@ function AuthenticatedApp() {
               {profile.role === "therapist" ? (
                 <>
                   <Route path="/admin" component={TherapistDashboard} />
-                  <Route path="/admin/couple" component={TherapistDashboard} />
+                  <Route path="/admin/couple" component={AdminDashboard} />
                   <Route
                     path="/admin/couple/:id"
-                    component={TherapistDashboard}
+                    component={AdminDashboard}
                   />
                   <Route
                     path="/admin/couple/:id/:section"

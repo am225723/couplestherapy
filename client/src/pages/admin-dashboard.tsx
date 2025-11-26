@@ -141,6 +141,7 @@ export default function AdminDashboard() {
   const [couples, setCouples] = useState<CoupleWithProfiles[]>([]);
   const [selectedCouple, setSelectedCouple] =
     useState<CoupleWithProfiles | null>(null);
+  const [autoSelectedCoupleId, setAutoSelectedCoupleId] = useState<string | null>(null);
   const [checkins, setCheckins] = useState<
     (WeeklyCheckin & { author?: Profile })[]
   >([]);
@@ -235,14 +236,27 @@ export default function AdminDashboard() {
   }, [profile]);
 
   useEffect(() => {
-    if (match && params?.id) {
-      const couple = couples.find((c) => c.id === params.id);
-      if (couple) {
-        setSelectedCouple(couple);
-        fetchCoupleData(couple);
+    if (couples.length > 0) {
+      if (params?.id) {
+        // If ID is in URL, use it
+        const couple = couples.find((c) => c.id === params.id);
+        if (couple) {
+          setSelectedCouple(couple);
+          fetchCoupleData(couple);
+          setAutoSelectedCoupleId(couple.id);
+        }
+      } else if (!autoSelectedCoupleId) {
+        // If no ID and haven't auto-selected yet, use first couple and navigate
+        const firstCouple = couples[0];
+        if (firstCouple) {
+          setSelectedCouple(firstCouple);
+          fetchCoupleData(firstCouple);
+          setAutoSelectedCoupleId(firstCouple.id);
+          setLocation(`/admin/couple/${firstCouple.id}/overview`);
+        }
       }
     }
-  }, [match, params, couples]);
+  }, [match, params, couples, autoSelectedCoupleId, setLocation]);
 
   const fetchCouples = async () => {
     if (!profile?.id) return;
