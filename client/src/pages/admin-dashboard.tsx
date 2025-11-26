@@ -18,8 +18,9 @@ import { AdminSidebar } from '@/components/admin-sidebar';
 import { useAuth } from '@/lib/auth-context';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/hooks/use-toast';
-import { Users, Loader2, Heart, Send, MessageSquare, CheckCircle2, XCircle, Sparkles, TrendingUp, TrendingDown, Target, Lightbulb, Trash2, Menu } from 'lucide-react';
-import { Couple, Profile, WeeklyCheckin, LoveLanguage, GratitudeLog, SharedGoal, Ritual, Conversation, Message, CalendarEvent, EchoSession, EchoTurn, IfsExercise, IfsPart, PauseEvent } from '@shared/schema';
+import { Users, Loader2, Heart, Send, MessageSquare, CheckCircle2, XCircle, Sparkles, TrendingUp, TrendingDown, Target, Lightbulb, Trash2, Menu, Sliders } from 'lucide-react';
+import { Couple, Profile, WeeklyCheckin, LoveLanguage, GratitudeLog, SharedGoal, Ritual, Conversation, Message, CalendarEvent, EchoSession, EchoTurn, IfsExercise, IfsPart, PauseEvent, DashboardCustomization } from '@shared/schema';
+import { DashboardCustomizer } from '@/components/dashboard-customizer';
 import { formatDistanceToNow, format, parse, startOfWeek, getDay } from 'date-fns';
 import { enUS } from 'date-fns/locale/en-US';
 import { Calendar, dateFnsLocalizer } from 'react-big-calendar';
@@ -54,7 +55,7 @@ export default function AdminDashboard() {
   const [, setLocation] = useLocation();
   
   // Valid sections - guard against malformed URLs (architect recommendation)
-  const validSections = ['overview', 'checkins', 'languages', 'lovemap', 'echo', 'ifs', 'pause', 'activity', 'messages', 'calendar', 'therapy-tools', 'analytics', 'conversations', 'goals', 'rituals'];
+  const validSections = ['overview', 'checkins', 'languages', 'lovemap', 'echo', 'ifs', 'pause', 'activity', 'messages', 'calendar', 'therapy-tools', 'analytics', 'conversations', 'goals', 'rituals', 'dashboard-customization'];
   const currentSection = validSections.includes(params?.section || '') ? (params?.section || 'overview') : 'overview';
   const [couples, setCouples] = useState<CoupleWithProfiles[]>([]);
   const [selectedCouple, setSelectedCouple] = useState<CoupleWithProfiles | null>(null);
@@ -66,9 +67,16 @@ export default function AdminDashboard() {
   const [commentingOn, setCommentingOn] = useState<{ type: string; id: string } | null>(null);
   const [loading, setLoading] = useState(true);
   const [messageText, setMessageText] = useState('');
+  const [dashboardCustomization, setDashboardCustomization] = useState<DashboardCustomization | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { profile, user } = useAuth();
   const { toast } = useToast();
+
+  // Fetch dashboard customization
+  const dashboardCustomizationQuery = useQuery({
+    queryKey: [`/api/dashboard-customization/couple/${selectedCouple?.id}`],
+    enabled: !!selectedCouple?.id,
+  });
 
   // AI Session Prep mutation
   const sessionPrepMutation = useMutation({

@@ -793,6 +793,18 @@ export const insertDateFeedbackSchema = createInsertSchema(couplesDateFeedback).
 export type InsertDateFeedback = z.infer<typeof insertDateFeedbackSchema>;
 export type DateFeedback = typeof couplesDateFeedback.$inferSelect;
 
+// 27. DASHBOARD CUSTOMIZATION
+export const couplesDashboardCustomization = pgTable("Couples_dashboard_customization", {
+  id: uuid("id").primaryKey(),
+  couple_id: uuid("couple_id").notNull().unique(),
+  therapist_id: uuid("therapist_id").notNull(),
+  widget_order: jsonb("widget_order").notNull().default('["weekly-checkin","love-languages","gratitude","shared-goals","conversations","love-map","voice-memos","calendar","rituals"]'),
+  enabled_widgets: jsonb("enabled_widgets").notNull().default('{"weekly-checkin":true,"love-languages":true,"gratitude":true,"shared-goals":true,"conversations":true,"love-map":true,"voice-memos":true,"calendar":true,"rituals":true}'),
+  updated_at: timestamp("updated_at").defaultNow(),
+});
+
+export type DashboardCustomization = typeof couplesDashboardCustomization.$inferSelect;
+
 // ===== CONSTANTS =====
 
 export const RITUAL_CATEGORIES = [
@@ -805,3 +817,5 @@ export const RITUAL_CATEGORIES = [
 ] as const;
 
 export type RitualCategory = typeof RITUAL_CATEGORIES[number];
+
+export const DASHBOARD_WIDGETS = ['weekly-checkin', 'love-languages', 'gratitude', 'shared-goals', 'conversations', 'love-map', 'voice-memos', 'calendar', 'rituals'] as const;
