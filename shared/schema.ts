@@ -705,6 +705,7 @@ export const couplesTherapistThoughts = pgTable("Couples_therapist_thoughts", {
   id: uuid("id").primaryKey(),
   couple_id: uuid("couple_id").notNull(),
   therapist_id: uuid("therapist_id").notNull(),
+  individual_id: uuid("individual_id"), // Optional: target specific partner, null = both partners
   created_at: timestamp("created_at").defaultNow(),
   thought_type: text("thought_type").notNull(), // 'todo', 'message', 'file_reference'
   title: text("title"),
@@ -727,6 +728,7 @@ export const insertTherapistThoughtSchema = createInsertSchema(
     title: z.string().optional(),
     content: z.string().min(1),
     priority: z.enum(["low", "medium", "high"]).optional(),
+    individual_id: z.string().uuid().optional().nullable(),
   });
 export type InsertTherapistThought = z.infer<
   typeof insertTherapistThoughtSchema

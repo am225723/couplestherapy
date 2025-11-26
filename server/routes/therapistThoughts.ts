@@ -13,6 +13,7 @@ const thoughtSchema = z.object({
   content: z.string().min(1),
   file_reference: z.string().optional(),
   priority: z.enum(["low", "medium", "high"]).optional(),
+  individual_id: z.string().uuid().optional().nullable(),
 });
 
 // GET /couple/:coupleId - Get all therapist thoughts for a couple
@@ -71,12 +72,15 @@ router.get("/client/messages", async (req: Request, res: Response) => {
       return res.status(403).json({ error: "User is not associated with a couple" });
     }
 
-    // Fetch only "message" type thoughts for the couple
+    // Fetch only "message" type thoughts for the couple that are:
+    // 1. Targeted at both partners (individual_id is null), OR
+    // 2. Targeted specifically at this user
     const { data, error } = await supabaseAdmin
       .from("Couples_therapist_thoughts")
-      .select("id, title, content, created_at")
+      .select("id, title, content, created_at, individual_id")
       .eq("couple_id", coupleId)
       .eq("thought_type", "message")
+      .or(`individual_id.is.null,individual_id.eq.${userId}`)
       .order("created_at", { ascending: false })
       .limit(50);
 
@@ -85,7 +89,7 @@ router.get("/client/messages", async (req: Request, res: Response) => {
     // Transform to include audience type for UI
     const messages = (data || []).map(msg => ({
       ...msg,
-      audience: "couple"
+      audience: msg.individual_id ? "individual" : "couple"
     }));
 
     res.json(messages);
@@ -129,6 +133,7 @@ router.post("/couple/:coupleId", async (req: Request, res: Response) => {
         file_reference: body.file_reference,
         priority: body.priority || "medium",
         is_completed: false,
+        individual_id: body.individual_id || null,
       })
       .select()
       .single();
