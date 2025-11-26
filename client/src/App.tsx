@@ -143,7 +143,7 @@ function AppSidebar() {
   }, [location]);
 
   const adminMenuItems = [
-    { title: "Couples", url: "/admin", icon: Users },
+    { title: "Couples", url: "/admin/couple", icon: Users },
     { title: "Analytics", url: "/admin/analytics", icon: BarChart3 },
     {
       title: "Invitation Codes",
@@ -152,7 +152,7 @@ function AppSidebar() {
     },
   ];
 
-  const homeUrl = profile?.role === "therapist" ? "/admin" : "/dashboard";
+  const homeUrl = profile?.role === "therapist" ? "/admin/couple" : "/dashboard";
   const isTherapist = profile?.role === "therapist";
 
   return (
@@ -309,6 +309,7 @@ function AuthenticatedApp() {
     if (!loading && user && profile) {
       const therapistRoutes = [
         "/admin",
+        "/admin/couple",
         "/admin/analytics",
         "/admin/invitation-codes",
         "/therapist-thoughts",
@@ -351,9 +352,13 @@ function AuthenticatedApp() {
       );
       const isOnRootRoute = location === "/";
 
-      // If therapist is on a client route, redirect to /admin
-      if (isTherapist && isOnClientRoute) {
-        setLocation("/admin");
+      // If therapist is on /admin (without /couple), redirect to /admin/couple
+      if (isTherapist && location === "/admin") {
+        setLocation("/admin/couple");
+      }
+      // If therapist is on a client route, redirect to /admin/couple
+      else if (isTherapist && isOnClientRoute) {
+        setLocation("/admin/couple");
       }
       // If client is on a therapist route, redirect based on couple setup status
       else if (!isTherapist && isOnTherapistRoute) {
@@ -362,7 +367,7 @@ function AuthenticatedApp() {
       // If on root route, redirect based on role
       else if (isOnRootRoute) {
         if (isTherapist) {
-          setLocation("/admin");
+          setLocation("/admin/couple");
         } else {
           setLocation(profile.couple_id ? "/dashboard" : "/couple-setup");
         }
