@@ -24,7 +24,8 @@ import {
   Smile,
   FolderKanban,
   DollarSign,
-  Link2
+  Link2,
+  ListTodo
 } from 'lucide-react';
 
 export interface MenuRoute {
@@ -115,6 +116,7 @@ export const clientMenuConfig: MenuCategory[] = [
     defaultOpen: false,
     routes: [
       { title: 'Calendar', url: '/calendar', icon: Calendar, testId: 'nav-calendar' },
+      { title: 'Chore Chart', url: '/chores', icon: ListTodo, testId: 'nav-chores' },
       { title: 'Shared Goals', url: '/goals', icon: Target, testId: 'nav-goals' },
       { title: 'Financial Toolkit', url: '/financial-toolkit', icon: DollarSign, testId: 'nav-financial' },
       { title: 'Rituals', url: '/rituals', icon: Coffee, testId: 'nav-rituals' },

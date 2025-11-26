@@ -674,7 +674,6 @@ export type FinancialDiscussionLog = typeof couplesFinancialDiscussionLogs.$infe
 export const couplesFinancialGoals = pgTable("Couples_financial_goals", {
   id: uuid("id").primaryKey(),
   couple_id: uuid("couple_id").notNull(),
-  created_at: timestamp("created_at").defaultNow(),
   goal_title: text("goal_title").notNull(),
   target_amount: numeric("target_amount"),
   current_progress: numeric("current_progress").default("0"),
@@ -793,3 +792,16 @@ export const insertDateFeedbackSchema = createInsertSchema(couplesDateFeedback).
 });
 export type InsertDateFeedback = z.infer<typeof insertDateFeedbackSchema>;
 export type DateFeedback = typeof couplesDateFeedback.$inferSelect;
+
+// ===== CONSTANTS =====
+
+export const RITUAL_CATEGORIES = [
+  'morning_connection',
+  'evening_wind_down',
+  'date_night',
+  'gratitude',
+  'intimacy',
+  'communication',
+] as const;
+
+export type RitualCategory = typeof RITUAL_CATEGORIES[number];

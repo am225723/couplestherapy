@@ -1,6 +1,6 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { useAuth } from "@/contexts/AuthContext";
-import { queryClient, apiRequest } from "@/lib/queryClient";
+import { useAuth } from "@/lib/auth.js";
+import { queryClient, apiRequest } from "@/lib/queryClient.js";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -255,7 +255,7 @@ export default function ChoreChart() {
                 >
                   <CardContent className="flex items-center gap-4 p-4">
                     <Checkbox
-                      checked={chore.is_completed}
+                      checked={chore.is_completed ?? false}
                       onCheckedChange={(checked) => {
                         if (checked) {
                           completeMutation.mutate({ choreId: chore.id, completed_by: profile?.id || "" });
@@ -304,7 +304,7 @@ export default function ChoreChart() {
                 {dailyChores.map((chore) => (
                   <div key={chore.id} className="flex items-center gap-3 p-2 rounded hover-elevate" data-testid={`daily-chore-${chore.id}`}>
                     <Checkbox
-                      checked={chore.is_completed}
+                      checked={chore.is_completed ?? false}
                       onCheckedChange={(checked) => {
                         if (checked) {
                           completeMutation.mutate({ choreId: chore.id, completed_by: profile?.id || "" });
@@ -343,7 +343,7 @@ export default function ChoreChart() {
                 {weeklyChores.map((chore) => (
                   <div key={chore.id} className="flex items-center gap-3 p-2 rounded hover-elevate" data-testid={`weekly-chore-${chore.id}`}>
                     <Checkbox
-                      checked={chore.is_completed}
+                      checked={chore.is_completed ?? false}
                       onCheckedChange={(checked) => {
                         if (checked) {
                           completeMutation.mutate({ choreId: chore.id, completed_by: profile?.id || "" });
@@ -388,7 +388,7 @@ export default function ChoreChart() {
                   .map((chore) => (
                     <div key={chore.id} className="flex items-center gap-3 p-2 rounded hover-elevate" data-testid={`day-chore-${chore.id}`}>
                       <Checkbox
-                        checked={chore.is_completed}
+                        checked={chore.is_completed ?? false}
                         onCheckedChange={(checked) => {
                           if (checked) {
                             completeMutation.mutate({ choreId: chore.id, completed_by: profile?.id || "" });

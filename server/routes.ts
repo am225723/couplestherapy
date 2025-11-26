@@ -27,6 +27,7 @@ import therapistRouter from "./routes/therapist.js";
 import therapistThoughtsRouter from "./routes/therapistThoughts.js";
 import valuesVisionRouter from "./routes/valuesVision.js";
 import voiceMemosRouter from "./routes/voiceMemos.js";
+import choresRouter from "./routes/chores.js";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Register all feature-based routers
@@ -52,6 +53,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use("/api/messages", messagesRouter);
   app.use("/api/mood-tracker", moodTrackerRouter);
   app.use("/api/daily-tips", dailyTipsRouter);
+  app.use("/api/chores", choresRouter);
   app.use("/api/parenting", parentingRouter);
   app.use("/api/pause", pauseRouter);
   app.use("/api/profile", profileRouter);
