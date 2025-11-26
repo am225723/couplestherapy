@@ -13,7 +13,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertChoreSchema, type Profile, type Chore } from "@shared/schema";
 import { Loader2, Plus, Trash2, RotateCcw } from "lucide-react";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 
 interface ChoreWithCreator extends Chore {
   creator_name?: string;
@@ -30,10 +30,17 @@ export default function ChoreChart() {
     resolver: zodResolver(insertChoreSchema),
     defaultValues: {
       title: "",
-      assigned_to: profile?.id || "",
+      assigned_to: "",
       recurrence: "daily",
     },
   });
+
+  // Update form when profile loads
+  const [initialized, setInitialized] = useState(false);
+  if (profile?.id && !initialized) {
+    form.setValue("assigned_to", profile.id);
+    setInitialized(true);
+  }
 
   const choresQuery = useQuery({
     queryKey: [`/api/chores/couple/${profile?.couple_id}`],
@@ -189,7 +196,7 @@ export default function ChoreChart() {
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value={profile?.id || ""}>Me</SelectItem>
+                              {profile?.id && <SelectItem value={profile.id}>Me</SelectItem>}
                               <SelectItem value="partner">My Partner</SelectItem>
                             </SelectContent>
                           </Select>
