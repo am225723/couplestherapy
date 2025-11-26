@@ -2,6 +2,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth-context";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/lib/supabase";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
@@ -36,6 +37,32 @@ export default function ChoreChart() {
     },
     mode: "onChange",
   });
+
+  // Fetch couple data to get partner ID
+  const coupleQuery = useQuery({
+    queryKey: [`/api/couple/${profile?.couple_id}`],
+    queryFn: async () => {
+      if (!profile?.couple_id) return null;
+      const { data, error } = await supabase
+        .from("Couples_couples")
+        .select("partner1_id, partner2_id")
+        .eq("id", profile.couple_id)
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!profile?.couple_id,
+  });
+
+  // Determine partner ID
+  const partnerId = useMemo(() => {
+    if (!coupleQuery.data || !profile?.id) return null;
+    if (coupleQuery.data.partner1_id === profile.id) {
+      return coupleQuery.data.partner2_id;
+    } else {
+      return coupleQuery.data.partner1_id;
+    }
+  }, [coupleQuery.data, profile?.id]);
 
   const choresQuery = useQuery({
     queryKey: [`/api/chores/couple/${profile?.couple_id}`],
@@ -186,7 +213,7 @@ export default function ChoreChart() {
                             </SelectTrigger>
                             <SelectContent>
                               <SelectItem value={profile.id}>Me</SelectItem>
-                              <SelectItem value="partner">My Partner</SelectItem>
+                              {partnerId && <SelectItem value={partnerId}>My Partner</SelectItem>}
                             </SelectContent>
                           </Select>
                         </FormControl>
