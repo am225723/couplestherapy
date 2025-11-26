@@ -36,6 +36,14 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
 import { AdminNavigation } from "@/components/admin-navigation";
 import { AddCoupleModal } from "@/components/add-couple-modal";
 import { useAuth } from "@/lib/auth-context";
