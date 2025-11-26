@@ -41,14 +41,22 @@ export default function ChoreChart() {
 
   const createMutation = useMutation({
     mutationFn: async (data: any) => {
+      console.log("Creating chore with data:", data);
       if (!profile?.couple_id) throw new Error("No couple ID");
-      return apiRequest("POST", `/api/chores/couple/${profile.couple_id}`, data);
+      const response = await apiRequest("POST", `/api/chores/couple/${profile.couple_id}`, data);
+      console.log("Chore creation response:", response);
+      return response;
     },
     onSuccess: () => {
+      console.log("Chore created successfully");
       toast({ title: "Success", description: "Chore added" });
       queryClient.invalidateQueries({ queryKey: [`/api/chores/couple/${profile?.couple_id}`] });
-      form.reset();
+      form.reset({ title: "", assigned_to: profile?.id || "", recurrence: "daily" });
       setIsOpen(false);
+    },
+    onError: (error: any) => {
+      console.error("Error creating chore:", error);
+      toast({ title: "Error", description: error?.message || "Failed to add chore", variant: "destructive" });
     },
   });
 
@@ -151,7 +159,11 @@ export default function ChoreChart() {
                 <DialogDescription>Create a new chore and assign it to a partner.</DialogDescription>
               </DialogHeader>
               <Form {...form}>
-                <form onSubmit={form.handleSubmit((data) => createMutation.mutate(data))} className="space-y-4">
+                <form onSubmit={form.handleSubmit((data) => {
+                  console.log("Form submitted with data:", data);
+                  console.log("Form errors:", form.formState.errors);
+                  createMutation.mutate(data);
+                })} className="space-y-4">
                   <FormField
                     control={form.control}
                     name="title"
