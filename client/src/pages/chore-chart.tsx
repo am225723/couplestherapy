@@ -4,7 +4,7 @@ import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -30,7 +30,7 @@ export default function ChoreChart() {
     resolver: zodResolver(insertChoreSchema),
     defaultValues: {
       title: "",
-      assigned_to: "",
+      assigned_to: profile?.id || "",
       recurrence: "daily",
     },
   });
@@ -148,6 +148,7 @@ export default function ChoreChart() {
             <DialogContent className="w-full max-w-sm">
               <DialogHeader>
                 <DialogTitle>Add New Chore</DialogTitle>
+                <DialogDescription>Create a new chore and assign it to a partner.</DialogDescription>
               </DialogHeader>
               <Form {...form}>
                 <form onSubmit={form.handleSubmit((data) => createMutation.mutate(data))} className="space-y-4">
