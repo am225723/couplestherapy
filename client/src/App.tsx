@@ -436,6 +436,7 @@ function AuthenticatedApp() {
               {profile.role === "therapist" ? (
                 <>
                   <Route path="/admin" component={TherapistDashboard} />
+                  <Route path="/admin/couple" component={TherapistDashboard} />
                   <Route
                     path="/admin/couple/:id"
                     component={TherapistDashboard}
@@ -454,9 +455,10 @@ function AuthenticatedApp() {
                     component={AdminDashboard}
                   />
                   <Route path="/">
-                    <Redirect to="/admin" />
+                    <Redirect to="/admin/couple" />
                   </Route>
                 </>
+              
               ) : (
                 <>
                   <Route path="/couple-setup" component={CoupleSetup} />
