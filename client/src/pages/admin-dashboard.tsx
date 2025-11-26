@@ -57,6 +57,8 @@ import {
   Trash2,
   Menu,
   Sliders,
+  Plus,
+  AlertCircle,
 } from "lucide-react";
 import {
   Couple,
