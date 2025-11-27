@@ -13,7 +13,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/lib/supabase";
-import { authenticatedFetch } from "@/lib/authenticated-fetch";
+import { aiFunctions } from "@/lib/ai-functions";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
@@ -542,24 +542,10 @@ function VoiceMemoCard({
   const [sentimentData, setSentimentData] = useState<any>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
 
-  // AI Sentiment Analysis mutation
+  // AI Sentiment Analysis mutation - uses Supabase Edge Function
   const sentimentMutation = useMutation({
     mutationFn: async (memoId: string) => {
-      const response = await authenticatedFetch(
-        "/api/ai/voice-memo-sentiment",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ memo_id: memoId }),
-        },
-      );
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || "Failed to analyze tone");
-      }
-
-      return response.json();
+      return aiFunctions.analyzeVoiceMemoSentiment({ memo_id: memoId });
     },
     onSuccess: (data) => {
       setSentimentData(data);

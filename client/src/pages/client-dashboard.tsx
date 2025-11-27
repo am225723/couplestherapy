@@ -53,6 +53,7 @@ import { LoveLanguage } from "@shared/schema";
 import clientHeroImage from "@assets/generated_images/Client_app_hero_image_9fd4eaf0.png";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { aiFunctions, ExerciseRecommendationsResponse } from "@/lib/ai-functions";
 
 function isValidUrl(url: string): boolean {
   try {
@@ -69,11 +70,13 @@ export default function ClientDashboard() {
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
-  // AI Exercise Recommendations query
-  const recommendationsQuery = useQuery({
-    queryKey: ["/api/ai/exercise-recommendations"],
+  // AI Exercise Recommendations query - uses Supabase Edge Function
+  const recommendationsQuery = useQuery<ExerciseRecommendationsResponse>({
+    queryKey: ["ai-exercise-recommendations", profile?.couple_id],
+    queryFn: () => aiFunctions.getExerciseRecommendations(),
     enabled: !!profile?.couple_id,
     staleTime: 1000 * 60 * 30, // 30 minutes
+    retry: 1,
   });
 
   // Dashboard customization query

@@ -99,6 +99,7 @@ import { Calendar, dateFnsLocalizer } from "react-big-calendar";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
+import { aiFunctions } from "@/lib/ai-functions";
 import adminHeroImage from "@assets/generated_images/Admin_app_hero_image_7f3581f4.png";
 
 const locales = {
@@ -178,11 +179,10 @@ export default function AdminDashboard() {
     enabled: !!selectedCouple?.id,
   });
 
-  // AI Session Prep mutation
+  // AI Session Prep mutation - uses Supabase Edge Function
   const sessionPrepMutation = useMutation({
     mutationFn: async (couple_id: string) => {
-      const response = await apiRequest("POST", `/api/ai/session-prep/${couple_id}`);
-      return response.json();
+      return aiFunctions.getSessionPrep(couple_id);
     },
     onError: (error: Error) => {
       toast({

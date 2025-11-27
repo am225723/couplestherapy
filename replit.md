@@ -109,7 +109,14 @@ The design emphasizes a warm, compassionate feel using the Inter font, generous 
 - **Database Schema**: All tables are prefixed with `Couples_` and include profiles, couple linkages, love language results, gratitude logs, weekly check-ins, shared goals (Kanban), therapist comments, structured conversations (Hold Me Tight - EFT), daily rituals, voice memos, secure messages, shared calendar events, Love Map quiz components, Echo & Empathy sessions, IFS exercises, and a shared Pause Button.
 - **Realtime**: Supabase Realtime facilitates features like therapist comments, secure messaging, and calendar updates.
 - **Privacy (RLS)**: Enforced via RLS to ensure data privacy, including private weekly check-ins for partners, read-only therapist access to specific data, and restricted access to voice memo audio content. Message tampering is prevented by restricting UPDATE access.
-- **AI Integration**: Five production-ready AI features are implemented as Supabase Edge Functions for performance and scalability. These include `ai-exercise-recommendations`, `ai-empathy-prompt`, `ai-echo-coaching`, `ai-voice-memo-sentiment`, and `ai-session-prep`. All AI functions are secured with JWT authentication, role-based access control, resource ownership verification, input validation, and privacy-focused anonymization.
+- **AI Integration**: Seven AI features are implemented as Supabase Edge Functions for performance and scalability. These include `ai-exercise-recommendations`, `ai-empathy-prompt`, `ai-echo-coaching`, `ai-voice-memo-sentiment`, `ai-session-prep`, `ai-insights`, and `ai-date-night`. All AI functions are secured with JWT authentication, role-based access control, resource ownership verification, input validation, and privacy-focused anonymization.
+
+**Supabase Edge Functions Setup (Required for AI Features):**
+To enable AI features in production, add the `PERPLEXITY_API_KEY` to your Supabase project:
+1. Go to your Supabase Dashboard > Project Settings > Edge Functions
+2. Add secret: `PERPLEXITY_API_KEY` with your Perplexity API key
+3. The Edge Functions will automatically use this key for AI recommendations, insights, and coaching features
+4. Note: This is separate from Replit/Vercel environment variables - Edge Functions run on Supabase infrastructure
 
 **Feature Specifications:**
 

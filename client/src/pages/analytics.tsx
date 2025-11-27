@@ -6,6 +6,7 @@ import type {
   CoupleAnalytics,
   AIInsight,
 } from "@shared/schema";
+import { aiFunctions, AIInsightsResponse } from "@/lib/ai-functions";
 import {
   Card,
   CardContent,
@@ -261,21 +262,14 @@ function AIInsightsDialog({
   const { toast } = useToast();
   const [showRawAnalysis, setShowRawAnalysis] = useState(false);
 
+  // Uses Supabase Edge Function for AI insights
   const {
     data: insights,
     isLoading,
     error,
-  } = useQuery<AIInsight>({
-    queryKey: ["/api/ai/insights", coupleId],
-    queryFn: async () => {
-      const url = `/api/ai/insights?couple_id=${coupleId}`;
-      const res = await fetch(url, { credentials: "include" });
-      if (!res.ok) {
-        const text = await res.text();
-        throw new Error(text || res.statusText);
-      }
-      return res.json();
-    },
+  } = useQuery<AIInsightsResponse>({
+    queryKey: ["ai-insights", coupleId],
+    queryFn: () => aiFunctions.getAIInsights(coupleId),
     enabled: open && !!coupleId,
   });
 

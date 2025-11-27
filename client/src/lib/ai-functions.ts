@@ -102,6 +102,17 @@ export interface SessionPrepResponse {
   };
 }
 
+export interface AIInsightsResponse {
+  couple_id: string;
+  generated_at: string;
+  summary: string;
+  discrepancies: string[];
+  patterns: string[];
+  recommendations: string[];
+  raw_analysis: string;
+  citations?: string[];
+}
+
 // ========================================
 // Shared Invoke Helper
 // ========================================
@@ -190,6 +201,16 @@ export const aiFunctions = {
    */
   async getSessionPrep(coupleId: string): Promise<SessionPrepResponse> {
     return invokeFunction<SessionPrepResponse>("ai-session-prep", {
+      couple_id: coupleId,
+    });
+  },
+
+  /**
+   * Get AI insights for a couple's check-in data (Therapist-only)
+   * @param coupleId - The couple ID to get insights for
+   */
+  async getAIInsights(coupleId: string): Promise<AIInsightsResponse> {
+    return invokeFunction<AIInsightsResponse>("ai-insights", {
       couple_id: coupleId,
     });
   },

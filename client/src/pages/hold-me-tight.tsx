@@ -18,7 +18,7 @@ import {
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/lib/supabase";
-import { authenticatedFetch } from "@/lib/authenticated-fetch";
+import { aiFunctions } from "@/lib/ai-functions";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation } from "@tanstack/react-query";
 import {
@@ -57,7 +57,7 @@ export default function HoldMeTightPage() {
   const { toast } = useToast();
   const [, navigate] = useLocation();
 
-  // AI Empathy Prompts mutation
+  // AI Empathy Prompts mutation - uses Supabase Edge Function
   const empathyPromptMutation = useMutation({
     mutationFn: async () => {
       if (!conversationId) throw new Error("No conversation ID");
@@ -72,22 +72,11 @@ export default function HoldMeTightPage() {
         I need: ${initiatorNeed}
       `.trim();
 
-      const response = await authenticatedFetch("/api/ai/empathy-prompt", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          conversation_id: conversationId,
-          step_number: 1,
-          user_response: userResponse,
-        }),
+      return aiFunctions.createEmpathyPrompt({
+        conversation_id: conversationId,
+        step_number: 1,
+        user_response: userResponse,
       });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || "Failed to get AI suggestions");
-      }
-
-      return response.json();
     },
   });
 

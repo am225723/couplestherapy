@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
-import { authenticatedFetch } from "@/lib/authenticated-fetch";
+import { aiFunctions } from "@/lib/ai-functions";
 import {
   Card,
   CardContent,
@@ -57,24 +57,17 @@ export default function EchoEmpathyPage() {
   const [understood, setUnderstood] = useState<boolean | null>(null);
   const [aiCoachingData, setAiCoachingData] = useState<any>(null);
 
-  // AI Echo Coaching mutation
+  // AI Echo Coaching mutation - uses Supabase Edge Function
   const coachingMutation = useMutation({
     mutationFn: async () => {
       if (!activeSession || !speakerTurn || !listenerContent.trim()) return;
 
-      const response = await authenticatedFetch("/api/ai/echo-coaching", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          session_id: activeSession.id,
-          turn_id: speakerTurn.id,
-          speaker_message: speakerTurn.content,
-          listener_response: listenerContent,
-        }),
+      return aiFunctions.createEchoCoaching({
+        session_id: activeSession.id,
+        turn_id: speakerTurn.id,
+        speaker_message: speakerTurn.content,
+        listener_response: listenerContent,
       });
-
-      if (!response.ok) throw new Error("Failed to get coaching feedback");
-      return response.json();
     },
     onSuccess: (data) => {
       setAiCoachingData(data);
