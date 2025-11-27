@@ -10,6 +10,16 @@ I prefer iterative development with clear communication on progress and potentia
 
 ## Recent Changes (November 2025)
 
+**Major Feature Implementations - November 27, 2025:**
+
+1. **Cross-Therapist Access Model**: Therapists can now view and interact with ALL couples in the system, not just assigned ones. Supports multi-therapist practices where any therapist may need to assist any couple.
+   - New `GET /all-couples` endpoint returns all couples with therapist info
+   - Updated 10+ route files to remove therapist ownership restrictions
+   - Files modified: therapist.ts, ai.ts, pushNotifications.ts, voiceMemos.ts, parenting.ts, intimacy.ts, meditation.ts, demonDialogues.ts, horsemen.ts, valuesVision.ts
+   - Authentication remains required (valid therapist session) - only authorization changed
+2. **AI Edge Functions Updates**: Improved ai-exercise-recommendations function with robust JSON parsing, citation removal, and client-friendly language.
+3. **Push Notification System**: Complete infrastructure with mobile integration, Edge Function for sending, and therapist scheduling dashboard.
+
 **Major Feature Implementations - November 25, 2025:**
 
 1. **Couple Compatibility Module**: New page (`/couple-compatibility`) showing both partners' assessment results (Love Language, Attachment Style, Enneagram) with compatibility analysis and personalized connection suggestions for each partner.
