@@ -29,12 +29,14 @@ import valuesVisionRouter from "./routes/valuesVision.js";
 import voiceMemosRouter from "./routes/voiceMemos.js";
 import choresRouter from "./routes/chores.js";
 import dashboardCustomizationRouter from "./routes/dashboardCustomization.js";
+import pushNotificationsRouter from "./routes/pushNotifications.js";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Register all feature-based routers
   // Each router is mounted at its respective base path
 
   app.use("/api/ai", aiRouter);
+  app.use("/api/push-notifications", pushNotificationsRouter);
   app.use("/api/attachment", attachmentRouter);
   app.use("/api/calendar", calendarRouter);
   app.use("/api/demon-dialogues", demonDialoguesRouter);
