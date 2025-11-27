@@ -256,46 +256,32 @@ Deno.serve(async (req) => {
           break;
       }
 
-      if (column === "couple_id") {
-        const countResponse = await fetch(
-          `${supabaseUrl}/rest/v1/${tableName}?couple_id=eq.${couple_id}&select=count=exact`,
-          {
-            headers: {
-              apikey: supabaseServiceKey,
-              Authorization: `Bearer ${supabaseServiceKey}`,
-            },
-          },
-        );
-        const count = countResponse.headers.get("content-range")?.split("/")[1] || "0";
-        usageData[tool] = parseInt(count) || 0;
-      } else {
-        const partnersResponse = await fetch(
-          `${supabaseUrl}/rest/v1/Couples_profiles?couple_id=eq.${couple_id}&select=id`,
-          {
-            headers: {
-              apikey: supabaseServiceKey,
-              Authorization: `Bearer ${supabaseServiceKey}`,
-            },
-          },
-        );
-        const partners = await partnersResponse.json();
-        const partnerIds = partners?.map((p: any) => p.id) || [];
+      try {
+        let query = `${supabaseUrl}/rest/v1/${tableName}?select=*`;
         
-        if (partnerIds.length > 0) {
-          const countResponse = await fetch(
-            `${supabaseUrl}/rest/v1/${tableName}?${column}=in.(${partnerIds.map((id: string) => `"${id}"`).join(",")})&select=count=exact`,
-            {
-              headers: {
-                apikey: supabaseServiceKey,
-                Authorization: `Bearer ${supabaseServiceKey}`,
-              },
-            },
-          );
-          const count = countResponse.headers.get("content-range")?.split("/")[1] || "0";
-          usageData[tool] = parseInt(count) || 0;
+        if (column === "couple_id") {
+          query += `&couple_id=eq.${couple_id}`;
+        } else {
+          // For user-based columns, just check if any exist for this couple
+          query += `&couple_id=eq.${couple_id}`;
+        }
+
+        const countResponse = await fetch(query, {
+          headers: {
+            apikey: supabaseServiceKey,
+            Authorization: `Bearer ${supabaseServiceKey}`,
+          },
+        });
+
+        if (countResponse.ok) {
+          const items = await countResponse.json();
+          usageData[tool] = Array.isArray(items) ? items.length : 0;
         } else {
           usageData[tool] = 0;
         }
+      } catch (e) {
+        console.error(`Error counting ${tool}:`, e);
+        usageData[tool] = 0;
       }
     }
 
