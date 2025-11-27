@@ -199,7 +199,7 @@ Deno.serve(async (req) => {
 
     // Check if user is a therapist
     const { data: profile } = await supabase
-      .from("Couples_Profiles")
+      .from("Couples_profiles")
       .select("role")
       .eq("id", user.id)
       .single();

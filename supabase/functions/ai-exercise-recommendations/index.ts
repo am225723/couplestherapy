@@ -155,7 +155,7 @@ Deno.serve(async (req) => {
     // Get couple_id for this user using service role
     const supabase = createSupabaseClient();
     const { data: profile } = await supabase
-      .from("Couples_Profiles")
+      .from("Couples_profiles")
       .select("couple_id")
       .eq("id", user.id)
       .single();
@@ -250,7 +250,7 @@ Deno.serve(async (req) => {
         usageData[tool] = count || 0;
       } else {
         const { data: partners } = await supabase
-          .from("Couples_Profiles")
+          .from("Couples_profiles")
           .select("id")
           .eq("couple_id", couple_id);
 
