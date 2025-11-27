@@ -276,10 +276,10 @@ export default function AdminDashboard() {
     if (!profile?.id) return;
 
     try {
+      // Fetch ALL couples (cross-therapist access model)
       const { data: couplesData, error } = await supabase
         .from("Couples_couples")
-        .select("*")
-        .eq("therapist_id", profile.id);
+        .select("*");
 
       if (error) throw error;
 
