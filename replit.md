@@ -119,6 +119,22 @@ To enable AI features in production, add the `PERPLEXITY_API_KEY` to your Supaba
 3. The Edge Functions will automatically use this key for AI recommendations, insights, and coaching features
 4. Note: This is separate from Replit/Vercel environment variables - Edge Functions run on Supabase infrastructure
 
+**Push Notifications System (November 2025):**
+Therapists can schedule push notifications to couples via the admin dashboard. Full infrastructure includes:
+
+- **Database**: `Couples_scheduled_notifications` table with `expo_push_token` and `fcm_token` columns in profiles
+- **Backend API**: `/api/push-notifications/` endpoints for scheduling, viewing, and canceling notifications
+- **Edge Function**: `send-scheduled-notifications` processes and sends queued notifications via Expo Push Service
+- **Web Integration**: `usePushNotifications` hook in App.tsx registers FCM tokens automatically
+- **Mobile Integration**: `usePushNotifications` hook in AppNavigator.tsx registers Expo push tokens
+
+**Push Notifications Setup:**
+1. Run `supabase-push-notifications-migration.sql` in Supabase SQL Editor
+2. Add `EXPO_ACCESS_TOKEN` secret in Supabase Edge Functions settings
+3. Deploy `send-scheduled-notifications` Edge Function
+4. (Optional) Create database webhook to auto-trigger on notification insert
+5. See `PUSH_NOTIFICATIONS_SETUP.md` for detailed instructions
+
 **Feature Specifications:**
 
 - **Client App (for Couples)**: Assessments (Love Language, Love Map, Weekly Check-Ins, Attachment Style, Enneagram), Assessment Insights (Couple Compatibility Module NEW), Shared Activities (Gratitude Log, Shared Goals, Rituals of Connection, Hold Me Tight Conversation, Echo & Empathy, Couple Journal, Financial Toolkit), Communication & Interaction (Voice Memos, Connection Concierge, secure Messages, Shared Calendar, Shared Pause Button, Realtime Therapist Comments), Individual Exercises (IFS Introduction).

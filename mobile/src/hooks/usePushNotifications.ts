@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import * as Notifications from "expo-notifications";
 import * as Device from "expo-device";
-import { useAuth } from "@/lib/auth-context";
+import { useAuth } from "../contexts/AuthContext";
 
 /**
  * Mobile Push Notifications Hook (Expo)
