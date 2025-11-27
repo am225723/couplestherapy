@@ -14,6 +14,23 @@ import { z } from "zod";
 // Note: These schemas match the Supabase tables with Couples_ prefix
 // The actual tables are created directly in Supabase via SQL
 
+// Love Language Types
+export const LOVE_LANGUAGES = [
+  "Words of Affirmation",
+  "Quality Time",
+  "Receiving Gifts",
+  "Acts of Service",
+  "Physical Touch",
+] as const;
+
+export type LoveLanguageType = (typeof LOVE_LANGUAGES)[number];
+
+export interface QuizQuestion {
+  id: number;
+  optionA: { text: string; language: LoveLanguageType };
+  optionB: { text: string; language: LoveLanguageType };
+}
+
 // 1. PROFILES TABLE
 export const couplesProfiles = pgTable("Couples_profiles", {
   id: uuid("id").primaryKey(),

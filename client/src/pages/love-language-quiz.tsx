@@ -60,7 +60,7 @@ export default function LoveLanguageQuiz() {
         description: `Your primary love language is ${primary}`,
       });
 
-      navigate("/dashboard");
+      navigate("/love-language-results");
     } catch (error: any) {
       toast({
         title: "Error",

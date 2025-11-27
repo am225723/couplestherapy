@@ -46,6 +46,7 @@ import TherapistSignup from "./pages/therapist-signup";
 import CoupleSignup from "./pages/couple-signup";
 import CoupleSetup from "./pages/couple-setup";
 import LoveLanguageQuiz from "./pages/love-language-quiz";
+import LoveLanguageResults from "./pages/love-language-results";
 import LoveMapQuiz from "./pages/love-map";
 import WeeklyCheckin from "./pages/weekly-checkin";
 import CheckinHistory from "./pages/checkin-history";
@@ -319,6 +320,7 @@ function AuthenticatedApp() {
         "/dashboard",
         "/couple-setup",
         "/quiz",
+        "/love-language-results",
         "/love-map",
         "/weekly-checkin",
         "/checkin-history",
@@ -492,6 +494,7 @@ function AuthenticatedApp() {
               <Route path="/couple-setup" component={CoupleSetup} />
               <Route path="/dashboard" component={ClientDashboard} />
               <Route path="/quiz" component={LoveLanguageQuiz} />
+              <Route path="/love-language-results" component={LoveLanguageResults} />
               <Route path="/love-map" component={LoveMapQuiz} />
               <Route path="/weekly-checkin" component={WeeklyCheckin} />
               <Route path="/checkin-history" component={CheckinHistory} />

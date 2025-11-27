@@ -89,6 +89,12 @@ export const clientMenuConfig: MenuCategory[] = [
         testId: "nav-love-language",
       },
       {
+        title: "My Love Language Results",
+        url: "/love-language-results",
+        icon: Sparkles,
+        testId: "nav-love-language-results",
+      },
+      {
         title: "Love Map Quiz",
         url: "/love-map",
         icon: Map,
