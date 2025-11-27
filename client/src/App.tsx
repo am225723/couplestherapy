@@ -7,6 +7,7 @@ import { ThemeProvider } from "./components/theme-provider";
 import { ThemeToggle } from "./components/theme-toggle";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { usePushNotifications } from "@/hooks/use-push-notifications";
 import {
   SidebarProvider,
   Sidebar,

@@ -87,6 +87,7 @@ import {
   DashboardCustomization,
 } from "@shared/schema";
 import { DashboardCustomizer } from "@/components/dashboard-customizer";
+import { ScheduleNotificationDialog } from "@/components/schedule-notification-dialog";
 import {
   formatDistanceToNow,
   format,
@@ -798,6 +799,12 @@ export default function AdminDashboard() {
 
                   {/* Overview tab - new default view */}
                   <TabsContent value="overview" className="space-y-6">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-lg font-semibold">Overview</h3>
+                      {selectedCouple && (
+                        <ScheduleNotificationDialog couple={selectedCouple} />
+                      )}
+                    </div>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                       <Card>
                         <CardHeader className="pb-2">
