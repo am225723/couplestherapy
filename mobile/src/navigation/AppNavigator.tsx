@@ -4,6 +4,7 @@ import { createStackNavigator } from "@react-navigation/stack";
 import { useAuth } from "../contexts/AuthContext";
 import { ActivityIndicator, View, StyleSheet } from "react-native";
 import { colors } from "../constants/theme";
+import { usePushNotifications } from "../hooks/usePushNotifications";
 
 // Auth Screens
 import LoginScreen from "../screens/auth/LoginScreen";
@@ -18,6 +19,9 @@ const Stack = createStackNavigator();
 
 export default function AppNavigator() {
   const { session, profile, loading } = useAuth();
+
+  // Initialize push notifications when user is logged in
+  usePushNotifications();
 
   if (loading) {
     return (

@@ -37,6 +37,8 @@ export const couplesProfiles = pgTable("Couples_profiles", {
   full_name: text("full_name"),
   role: text("role").notNull(), // 'therapist' or 'client'
   couple_id: uuid("couple_id"),
+  expo_push_token: text("expo_push_token"), // Mobile (Expo) push notification token
+  fcm_token: text("fcm_token"), // Web (Firebase Cloud Messaging) push notification token
 });
 
 export const insertProfileSchema = createInsertSchema(couplesProfiles).omit({
@@ -1000,6 +1002,39 @@ export const couplesDashboardCustomization = pgTable(
 
 export type DashboardCustomization =
   typeof couplesDashboardCustomization.$inferSelect;
+
+// 28. SCHEDULED NOTIFICATIONS
+export const couplesScheduledNotifications = pgTable(
+  "Couples_scheduled_notifications",
+  {
+    id: uuid("id").primaryKey(),
+    therapist_id: uuid("therapist_id").notNull(),
+    couple_id: uuid("couple_id").notNull(),
+    user_id: uuid("user_id"), // Optional - if null, send to both partners
+    title: text("title").notNull(),
+    body: text("body").notNull(),
+    scheduled_at: timestamp("scheduled_at").notNull(),
+    sent_at: timestamp("sent_at"),
+    status: text("status").default("pending"), // 'pending', 'sent', 'failed'
+    created_at: timestamp("created_at").defaultNow(),
+    updated_at: timestamp("updated_at").defaultNow(),
+  },
+);
+
+export const insertScheduledNotificationSchema = createInsertSchema(
+  couplesScheduledNotifications,
+).omit({
+  id: true,
+  sent_at: true,
+  status: true,
+  created_at: true,
+  updated_at: true,
+});
+export type InsertScheduledNotification = z.infer<
+  typeof insertScheduledNotificationSchema
+>;
+export type ScheduledNotification =
+  typeof couplesScheduledNotifications.$inferSelect;
 
 // ===== CONSTANTS =====
 
