@@ -1175,47 +1175,32 @@ aiRouter.get("/exercise-recommendations", async (req, res) => {
       }
     });
 
-    // Build Perplexity prompts
+    // Build Perplexity prompts - client-facing, warm and encouraging tone
     const systemPrompt =
-      "You are an expert couples therapist recommending therapeutic exercises and activities. Based on a couple's activity patterns, suggest 3-5 specific therapy tools they should try next to strengthen their relationship. Always respond with valid JSON only.";
+      "You are a supportive relationship coach speaking directly to a couple. Your tone is warm, encouraging, and personal. Use 'you' and 'your' to address the couple directly. Keep rationales brief (1-2 sentences max). Focus on the positive benefits and make suggestions feel achievable and inviting. Always respond with valid JSON only.";
 
-    let userPrompt = `Analyze this couple's therapy tool usage over the last 30 days:\n\n`;
+    let userPrompt = `Based on this couple's recent activity, suggest 2-3 connection tools to try:\n\n`;
 
     if (notStarted.length > 0) {
-      userPrompt += `NOT STARTED (never used):\n`;
-      notStarted.forEach((tool) => {
-        userPrompt += `- ${tool}\n`;
-      });
-      userPrompt += "\n";
+      userPrompt += `Haven't tried yet: ${notStarted.slice(0, 5).join(", ")}\n`;
     }
 
     if (underutilized.length > 0) {
-      userPrompt += `UNDERUTILIZED (1-3 uses):\n`;
-      underutilized.forEach((tool) => {
-        userPrompt += `- ${tool}\n`;
-      });
-      userPrompt += "\n";
+      userPrompt += `Could use more: ${underutilized.slice(0, 5).join(", ")}\n`;
     }
 
     if (active.length > 0) {
-      userPrompt += `ACTIVE (4+ uses):\n`;
-      active.forEach((tool) => {
-        userPrompt += `- ${tool}\n`;
-      });
-      userPrompt += "\n";
+      userPrompt += `Already enjoying: ${active.slice(0, 3).join(", ")}\n`;
     }
 
-    userPrompt += `Based on this data:\n`;
-    userPrompt += `1. Recommend 3-5 specific therapy tools they should try or use more\n`;
-    userPrompt += `2. For each recommendation, explain WHY it would benefit them based on their current patterns\n`;
-    userPrompt += `3. Suggest a specific action they can take this week\n\n`;
+    userPrompt += `\nProvide 2-3 personalized suggestions. Keep rationales to 1-2 short sentences that speak directly to the couple. Suggested actions should be simple and specific.\n\n`;
     userPrompt += `IMPORTANT: Respond with ONLY valid JSON in this exact format:\n`;
     userPrompt += `{\n`;
     userPrompt += `  "recommendations": [\n`;
     userPrompt += `    {\n`;
-    userPrompt += `      "tool_name": "name of the therapy tool",\n`;
-    userPrompt += `      "rationale": "why this tool would benefit them",\n`;
-    userPrompt += `      "suggested_action": "specific action to take this week"\n`;
+    userPrompt += `      "tool_name": "name of the tool",\n`;
+    userPrompt += `      "rationale": "Brief, warm explanation (1-2 sentences addressing 'you')",\n`;
+    userPrompt += `      "suggested_action": "Simple action to try this week"\n`;
     userPrompt += `    }\n`;
     userPrompt += `  ]\n`;
     userPrompt += `}\n`;

@@ -186,6 +186,59 @@ router.patch("/:id", async (req: Request, res: Response) => {
   }
 });
 
+// PATCH /client/:id/complete - Client toggles todo completion status
+router.patch("/client/:id/complete", async (req: Request, res: Response) => {
+  try {
+    const authResult = await verifyUserSession(req);
+    if (!authResult.success) {
+      return res.status(authResult.status).json({ error: authResult.error });
+    }
+
+    const { id } = req.params;
+    const { coupleId, userId } = authResult;
+
+    // Verify the thought exists and belongs to this user's couple
+    const { data: thought, error: fetchError } = await supabaseAdmin
+      .from("Couples_therapist_thoughts")
+      .select("id, couple_id, thought_type, individual_id, is_completed")
+      .eq("id", id)
+      .single();
+
+    if (fetchError || !thought) {
+      return res.status(404).json({ error: "Thought not found" });
+    }
+
+    // Verify thought belongs to user's couple
+    if (thought.couple_id !== coupleId) {
+      return res.status(403).json({ error: "Access denied" });
+    }
+
+    // Verify thought is addressed to this user (individual_id is null OR matches userId)
+    if (thought.individual_id && thought.individual_id !== userId) {
+      return res.status(403).json({ error: "This thought is not addressed to you" });
+    }
+
+    // Only allow completion toggle for todos
+    if (thought.thought_type !== "todo") {
+      return res.status(400).json({ error: "Only to-do items can be marked as complete" });
+    }
+
+    // Toggle completion status
+    const { data, error } = await supabaseAdmin
+      .from("Couples_therapist_thoughts")
+      .update({ is_completed: !thought.is_completed })
+      .eq("id", id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    res.json(data);
+  } catch (error: any) {
+    console.error("Error toggling thought completion:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // DELETE /:id - Delete therapist thought
 router.delete("/:id", async (req: Request, res: Response) => {
   try {

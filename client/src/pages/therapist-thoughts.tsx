@@ -9,8 +9,11 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useAuth } from "@/lib/auth-context";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 import {
   MessageCircle,
   Loader2,
@@ -72,11 +75,11 @@ function renderContentWithLinks(content: string | null) {
   });
 }
 
-function ThoughtCard({ thought }: { thought: TherapistThought }) {
+function ThoughtCard({ thought, onToggleComplete }: { thought: TherapistThought; onToggleComplete?: (id: string) => void }) {
   const getIcon = () => {
     switch (thought.thought_type) {
       case "todo":
-        return <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400" />;
+        return <CheckCircle2 className={`h-5 w-5 ${thought.is_completed ? "text-muted-foreground" : "text-green-600 dark:text-green-400"}`} />;
       case "file_reference":
         return <FileText className="h-5 w-5 text-orange-600 dark:text-orange-400" />;
       default:
@@ -96,11 +99,19 @@ function ThoughtCard({ thought }: { thought: TherapistThought }) {
   };
 
   return (
-    <Card data-testid={`thought-card-${thought.id}`}>
+    <Card data-testid={`thought-card-${thought.id}`} className={thought.is_completed ? "opacity-60" : ""}>
       <CardHeader>
         <div className="flex items-start justify-between gap-4">
+          {thought.thought_type === "todo" && (
+            <Checkbox
+              checked={thought.is_completed || false}
+              onCheckedChange={() => onToggleComplete?.(thought.id)}
+              className="mt-1.5"
+              data-testid={`checkbox-complete-${thought.id}`}
+            />
+          )}
           <div className="flex-1 min-w-0">
-            <CardTitle className="text-lg flex items-center gap-2 flex-wrap">
+            <CardTitle className={`text-lg flex items-center gap-2 flex-wrap ${thought.is_completed ? "line-through text-muted-foreground" : ""}`}>
               {getIcon()}
               {thought.title || "Untitled"}
               <Badge variant="outline" className="text-xs">
@@ -117,7 +128,7 @@ function ThoughtCard({ thought }: { thought: TherapistThought }) {
                   For both
                 </Badge>
               )}
-              {thought.thought_type === "todo" && thought.priority && (
+              {thought.thought_type === "todo" && thought.priority && !thought.is_completed && (
                 <Badge
                   variant={
                     thought.priority === "high"
@@ -129,6 +140,11 @@ function ThoughtCard({ thought }: { thought: TherapistThought }) {
                   className="text-xs"
                 >
                   {thought.priority}
+                </Badge>
+              )}
+              {thought.is_completed && (
+                <Badge variant="secondary" className="text-xs">
+                  Completed
                 </Badge>
               )}
             </CardTitle>
@@ -147,7 +163,7 @@ function ThoughtCard({ thought }: { thought: TherapistThought }) {
       <CardContent className="space-y-3">
         {thought.content && (
           <div className="prose prose-sm dark:prose-invert max-w-none">
-            <p className="text-foreground whitespace-pre-wrap">
+            <p className={`whitespace-pre-wrap ${thought.is_completed ? "text-muted-foreground" : "text-foreground"}`}>
               {renderContentWithLinks(thought.content)}
             </p>
           </div>
@@ -173,11 +189,32 @@ function ThoughtCard({ thought }: { thought: TherapistThought }) {
 
 export default function TherapistThoughts() {
   const { profile } = useAuth();
+  const { toast } = useToast();
 
   const thoughtsQuery = useQuery<TherapistThought[]>({
     queryKey: ["/api/therapist-thoughts/client/messages"],
     enabled: !!profile?.couple_id,
   });
+
+  const completeMutation = useMutation({
+    mutationFn: async (id: string) => {
+      return apiRequest("PATCH", `/api/therapist-thoughts/client/${id}/complete`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/therapist-thoughts/client/messages"] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error?.message || "Failed to update to-do",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleToggleComplete = (id: string) => {
+    completeMutation.mutate(id);
+  };
 
   const thoughts = thoughtsQuery.data || [];
   const todos = thoughts.filter((t) => t.thought_type === "todo");
@@ -247,7 +284,7 @@ export default function TherapistThoughts() {
 
             <TabsContent value="all" className="space-y-4 mt-6">
               {thoughts.map((thought) => (
-                <ThoughtCard key={thought.id} thought={thought} />
+                <ThoughtCard key={thought.id} thought={thought} onToggleComplete={handleToggleComplete} />
               ))}
             </TabsContent>
 
@@ -260,7 +297,7 @@ export default function TherapistThoughts() {
                 </Card>
               ) : (
                 messages.map((thought) => (
-                  <ThoughtCard key={thought.id} thought={thought} />
+                  <ThoughtCard key={thought.id} thought={thought} onToggleComplete={handleToggleComplete} />
                 ))
               )}
             </TabsContent>
@@ -274,7 +311,7 @@ export default function TherapistThoughts() {
                 </Card>
               ) : (
                 todos.map((thought) => (
-                  <ThoughtCard key={thought.id} thought={thought} />
+                  <ThoughtCard key={thought.id} thought={thought} onToggleComplete={handleToggleComplete} />
                 ))
               )}
             </TabsContent>
@@ -288,7 +325,7 @@ export default function TherapistThoughts() {
                 </Card>
               ) : (
                 files.map((thought) => (
-                  <ThoughtCard key={thought.id} thought={thought} />
+                  <ThoughtCard key={thought.id} thought={thought} onToggleComplete={handleToggleComplete} />
                 ))
               )}
             </TabsContent>

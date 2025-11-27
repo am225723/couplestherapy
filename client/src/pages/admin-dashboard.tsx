@@ -3284,9 +3284,19 @@ interface TherapistThought {
   thought_type: "todo" | "message" | "file_reference";
   title: string;
   content?: string;
+  file_reference?: string;
   priority?: "low" | "medium" | "high";
   is_completed?: boolean;
   individual_id?: string | null;
+}
+
+function isValidUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === "http:" || parsed.protocol === "https:";
+  } catch {
+    return false;
+  }
 }
 
 interface TherapistThoughtsPanelProps {
@@ -3372,6 +3382,7 @@ function TherapistThoughtsPanel({ coupleId, partner1, partner2 }: TherapistThoug
   
   const todos = thoughts.filter((t) => t.thought_type === "todo");
   const messages = thoughts.filter((t) => t.thought_type === "message");
+  const fileRefs = thoughts.filter((t) => t.thought_type === "file_reference");
 
   return (
     <div className="space-y-3">
@@ -3608,6 +3619,59 @@ function TherapistThoughtsPanel({ coupleId, partner1, partner2 }: TherapistThoug
                         <p className="text-muted-foreground break-words line-clamp-2">
                           {thought.content}
                         </p>
+                      )}
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => deleteMutation.mutate(thought.id)}
+                      className="h-6 w-6 flex-shrink-0 opacity-0 group-hover:opacity-100"
+                      data-testid={`button-delete-thought-${thought.id}`}
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </Button>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          )}
+
+          {fileRefs.length > 0 && (
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm">File References</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {fileRefs.map((thought) => (
+                  <div
+                    key={thought.id}
+                    className="flex items-start gap-2 p-2 bg-muted rounded text-xs group"
+                  >
+                    <FileText className="w-3 h-3 mt-0.5 flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <p className="font-semibold break-words">
+                          {thought.title}
+                        </p>
+                        <Badge variant="outline" className="text-xs h-4 px-1">
+                          {thought.individual_id ? getPartnerName(thought.individual_id) : "Both"}
+                        </Badge>
+                      </div>
+                      {thought.content && (
+                        <p className="text-muted-foreground break-words line-clamp-2">
+                          {thought.content}
+                        </p>
+                      )}
+                      {thought.file_reference && isValidUrl(thought.file_reference) && (
+                        <a
+                          href={thought.file_reference}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-primary hover:underline inline-flex items-center gap-1 mt-1"
+                        >
+                          <ExternalLink className="w-3 h-3" />
+                          Open Link
+                        </a>
                       )}
                     </div>
                     <Button

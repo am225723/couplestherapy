@@ -11,11 +11,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
-import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -47,7 +42,6 @@ import {
   Compass,
   Baby,
   Lightbulb,
-  ChevronDown,
   Trash2,
   User,
   Users,
@@ -73,7 +67,6 @@ export default function ClientDashboard() {
   const { profile } = useAuth();
   const [loveLanguages, setLoveLanguages] = useState<LoveLanguage[]>([]);
   const [loading, setLoading] = useState(true);
-  const [recommendationsOpen, setRecommendationsOpen] = useState(true);
   const { toast } = useToast();
 
   // AI Exercise Recommendations query
@@ -502,92 +495,32 @@ export default function ClientDashboard() {
 
         {recommendationsQuery.isSuccess && recommendationsQuery.data && (
           <Card
-            className="shadow-lg border-amber-500/20 bg-gradient-to-br from-amber-50/50 to-yellow-50/50 dark:from-amber-950/20 dark:to-yellow-950/20"
+            className="border-amber-500/20 bg-gradient-to-br from-amber-50/30 to-yellow-50/30 dark:from-amber-950/10 dark:to-yellow-950/10"
             data-testid="card-ai-recommendations"
           >
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="flex items-center gap-2">
-                    <Lightbulb className="h-5 w-5 text-amber-600 dark:text-amber-400" />
-                    Personalized Therapy Tool Recommendations for You and Your
-                    Partner
-                  </CardTitle>
-                  <CardDescription>
-                    AI-powered suggestions based on your recent activity
-                  </CardDescription>
-                </div>
-              </div>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base flex items-center gap-2">
+                <Sparkles className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                Suggested For You
+              </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="flex flex-wrap gap-2">
-                <Badge variant="outline" className="text-xs">
-                  {
-                    recommendationsQuery.data.activity_summary.not_started
-                      .length
-                  }{" "}
-                  Not Started
-                </Badge>
-                <Badge variant="outline" className="text-xs">
-                  {
-                    recommendationsQuery.data.activity_summary.underutilized
-                      .length
-                  }{" "}
-                  Underutilized
-                </Badge>
-                <Badge variant="secondary" className="text-xs">
-                  {recommendationsQuery.data.activity_summary.active.length}{" "}
-                  Active
-                </Badge>
-              </div>
-
-              <Collapsible
-                open={recommendationsOpen}
-                onOpenChange={setRecommendationsOpen}
-              >
-                <CollapsibleTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-between"
-                    data-testid="button-toggle-recommendations"
+            <CardContent className="space-y-3">
+              {recommendationsQuery.data.recommendations.map(
+                (rec: any, idx: number) => (
+                  <div
+                    key={idx}
+                    className="p-3 rounded-lg bg-background/50 border border-amber-200/30 dark:border-amber-800/30"
+                    data-testid={`recommendation-${idx}`}
                   >
-                    <span className="flex items-center gap-2">
-                      <Sparkles className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-                      {recommendationsQuery.data.recommendations.length}{" "}
-                      Recommendations for You
-                    </span>
-                    <ChevronDown
-                      className={`h-4 w-4 transition-transform ${recommendationsOpen ? "rotate-180" : ""}`}
-                    />
-                  </Button>
-                </CollapsibleTrigger>
-                <CollapsibleContent
-                  className="space-y-4 pt-4"
-                  data-testid="container-recommendations"
-                >
-                  {recommendationsQuery.data.recommendations.map(
-                    (rec: any, idx: number) => (
-                      <Card
-                        key={idx}
-                        className="border-amber-200/50 dark:border-amber-800/50"
-                      >
-                        <CardHeader>
-                          <CardTitle className="text-lg">
-                            {rec.tool_name}
-                          </CardTitle>
-                          <CardDescription>{rec.rationale}</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="flex items-center gap-2 text-sm text-amber-600 dark:text-amber-400 font-medium">
-                            <Lightbulb className="h-4 w-4" />
-                            {rec.suggested_action}
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ),
-                  )}
-                </CollapsibleContent>
-              </Collapsible>
+                    <p className="font-medium text-sm mb-1">{rec.tool_name}</p>
+                    <p className="text-xs text-muted-foreground mb-2">{rec.rationale}</p>
+                    <p className="text-xs text-amber-600 dark:text-amber-400 flex items-center gap-1.5">
+                      <Lightbulb className="h-3 w-3" />
+                      {rec.suggested_action}
+                    </p>
+                  </div>
+                ),
+              )}
             </CardContent>
           </Card>
         )}
