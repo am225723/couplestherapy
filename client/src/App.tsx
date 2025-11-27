@@ -306,6 +306,9 @@ function AuthenticatedApp() {
   const { user, profile, loading, signOut } = useAuth();
   const [location, setLocation] = useLocation();
 
+  // Initialize push notifications for both web and mobile
+  usePushNotifications();
+
   // Redirect users to their appropriate home page on first authentication
   // This prevents 404 errors when therapists sign in while on client routes (or vice versa)
   useEffect(() => {
