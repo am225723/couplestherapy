@@ -12,14 +12,11 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 // ========================================
 // Supabase Client Setup
 // ========================================
-function createSupabaseClient(token: string) {
+function createSupabaseClient() {
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
   const supabaseServiceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
   return createClient(supabaseUrl, supabaseServiceRoleKey, {
-    global: {
-      headers: { Authorization: `Bearer ${token}` },
-    },
     auth: {
       autoRefreshToken: false,
       persistSession: false,
@@ -187,7 +184,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    const supabase = createSupabaseClient(token);
+    const supabase = createSupabaseClient();
 
     // Fetch the voice memo
     const { data: memo } = await supabase

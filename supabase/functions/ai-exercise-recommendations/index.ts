@@ -12,14 +12,11 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 // ========================================
 // Supabase Client Setup
 // ========================================
-function createSupabaseClient(token: string) {
+function createSupabaseClient() {
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
   const supabaseServiceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
   return createClient(supabaseUrl, supabaseServiceRoleKey, {
-    global: {
-      headers: { Authorization: `Bearer ${token}` },
-    },
     auth: {
       autoRefreshToken: false,
       persistSession: false,
@@ -156,7 +153,7 @@ Deno.serve(async (req) => {
     }
 
     // Get couple_id for this user using service role
-    const supabase = createSupabaseClient(token);
+    const supabase = createSupabaseClient();
     const { data: profile } = await supabase
       .from("Couples_Profiles")
       .select("couple_id")

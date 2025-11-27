@@ -13,14 +13,11 @@ import { safeJsonParse } from "../_shared/safe-json-parse.ts";
 // ========================================
 // Supabase Client Setup
 // ========================================
-function createSupabaseClient(token: string) {
+function createSupabaseClient() {
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
   const supabaseServiceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
   return createClient(supabaseUrl, supabaseServiceRoleKey, {
-    global: {
-      headers: { Authorization: `Bearer ${token}` },
-    },
     auth: {
       autoRefreshToken: false,
       persistSession: false,
@@ -198,7 +195,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    const supabase = createSupabaseClient(token);
+    const supabase = createSupabaseClient();
 
     // Check if user is a therapist
     const { data: profile } = await supabase
