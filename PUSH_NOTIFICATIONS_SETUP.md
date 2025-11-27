@@ -14,7 +14,7 @@ This guide walks through the complete setup for scheduled push notifications on 
 
 ### Step 1: Database Migration (1-2 minutes)
 
-The database migration has already been created in `supabase-push-notifications-migration.sql`. 
+The database migration has already been created in `supabase-push-notifications-migration.sql`.
 
 **Run it in Supabase:**
 
@@ -25,6 +25,7 @@ The database migration has already been created in `supabase-push-notifications-
 5. Click **Run**
 
 This creates:
+
 - `expo_push_token` and `fcm_token` columns in `Couples_profiles`
 - `Couples_scheduled_notifications` table with automatic timestamps
 - Row Level Security (RLS) policies that ensure therapists can only manage notifications for their own couples
@@ -36,7 +37,7 @@ This creates:
 **For mobile push notifications via Expo:**
 
 1. Go to https://expo.dev/accounts/_/settings/access-tokens
-2. Click **Create token** 
+2. Click **Create token**
 3. Give it a name like "Push Notifications"
 4. Toggle **Enhanced Security for Push Notifications** ON
 5. Copy the token (it starts with `ey...`)
@@ -79,6 +80,7 @@ supabase functions deploy send-scheduled-notifications
 ```
 
 **Verify it deployed:**
+
 - Go to Supabase Dashboard → Functions
 - You should see `send-scheduled-notifications` listed
 
@@ -97,12 +99,13 @@ A webhook automatically triggers the Edge Function whenever a new notification i
 3. Fill in the form:
 
    **Name:** "Send Scheduled Notifications"
-   
+
    **Table:** Select `Couples_scheduled_notifications`
-   
+
    **Events:** Check only **INSERT** (uncheck UPDATE/DELETE)
-   
+
    **HTTP Request:**
+
    - **Type:** POST
    - **URL:** `https://YOUR_PROJECT_REF.supabase.co/functions/v1/send-scheduled-notifications`
    - **Headers:** Add these headers:
@@ -114,6 +117,7 @@ A webhook automatically triggers the Edge Function whenever a new notification i
 4. Scroll down and click **Save webhook**
 
 **To find your ANON_KEY:**
+
 - Go to Supabase Project Settings → API
 - Look for "anon" key under "Project API keys"
 - Copy it and paste in the Authorization header
@@ -123,6 +127,7 @@ A webhook automatically triggers the Edge Function whenever a new notification i
 **Alternative: Without Webhook (Manual Trigger)**
 
 If you don't set up a webhook, you can manually trigger the function:
+
 ```bash
 # From terminal, trigger the function
 curl -X POST https://YOUR_PROJECT_REF.supabase.co/functions/v1/send-scheduled-notifications \
@@ -131,6 +136,7 @@ curl -X POST https://YOUR_PROJECT_REF.supabase.co/functions/v1/send-scheduled-no
 ```
 
 Or set up a cron job to call it every 5 minutes using a service like:
+
 - AWS Lambda + CloudWatch
 - Google Cloud Scheduler
 - GitHub Actions scheduled workflow
@@ -149,7 +155,7 @@ import { usePushNotifications } from "@/hooks/usePushNotifications";
 export default function RootNavigator() {
   // Initialize push notifications
   usePushNotifications();
-  
+
   return (
     // ... your navigation
   );
@@ -157,10 +163,12 @@ export default function RootNavigator() {
 ```
 
 **Test on a physical device:**
+
 - iOS: Need real iPhone (simulator doesn't support push)
 - Android: Need physical device or Android emulator with Google Play Services
 
 **What happens automatically:**
+
 1. App asks user for notification permission
 2. Gets device's Expo push token
 3. Sends token to backend (`POST /api/push-notifications/register-token`)
@@ -180,10 +188,10 @@ import { usePushNotifications } from "@/hooks/use-push-notifications";
 
 function AppContent() {
   // ... other code
-  
+
   // Initialize push notifications
   usePushNotifications();
-  
+
   return (
     // ... your routes
   );
@@ -244,6 +252,7 @@ curl -X POST https://YOUR_PROJECT_REF.supabase.co/functions/v1/send-scheduled-no
 ```
 
 **Expected response:**
+
 ```json
 {
   "success": true,
@@ -323,6 +332,7 @@ Device Shows Notification
 ## API Reference
 
 ### Register Push Token
+
 ```
 POST /api/push-notifications/register-token
 Authorization: Bearer <user-jwt>
@@ -337,6 +347,7 @@ Response: { "success": true }
 ```
 
 ### Schedule Notification
+
 ```
 POST /api/push-notifications/schedule
 Authorization: Bearer <therapist-jwt>
@@ -354,6 +365,7 @@ Response: { notification object with id, status, etc. }
 ```
 
 ### List Scheduled Notifications
+
 ```
 GET /api/push-notifications/scheduled
 Authorization: Bearer <therapist-jwt>
@@ -362,6 +374,7 @@ Response: [{ id, couple_id, user_id, title, body, scheduled_at, status, ... }]
 ```
 
 ### Cancel Notification
+
 ```
 DELETE /api/push-notifications/:id
 Authorization: Bearer <therapist-jwt>
@@ -393,4 +406,3 @@ Before going live:
 - **Supabase Edge Functions:** https://supabase.com/docs/guides/functions
 - **Expo Push Notifications:** https://docs.expo.dev/push-notifications/
 - **Firebase Cloud Messaging:** https://firebase.google.com/docs/cloud-messaging
-

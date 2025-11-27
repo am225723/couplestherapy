@@ -109,7 +109,11 @@ const sectionGroups = [
     label: "Settings",
     defaultOpen: false,
     sections: [
-      { id: "dashboard-customization", label: "Customize Dashboard", icon: LayoutDashboard },
+      {
+        id: "dashboard-customization",
+        label: "Customize Dashboard",
+        icon: LayoutDashboard,
+      },
     ],
   },
 ];

@@ -51,10 +51,10 @@ function isValidUrl(url: string): boolean {
 
 function renderContentWithLinks(content: string | null) {
   if (!content) return null;
-  
+
   const urlRegex = /(https?:\/\/[^\s]+)/g;
   const parts = content.split(urlRegex);
-  
+
   return parts.map((part, index) => {
     if (urlRegex.test(part) && isValidUrl(part)) {
       urlRegex.lastIndex = 0;
@@ -75,15 +75,29 @@ function renderContentWithLinks(content: string | null) {
   });
 }
 
-function ThoughtCard({ thought, onToggleComplete }: { thought: TherapistThought; onToggleComplete?: (id: string) => void }) {
+function ThoughtCard({
+  thought,
+  onToggleComplete,
+}: {
+  thought: TherapistThought;
+  onToggleComplete?: (id: string) => void;
+}) {
   const getIcon = () => {
     switch (thought.thought_type) {
       case "todo":
-        return <CheckCircle2 className={`h-5 w-5 ${thought.is_completed ? "text-muted-foreground" : "text-green-600 dark:text-green-400"}`} />;
+        return (
+          <CheckCircle2
+            className={`h-5 w-5 ${thought.is_completed ? "text-muted-foreground" : "text-green-600 dark:text-green-400"}`}
+          />
+        );
       case "file_reference":
-        return <FileText className="h-5 w-5 text-orange-600 dark:text-orange-400" />;
+        return (
+          <FileText className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+        );
       default:
-        return <MessageCircle className="h-5 w-5 text-blue-600 dark:text-blue-400" />;
+        return (
+          <MessageCircle className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+        );
     }
   };
 
@@ -99,7 +113,10 @@ function ThoughtCard({ thought, onToggleComplete }: { thought: TherapistThought;
   };
 
   return (
-    <Card data-testid={`thought-card-${thought.id}`} className={thought.is_completed ? "opacity-60" : ""}>
+    <Card
+      data-testid={`thought-card-${thought.id}`}
+      className={thought.is_completed ? "opacity-60" : ""}
+    >
       <CardHeader>
         <div className="flex items-start justify-between gap-4">
           {thought.thought_type === "todo" && (
@@ -111,37 +128,47 @@ function ThoughtCard({ thought, onToggleComplete }: { thought: TherapistThought;
             />
           )}
           <div className="flex-1 min-w-0">
-            <CardTitle className={`text-lg flex items-center gap-2 flex-wrap ${thought.is_completed ? "line-through text-muted-foreground" : ""}`}>
+            <CardTitle
+              className={`text-lg flex items-center gap-2 flex-wrap ${thought.is_completed ? "line-through text-muted-foreground" : ""}`}
+            >
               {getIcon()}
               {thought.title || "Untitled"}
               <Badge variant="outline" className="text-xs">
                 {getTypeLabel()}
               </Badge>
               {thought.audience === "individual" ? (
-                <Badge variant="secondary" className="text-xs flex items-center gap-1">
+                <Badge
+                  variant="secondary"
+                  className="text-xs flex items-center gap-1"
+                >
                   <User className="h-3 w-3" />
                   Just for you
                 </Badge>
               ) : (
-                <Badge variant="outline" className="text-xs flex items-center gap-1">
+                <Badge
+                  variant="outline"
+                  className="text-xs flex items-center gap-1"
+                >
                   <Users className="h-3 w-3" />
                   For both
                 </Badge>
               )}
-              {thought.thought_type === "todo" && thought.priority && !thought.is_completed && (
-                <Badge
-                  variant={
-                    thought.priority === "high"
-                      ? "destructive"
-                      : thought.priority === "medium"
-                        ? "secondary"
-                        : "outline"
-                  }
-                  className="text-xs"
-                >
-                  {thought.priority}
-                </Badge>
-              )}
+              {thought.thought_type === "todo" &&
+                thought.priority &&
+                !thought.is_completed && (
+                  <Badge
+                    variant={
+                      thought.priority === "high"
+                        ? "destructive"
+                        : thought.priority === "medium"
+                          ? "secondary"
+                          : "outline"
+                    }
+                    className="text-xs"
+                  >
+                    {thought.priority}
+                  </Badge>
+                )}
               {thought.is_completed && (
                 <Badge variant="secondary" className="text-xs">
                   Completed
@@ -163,7 +190,9 @@ function ThoughtCard({ thought, onToggleComplete }: { thought: TherapistThought;
       <CardContent className="space-y-3">
         {thought.content && (
           <div className="prose prose-sm dark:prose-invert max-w-none">
-            <p className={`whitespace-pre-wrap ${thought.is_completed ? "text-muted-foreground" : "text-foreground"}`}>
+            <p
+              className={`whitespace-pre-wrap ${thought.is_completed ? "text-muted-foreground" : "text-foreground"}`}
+            >
               {renderContentWithLinks(thought.content)}
             </p>
           </div>
@@ -198,10 +227,15 @@ export default function TherapistThoughts() {
 
   const completeMutation = useMutation({
     mutationFn: async (id: string) => {
-      return apiRequest("PATCH", `/api/therapist-thoughts/client/${id}/complete`);
+      return apiRequest(
+        "PATCH",
+        `/api/therapist-thoughts/client/${id}/complete`,
+      );
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/therapist-thoughts/client/messages"] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/therapist-thoughts/client/messages"],
+      });
     },
     onError: (error: any) => {
       toast({
@@ -284,7 +318,11 @@ export default function TherapistThoughts() {
 
             <TabsContent value="all" className="space-y-4 mt-6">
               {thoughts.map((thought) => (
-                <ThoughtCard key={thought.id} thought={thought} onToggleComplete={handleToggleComplete} />
+                <ThoughtCard
+                  key={thought.id}
+                  thought={thought}
+                  onToggleComplete={handleToggleComplete}
+                />
               ))}
             </TabsContent>
 
@@ -297,7 +335,11 @@ export default function TherapistThoughts() {
                 </Card>
               ) : (
                 messages.map((thought) => (
-                  <ThoughtCard key={thought.id} thought={thought} onToggleComplete={handleToggleComplete} />
+                  <ThoughtCard
+                    key={thought.id}
+                    thought={thought}
+                    onToggleComplete={handleToggleComplete}
+                  />
                 ))
               )}
             </TabsContent>
@@ -311,7 +353,11 @@ export default function TherapistThoughts() {
                 </Card>
               ) : (
                 todos.map((thought) => (
-                  <ThoughtCard key={thought.id} thought={thought} onToggleComplete={handleToggleComplete} />
+                  <ThoughtCard
+                    key={thought.id}
+                    thought={thought}
+                    onToggleComplete={handleToggleComplete}
+                  />
                 ))
               )}
             </TabsContent>
@@ -325,7 +371,11 @@ export default function TherapistThoughts() {
                 </Card>
               ) : (
                 files.map((thought) => (
-                  <ThoughtCard key={thought.id} thought={thought} onToggleComplete={handleToggleComplete} />
+                  <ThoughtCard
+                    key={thought.id}
+                    thought={thought}
+                    onToggleComplete={handleToggleComplete}
+                  />
                 ))
               )}
             </TabsContent>

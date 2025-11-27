@@ -75,7 +75,8 @@ dashboardCustomizationRouter.post(
   async (req: Request, res: Response) => {
     try {
       const { coupleId } = req.params;
-      const { therapist_id, widget_order, enabled_widgets, widget_sizes } = req.body;
+      const { therapist_id, widget_order, enabled_widgets, widget_sizes } =
+        req.body;
 
       const { data, error } = await supabaseAdmin
         .from("Couples_dashboard_customization")

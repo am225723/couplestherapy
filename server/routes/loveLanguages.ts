@@ -27,12 +27,10 @@ router.delete("/user/:id", async (req, res) => {
 
     // Verify the user owns this result
     if (loveLanguage.user_id !== authResult.userId) {
-      return res
-        .status(403)
-        .json({
-          error:
-            "Access denied: You can only delete your own love language results",
-        });
+      return res.status(403).json({
+        error:
+          "Access denied: You can only delete your own love language results",
+      });
     }
 
     // Delete the love language result

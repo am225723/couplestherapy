@@ -84,7 +84,10 @@ export function ScheduleNotificationDialog({
   });
 
   const isValid =
-    title.trim() && body.trim() && scheduledAt && new Date(scheduledAt) > new Date();
+    title.trim() &&
+    body.trim() &&
+    scheduledAt &&
+    new Date(scheduledAt) > new Date();
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -100,8 +103,7 @@ export function ScheduleNotificationDialog({
         <DialogHeader>
           <DialogTitle>Schedule Push Notification</DialogTitle>
           <DialogDescription>
-            Send a notification to{" "}
-            {couple.partner1?.full_name || "Partner 1"}
+            Send a notification to {couple.partner1?.full_name || "Partner 1"}
             {couple.partner2 ? ` and ${couple.partner2.full_name}` : ""}
           </DialogDescription>
         </DialogHeader>
@@ -111,17 +113,24 @@ export function ScheduleNotificationDialog({
             <Label htmlFor="recipient" className="text-sm font-medium">
               Send to
             </Label>
-            <Select value={recipient} onValueChange={(v: any) => setRecipient(v)}>
+            <Select
+              value={recipient}
+              onValueChange={(v: any) => setRecipient(v)}
+            >
               <SelectTrigger id="recipient">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="both">Both partners</SelectItem>
                 {couple.partner1 && (
-                  <SelectItem value="partner1">{couple.partner1.full_name}</SelectItem>
+                  <SelectItem value="partner1">
+                    {couple.partner1.full_name}
+                  </SelectItem>
                 )}
                 {couple.partner2 && (
-                  <SelectItem value="partner2">{couple.partner2.full_name}</SelectItem>
+                  <SelectItem value="partner2">
+                    {couple.partner2.full_name}
+                  </SelectItem>
                 )}
               </SelectContent>
             </Select>
@@ -185,7 +194,9 @@ export function ScheduleNotificationDialog({
               className="flex-1 gap-2"
               data-testid="button-schedule-notification"
             >
-              {mutation.isPending && <Loader2 className="w-4 h-4 animate-spin" />}
+              {mutation.isPending && (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              )}
               Schedule
             </Button>
           </div>

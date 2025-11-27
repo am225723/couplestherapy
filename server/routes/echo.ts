@@ -83,11 +83,9 @@ router.post("/turn", async (req, res) => {
 
     // Validate step sequence
     if (validatedData.step !== session.current_step) {
-      return res
-        .status(400)
-        .json({
-          error: `Invalid step. Current step is ${session.current_step}`,
-        });
+      return res.status(400).json({
+        error: `Invalid step. Current step is ${session.current_step}`,
+      });
     }
 
     // Insert turn

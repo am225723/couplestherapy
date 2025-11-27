@@ -179,7 +179,10 @@ router.delete("/:id", async (req, res) => {
       return res.status(404).json({ error: "Notification not found" });
     }
 
-    if (notification.therapist_id !== userId || notification.status !== "pending") {
+    if (
+      notification.therapist_id !== userId ||
+      notification.status !== "pending"
+    ) {
       return res.status(403).json({ error: "Cannot delete this notification" });
     }
 

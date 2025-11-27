@@ -105,11 +105,9 @@ router.post("/:id/complete", async (req, res) => {
     }
 
     if (memo.sender_id !== userId) {
-      return res
-        .status(403)
-        .json({
-          error: "You don't have permission to complete this voice memo",
-        });
+      return res.status(403).json({
+        error: "You don't have permission to complete this voice memo",
+      });
     }
 
     const { error: updateError } = await supabaseAdmin
@@ -155,12 +153,9 @@ router.patch("/:id/listened", async (req, res) => {
     }
 
     if (memo.recipient_id !== userId) {
-      return res
-        .status(403)
-        .json({
-          error:
-            "You don't have permission to mark this voice memo as listened",
-        });
+      return res.status(403).json({
+        error: "You don't have permission to mark this voice memo as listened",
+      });
     }
 
     const { error: updateError } = await supabaseAdmin
@@ -178,11 +173,9 @@ router.patch("/:id/listened", async (req, res) => {
     res.json({ success: true });
   } catch (error: any) {
     console.error("Mark listened error:", error.message, error.stack);
-    res
-      .status(500)
-      .json({
-        error: error.message || "Failed to mark voice memo as listened",
-      });
+    res.status(500).json({
+      error: error.message || "Failed to mark voice memo as listened",
+    });
   }
 });
 

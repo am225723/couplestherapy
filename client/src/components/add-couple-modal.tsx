@@ -66,15 +66,19 @@ export function AddCoupleModal({
 
   const createCoupleMutation = useMutation({
     mutationFn: async (data: AddCoupleFormData) => {
-      const response = await apiRequest("POST", "/api/therapist/create-couple", {
-        therapist_id: therapistId,
-        partner1_email: data.partner1Email,
-        partner1_name: data.partner1Name,
-        partner1_password: data.partner1Password,
-        partner2_email: data.partner2Email,
-        partner2_name: data.partner2Name,
-        partner2_password: data.partner2Password,
-      });
+      const response = await apiRequest(
+        "POST",
+        "/api/therapist/create-couple",
+        {
+          therapist_id: therapistId,
+          partner1_email: data.partner1Email,
+          partner1_name: data.partner1Name,
+          partner1_password: data.partner1Password,
+          partner2_email: data.partner2Email,
+          partner2_name: data.partner2Name,
+          partner2_password: data.partner2Password,
+        },
+      );
       return response.json();
     },
     onSuccess: (data) => {
@@ -157,15 +161,24 @@ export function AddCoupleModal({
                 </Button>
               </div>
             </div>
-            <Button onClick={handleClose} className="w-full" data-testid="button-done">
+            <Button
+              onClick={handleClose}
+              className="w-full"
+              data-testid="button-done"
+            >
               Done
             </Button>
           </div>
         ) : (
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+            <form
+              onSubmit={form.handleSubmit(handleSubmit)}
+              className="space-y-6"
+            >
               <div className="space-y-4">
-                <h4 className="font-medium text-sm text-muted-foreground">Partner 1</h4>
+                <h4 className="font-medium text-sm text-muted-foreground">
+                  Partner 1
+                </h4>
                 <div className="grid grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
@@ -232,7 +245,9 @@ export function AddCoupleModal({
               </div>
 
               <div className="space-y-4">
-                <h4 className="font-medium text-sm text-muted-foreground">Partner 2</h4>
+                <h4 className="font-medium text-sm text-muted-foreground">
+                  Partner 2
+                </h4>
                 <div className="grid grid-cols-2 gap-4">
                   <FormField
                     control={form.control}

@@ -153,7 +153,9 @@ export default function AdminDashboard() {
   const [couples, setCouples] = useState<CoupleWithProfiles[]>([]);
   const [selectedCouple, setSelectedCouple] =
     useState<CoupleWithProfiles | null>(null);
-  const [autoSelectedCoupleId, setAutoSelectedCoupleId] = useState<string | null>(null);
+  const [autoSelectedCoupleId, setAutoSelectedCoupleId] = useState<
+    string | null
+  >(null);
   const [checkins, setCheckins] = useState<
     (WeeklyCheckin & { author?: Profile })[]
   >([]);
@@ -497,7 +499,9 @@ export default function AdminDashboard() {
             <Card className="text-center py-12">
               <CardContent>
                 <Users className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                <p className="text-muted-foreground mb-4">No couples assigned yet</p>
+                <p className="text-muted-foreground mb-4">
+                  No couples assigned yet
+                </p>
                 <Button
                   onClick={() => setShowAddCoupleModal(true)}
                   data-testid="button-add-first-couple"
@@ -594,741 +598,744 @@ export default function AdminDashboard() {
                 )}
               </Button>
             </DialogTrigger>
-              <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle className="flex items-center gap-2">
-                    <Sparkles className="h-5 w-5 text-primary" />
-                    AI Session Preparation Summary
-                  </DialogTitle>
-                  <DialogDescription>
-                    AI-powered analysis of the last 4 weeks of couple activity
-                  </DialogDescription>
-                </DialogHeader>
+            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <Sparkles className="h-5 w-5 text-primary" />
+                  AI Session Preparation Summary
+                </DialogTitle>
+                <DialogDescription>
+                  AI-powered analysis of the last 4 weeks of couple activity
+                </DialogDescription>
+              </DialogHeader>
 
-                {sessionPrepMutation.isPending && (
-                  <div className="flex items-center justify-center py-12">
-                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              {sessionPrepMutation.isPending && (
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                </div>
+              )}
+
+              {sessionPrepMutation.isError && (
+                <Alert
+                  variant="destructive"
+                  data-testid="alert-session-prep-error"
+                >
+                  <AlertDescription>
+                    {sessionPrepMutation.error instanceof Error
+                      ? sessionPrepMutation.error.message
+                      : "Failed to generate session prep"}
+                  </AlertDescription>
+                </Alert>
+              )}
+
+              {sessionPrepMutation.isSuccess && sessionPrepMutation.data && (
+                <div
+                  className="space-y-6"
+                  data-testid="container-session-prep-results"
+                >
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2 text-lg">
+                        <Heart className="h-5 w-5 text-primary" />
+                        Engagement Summary
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p
+                        className="text-sm text-muted-foreground"
+                        data-testid="text-engagement-summary"
+                      >
+                        {sessionPrepMutation.data.engagement_summary}
+                      </p>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2 text-lg">
+                        <TrendingDown className="h-5 w-5 text-destructive" />
+                        Concerning Patterns
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <ul className="space-y-2">
+                        {sessionPrepMutation.data.concerning_patterns.map(
+                          (pattern: string, idx: number) => (
+                            <li
+                              key={idx}
+                              className="flex items-start gap-2"
+                              data-testid={`text-concerning-pattern-${idx}`}
+                            >
+                              <span className="text-destructive mt-1">•</span>
+                              <span className="text-sm">{pattern}</span>
+                            </li>
+                          ),
+                        )}
+                      </ul>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2 text-lg">
+                        <TrendingUp className="h-5 w-5 text-green-600" />
+                        Positive Patterns
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <ul className="space-y-2">
+                        {sessionPrepMutation.data.positive_patterns.map(
+                          (pattern: string, idx: number) => (
+                            <li
+                              key={idx}
+                              className="flex items-start gap-2"
+                              data-testid={`text-positive-pattern-${idx}`}
+                            >
+                              <span className="text-green-600 mt-1">•</span>
+                              <span className="text-sm">{pattern}</span>
+                            </li>
+                          ),
+                        )}
+                      </ul>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2 text-lg">
+                        <Target className="h-5 w-5 text-primary" />
+                        Session Focus Areas
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <ul className="space-y-2">
+                        {sessionPrepMutation.data.session_focus_areas.map(
+                          (area: string, idx: number) => (
+                            <li
+                              key={idx}
+                              className="flex items-start gap-2"
+                              data-testid={`text-focus-area-${idx}`}
+                            >
+                              <span className="text-primary mt-1">•</span>
+                              <span className="text-sm font-medium">
+                                {area}
+                              </span>
+                            </li>
+                          ),
+                        )}
+                      </ul>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2 text-lg">
+                        <Lightbulb className="h-5 w-5 text-amber-500" />
+                        Recommended Interventions
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <ul className="space-y-2">
+                        {sessionPrepMutation.data.recommended_interventions.map(
+                          (intervention: string, idx: number) => (
+                            <li
+                              key={idx}
+                              className="flex items-start gap-2"
+                              data-testid={`text-intervention-${idx}`}
+                            >
+                              <span className="text-amber-500 mt-1">•</span>
+                              <span className="text-sm">{intervention}</span>
+                            </li>
+                          ),
+                        )}
+                      </ul>
+                    </CardContent>
+                  </Card>
+
+                  <div className="text-xs text-muted-foreground text-center pt-4 border-t">
+                    Generated{" "}
+                    {sessionPrepMutation.data.generated_at
+                      ? formatDistanceToNow(
+                          new Date(sessionPrepMutation.data.generated_at),
+                          { addSuffix: true },
+                        )
+                      : "just now"}
                   </div>
-                )}
+                </div>
+              )}
+            </DialogContent>
+          </Dialog>
+        </header>
 
-                {sessionPrepMutation.isError && (
-                  <Alert
-                    variant="destructive"
-                    data-testid="alert-session-prep-error"
-                  >
-                    <AlertDescription>
-                      {sessionPrepMutation.error instanceof Error
-                        ? sessionPrepMutation.error.message
-                        : "Failed to generate session prep"}
-                    </AlertDescription>
-                  </Alert>
-                )}
+        <main className="flex-1 overflow-hidden">
+          <ScrollArea className="flex-1">
+            <div className="p-8 space-y-6 max-w-7xl mx-auto">
+              {/* Controlled Tabs - synced with URL section */}
+              <Tabs value={currentSection} onValueChange={handleSelectSection}>
+                {/* TabsList hidden - navigation via sidebar only */}
+                <div className="sr-only">
+                  <TabsList>
+                    <TabsTrigger value="overview">Overview</TabsTrigger>
+                    <TabsTrigger value="checkins">Weekly Check-ins</TabsTrigger>
+                    <TabsTrigger value="languages">Love Languages</TabsTrigger>
+                    <TabsTrigger value="lovemap">Love Map Quiz</TabsTrigger>
+                    <TabsTrigger value="echo">Echo & Empathy</TabsTrigger>
+                    <TabsTrigger value="ifs">IFS Exercises</TabsTrigger>
+                    <TabsTrigger value="pause">Pause History</TabsTrigger>
+                    <TabsTrigger value="activity">Activity Feed</TabsTrigger>
+                    <TabsTrigger value="messages">Messages</TabsTrigger>
+                    <TabsTrigger value="calendar">Calendar</TabsTrigger>
+                    <TabsTrigger value="therapy-tools">
+                      Therapy Tools
+                    </TabsTrigger>
+                    <TabsTrigger value="dashboard-customization">
+                      Dashboard Customization
+                    </TabsTrigger>
+                  </TabsList>
+                </div>
 
-                {sessionPrepMutation.isSuccess && sessionPrepMutation.data && (
-                  <div
-                    className="space-y-6"
-                    data-testid="container-session-prep-results"
-                  >
+                {/* Overview tab - new default view */}
+                <TabsContent value="overview" className="space-y-6">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-semibold">Overview</h3>
+                    {selectedCouple && (
+                      <ScheduleNotificationDialog couple={selectedCouple} />
+                    )}
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <Card>
-                      <CardHeader>
-                        <CardTitle className="flex items-center gap-2 text-lg">
-                          <Heart className="h-5 w-5 text-primary" />
-                          Engagement Summary
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-sm font-medium">
+                          Weekly Check-ins
                         </CardTitle>
                       </CardHeader>
                       <CardContent>
-                        <p
-                          className="text-sm text-muted-foreground"
-                          data-testid="text-engagement-summary"
-                        >
-                          {sessionPrepMutation.data.engagement_summary}
+                        <div className="text-2xl font-bold">
+                          {checkins.length}
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          Total completed
                         </p>
                       </CardContent>
                     </Card>
-
                     <Card>
-                      <CardHeader>
-                        <CardTitle className="flex items-center gap-2 text-lg">
-                          <TrendingDown className="h-5 w-5 text-destructive" />
-                          Concerning Patterns
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-sm font-medium">
+                          Activities
                         </CardTitle>
                       </CardHeader>
                       <CardContent>
-                        <ul className="space-y-2">
-                          {sessionPrepMutation.data.concerning_patterns.map(
-                            (pattern: string, idx: number) => (
-                              <li
-                                key={idx}
-                                className="flex items-start gap-2"
-                                data-testid={`text-concerning-pattern-${idx}`}
-                              >
-                                <span className="text-destructive mt-1">•</span>
-                                <span className="text-sm">{pattern}</span>
-                              </li>
-                            ),
-                          )}
-                        </ul>
+                        <div className="text-2xl font-bold">
+                          {activities.length}
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          Recent activities
+                        </p>
                       </CardContent>
                     </Card>
-
                     <Card>
-                      <CardHeader>
-                        <CardTitle className="flex items-center gap-2 text-lg">
-                          <TrendingUp className="h-5 w-5 text-green-600" />
-                          Positive Patterns
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-sm font-medium">
+                          Love Languages
                         </CardTitle>
                       </CardHeader>
                       <CardContent>
-                        <ul className="space-y-2">
-                          {sessionPrepMutation.data.positive_patterns.map(
-                            (pattern: string, idx: number) => (
-                              <li
-                                key={idx}
-                                className="flex items-start gap-2"
-                                data-testid={`text-positive-pattern-${idx}`}
-                              >
-                                <span className="text-green-600 mt-1">•</span>
-                                <span className="text-sm">{pattern}</span>
-                              </li>
-                            ),
-                          )}
-                        </ul>
+                        <div className="text-2xl font-bold">
+                          {loveLanguages.length}/2
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          Partners completed
+                        </p>
                       </CardContent>
                     </Card>
-
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="flex items-center gap-2 text-lg">
-                          <Target className="h-5 w-5 text-primary" />
-                          Session Focus Areas
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <ul className="space-y-2">
-                          {sessionPrepMutation.data.session_focus_areas.map(
-                            (area: string, idx: number) => (
-                              <li
-                                key={idx}
-                                className="flex items-start gap-2"
-                                data-testid={`text-focus-area-${idx}`}
-                              >
-                                <span className="text-primary mt-1">•</span>
-                                <span className="text-sm font-medium">
-                                  {area}
-                                </span>
-                              </li>
-                            ),
-                          )}
-                        </ul>
-                      </CardContent>
-                    </Card>
-
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="flex items-center gap-2 text-lg">
-                          <Lightbulb className="h-5 w-5 text-amber-500" />
-                          Recommended Interventions
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <ul className="space-y-2">
-                          {sessionPrepMutation.data.recommended_interventions.map(
-                            (intervention: string, idx: number) => (
-                              <li
-                                key={idx}
-                                className="flex items-start gap-2"
-                                data-testid={`text-intervention-${idx}`}
-                              >
-                                <span className="text-amber-500 mt-1">•</span>
-                                <span className="text-sm">{intervention}</span>
-                              </li>
-                            ),
-                          )}
-                        </ul>
-                      </CardContent>
-                    </Card>
-
-                    <div className="text-xs text-muted-foreground text-center pt-4 border-t">
-                      Generated{" "}
-                      {sessionPrepMutation.data.generated_at
-                        ? formatDistanceToNow(
-                            new Date(sessionPrepMutation.data.generated_at),
-                            { addSuffix: true },
-                          )
-                        : "just now"}
-                    </div>
                   </div>
-                )}
-              </DialogContent>
-            </Dialog>
-          </header>
-
-          <main className="flex-1 overflow-hidden">
-            <ScrollArea className="flex-1">
-              <div className="p-8 space-y-6 max-w-7xl mx-auto">
-                {/* Controlled Tabs - synced with URL section */}
-                <Tabs
-                  value={currentSection}
-                  onValueChange={handleSelectSection}
-                >
-                  {/* TabsList hidden - navigation via sidebar only */}
-                  <div className="sr-only">
-                    <TabsList>
-                      <TabsTrigger value="overview">Overview</TabsTrigger>
-                      <TabsTrigger value="checkins">
-                        Weekly Check-ins
-                      </TabsTrigger>
-                      <TabsTrigger value="languages">
-                        Love Languages
-                      </TabsTrigger>
-                      <TabsTrigger value="lovemap">Love Map Quiz</TabsTrigger>
-                      <TabsTrigger value="echo">Echo & Empathy</TabsTrigger>
-                      <TabsTrigger value="ifs">IFS Exercises</TabsTrigger>
-                      <TabsTrigger value="pause">Pause History</TabsTrigger>
-                      <TabsTrigger value="activity">Activity Feed</TabsTrigger>
-                      <TabsTrigger value="messages">Messages</TabsTrigger>
-                      <TabsTrigger value="calendar">Calendar</TabsTrigger>
-                      <TabsTrigger value="therapy-tools">
-                        Therapy Tools
-                      </TabsTrigger>
-                      <TabsTrigger value="dashboard-customization">
-                        Dashboard Customization
-                      </TabsTrigger>
-                    </TabsList>
-                  </div>
-
-                  {/* Overview tab - new default view */}
-                  <TabsContent value="overview" className="space-y-6">
-                    <div className="flex items-center justify-between">
-                      <h3 className="text-lg font-semibold">Overview</h3>
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Therapist Thoughts</CardTitle>
+                      <CardDescription>
+                        Manage your to-dos, messages, and notes for this couple
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
                       {selectedCouple && (
-                        <ScheduleNotificationDialog couple={selectedCouple} />
+                        <TherapistThoughtsPanel
+                          coupleId={selectedCouple.id}
+                          partner1={
+                            selectedCouple.partner1 &&
+                            selectedCouple.partner1_id
+                              ? {
+                                  id: selectedCouple.partner1_id,
+                                  full_name: selectedCouple.partner1.full_name,
+                                }
+                              : null
+                          }
+                          partner2={
+                            selectedCouple.partner2 &&
+                            selectedCouple.partner2_id
+                              ? {
+                                  id: selectedCouple.partner2_id,
+                                  full_name: selectedCouple.partner2.full_name,
+                                }
+                              : null
+                          }
+                        />
                       )}
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                      <Card>
-                        <CardHeader className="pb-2">
-                          <CardTitle className="text-sm font-medium">
-                            Weekly Check-ins
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="text-2xl font-bold">
-                            {checkins.length}
-                          </div>
-                          <p className="text-xs text-muted-foreground">
-                            Total completed
-                          </p>
-                        </CardContent>
-                      </Card>
-                      <Card>
-                        <CardHeader className="pb-2">
-                          <CardTitle className="text-sm font-medium">
-                            Activities
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="text-2xl font-bold">
-                            {activities.length}
-                          </div>
-                          <p className="text-xs text-muted-foreground">
-                            Recent activities
-                          </p>
-                        </CardContent>
-                      </Card>
-                      <Card>
-                        <CardHeader className="pb-2">
-                          <CardTitle className="text-sm font-medium">
-                            Love Languages
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="text-2xl font-bold">
-                            {loveLanguages.length}/2
-                          </div>
-                          <p className="text-xs text-muted-foreground">
-                            Partners completed
-                          </p>
-                        </CardContent>
-                      </Card>
-                    </div>
-                    <Card>
-                      <CardHeader>
-                        <CardTitle>Therapist Thoughts</CardTitle>
-                        <CardDescription>
-                          Manage your to-dos, messages, and notes for this couple
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        {selectedCouple && (
-                          <TherapistThoughtsPanel 
-                            coupleId={selectedCouple.id}
-                            partner1={selectedCouple.partner1 && selectedCouple.partner1_id ? { id: selectedCouple.partner1_id, full_name: selectedCouple.partner1.full_name } : null}
-                            partner2={selectedCouple.partner2 && selectedCouple.partner2_id ? { id: selectedCouple.partner2_id, full_name: selectedCouple.partner2.full_name } : null}
-                          />
-                        )}
-                      </CardContent>
-                    </Card>
-                  </TabsContent>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
 
-                  <TabsContent value="checkins" className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      {checkins.slice(0, 2).map((checkin) => (
-                        <Card key={checkin.id}>
+                <TabsContent value="checkins" className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {checkins.slice(0, 2).map((checkin) => (
+                      <Card key={checkin.id}>
+                        <CardHeader>
+                          <CardTitle className="flex items-center gap-2">
+                            <Avatar className="h-8 w-8">
+                              <AvatarFallback className="bg-primary/10 text-primary text-sm">
+                                {checkin.author?.full_name?.charAt(0) || "?"}
+                              </AvatarFallback>
+                            </Avatar>
+                            {checkin.author?.full_name}
+                          </CardTitle>
+                          <CardDescription>
+                            {checkin.created_at
+                              ? formatDistanceToNow(
+                                  new Date(checkin.created_at),
+                                  { addSuffix: true },
+                                )
+                              : "Recently"}
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-6">
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between">
+                              <Label>Connectedness</Label>
+                              <span className="text-2xl font-bold text-primary">
+                                {checkin.q_connectedness}/10
+                              </span>
+                            </div>
+                            <div className="h-2 bg-secondary rounded-full overflow-hidden">
+                              <div
+                                className="h-full bg-primary"
+                                style={{
+                                  width: `${(checkin.q_connectedness || 0) * 10}%`,
+                                }}
+                              />
+                            </div>
+                          </div>
+
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between">
+                              <Label>Conflict Resolution</Label>
+                              <span className="text-2xl font-bold text-secondary-foreground">
+                                {checkin.q_conflict}/10
+                              </span>
+                            </div>
+                            <div className="h-2 bg-secondary rounded-full overflow-hidden">
+                              <div
+                                className="h-full bg-accent"
+                                style={{
+                                  width: `${(checkin.q_conflict || 0) * 10}%`,
+                                }}
+                              />
+                            </div>
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label>Appreciation</Label>
+                            <p className="text-sm text-muted-foreground border-l-4 border-primary/30 pl-4 italic">
+                              {checkin.q_appreciation}
+                            </p>
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label>Regrettable Incident</Label>
+                            <p className="text-sm text-muted-foreground border-l-4 border-destructive/30 pl-4 italic">
+                              {checkin.q_regrettable_incident}
+                            </p>
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label>Need</Label>
+                            <p className="text-sm text-muted-foreground border-l-4 border-accent/30 pl-4 italic">
+                              {checkin.q_my_need}
+                            </p>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="languages" className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {loveLanguages.map((lang) => {
+                      const partner = [
+                        selectedCouple.partner1,
+                        selectedCouple.partner2,
+                      ].find((p) => p?.id === lang.user_id);
+                      return (
+                        <Card key={lang.id}>
                           <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
-                              <Avatar className="h-8 w-8">
-                                <AvatarFallback className="bg-primary/10 text-primary text-sm">
-                                  {checkin.author?.full_name?.charAt(0) || "?"}
-                                </AvatarFallback>
-                              </Avatar>
-                              {checkin.author?.full_name}
-                            </CardTitle>
-                            <CardDescription>
-                              {checkin.created_at
-                                ? formatDistanceToNow(
-                                    new Date(checkin.created_at),
-                                    { addSuffix: true },
-                                  )
-                                : "Recently"}
-                            </CardDescription>
+                            <div className="flex items-center justify-between gap-4">
+                              <CardTitle>
+                                {partner?.full_name || "Unknown"}
+                              </CardTitle>
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    data-testid={`button-delete-love-language-${lang.id}`}
+                                  >
+                                    <Trash2 className="h-4 w-4 text-destructive" />
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>
+                                      Delete Love Language Result?
+                                    </AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      This will permanently delete{" "}
+                                      {partner?.full_name || "this partner"}'s
+                                      love language quiz result. They will need
+                                      to retake the quiz.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel data-testid="button-cancel-delete-love-language">
+                                      Cancel
+                                    </AlertDialogCancel>
+                                    <AlertDialogAction
+                                      onClick={() =>
+                                        deleteLoveLanguageMutation.mutate(
+                                          lang.id,
+                                        )
+                                      }
+                                      disabled={
+                                        deleteLoveLanguageMutation.isPending
+                                      }
+                                      data-testid="button-confirm-delete-love-language"
+                                    >
+                                      {deleteLoveLanguageMutation.isPending
+                                        ? "Deleting..."
+                                        : "Delete"}
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
+                            </div>
                           </CardHeader>
-                          <CardContent className="space-y-6">
+                          <CardContent className="space-y-4">
                             <div className="space-y-2">
-                              <div className="flex items-center justify-between">
-                                <Label>Connectedness</Label>
-                                <span className="text-2xl font-bold text-primary">
-                                  {checkin.q_connectedness}/10
-                                </span>
-                              </div>
-                              <div className="h-2 bg-secondary rounded-full overflow-hidden">
-                                <div
-                                  className="h-full bg-primary"
-                                  style={{
-                                    width: `${(checkin.q_connectedness || 0) * 10}%`,
-                                  }}
-                                />
-                              </div>
-                            </div>
-
-                            <div className="space-y-2">
-                              <div className="flex items-center justify-between">
-                                <Label>Conflict Resolution</Label>
-                                <span className="text-2xl font-bold text-secondary-foreground">
-                                  {checkin.q_conflict}/10
-                                </span>
-                              </div>
-                              <div className="h-2 bg-secondary rounded-full overflow-hidden">
-                                <div
-                                  className="h-full bg-accent"
-                                  style={{
-                                    width: `${(checkin.q_conflict || 0) * 10}%`,
-                                  }}
-                                />
-                              </div>
-                            </div>
-
-                            <div className="space-y-2">
-                              <Label>Appreciation</Label>
-                              <p className="text-sm text-muted-foreground border-l-4 border-primary/30 pl-4 italic">
-                                {checkin.q_appreciation}
+                              <Label className="text-sm text-muted-foreground">
+                                Primary Language
+                              </Label>
+                              <p className="text-lg font-semibold text-primary">
+                                {lang.primary_language}
                               </p>
                             </div>
-
                             <div className="space-y-2">
-                              <Label>Regrettable Incident</Label>
-                              <p className="text-sm text-muted-foreground border-l-4 border-destructive/30 pl-4 italic">
-                                {checkin.q_regrettable_incident}
-                              </p>
-                            </div>
-
-                            <div className="space-y-2">
-                              <Label>Need</Label>
-                              <p className="text-sm text-muted-foreground border-l-4 border-accent/30 pl-4 italic">
-                                {checkin.q_my_need}
+                              <Label className="text-sm text-muted-foreground">
+                                Secondary Language
+                              </Label>
+                              <p className="text-lg font-semibold text-secondary-foreground">
+                                {lang.secondary_language}
                               </p>
                             </div>
                           </CardContent>
                         </Card>
-                      ))}
-                    </div>
-                  </TabsContent>
+                      );
+                    })}
+                  </div>
+                </TabsContent>
 
-                  <TabsContent value="languages" className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      {loveLanguages.map((lang) => {
-                        const partner = [
-                          selectedCouple.partner1,
-                          selectedCouple.partner2,
-                        ].find((p) => p?.id === lang.user_id);
-                        return (
-                          <Card key={lang.id}>
-                            <CardHeader>
-                              <div className="flex items-center justify-between gap-4">
-                                <CardTitle>
-                                  {partner?.full_name || "Unknown"}
-                                </CardTitle>
-                                <AlertDialog>
-                                  <AlertDialogTrigger asChild>
-                                    <Button
-                                      variant="ghost"
-                                      size="icon"
-                                      data-testid={`button-delete-love-language-${lang.id}`}
-                                    >
-                                      <Trash2 className="h-4 w-4 text-destructive" />
-                                    </Button>
-                                  </AlertDialogTrigger>
-                                  <AlertDialogContent>
-                                    <AlertDialogHeader>
-                                      <AlertDialogTitle>
-                                        Delete Love Language Result?
-                                      </AlertDialogTitle>
-                                      <AlertDialogDescription>
-                                        This will permanently delete{" "}
-                                        {partner?.full_name || "this partner"}'s
-                                        love language quiz result. They will
-                                        need to retake the quiz.
-                                      </AlertDialogDescription>
-                                    </AlertDialogHeader>
-                                    <AlertDialogFooter>
-                                      <AlertDialogCancel data-testid="button-cancel-delete-love-language">
-                                        Cancel
-                                      </AlertDialogCancel>
-                                      <AlertDialogAction
-                                        onClick={() =>
-                                          deleteLoveLanguageMutation.mutate(
-                                            lang.id,
-                                          )
-                                        }
-                                        disabled={
-                                          deleteLoveLanguageMutation.isPending
-                                        }
-                                        data-testid="button-confirm-delete-love-language"
-                                      >
-                                        {deleteLoveLanguageMutation.isPending
-                                          ? "Deleting..."
-                                          : "Delete"}
-                                      </AlertDialogAction>
-                                    </AlertDialogFooter>
-                                  </AlertDialogContent>
-                                </AlertDialog>
-                              </div>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                              <div className="space-y-2">
-                                <Label className="text-sm text-muted-foreground">
-                                  Primary Language
-                                </Label>
-                                <p className="text-lg font-semibold text-primary">
-                                  {lang.primary_language}
-                                </p>
-                              </div>
-                              <div className="space-y-2">
-                                <Label className="text-sm text-muted-foreground">
-                                  Secondary Language
-                                </Label>
-                                <p className="text-lg font-semibold text-secondary-foreground">
-                                  {lang.secondary_language}
-                                </p>
-                              </div>
-                            </CardContent>
-                          </Card>
-                        );
-                      })}
-                    </div>
-                  </TabsContent>
-
-                  <TabsContent value="activity" className="space-y-4">
-                    {activities.map((activity) => (
-                      <Card key={`${activity.type}-${activity.id}`}>
-                        <CardContent className="pt-6 space-y-4">
-                          <div className="space-y-2">
-                            <div className="flex items-center gap-2">
-                              <span className="text-xs font-medium text-muted-foreground uppercase">
-                                {activity.type.replace(/_/g, " ")}
-                              </span>
-                              <span className="text-xs text-muted-foreground">
-                                {activity.timestamp
-                                  ? formatDistanceToNow(
-                                      new Date(activity.timestamp),
-                                      { addSuffix: true },
-                                    )
-                                  : ""}
-                              </span>
-                            </div>
-                            {activity.type === "gratitude_logs" && (
-                              <p>{activity.text_content}</p>
-                            )}
-                            {activity.type === "shared_goals" && (
-                              <p>
-                                <strong>Goal:</strong> {activity.title}
-                              </p>
-                            )}
-                            {activity.type === "rituals" && (
-                              <p>
-                                <strong>{activity.category}:</strong>{" "}
-                                {activity.description}
-                              </p>
-                            )}
-                            {activity.type === "conversations" && (
-                              <p className="text-sm italic">
-                                Hold Me Tight conversation completed
-                              </p>
-                            )}
-                            {activity.type === "voice_memos" && (
-                              <div className="space-y-1">
-                                <p className="text-sm">
-                                  <strong>
-                                    {activity.sender?.full_name || "Unknown"}
-                                  </strong>{" "}
-                                  →{" "}
-                                  <strong>
-                                    {activity.recipient?.full_name || "Unknown"}
-                                  </strong>
-                                </p>
-                                <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                                  <span>
-                                    Duration:{" "}
-                                    {activity.duration_secs
-                                      ? `${Math.floor(parseFloat(activity.duration_secs) / 60)}:${(Math.floor(parseFloat(activity.duration_secs)) % 60).toString().padStart(2, "0")}`
-                                      : "Unknown"}
-                                  </span>
-                                  <span
-                                    className={
-                                      activity.is_listened
-                                        ? "text-primary"
-                                        : "text-destructive"
-                                    }
-                                  >
-                                    {activity.is_listened
-                                      ? "✓ Listened"
-                                      : "○ Not listened"}
-                                  </span>
-                                </div>
-                              </div>
-                            )}
+                <TabsContent value="activity" className="space-y-4">
+                  {activities.map((activity) => (
+                    <Card key={`${activity.type}-${activity.id}`}>
+                      <CardContent className="pt-6 space-y-4">
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-medium text-muted-foreground uppercase">
+                              {activity.type.replace(/_/g, " ")}
+                            </span>
+                            <span className="text-xs text-muted-foreground">
+                              {activity.timestamp
+                                ? formatDistanceToNow(
+                                    new Date(activity.timestamp),
+                                    { addSuffix: true },
+                                  )
+                                : ""}
+                            </span>
                           </div>
-
-                          {commentingOn?.id === activity.id ? (
-                            <div className="space-y-4 border-t pt-4">
-                              <Textarea
-                                placeholder="Add your comment or note..."
-                                value={commentText}
-                                onChange={(e) => setCommentText(e.target.value)}
-                                className="min-h-24"
-                              />
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-2">
-                                  <Checkbox
-                                    id={`private-${activity.id}`}
-                                    checked={isPrivate}
-                                    onCheckedChange={(checked) =>
-                                      setIsPrivate(checked as boolean)
-                                    }
-                                  />
-                                  <Label
-                                    htmlFor={`private-${activity.id}`}
-                                    className="text-sm"
-                                  >
-                                    Private note (only visible to you)
-                                  </Label>
-                                </div>
-                                <div className="flex gap-2">
-                                  <Button
-                                    variant="ghost"
-                                    onClick={() => setCommentingOn(null)}
-                                  >
-                                    Cancel
-                                  </Button>
-                                  <Button
-                                    onClick={() =>
-                                      handleAddComment(
-                                        activity.type,
-                                        activity.id,
-                                      )
-                                    }
-                                  >
-                                    <Send className="h-4 w-4 mr-2" />
-                                    Post
-                                  </Button>
-                                </div>
+                          {activity.type === "gratitude_logs" && (
+                            <p>{activity.text_content}</p>
+                          )}
+                          {activity.type === "shared_goals" && (
+                            <p>
+                              <strong>Goal:</strong> {activity.title}
+                            </p>
+                          )}
+                          {activity.type === "rituals" && (
+                            <p>
+                              <strong>{activity.category}:</strong>{" "}
+                              {activity.description}
+                            </p>
+                          )}
+                          {activity.type === "conversations" && (
+                            <p className="text-sm italic">
+                              Hold Me Tight conversation completed
+                            </p>
+                          )}
+                          {activity.type === "voice_memos" && (
+                            <div className="space-y-1">
+                              <p className="text-sm">
+                                <strong>
+                                  {activity.sender?.full_name || "Unknown"}
+                                </strong>{" "}
+                                →{" "}
+                                <strong>
+                                  {activity.recipient?.full_name || "Unknown"}
+                                </strong>
+                              </p>
+                              <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                                <span>
+                                  Duration:{" "}
+                                  {activity.duration_secs
+                                    ? `${Math.floor(parseFloat(activity.duration_secs) / 60)}:${(Math.floor(parseFloat(activity.duration_secs)) % 60).toString().padStart(2, "0")}`
+                                    : "Unknown"}
+                                </span>
+                                <span
+                                  className={
+                                    activity.is_listened
+                                      ? "text-primary"
+                                      : "text-destructive"
+                                  }
+                                >
+                                  {activity.is_listened
+                                    ? "✓ Listened"
+                                    : "○ Not listened"}
+                                </span>
                               </div>
                             </div>
-                          ) : (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() =>
-                                setCommentingOn({
-                                  type: activity.type,
-                                  id: activity.id,
-                                })
-                              }
-                            >
-                              Add Comment
-                            </Button>
                           )}
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </TabsContent>
+                        </div>
 
-                  <TabsContent value="messages" className="space-y-4">
-                    <MessagesTab
-                      coupleId={selectedCouple.id}
-                      therapistId={profile?.id || ""}
-                      userId={user?.id || ""}
-                      messageText={messageText}
-                      setMessageText={setMessageText}
-                      messagesEndRef={messagesEndRef}
-                    />
-                  </TabsContent>
-
-                  <TabsContent value="calendar" className="space-y-4">
-                    <CalendarTab coupleId={selectedCouple.id} />
-                  </TabsContent>
-
-                  <TabsContent value="lovemap" className="space-y-4">
-                    <LoveMapTab coupleId={selectedCouple.id} />
-                  </TabsContent>
-
-                  <TabsContent value="echo" className="space-y-4">
-                    <EchoEmpathyTab coupleId={selectedCouple.id} />
-                  </TabsContent>
-
-                  <TabsContent value="ifs" className="space-y-4">
-                    <IfsTab
-                      coupleId={selectedCouple.id}
-                      partnerId1={selectedCouple.partner1_id}
-                      partnerId2={selectedCouple.partner2_id}
-                      partner1Name={
-                        selectedCouple.partner1?.full_name || undefined
-                      }
-                      partner2Name={
-                        selectedCouple.partner2?.full_name || undefined
-                      }
-                    />
-                  </TabsContent>
-
-                  <TabsContent value="pause" className="space-y-4">
-                    <PauseHistoryTab
-                      coupleId={selectedCouple.id}
-                      partnerId1={selectedCouple.partner1_id}
-                      partnerId2={selectedCouple.partner2_id}
-                      partner1Name={
-                        selectedCouple.partner1?.full_name || undefined
-                      }
-                      partner2Name={
-                        selectedCouple.partner2?.full_name || undefined
-                      }
-                    />
-                  </TabsContent>
-
-                  <TabsContent value="therapy-tools" className="space-y-4">
-                    <Card>
-                      <CardHeader>
-                        <CardTitle>Advanced Therapy Tools</CardTitle>
-                        <CardDescription>
-                          Track usage and progress across additional therapeutic
-                          interventions
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <Tabs defaultValue="four-horsemen">
-                          <TabsList className="grid w-full grid-cols-6 gap-2">
-                            <TabsTrigger
-                              value="four-horsemen"
-                              data-testid="tab-trigger-four-horsemen"
-                            >
-                              Four Horsemen
-                            </TabsTrigger>
-                            <TabsTrigger
-                              value="demon-dialogues"
-                              data-testid="tab-trigger-demon-dialogues"
-                            >
-                              Demon Dialogues
-                            </TabsTrigger>
-                            <TabsTrigger
-                              value="meditation"
-                              data-testid="tab-trigger-meditation"
-                            >
-                              Meditation
-                            </TabsTrigger>
-                            <TabsTrigger
-                              value="intimacy"
-                              data-testid="tab-trigger-intimacy"
-                            >
-                              Intimacy Mapping
-                            </TabsTrigger>
-                            <TabsTrigger
-                              value="values"
-                              data-testid="tab-trigger-values"
-                            >
-                              Values & Vision
-                            </TabsTrigger>
-                            <TabsTrigger
-                              value="parenting"
-                              data-testid="tab-trigger-parenting"
-                            >
-                              Parenting
-                            </TabsTrigger>
-                          </TabsList>
-
-                          <TabsContent
-                            value="four-horsemen"
-                            className="space-y-4 mt-6"
-                          >
-                            <FourHorsemenTab coupleId={selectedCouple.id} />
-                          </TabsContent>
-
-                          <TabsContent
-                            value="demon-dialogues"
-                            className="space-y-4 mt-6"
-                          >
-                            <DemonDialoguesTab coupleId={selectedCouple.id} />
-                          </TabsContent>
-
-                          <TabsContent
-                            value="meditation"
-                            className="space-y-4 mt-6"
-                          >
-                            <MeditationLibraryTab
-                              coupleId={selectedCouple.id}
+                        {commentingOn?.id === activity.id ? (
+                          <div className="space-y-4 border-t pt-4">
+                            <Textarea
+                              placeholder="Add your comment or note..."
+                              value={commentText}
+                              onChange={(e) => setCommentText(e.target.value)}
+                              className="min-h-24"
                             />
-                          </TabsContent>
-
-                          <TabsContent
-                            value="intimacy"
-                            className="space-y-4 mt-6"
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <Checkbox
+                                  id={`private-${activity.id}`}
+                                  checked={isPrivate}
+                                  onCheckedChange={(checked) =>
+                                    setIsPrivate(checked as boolean)
+                                  }
+                                />
+                                <Label
+                                  htmlFor={`private-${activity.id}`}
+                                  className="text-sm"
+                                >
+                                  Private note (only visible to you)
+                                </Label>
+                              </div>
+                              <div className="flex gap-2">
+                                <Button
+                                  variant="ghost"
+                                  onClick={() => setCommentingOn(null)}
+                                >
+                                  Cancel
+                                </Button>
+                                <Button
+                                  onClick={() =>
+                                    handleAddComment(activity.type, activity.id)
+                                  }
+                                >
+                                  <Send className="h-4 w-4 mr-2" />
+                                  Post
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
+                        ) : (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() =>
+                              setCommentingOn({
+                                type: activity.type,
+                                id: activity.id,
+                              })
+                            }
                           >
-                            <IntimacyMappingTab coupleId={selectedCouple.id} />
-                          </TabsContent>
-
-                          <TabsContent
-                            value="values"
-                            className="space-y-4 mt-6"
-                          >
-                            <ValuesVisionTab coupleId={selectedCouple.id} />
-                          </TabsContent>
-
-                          <TabsContent
-                            value="parenting"
-                            className="space-y-4 mt-6"
-                          >
-                            <ParentingPartnersTab
-                              coupleId={selectedCouple.id}
-                            />
-                          </TabsContent>
-                        </Tabs>
+                            Add Comment
+                          </Button>
+                        )}
                       </CardContent>
                     </Card>
-                  </TabsContent>
+                  ))}
+                </TabsContent>
 
-                  <TabsContent value="dashboard-customization" className="space-y-4">
-                    <DashboardCustomizer
-                      coupleId={selectedCouple.id}
-                      therapistId={profile?.id || ""}
-                      initialOrder={dashboardCustomizationQuery.data?.widget_order || [
+                <TabsContent value="messages" className="space-y-4">
+                  <MessagesTab
+                    coupleId={selectedCouple.id}
+                    therapistId={profile?.id || ""}
+                    userId={user?.id || ""}
+                    messageText={messageText}
+                    setMessageText={setMessageText}
+                    messagesEndRef={messagesEndRef}
+                  />
+                </TabsContent>
+
+                <TabsContent value="calendar" className="space-y-4">
+                  <CalendarTab coupleId={selectedCouple.id} />
+                </TabsContent>
+
+                <TabsContent value="lovemap" className="space-y-4">
+                  <LoveMapTab coupleId={selectedCouple.id} />
+                </TabsContent>
+
+                <TabsContent value="echo" className="space-y-4">
+                  <EchoEmpathyTab coupleId={selectedCouple.id} />
+                </TabsContent>
+
+                <TabsContent value="ifs" className="space-y-4">
+                  <IfsTab
+                    coupleId={selectedCouple.id}
+                    partnerId1={selectedCouple.partner1_id}
+                    partnerId2={selectedCouple.partner2_id}
+                    partner1Name={
+                      selectedCouple.partner1?.full_name || undefined
+                    }
+                    partner2Name={
+                      selectedCouple.partner2?.full_name || undefined
+                    }
+                  />
+                </TabsContent>
+
+                <TabsContent value="pause" className="space-y-4">
+                  <PauseHistoryTab
+                    coupleId={selectedCouple.id}
+                    partnerId1={selectedCouple.partner1_id}
+                    partnerId2={selectedCouple.partner2_id}
+                    partner1Name={
+                      selectedCouple.partner1?.full_name || undefined
+                    }
+                    partner2Name={
+                      selectedCouple.partner2?.full_name || undefined
+                    }
+                  />
+                </TabsContent>
+
+                <TabsContent value="therapy-tools" className="space-y-4">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Advanced Therapy Tools</CardTitle>
+                      <CardDescription>
+                        Track usage and progress across additional therapeutic
+                        interventions
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <Tabs defaultValue="four-horsemen">
+                        <TabsList className="grid w-full grid-cols-6 gap-2">
+                          <TabsTrigger
+                            value="four-horsemen"
+                            data-testid="tab-trigger-four-horsemen"
+                          >
+                            Four Horsemen
+                          </TabsTrigger>
+                          <TabsTrigger
+                            value="demon-dialogues"
+                            data-testid="tab-trigger-demon-dialogues"
+                          >
+                            Demon Dialogues
+                          </TabsTrigger>
+                          <TabsTrigger
+                            value="meditation"
+                            data-testid="tab-trigger-meditation"
+                          >
+                            Meditation
+                          </TabsTrigger>
+                          <TabsTrigger
+                            value="intimacy"
+                            data-testid="tab-trigger-intimacy"
+                          >
+                            Intimacy Mapping
+                          </TabsTrigger>
+                          <TabsTrigger
+                            value="values"
+                            data-testid="tab-trigger-values"
+                          >
+                            Values & Vision
+                          </TabsTrigger>
+                          <TabsTrigger
+                            value="parenting"
+                            data-testid="tab-trigger-parenting"
+                          >
+                            Parenting
+                          </TabsTrigger>
+                        </TabsList>
+
+                        <TabsContent
+                          value="four-horsemen"
+                          className="space-y-4 mt-6"
+                        >
+                          <FourHorsemenTab coupleId={selectedCouple.id} />
+                        </TabsContent>
+
+                        <TabsContent
+                          value="demon-dialogues"
+                          className="space-y-4 mt-6"
+                        >
+                          <DemonDialoguesTab coupleId={selectedCouple.id} />
+                        </TabsContent>
+
+                        <TabsContent
+                          value="meditation"
+                          className="space-y-4 mt-6"
+                        >
+                          <MeditationLibraryTab coupleId={selectedCouple.id} />
+                        </TabsContent>
+
+                        <TabsContent
+                          value="intimacy"
+                          className="space-y-4 mt-6"
+                        >
+                          <IntimacyMappingTab coupleId={selectedCouple.id} />
+                        </TabsContent>
+
+                        <TabsContent value="values" className="space-y-4 mt-6">
+                          <ValuesVisionTab coupleId={selectedCouple.id} />
+                        </TabsContent>
+
+                        <TabsContent
+                          value="parenting"
+                          className="space-y-4 mt-6"
+                        >
+                          <ParentingPartnersTab coupleId={selectedCouple.id} />
+                        </TabsContent>
+                      </Tabs>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+
+                <TabsContent
+                  value="dashboard-customization"
+                  className="space-y-4"
+                >
+                  <DashboardCustomizer
+                    coupleId={selectedCouple.id}
+                    therapistId={profile?.id || ""}
+                    initialOrder={
+                      dashboardCustomizationQuery.data?.widget_order || [
                         "weekly-checkin",
                         "love-languages",
                         "gratitude",
@@ -1344,8 +1351,10 @@ export default function AdminDashboard() {
                         "intimacy",
                         "values",
                         "parenting",
-                      ]}
-                      initialEnabled={dashboardCustomizationQuery.data?.enabled_widgets || {
+                      ]
+                    }
+                    initialEnabled={
+                      dashboardCustomizationQuery.data?.enabled_widgets || {
                         "weekly-checkin": true,
                         "love-languages": true,
                         gratitude: true,
@@ -1361,14 +1370,15 @@ export default function AdminDashboard() {
                         intimacy: true,
                         values: true,
                         parenting: true,
-                      }}
-                    />
-                  </TabsContent>
-                </Tabs>
-              </div>
-            </ScrollArea>
-          </main>
-        </div>
+                      }
+                    }
+                  />
+                </TabsContent>
+              </Tabs>
+            </div>
+          </ScrollArea>
+        </main>
+      </div>
 
       <AddCoupleModal
         open={showAddCoupleModal}
@@ -3312,7 +3322,11 @@ interface TherapistThoughtsPanelProps {
   partner2?: { id: string; full_name: string | null } | null;
 }
 
-function TherapistThoughtsPanel({ coupleId, partner1, partner2 }: TherapistThoughtsPanelProps) {
+function TherapistThoughtsPanel({
+  coupleId,
+  partner1,
+  partner2,
+}: TherapistThoughtsPanelProps) {
   const { toast } = useToast();
   const [isOpen, setIsOpen] = useState(false);
   const [newThought, setNewThought] = useState({
@@ -3336,17 +3350,13 @@ function TherapistThoughtsPanel({ coupleId, partner1, partner2 }: TherapistThoug
 
   const createMutation = useMutation({
     mutationFn: async () => {
-      return apiRequest(
-        "POST",
-        `/api/therapist-thoughts/couple/${coupleId}`,
-        {
-          thought_type: newThought.thought_type,
-          title: newThought.title,
-          content: newThought.content,
-          priority: newThought.priority,
-          individual_id: newThought.individual_id,
-        },
-      );
+      return apiRequest("POST", `/api/therapist-thoughts/couple/${coupleId}`, {
+        thought_type: newThought.thought_type,
+        title: newThought.title,
+        content: newThought.content,
+        priority: newThought.priority,
+        individual_id: newThought.individual_id,
+      });
     },
     onSuccess: () => {
       setNewThought({
@@ -3384,9 +3394,9 @@ function TherapistThoughtsPanel({ coupleId, partner1, partner2 }: TherapistThoug
   });
 
   const allThoughts = (thoughtsQuery.data || []) as TherapistThought[];
-  
+
   const thoughts = allThoughts;
-  
+
   const todos = thoughts.filter((t) => t.thought_type === "todo");
   const messages = thoughts.filter((t) => t.thought_type === "message");
   const fileRefs = thoughts.filter((t) => t.thought_type === "file_reference");
@@ -3432,7 +3442,9 @@ function TherapistThoughtsPanel({ coupleId, partner1, partner2 }: TherapistThoug
                   <SelectContent>
                     <SelectItem value="todo">To-Do</SelectItem>
                     <SelectItem value="message">Message to Client</SelectItem>
-                    <SelectItem value="file_reference">File Reference</SelectItem>
+                    <SelectItem value="file_reference">
+                      File Reference
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -3470,7 +3482,10 @@ function TherapistThoughtsPanel({ coupleId, partner1, partner2 }: TherapistThoug
                 <Select
                   value={newThought.individual_id || "both"}
                   onValueChange={(value: string) =>
-                    setNewThought({ ...newThought, individual_id: value === "both" ? null : value })
+                    setNewThought({
+                      ...newThought,
+                      individual_id: value === "both" ? null : value,
+                    })
                   }
                 >
                   <SelectTrigger
@@ -3563,7 +3578,9 @@ function TherapistThoughtsPanel({ coupleId, partner1, partner2 }: TherapistThoug
                           {thought.title}
                         </p>
                         <Badge variant="outline" className="text-xs h-4 px-1">
-                          {thought.individual_id ? getPartnerName(thought.individual_id) : "Both"}
+                          {thought.individual_id
+                            ? getPartnerName(thought.individual_id)
+                            : "Both"}
                         </Badge>
                       </div>
                       {thought.content && (
@@ -3619,7 +3636,9 @@ function TherapistThoughtsPanel({ coupleId, partner1, partner2 }: TherapistThoug
                           {thought.title}
                         </p>
                         <Badge variant="outline" className="text-xs h-4 px-1">
-                          {thought.individual_id ? getPartnerName(thought.individual_id) : "Both"}
+                          {thought.individual_id
+                            ? getPartnerName(thought.individual_id)
+                            : "Both"}
                         </Badge>
                       </div>
                       {thought.content && (
@@ -3661,7 +3680,9 @@ function TherapistThoughtsPanel({ coupleId, partner1, partner2 }: TherapistThoug
                           {thought.title}
                         </p>
                         <Badge variant="outline" className="text-xs h-4 px-1">
-                          {thought.individual_id ? getPartnerName(thought.individual_id) : "Both"}
+                          {thought.individual_id
+                            ? getPartnerName(thought.individual_id)
+                            : "Both"}
                         </Badge>
                       </div>
                       {thought.content && (
@@ -3669,17 +3690,18 @@ function TherapistThoughtsPanel({ coupleId, partner1, partner2 }: TherapistThoug
                           {thought.content}
                         </p>
                       )}
-                      {thought.file_reference && isValidUrl(thought.file_reference) && (
-                        <a
-                          href={thought.file_reference}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-primary hover:underline inline-flex items-center gap-1 mt-1"
-                        >
-                          <ExternalLink className="w-3 h-3" />
-                          Open Link
-                        </a>
-                      )}
+                      {thought.file_reference &&
+                        isValidUrl(thought.file_reference) && (
+                          <a
+                            href={thought.file_reference}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-primary hover:underline inline-flex items-center gap-1 mt-1"
+                          >
+                            <ExternalLink className="w-3 h-3" />
+                            Open Link
+                          </a>
+                        )}
                     </div>
                     <Button
                       variant="ghost"

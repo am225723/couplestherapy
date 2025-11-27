@@ -65,13 +65,16 @@ const ALL_WIDGETS = [
   "parenting",
 ];
 
-const WIDGET_CONFIG: Record<string, { 
-  label: string; 
-  icon: any; 
-  color: string; 
-  bgColor: string;
-  description: string;
-}> = {
+const WIDGET_CONFIG: Record<
+  string,
+  {
+    label: string;
+    icon: any;
+    color: string;
+    bgColor: string;
+    description: string;
+  }
+> = {
   "weekly-checkin": {
     label: "Weekly Check-in",
     icon: TrendingUp,
@@ -185,14 +188,14 @@ const SIZE_DIMENSIONS = {
   large: { cols: 3, label: "L", description: "3 columns" },
 };
 
-function WidgetPreviewCard({ 
-  widgetId, 
-  size, 
+function WidgetPreviewCard({
+  widgetId,
+  size,
   enabled,
   onToggle,
   onSizeChange,
-}: { 
-  widgetId: string; 
+}: {
+  widgetId: string;
   size: "small" | "medium" | "large";
   enabled: boolean;
   onToggle: () => void;
@@ -215,18 +218,22 @@ function WidgetPreviewCard({
   }[size];
 
   return (
-    <div 
+    <div
       className={cn(
         sizeClass,
         "transition-all duration-200",
-        !enabled && "opacity-40"
+        !enabled && "opacity-40",
       )}
     >
-      <Card className={cn(
-        "h-full relative group",
-        heightClass,
-        enabled ? "border-border" : "border-dashed border-muted-foreground/30"
-      )}>
+      <Card
+        className={cn(
+          "h-full relative group",
+          heightClass,
+          enabled
+            ? "border-border"
+            : "border-dashed border-muted-foreground/30",
+        )}
+      >
         <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
           <Button
             size="icon"
@@ -320,7 +327,7 @@ function WidgetListItem({
       onDrop={onDrop}
       className={cn(
         "flex items-center gap-3 p-3 rounded-lg border cursor-move hover:border-primary/50 transition",
-        !enabled && "opacity-50 bg-muted/50"
+        !enabled && "opacity-50 bg-muted/50",
       )}
     >
       <GripVertical className="w-4 h-4 text-muted-foreground flex-shrink-0" />
@@ -334,7 +341,9 @@ function WidgetListItem({
       </div>
       <div className="flex-1 min-w-0">
         <p className="font-medium text-sm truncate">{config.label}</p>
-        <p className="text-xs text-muted-foreground truncate">{config.description}</p>
+        <p className="text-xs text-muted-foreground truncate">
+          {config.description}
+        </p>
       </div>
       <div className="flex gap-1">
         {(["small", "medium", "large"] as const).map((s) => (
@@ -362,18 +371,20 @@ export function DashboardCustomizer({
   initialSizes = {},
 }: DashboardCustomizerProps) {
   const fullOrder = Array.from(new Set([...initialOrder, ...ALL_WIDGETS]));
-  
+
   const [order, setOrder] = useState<string[]>(fullOrder);
   const [enabled, setEnabled] = useState<Record<string, boolean>>(() => {
     const defaults: Record<string, boolean> = {};
-    ALL_WIDGETS.forEach(w => {
+    ALL_WIDGETS.forEach((w) => {
       defaults[w] = initialEnabled[w] ?? true;
     });
     return defaults;
   });
-  const [sizes, setSizes] = useState<Record<string, "small" | "medium" | "large">>(() => {
+  const [sizes, setSizes] = useState<
+    Record<string, "small" | "medium" | "large">
+  >(() => {
     const defaults: Record<string, "small" | "medium" | "large"> = {};
-    ALL_WIDGETS.forEach(w => {
+    ALL_WIDGETS.forEach((w) => {
       defaults[w] = initialSizes[w] || "medium";
     });
     return defaults;
@@ -436,8 +447,8 @@ export function DashboardCustomizer({
     setSizes((prev) => ({ ...prev, [widget]: size }));
   };
 
-  const enabledWidgets = order.filter(w => enabled[w]);
-  const disabledWidgets = order.filter(w => !enabled[w]);
+  const enabledWidgets = order.filter((w) => enabled[w]);
+  const disabledWidgets = order.filter((w) => !enabled[w]);
 
   return (
     <div className="space-y-6">
@@ -445,7 +456,8 @@ export function DashboardCustomizer({
         <div>
           <h2 className="text-2xl font-bold">Dashboard Customizer</h2>
           <p className="text-muted-foreground">
-            Configure which widgets appear on your client's dashboard and their sizes
+            Configure which widgets appear on your client's dashboard and their
+            sizes
           </p>
         </div>
         <Button
@@ -479,7 +491,8 @@ export function DashboardCustomizer({
                 Client Dashboard Preview
               </CardTitle>
               <CardDescription>
-                This shows how widgets will appear on the client's dashboard. Hover over widgets to adjust size.
+                This shows how widgets will appear on the client's dashboard.
+                Hover over widgets to adjust size.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -541,7 +554,8 @@ export function DashboardCustomizer({
                 Widget Configuration
               </CardTitle>
               <CardDescription>
-                Drag to reorder. All 15 widgets are shown - enable or disable as needed.
+                Drag to reorder. All 15 widgets are shown - enable or disable as
+                needed.
               </CardDescription>
             </CardHeader>
             <CardContent>

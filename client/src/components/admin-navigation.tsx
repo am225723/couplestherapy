@@ -120,7 +120,8 @@ export function AdminNavigation({
   const getActiveTab = () => {
     if (currentSection === "overview") return "overview";
     if (currentSection === "dashboard-customization") return "customize";
-    if (INSIGHT_SECTIONS.some((s) => s.id === currentSection)) return "insights";
+    if (INSIGHT_SECTIONS.some((s) => s.id === currentSection))
+      return "insights";
     if (TOOL_SECTIONS.some((s) => s.id === currentSection)) return "tools";
     return "overview";
   };
@@ -154,16 +155,22 @@ export function AdminNavigation({
                     <div className="flex -space-x-1">
                       <Avatar className="h-5 w-5 border border-background">
                         <AvatarFallback className="text-[10px]">
-                          {getInitials(selectedCouple.partner1?.full_name || "P1")}
+                          {getInitials(
+                            selectedCouple.partner1?.full_name || "P1",
+                          )}
                         </AvatarFallback>
                       </Avatar>
                       <Avatar className="h-5 w-5 border border-background">
                         <AvatarFallback className="text-[10px]">
-                          {getInitials(selectedCouple.partner2?.full_name || "P2")}
+                          {getInitials(
+                            selectedCouple.partner2?.full_name || "P2",
+                          )}
                         </AvatarFallback>
                       </Avatar>
                     </div>
-                    <span className="truncate">{getCoupleDisplayName(selectedCouple)}</span>
+                    <span className="truncate">
+                      {getCoupleDisplayName(selectedCouple)}
+                    </span>
                   </div>
                 ) : (
                   <span className="text-muted-foreground">Select a couple</span>
@@ -189,7 +196,7 @@ export function AdminNavigation({
                     onClick={() => onSelectCouple(couple.id)}
                     className={cn(
                       "gap-2 cursor-pointer",
-                      couple.id === selectedCoupleId && "bg-accent"
+                      couple.id === selectedCoupleId && "bg-accent",
                     )}
                     data-testid={`menu-item-couple-${couple.id}`}
                   >
@@ -263,7 +270,9 @@ export function AdminNavigation({
                 return (
                   <Button
                     key={section.id}
-                    variant={currentSection === section.id ? "secondary" : "ghost"}
+                    variant={
+                      currentSection === section.id ? "secondary" : "ghost"
+                    }
                     size="sm"
                     className="gap-1.5 flex-shrink-0"
                     onClick={() => onSelectSection(section.id)}
@@ -284,7 +293,9 @@ export function AdminNavigation({
                 return (
                   <Button
                     key={section.id}
-                    variant={currentSection === section.id ? "secondary" : "ghost"}
+                    variant={
+                      currentSection === section.id ? "secondary" : "ghost"
+                    }
                     size="sm"
                     className="gap-1.5 flex-shrink-0"
                     onClick={() => onSelectSection(section.id)}

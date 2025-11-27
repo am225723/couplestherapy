@@ -30,7 +30,8 @@ async function registerForPushNotifications() {
     }
 
     // Request notification permission
-    const { status: existingStatus } = await Notifications.getPermissionsAsync();
+    const { status: existingStatus } =
+      await Notifications.getPermissionsAsync();
     let finalStatus = existingStatus;
 
     if (existingStatus !== "granted") {
@@ -60,17 +61,20 @@ async function registerForPushNotifications() {
     }
 
     const backendUrl = process.env.REACT_APP_API_URL || "http://localhost:5000";
-    const response = await fetch(`${backendUrl}/api/push-notifications/register-token`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${session}`,
+    const response = await fetch(
+      `${backendUrl}/api/push-notifications/register-token`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session}`,
+        },
+        body: JSON.stringify({
+          token: expoToken,
+          type: "expo",
+        }),
       },
-      body: JSON.stringify({
-        token: expoToken,
-        type: "expo",
-      }),
-    });
+    );
 
     if (!response.ok) {
       console.error("Failed to register push token:", await response.text());

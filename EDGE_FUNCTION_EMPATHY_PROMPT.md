@@ -155,9 +155,7 @@ async function callPerplexity(
 // ========================================
 // Request Validation
 // ========================================
-function validateRequest(
-  body: any,
-):
+function validateRequest(body: any):
   | { valid: false; error: string }
   | {
       valid: true;

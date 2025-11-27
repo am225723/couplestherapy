@@ -69,7 +69,9 @@ router.get("/client/messages", async (req: Request, res: Response) => {
 
     // Verify coupleId is valid (defensive check)
     if (!coupleId || typeof coupleId !== "string") {
-      return res.status(403).json({ error: "User is not associated with a couple" });
+      return res
+        .status(403)
+        .json({ error: "User is not associated with a couple" });
     }
 
     // Fetch ALL thought types for the couple that are:
@@ -77,7 +79,9 @@ router.get("/client/messages", async (req: Request, res: Response) => {
     // 2. Targeted specifically at this user
     const { data, error } = await supabaseAdmin
       .from("Couples_therapist_thoughts")
-      .select("id, title, content, created_at, individual_id, thought_type, file_reference, priority, is_completed")
+      .select(
+        "id, title, content, created_at, individual_id, thought_type, file_reference, priority, is_completed",
+      )
       .eq("couple_id", coupleId)
       .or(`individual_id.is.null,individual_id.eq.${userId}`)
       .order("created_at", { ascending: false })
@@ -88,12 +92,14 @@ router.get("/client/messages", async (req: Request, res: Response) => {
       throw error;
     }
 
-    console.log(`Fetched ${data?.length || 0} thoughts for user ${userId} in couple ${coupleId}`);
+    console.log(
+      `Fetched ${data?.length || 0} thoughts for user ${userId} in couple ${coupleId}`,
+    );
 
     // Transform to include audience type for UI
-    const thoughts = (data || []).map(thought => ({
+    const thoughts = (data || []).map((thought) => ({
       ...thought,
-      audience: thought.individual_id ? "individual" : "couple"
+      audience: thought.individual_id ? "individual" : "couple",
     }));
 
     res.json(thoughts);
@@ -215,12 +221,16 @@ router.patch("/client/:id/complete", async (req: Request, res: Response) => {
 
     // Verify thought is addressed to this user (individual_id is null OR matches userId)
     if (thought.individual_id && thought.individual_id !== userId) {
-      return res.status(403).json({ error: "This thought is not addressed to you" });
+      return res
+        .status(403)
+        .json({ error: "This thought is not addressed to you" });
     }
 
     // Only allow completion toggle for todos
     if (thought.thought_type !== "todo") {
-      return res.status(400).json({ error: "Only to-do items can be marked as complete" });
+      return res
+        .status(400)
+        .json({ error: "Only to-do items can be marked as complete" });
     }
 
     // Toggle completion status

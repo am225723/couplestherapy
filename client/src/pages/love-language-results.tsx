@@ -180,7 +180,8 @@ export default function LoveLanguageResults() {
             <Heart className="h-12 w-12 mx-auto text-primary mb-4" />
             <CardTitle>No Results Yet</CardTitle>
             <CardDescription>
-              Take the Love Language quiz to discover how you give and receive love.
+              Take the Love Language quiz to discover how you give and receive
+              love.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -243,11 +244,17 @@ export default function LoveLanguageResults() {
                 <Heart className="h-8 w-8 text-primary" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Your Primary Love Language</p>
-                <h1 className="text-2xl md:text-3xl font-bold">{primaryLanguage}</h1>
+                <p className="text-sm text-muted-foreground">
+                  Your Primary Love Language
+                </p>
+                <h1 className="text-2xl md:text-3xl font-bold">
+                  {primaryLanguage}
+                </h1>
               </div>
             </div>
-            <p className="text-muted-foreground">{primaryDetails.description}</p>
+            <p className="text-muted-foreground">
+              {primaryDetails.description}
+            </p>
           </div>
         </Card>
 
@@ -269,16 +276,24 @@ export default function LoveLanguageResults() {
               const isSecondary = index === 1;
 
               return (
-                <div key={language} className="space-y-2" data-testid={`score-${language.toLowerCase().replace(/\s+/g, "-")}`}>
+                <div
+                  key={language}
+                  className="space-y-2"
+                  data-testid={`score-${language.toLowerCase().replace(/\s+/g, "-")}`}
+                >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <Icon className={`h-4 w-4 ${details.color}`} />
                       <span className="font-medium">{language}</span>
                       {isPrimary && (
-                        <Badge variant="default" className="text-xs">Primary</Badge>
+                        <Badge variant="default" className="text-xs">
+                          Primary
+                        </Badge>
                       )}
                       {isSecondary && (
-                        <Badge variant="secondary" className="text-xs">Secondary</Badge>
+                        <Badge variant="secondary" className="text-xs">
+                          Secondary
+                        </Badge>
                       )}
                     </div>
                     <span className="text-sm text-muted-foreground">
@@ -299,7 +314,9 @@ export default function LoveLanguageResults() {
           <Card data-testid="card-primary-activities">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-lg">
-                <primaryDetails.icon className={`h-5 w-5 ${primaryDetails.color}`} />
+                <primaryDetails.icon
+                  className={`h-5 w-5 ${primaryDetails.color}`}
+                />
                 {primaryLanguage} Activities
               </CardTitle>
               <CardDescription>
@@ -321,7 +338,9 @@ export default function LoveLanguageResults() {
           <Card data-testid="card-secondary-activities">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-lg">
-                <secondaryDetails.icon className={`h-5 w-5 ${secondaryDetails.color}`} />
+                <secondaryDetails.icon
+                  className={`h-5 w-5 ${secondaryDetails.color}`}
+                />
                 {secondaryLanguage} Activities
               </CardTitle>
               <CardDescription>
@@ -348,18 +367,24 @@ export default function LoveLanguageResults() {
               How to Love Your Partner
             </CardTitle>
             <CardDescription>
-              Share this with your partner so they know how to best express love to you
+              Share this with your partner so they know how to best express love
+              to you
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <div>
               <h3 className="font-semibold flex items-center gap-2 mb-3">
-                <primaryDetails.icon className={`h-4 w-4 ${primaryDetails.color}`} />
+                <primaryDetails.icon
+                  className={`h-4 w-4 ${primaryDetails.color}`}
+                />
                 {primaryLanguage}
               </h3>
               <ul className="space-y-2">
                 {primaryDetails.howToGive.map((tip, index) => (
-                  <li key={index} className="flex items-start gap-2 text-sm text-muted-foreground">
+                  <li
+                    key={index}
+                    className="flex items-start gap-2 text-sm text-muted-foreground"
+                  >
                     <span className="text-primary font-bold">-</span>
                     <span>{tip}</span>
                   </li>
@@ -371,12 +396,17 @@ export default function LoveLanguageResults() {
 
             <div>
               <h3 className="font-semibold flex items-center gap-2 mb-3">
-                <secondaryDetails.icon className={`h-4 w-4 ${secondaryDetails.color}`} />
+                <secondaryDetails.icon
+                  className={`h-4 w-4 ${secondaryDetails.color}`}
+                />
                 {secondaryLanguage}
               </h3>
               <ul className="space-y-2">
                 {secondaryDetails.howToGive.map((tip, index) => (
-                  <li key={index} className="flex items-start gap-2 text-sm text-muted-foreground">
+                  <li
+                    key={index}
+                    className="flex items-start gap-2 text-sm text-muted-foreground"
+                  >
                     <span className="text-secondary font-bold">-</span>
                     <span>{tip}</span>
                   </li>
@@ -386,18 +416,26 @@ export default function LoveLanguageResults() {
           </CardContent>
         </Card>
 
-        <Card className="bg-primary/5 border-primary/20" data-testid="card-couple-tip">
+        <Card
+          className="bg-primary/5 border-primary/20"
+          data-testid="card-couple-tip"
+        >
           <CardContent className="pt-6">
             <div className="flex items-start gap-4">
               <div className="p-2 rounded-full bg-primary/10">
                 <Heart className="h-6 w-6 text-primary" />
               </div>
               <div>
-                <h3 className="font-semibold mb-2">Strengthen Your Connection</h3>
+                <h3 className="font-semibold mb-2">
+                  Strengthen Your Connection
+                </h3>
                 <p className="text-sm text-muted-foreground">
-                  Understanding love languages is just the first step. Ask your partner to take
-                  the quiz too, then compare your results on the{" "}
-                  <Link href="/couple-compatibility" className="text-primary underline">
+                  Understanding love languages is just the first step. Ask your
+                  partner to take the quiz too, then compare your results on the{" "}
+                  <Link
+                    href="/couple-compatibility"
+                    className="text-primary underline"
+                  >
                     Couple Compatibility
                   </Link>{" "}
                   page to discover how to better love each other.

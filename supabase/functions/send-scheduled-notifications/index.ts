@@ -48,7 +48,7 @@ async function sendExpoNotification(
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${expoAccessToken}`,
+        Authorization: `Bearer ${expoAccessToken}`,
       },
       body: JSON.stringify({
         to: token,

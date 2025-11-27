@@ -53,7 +53,10 @@ import { LoveLanguage } from "@shared/schema";
 import clientHeroImage from "@assets/generated_images/Client_app_hero_image_9fd4eaf0.png";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { aiFunctions, ExerciseRecommendationsResponse } from "@/lib/ai-functions";
+import {
+  aiFunctions,
+  ExerciseRecommendationsResponse,
+} from "@/lib/ai-functions";
 
 function isValidUrl(url: string): boolean {
   try {
@@ -90,18 +93,20 @@ export default function ClientDashboard() {
   });
 
   // Therapist thoughts query (includes todos, messages, file references)
-  const therapistThoughtsQuery = useQuery<{
-    id: string;
-    title: string;
-    content: string | null;
-    created_at: string;
-    individual_id: string | null;
-    thought_type: "todo" | "message" | "file_reference";
-    file_reference: string | null;
-    priority: "low" | "medium" | "high" | null;
-    is_completed: boolean | null;
-    audience: "couple" | "individual";
-  }[]>({
+  const therapistThoughtsQuery = useQuery<
+    {
+      id: string;
+      title: string;
+      content: string | null;
+      created_at: string;
+      individual_id: string | null;
+      thought_type: "todo" | "message" | "file_reference";
+      file_reference: string | null;
+      priority: "low" | "medium" | "high" | null;
+      is_completed: boolean | null;
+      audience: "couple" | "individual";
+    }[]
+  >({
     queryKey: ["/api/therapist-thoughts/client/messages"],
     enabled: !!profile?.couple_id,
     staleTime: 1000 * 60 * 5, // 5 minutes
@@ -414,87 +419,107 @@ export default function ClientDashboard() {
           </Card>
         </Link>
 
-        {therapistThoughtsQuery.isSuccess && therapistThoughtsQuery.data && therapistThoughtsQuery.data.length > 0 && (
-          <Card
-            className="shadow-lg border-primary/20 bg-gradient-to-br from-blue-50/50 to-indigo-50/50 dark:from-blue-950/20 dark:to-indigo-950/20"
-            data-testid="card-therapist-thoughts"
-          >
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="flex items-center gap-2">
-                    <MessageCircle className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                    From Your Therapist
-                  </CardTitle>
-                  <CardDescription>
-                    Messages, to-dos, and resources from your therapy sessions
-                  </CardDescription>
+        {therapistThoughtsQuery.isSuccess &&
+          therapistThoughtsQuery.data &&
+          therapistThoughtsQuery.data.length > 0 && (
+            <Card
+              className="shadow-lg border-primary/20 bg-gradient-to-br from-blue-50/50 to-indigo-50/50 dark:from-blue-950/20 dark:to-indigo-950/20"
+              data-testid="card-therapist-thoughts"
+            >
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="flex items-center gap-2">
+                      <MessageCircle className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                      From Your Therapist
+                    </CardTitle>
+                    <CardDescription>
+                      Messages, to-dos, and resources from your therapy sessions
+                    </CardDescription>
+                  </div>
+                  <Link href="/therapist-thoughts">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-primary"
+                      data-testid="button-view-all-messages"
+                    >
+                      View All
+                      <ArrowRight className="ml-1 h-4 w-4" />
+                    </Button>
+                  </Link>
                 </div>
-                <Link href="/therapist-thoughts">
-                  <Button variant="ghost" size="sm" className="text-primary" data-testid="button-view-all-messages">
-                    View All
-                    <ArrowRight className="ml-1 h-4 w-4" />
-                  </Button>
-                </Link>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {therapistThoughtsQuery.data.slice(0, 4).map((thought) => (
-                <div
-                  key={thought.id}
-                  className="p-3 bg-background/80 rounded-lg border border-border/50"
-                  data-testid={`thought-item-${thought.id}`}
-                >
-                  <div className="flex items-start gap-2">
-                    <div className="mt-0.5">
-                      {thought.thought_type === "todo" ? (
-                        <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400" />
-                      ) : thought.thought_type === "file_reference" ? (
-                        <FileText className="h-4 w-4 text-orange-600 dark:text-orange-400" />
-                      ) : (
-                        <MessageCircle className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1 flex-wrap">
-                        <p className="font-medium text-sm">{thought.title || "Untitled"}</p>
-                        <Badge variant="outline" className="text-xs h-5 px-1.5">
-                          {thought.thought_type === "todo" ? "To-Do" : thought.thought_type === "file_reference" ? "Resource" : "Message"}
-                        </Badge>
-                        {thought.audience === "individual" && (
-                          <Badge variant="secondary" className="text-xs h-5 px-1.5 flex items-center gap-1">
-                            <User className="h-3 w-3" />
-                            Just for you
-                          </Badge>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {therapistThoughtsQuery.data.slice(0, 4).map((thought) => (
+                  <div
+                    key={thought.id}
+                    className="p-3 bg-background/80 rounded-lg border border-border/50"
+                    data-testid={`thought-item-${thought.id}`}
+                  >
+                    <div className="flex items-start gap-2">
+                      <div className="mt-0.5">
+                        {thought.thought_type === "todo" ? (
+                          <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400" />
+                        ) : thought.thought_type === "file_reference" ? (
+                          <FileText className="h-4 w-4 text-orange-600 dark:text-orange-400" />
+                        ) : (
+                          <MessageCircle className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                         )}
                       </div>
-                      {thought.content && (
-                        <p className="text-sm text-muted-foreground line-clamp-2">
-                          {thought.content}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1 flex-wrap">
+                          <p className="font-medium text-sm">
+                            {thought.title || "Untitled"}
+                          </p>
+                          <Badge
+                            variant="outline"
+                            className="text-xs h-5 px-1.5"
+                          >
+                            {thought.thought_type === "todo"
+                              ? "To-Do"
+                              : thought.thought_type === "file_reference"
+                                ? "Resource"
+                                : "Message"}
+                          </Badge>
+                          {thought.audience === "individual" && (
+                            <Badge
+                              variant="secondary"
+                              className="text-xs h-5 px-1.5 flex items-center gap-1"
+                            >
+                              <User className="h-3 w-3" />
+                              Just for you
+                            </Badge>
+                          )}
+                        </div>
+                        {thought.content && (
+                          <p className="text-sm text-muted-foreground line-clamp-2">
+                            {thought.content}
+                          </p>
+                        )}
+                        {thought.file_reference &&
+                          isValidUrl(thought.file_reference) && (
+                            <a
+                              href={thought.file_reference}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-sm text-primary hover:underline inline-flex items-center gap-1 mt-1"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <LinkIcon className="h-3 w-3" />
+                              Open Link
+                            </a>
+                          )}
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {new Date(thought.created_at).toLocaleDateString()}
                         </p>
-                      )}
-                      {thought.file_reference && isValidUrl(thought.file_reference) && (
-                        <a
-                          href={thought.file_reference}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-sm text-primary hover:underline inline-flex items-center gap-1 mt-1"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <LinkIcon className="h-3 w-3" />
-                          Open Link
-                        </a>
-                      )}
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {new Date(thought.created_at).toLocaleDateString()}
-                      </p>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-        )}
+                ))}
+              </CardContent>
+            </Card>
+          )}
 
         {recommendationsQuery.isSuccess && recommendationsQuery.data && (
           <Card
@@ -516,7 +541,9 @@ export default function ClientDashboard() {
                     data-testid={`recommendation-${idx}`}
                   >
                     <p className="font-medium text-sm mb-1">{rec.tool_name}</p>
-                    <p className="text-xs text-muted-foreground mb-2">{rec.rationale}</p>
+                    <p className="text-xs text-muted-foreground mb-2">
+                      {rec.rationale}
+                    </p>
                     <p className="text-xs text-amber-600 dark:text-amber-400 flex items-center gap-1.5">
                       <Lightbulb className="h-3 w-3" />
                       {rec.suggested_action}

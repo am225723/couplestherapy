@@ -57,11 +57,9 @@ router.post("/register-couple", async (req, res) => {
       });
 
     if (partner1Error) {
-      return res
-        .status(400)
-        .json({
-          error: `Failed to create Partner 1: ${partner1Error.message}`,
-        });
+      return res.status(400).json({
+        error: `Failed to create Partner 1: ${partner1Error.message}`,
+      });
     }
 
     // Step 3: Create Partner 2 account
@@ -75,11 +73,9 @@ router.post("/register-couple", async (req, res) => {
     if (partner2Error) {
       // Rollback: delete partner1
       await supabaseAdmin.auth.admin.deleteUser(partner1Auth.user.id);
-      return res
-        .status(400)
-        .json({
-          error: `Failed to create Partner 2: ${partner2Error.message}`,
-        });
+      return res.status(400).json({
+        error: `Failed to create Partner 2: ${partner2Error.message}`,
+      });
     }
 
     // Step 4: Create couple record
@@ -117,11 +113,9 @@ router.post("/register-couple", async (req, res) => {
       await supabaseAdmin.from("Couples_couples").delete().eq("id", couple.id);
       await supabaseAdmin.auth.admin.deleteUser(partner1Auth.user.id);
       await supabaseAdmin.auth.admin.deleteUser(partner2Auth.user.id);
-      return res
-        .status(500)
-        .json({
-          error: `Failed to create Partner 1 profile: ${profile1Error.message}`,
-        });
+      return res.status(500).json({
+        error: `Failed to create Partner 1 profile: ${profile1Error.message}`,
+      });
     }
 
     const { error: profile2Error } = await supabaseAdmin
@@ -142,11 +136,9 @@ router.post("/register-couple", async (req, res) => {
       await supabaseAdmin.from("Couples_couples").delete().eq("id", couple.id);
       await supabaseAdmin.auth.admin.deleteUser(partner1Auth.user.id);
       await supabaseAdmin.auth.admin.deleteUser(partner2Auth.user.id);
-      return res
-        .status(500)
-        .json({
-          error: `Failed to create Partner 2 profile: ${profile2Error.message}`,
-        });
+      return res.status(500).json({
+        error: `Failed to create Partner 2 profile: ${profile2Error.message}`,
+      });
     }
 
     // Step 6: Mark invitation code as used

@@ -226,11 +226,9 @@ therapistRouter.post("/create-couple", async (req: Request, res: Response) => {
       });
 
     if (partner1AuthError) {
-      return res
-        .status(400)
-        .json({
-          error: `Failed to create Partner 1: ${partner1AuthError.message}`,
-        });
+      return res.status(400).json({
+        error: `Failed to create Partner 1: ${partner1AuthError.message}`,
+      });
     }
 
     // Create auth user for Partner 2
@@ -244,11 +242,9 @@ therapistRouter.post("/create-couple", async (req: Request, res: Response) => {
     if (partner2AuthError) {
       // Rollback: delete partner1 if partner2 creation fails
       await supabaseAdmin.auth.admin.deleteUser(partner1Auth.user.id);
-      return res
-        .status(400)
-        .json({
-          error: `Failed to create Partner 2: ${partner2AuthError.message}`,
-        });
+      return res.status(400).json({
+        error: `Failed to create Partner 2: ${partner2AuthError.message}`,
+      });
     }
 
     // Create couple record using authenticated therapist's ID
@@ -357,11 +353,9 @@ therapistRouter.post(
         });
 
       if (therapistAuthError) {
-        return res
-          .status(400)
-          .json({
-            error: `Failed to create therapist auth: ${therapistAuthError.message}`,
-          });
+        return res.status(400).json({
+          error: `Failed to create therapist auth: ${therapistAuthError.message}`,
+        });
       }
 
       // Create profile with role='therapist'
@@ -377,11 +371,9 @@ therapistRouter.post(
       if (profileError) {
         // Rollback: delete auth user
         await supabaseAdmin.auth.admin.deleteUser(therapistAuth.user.id);
-        return res
-          .status(500)
-          .json({
-            error: `Failed to create therapist profile: ${profileError.message}`,
-          });
+        return res.status(500).json({
+          error: `Failed to create therapist profile: ${profileError.message}`,
+        });
       }
 
       res.json({
@@ -498,11 +490,9 @@ therapistRouter.post(
       }
 
       if (couple.therapist_id !== therapistId) {
-        return res
-          .status(403)
-          .json({
-            error: "You can only regenerate join codes for your own couples",
-          });
+        return res.status(403).json({
+          error: "You can only regenerate join codes for your own couples",
+        });
       }
 
       // Generate new 8-character join code (first 8 chars of UUID)

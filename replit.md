@@ -113,6 +113,7 @@ The design emphasizes a warm, compassionate feel using the Inter font, generous 
 
 **Supabase Edge Functions Setup (Required for AI Features):**
 To enable AI features in production, add the `PERPLEXITY_API_KEY` to your Supabase project:
+
 1. Go to your Supabase Dashboard > Project Settings > Edge Functions
 2. Add secret: `PERPLEXITY_API_KEY` with your Perplexity API key
 3. The Edge Functions will automatically use this key for AI recommendations, insights, and coaching features

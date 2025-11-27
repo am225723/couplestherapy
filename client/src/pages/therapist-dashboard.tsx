@@ -554,7 +554,9 @@ function TherapistThoughtsPanel({ coupleId }: { coupleId: string }) {
                   <SelectContent>
                     <SelectItem value="todo">To-Do</SelectItem>
                     <SelectItem value="message">Message to Client</SelectItem>
-                    <SelectItem value="file_reference">File Reference</SelectItem>
+                    <SelectItem value="file_reference">
+                      File Reference
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
