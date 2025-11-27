@@ -1,0 +1,26 @@
+{
+  "name": "ALEIC - Assisted Learning for Empathetic and Insightful Couples",
+  "short_name": "A.L.E.I.C.",
+  "description": "A couples therapy platform with evidence-based tools and AI-powered insights for stronger relationships.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "theme_color": "#0d9488",
+  "background_color": "#ffffff",
+  "icons": [
+    {
+      "src": "/icon-180.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-180.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["health", "lifestyle", "medical"]
+}
