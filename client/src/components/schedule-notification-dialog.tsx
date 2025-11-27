@@ -169,7 +169,7 @@ export function ScheduleNotificationDialog({
 
           <div>
             <Label htmlFor="time" className="text-sm font-medium">
-              Send at (UTC)
+              Send at (EST)
             </Label>
             <Input
               id="time"
