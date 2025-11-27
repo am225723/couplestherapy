@@ -41,6 +41,52 @@ interface PerplexityResponse {
 }
 
 // ========================================
+// Safe JSON Parsing
+// ========================================
+function safeJsonParse(text: string): any {
+  // Try direct parse first
+  try {
+    return JSON.parse(text);
+  } catch {
+    // Try to extract JSON from markdown code blocks
+    const jsonMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/);
+    if (jsonMatch) {
+      try {
+        return JSON.parse(jsonMatch[1].trim());
+      } catch {
+        // Continue to next attempt
+      }
+    }
+    
+    // Try to find JSON object in the text
+    const objectMatch = text.match(/\{[\s\S]*\}/);
+    if (objectMatch) {
+      try {
+        return JSON.parse(objectMatch[0]);
+      } catch {
+        // Continue to fallback
+      }
+    }
+    
+    // Return a default structure if all parsing fails
+    return {
+      activity_summary: {
+        not_started: [],
+        underutilized: [],
+        active: []
+      },
+      recommendations: [{
+        tool_name: "Weekly Check-ins",
+        rationale: "Regular check-ins help couples stay connected and identify issues early.",
+        suggested_action: "Complete your first weekly check-in together this week."
+      }],
+      parse_error: true,
+      raw_content: text.substring(0, 500)
+    };
+  }
+}
+
+// ========================================
 // Perplexity API Integration
 // ========================================
 async function analyzeWithPerplexity(
@@ -301,8 +347,8 @@ IMPORTANT: Respond ONLY with valid JSON in this exact format:
 
     const result = await analyzeWithPerplexity(systemPrompt, userPrompt);
 
-    // Parse JSON from AI response
-    const parsed = JSON.parse(result.content);
+    // Parse JSON from AI response with robust handling
+    const parsed = safeJsonParse(result.content);
 
     return new Response(
       JSON.stringify({

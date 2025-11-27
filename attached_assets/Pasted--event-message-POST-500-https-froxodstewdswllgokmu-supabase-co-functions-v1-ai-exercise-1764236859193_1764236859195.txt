@@ -1,0 +1,102 @@
+{
+  "event_message": "POST | 500 | https://froxodstewdswllgokmu.supabase.co/functions/v1/ai-exercise-recommendations",
+  "id": "997d58c1-f944-4a51-9081-cbfeab68029a",
+  "metadata": [
+    {
+      "deployment_id": "froxodstewdswllgokmu_50bfff55-ecb3-46f5-87ab-0106b37cbcc7_15",
+      "execution_id": "3d820054-da89-46f7-aff1-c3aba4648e47",
+      "execution_time_ms": 9804,
+      "function_id": "50bfff55-ecb3-46f5-87ab-0106b37cbcc7",
+      "project_ref": "froxodstewdswllgokmu",
+      "request": [
+        {
+          "headers": [
+            {
+              "accept": "*/*",
+              "accept_encoding": "gzip, br",
+              "connection": "Keep-Alive",
+              "content_length": "0",
+              "cookie": null,
+              "host": "froxodstewdswllgokmu.supabase.co",
+              "user_agent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+              "x_client_info": "supabase-js-web/2.79.0"
+            }
+          ],
+          "host": "froxodstewdswllgokmu.supabase.co",
+          "method": "POST",
+          "pathname": "/functions/v1/ai-exercise-recommendations",
+          "port": null,
+          "protocol": "https:",
+          "sb": [
+            {
+              "apikey": [],
+              "auth_user": "0dfc6875-7fcf-4522-ad9c-2b4d9bcd6d0e",
+              "jwt": [
+                {
+                  "apikey": [
+                    {
+                      "invalid": null,
+                      "payload": [
+                        {
+                          "algorithm": "HS256",
+                          "expires_at": 2076944285,
+                          "issuer": "supabase",
+                          "key_id": null,
+                          "role": "anon",
+                          "session_id": null,
+                          "signature_prefix": "PUr1-c",
+                          "subject": null
+                        }
+                      ]
+                    }
+                  ],
+                  "authorization": [
+                    {
+                      "invalid": null,
+                      "payload": [
+                        {
+                          "algorithm": "HS256",
+                          "expires_at": 1764239233,
+                          "issuer": "https://froxodstewdswllgokmu.supabase.co/auth/v1",
+                          "key_id": "+HD7xLZS6IRsuRGO",
+                          "role": "authenticated",
+                          "session_id": "aa350496-8603-49b0-a48c-4dafba535d9e",
+                          "signature_prefix": "qsSCB8",
+                          "subject": "0dfc6875-7fcf-4522-ad9c-2b4d9bcd6d0e"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "search": null,
+          "url": "https://froxodstewdswllgokmu.supabase.co/functions/v1/ai-exercise-recommendations"
+        }
+      ],
+      "response": [
+        {
+          "headers": [
+            {
+              "content_length": "91",
+              "content_type": "application/json",
+              "date": "Thu, 27 Nov 2025 09:46:46 GMT",
+              "sb_request_id": "019ac4b5-21cf-7f13-9e94-4880230bd18d",
+              "server": "cloudflare",
+              "vary": "Accept-Encoding",
+              "x_envoy_upstream_service_time": null,
+              "x_sb_compute_multiplier": null,
+              "x_sb_edge_region": "us-east-1",
+              "x_sb_resource_multiplier": null,
+              "x_served_by": "supabase-edge-runtime"
+            }
+          ],
+          "status_code": 500
+        }
+      ],
+      "version": "15"
+    }
+  ],
+  "timestamp": 1764236806171000
+}
