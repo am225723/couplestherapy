@@ -72,37 +72,33 @@ router.get("/client/messages", async (req: Request, res: Response) => {
       return res.status(403).json({ error: "User is not associated with a couple" });
     }
 
-    // Fetch only "message" type thoughts for the couple that are:
+    // Fetch ALL thought types for the couple that are:
     // 1. Targeted at both partners (individual_id is null), OR
     // 2. Targeted specifically at this user
-    let query = supabaseAdmin
+    const { data, error } = await supabaseAdmin
       .from("Couples_therapist_thoughts")
-      .select("id, title, content, created_at, individual_id")
+      .select("id, title, content, created_at, individual_id, thought_type, file_reference, priority, is_completed")
       .eq("couple_id", coupleId)
-      .eq("thought_type", "message");
-
-    // Filter: show messages for both partners (null) OR specifically for this user
-    const { data, error } = await query
       .or(`individual_id.is.null,individual_id.eq.${userId}`)
       .order("created_at", { ascending: false })
-      .limit(50);
+      .limit(100);
 
     if (error) {
-      console.error("Error in client messages query:", error);
+      console.error("Error in client thoughts query:", error);
       throw error;
     }
 
-    console.log(`Fetched ${data?.length || 0} messages for user ${userId} in couple ${coupleId}`);
+    console.log(`Fetched ${data?.length || 0} thoughts for user ${userId} in couple ${coupleId}`);
 
     // Transform to include audience type for UI
-    const messages = (data || []).map(msg => ({
-      ...msg,
-      audience: msg.individual_id ? "individual" : "couple"
+    const thoughts = (data || []).map(thought => ({
+      ...thought,
+      audience: thought.individual_id ? "individual" : "couple"
     }));
 
-    res.json(messages);
+    res.json(thoughts);
   } catch (error: any) {
-    console.error("Error fetching therapist messages for client:", error);
+    console.error("Error fetching therapist thoughts for client:", error);
     res.status(500).json({ error: error.message });
   }
 });

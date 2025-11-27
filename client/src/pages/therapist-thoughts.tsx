@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/lib/auth-context";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -17,22 +18,171 @@ import {
   User,
   Users,
   Calendar,
+  CheckCircle2,
+  FileText,
+  Link as LinkIcon,
+  ExternalLink,
 } from "lucide-react";
 
-export default function TherapistMessages() {
+interface TherapistThought {
+  id: string;
+  title: string;
+  content: string | null;
+  created_at: string;
+  individual_id: string | null;
+  thought_type: "todo" | "message" | "file_reference";
+  file_reference: string | null;
+  priority: "low" | "medium" | "high" | null;
+  is_completed: boolean | null;
+  audience: "couple" | "individual";
+}
+
+function isValidUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === "http:" || parsed.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
+function renderContentWithLinks(content: string | null) {
+  if (!content) return null;
+  
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  const parts = content.split(urlRegex);
+  
+  return parts.map((part, index) => {
+    if (urlRegex.test(part) && isValidUrl(part)) {
+      urlRegex.lastIndex = 0;
+      return (
+        <a
+          key={index}
+          href={part}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-primary hover:underline inline-flex items-center gap-1"
+        >
+          {part}
+          <ExternalLink className="h-3 w-3" />
+        </a>
+      );
+    }
+    return <span key={index}>{part}</span>;
+  });
+}
+
+function ThoughtCard({ thought }: { thought: TherapistThought }) {
+  const getIcon = () => {
+    switch (thought.thought_type) {
+      case "todo":
+        return <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400" />;
+      case "file_reference":
+        return <FileText className="h-5 w-5 text-orange-600 dark:text-orange-400" />;
+      default:
+        return <MessageCircle className="h-5 w-5 text-blue-600 dark:text-blue-400" />;
+    }
+  };
+
+  const getTypeLabel = () => {
+    switch (thought.thought_type) {
+      case "todo":
+        return "To-Do";
+      case "file_reference":
+        return "Resource";
+      default:
+        return "Message";
+    }
+  };
+
+  return (
+    <Card data-testid={`thought-card-${thought.id}`}>
+      <CardHeader>
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex-1 min-w-0">
+            <CardTitle className="text-lg flex items-center gap-2 flex-wrap">
+              {getIcon()}
+              {thought.title || "Untitled"}
+              <Badge variant="outline" className="text-xs">
+                {getTypeLabel()}
+              </Badge>
+              {thought.audience === "individual" ? (
+                <Badge variant="secondary" className="text-xs flex items-center gap-1">
+                  <User className="h-3 w-3" />
+                  Just for you
+                </Badge>
+              ) : (
+                <Badge variant="outline" className="text-xs flex items-center gap-1">
+                  <Users className="h-3 w-3" />
+                  For both
+                </Badge>
+              )}
+              {thought.thought_type === "todo" && thought.priority && (
+                <Badge
+                  variant={
+                    thought.priority === "high"
+                      ? "destructive"
+                      : thought.priority === "medium"
+                        ? "secondary"
+                        : "outline"
+                  }
+                  className="text-xs"
+                >
+                  {thought.priority}
+                </Badge>
+              )}
+            </CardTitle>
+            <CardDescription className="flex items-center gap-1.5 mt-1">
+              <Calendar className="h-3.5 w-3.5" />
+              {new Date(thought.created_at).toLocaleDateString(undefined, {
+                weekday: "long",
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              })}
+            </CardDescription>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        {thought.content && (
+          <div className="prose prose-sm dark:prose-invert max-w-none">
+            <p className="text-foreground whitespace-pre-wrap">
+              {renderContentWithLinks(thought.content)}
+            </p>
+          </div>
+        )}
+        {thought.file_reference && isValidUrl(thought.file_reference) && (
+          <div className="flex items-center gap-2 p-3 bg-muted rounded-lg">
+            <LinkIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+            <a
+              href={thought.file_reference}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary hover:underline flex items-center gap-1 text-sm break-all"
+            >
+              {thought.file_reference}
+              <ExternalLink className="h-3 w-3 flex-shrink-0" />
+            </a>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+export default function TherapistThoughts() {
   const { profile } = useAuth();
 
-  const messagesQuery = useQuery<{
-    id: string;
-    title: string;
-    content: string | null;
-    created_at: string;
-    individual_id: string | null;
-    audience: "couple" | "individual";
-  }[]>({
+  const thoughtsQuery = useQuery<TherapistThought[]>({
     queryKey: ["/api/therapist-thoughts/client/messages"],
     enabled: !!profile?.couple_id,
   });
+
+  const thoughts = thoughtsQuery.data || [];
+  const todos = thoughts.filter((t) => t.thought_type === "todo");
+  const messages = thoughts.filter((t) => t.thought_type === "message");
+  const files = thoughts.filter((t) => t.thought_type === "file_reference");
 
   return (
     <div className="min-h-screen bg-background">
@@ -46,80 +196,103 @@ export default function TherapistMessages() {
           <div>
             <h1 className="text-3xl font-bold flex items-center gap-3">
               <MessageCircle className="h-8 w-8 text-blue-600 dark:text-blue-400" />
-              Messages from Your Therapist
+              From Your Therapist
             </h1>
             <p className="text-muted-foreground mt-1">
-              Notes, insights, and guidance from your therapy sessions
+              Messages, to-dos, and resources from your therapy sessions
             </p>
           </div>
         </div>
 
-        {messagesQuery.isLoading && (
-          <Card data-testid="card-messages-loading">
+        {thoughtsQuery.isLoading && (
+          <Card data-testid="card-thoughts-loading">
             <CardContent className="py-12 flex items-center justify-center">
               <div className="flex items-center gap-3 text-muted-foreground">
                 <Loader2 className="h-5 w-5 animate-spin" />
-                <span>Loading messages...</span>
+                <span>Loading...</span>
               </div>
             </CardContent>
           </Card>
         )}
 
-        {messagesQuery.isSuccess && messagesQuery.data && messagesQuery.data.length === 0 && (
-          <Card data-testid="card-no-messages">
+        {thoughtsQuery.isSuccess && thoughts.length === 0 && (
+          <Card data-testid="card-no-thoughts">
             <CardContent className="py-12 text-center">
               <MessageCircle className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-              <h3 className="text-lg font-medium mb-2">No messages yet</h3>
+              <h3 className="text-lg font-medium mb-2">Nothing here yet</h3>
               <p className="text-muted-foreground">
-                Your therapist hasn't sent any messages yet. Check back after your next session.
+                Your therapist hasn't shared anything yet. Check back after your
+                next session.
               </p>
             </CardContent>
           </Card>
         )}
 
-        {messagesQuery.isSuccess && messagesQuery.data && messagesQuery.data.length > 0 && (
-          <div className="space-y-4">
-            {messagesQuery.data.map((message) => (
-              <Card key={message.id} data-testid={`message-card-${message.id}`}>
-                <CardHeader>
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1 min-w-0">
-                      <CardTitle className="text-lg flex items-center gap-2 flex-wrap">
-                        {message.title}
-                        {message.audience === "individual" ? (
-                          <Badge variant="outline" className="text-xs flex items-center gap-1">
-                            <User className="h-3 w-3" />
-                            Just for you
-                          </Badge>
-                        ) : (
-                          <Badge variant="secondary" className="text-xs flex items-center gap-1">
-                            <Users className="h-3 w-3" />
-                            For both of you
-                          </Badge>
-                        )}
-                      </CardTitle>
-                      <CardDescription className="flex items-center gap-1.5 mt-1">
-                        <Calendar className="h-3.5 w-3.5" />
-                        {new Date(message.created_at).toLocaleDateString(undefined, {
-                          weekday: 'long',
-                          year: 'numeric',
-                          month: 'long',
-                          day: 'numeric'
-                        })}
-                      </CardDescription>
-                    </div>
-                  </div>
-                </CardHeader>
-                {message.content && (
-                  <CardContent>
-                    <div className="prose prose-sm dark:prose-invert max-w-none">
-                      <p className="text-foreground whitespace-pre-wrap">{message.content}</p>
-                    </div>
+        {thoughtsQuery.isSuccess && thoughts.length > 0 && (
+          <Tabs defaultValue="all" className="w-full">
+            <TabsList className="grid w-full grid-cols-4">
+              <TabsTrigger value="all" data-testid="tab-all">
+                All ({thoughts.length})
+              </TabsTrigger>
+              <TabsTrigger value="messages" data-testid="tab-messages">
+                Messages ({messages.length})
+              </TabsTrigger>
+              <TabsTrigger value="todos" data-testid="tab-todos">
+                To-Dos ({todos.length})
+              </TabsTrigger>
+              <TabsTrigger value="files" data-testid="tab-files">
+                Resources ({files.length})
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="all" className="space-y-4 mt-6">
+              {thoughts.map((thought) => (
+                <ThoughtCard key={thought.id} thought={thought} />
+              ))}
+            </TabsContent>
+
+            <TabsContent value="messages" className="space-y-4 mt-6">
+              {messages.length === 0 ? (
+                <Card>
+                  <CardContent className="py-8 text-center text-muted-foreground">
+                    No messages yet
                   </CardContent>
-                )}
-              </Card>
-            ))}
-          </div>
+                </Card>
+              ) : (
+                messages.map((thought) => (
+                  <ThoughtCard key={thought.id} thought={thought} />
+                ))
+              )}
+            </TabsContent>
+
+            <TabsContent value="todos" className="space-y-4 mt-6">
+              {todos.length === 0 ? (
+                <Card>
+                  <CardContent className="py-8 text-center text-muted-foreground">
+                    No to-dos yet
+                  </CardContent>
+                </Card>
+              ) : (
+                todos.map((thought) => (
+                  <ThoughtCard key={thought.id} thought={thought} />
+                ))
+              )}
+            </TabsContent>
+
+            <TabsContent value="files" className="space-y-4 mt-6">
+              {files.length === 0 ? (
+                <Card>
+                  <CardContent className="py-8 text-center text-muted-foreground">
+                    No resources yet
+                  </CardContent>
+                </Card>
+              ) : (
+                files.map((thought) => (
+                  <ThoughtCard key={thought.id} thought={thought} />
+                ))
+              )}
+            </TabsContent>
+          </Tabs>
         )}
       </div>
     </div>

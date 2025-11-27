@@ -51,11 +51,23 @@ import {
   Trash2,
   User,
   Users,
+  CheckCircle2,
+  FileText,
+  Link as LinkIcon,
 } from "lucide-react";
 import { LoveLanguage } from "@shared/schema";
 import clientHeroImage from "@assets/generated_images/Client_app_hero_image_9fd4eaf0.png";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+
+function isValidUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === "http:" || parsed.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
 
 export default function ClientDashboard() {
   const { profile } = useAuth();
@@ -81,13 +93,17 @@ export default function ClientDashboard() {
     enabled: !!profile?.couple_id,
   });
 
-  // Therapist messages query
-  const therapistMessagesQuery = useQuery<{
+  // Therapist thoughts query (includes todos, messages, file references)
+  const therapistThoughtsQuery = useQuery<{
     id: string;
     title: string;
     content: string | null;
     created_at: string;
     individual_id: string | null;
+    thought_type: "todo" | "message" | "file_reference";
+    file_reference: string | null;
+    priority: "low" | "medium" | "high" | null;
+    is_completed: boolean | null;
     audience: "couple" | "individual";
   }[]>({
     queryKey: ["/api/therapist-thoughts/client/messages"],
@@ -402,7 +418,7 @@ export default function ClientDashboard() {
           </Card>
         </Link>
 
-        {therapistMessagesQuery.isSuccess && therapistMessagesQuery.data && therapistMessagesQuery.data.length > 0 && (
+        {therapistThoughtsQuery.isSuccess && therapistThoughtsQuery.data && therapistThoughtsQuery.data.length > 0 && (
           <Card
             className="shadow-lg border-primary/20 bg-gradient-to-br from-blue-50/50 to-indigo-50/50 dark:from-blue-950/20 dark:to-indigo-950/20"
             data-testid="card-therapist-thoughts"
@@ -412,10 +428,10 @@ export default function ClientDashboard() {
                 <div>
                   <CardTitle className="flex items-center gap-2">
                     <MessageCircle className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                    Messages from Your Therapist
+                    From Your Therapist
                   </CardTitle>
                   <CardDescription>
-                    Notes and guidance from your therapy sessions
+                    Messages, to-dos, and resources from your therapy sessions
                   </CardDescription>
                 </div>
                 <Link href="/therapist-thoughts">
@@ -427,35 +443,54 @@ export default function ClientDashboard() {
               </div>
             </CardHeader>
             <CardContent className="space-y-3">
-              {therapistMessagesQuery.data.slice(0, 3).map((message) => (
+              {therapistThoughtsQuery.data.slice(0, 4).map((thought) => (
                 <div
-                  key={message.id}
+                  key={thought.id}
                   className="p-3 bg-background/80 rounded-lg border border-border/50"
-                  data-testid={`message-item-${message.id}`}
+                  data-testid={`thought-item-${thought.id}`}
                 >
-                  <div className="flex items-start justify-between gap-2">
+                  <div className="flex items-start gap-2">
+                    <div className="mt-0.5">
+                      {thought.thought_type === "todo" ? (
+                        <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400" />
+                      ) : thought.thought_type === "file_reference" ? (
+                        <FileText className="h-4 w-4 text-orange-600 dark:text-orange-400" />
+                      ) : (
+                        <MessageCircle className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                      )}
+                    </div>
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <p className="font-medium text-sm">{message.title}</p>
-                        {message.audience === "individual" ? (
-                          <Badge variant="outline" className="text-xs h-5 px-1.5 flex items-center gap-1">
+                      <div className="flex items-center gap-2 mb-1 flex-wrap">
+                        <p className="font-medium text-sm">{thought.title || "Untitled"}</p>
+                        <Badge variant="outline" className="text-xs h-5 px-1.5">
+                          {thought.thought_type === "todo" ? "To-Do" : thought.thought_type === "file_reference" ? "Resource" : "Message"}
+                        </Badge>
+                        {thought.audience === "individual" && (
+                          <Badge variant="secondary" className="text-xs h-5 px-1.5 flex items-center gap-1">
                             <User className="h-3 w-3" />
                             Just for you
                           </Badge>
-                        ) : (
-                          <Badge variant="secondary" className="text-xs h-5 px-1.5 flex items-center gap-1">
-                            <Users className="h-3 w-3" />
-                            For both
-                          </Badge>
                         )}
                       </div>
-                      {message.content && (
+                      {thought.content && (
                         <p className="text-sm text-muted-foreground line-clamp-2">
-                          {message.content}
+                          {thought.content}
                         </p>
                       )}
+                      {thought.file_reference && isValidUrl(thought.file_reference) && (
+                        <a
+                          href={thought.file_reference}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-sm text-primary hover:underline inline-flex items-center gap-1 mt-1"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <LinkIcon className="h-3 w-3" />
+                          Open Link
+                        </a>
+                      )}
                       <p className="text-xs text-muted-foreground mt-1">
-                        {new Date(message.created_at).toLocaleDateString()}
+                        {new Date(thought.created_at).toLocaleDateString()}
                       </p>
                     </div>
                   </div>
