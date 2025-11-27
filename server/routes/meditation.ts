@@ -142,17 +142,15 @@ router.get("/couple/:couple_id/sessions", async (req, res) => {
 
     const { couple_id } = req.params;
 
-    // Verify couple is assigned to this therapist
+    // Verify couple exists (therapists can view all couples)
     const { data: couple } = await supabaseAdmin
       .from("Couples_couples")
-      .select("therapist_id")
+      .select("id")
       .eq("id", couple_id)
       .single();
 
-    if (!couple || couple.therapist_id !== therapistAuth.therapistId) {
-      return res
-        .status(403)
-        .json({ error: "Not authorized to view this couple" });
+    if (!couple) {
+      return res.status(404).json({ error: "Couple not found" });
     }
 
     // Fetch all meditation sessions

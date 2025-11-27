@@ -75,15 +75,15 @@ router.post("/schedule", async (req, res) => {
       return res.status(401).json({ error: "Invalid token" });
     }
 
-    // Verify therapist owns this couple
+    // Verify couple exists (therapists can send to all couples)
     const { data: coupleData, error: coupleError } = await supabaseAdmin
       .from("Couples_couples")
-      .select("therapist_id")
+      .select("id")
       .eq("id", couple_id)
       .single();
 
-    if (coupleError || coupleData?.therapist_id !== userId) {
-      return res.status(403).json({ error: "Access denied" });
+    if (coupleError || !coupleData) {
+      return res.status(404).json({ error: "Couple not found" });
     }
 
     // Create scheduled notification
@@ -179,11 +179,8 @@ router.delete("/:id", async (req, res) => {
       return res.status(404).json({ error: "Notification not found" });
     }
 
-    if (
-      notification.therapist_id !== userId ||
-      notification.status !== "pending"
-    ) {
-      return res.status(403).json({ error: "Cannot delete this notification" });
+    if (notification.status !== "pending") {
+      return res.status(403).json({ error: "Cannot delete sent notifications" });
     }
 
     // Delete notification

@@ -261,23 +261,16 @@ router.get("/therapist/:coupleId", async (req, res) => {
       return res.status(authResult.status).json({ error: authResult.error });
     }
 
-    const { therapistId } = authResult;
     const coupleId = req.params.coupleId;
 
     const { data: couple, error: coupleError } = await supabaseAdmin
       .from("Couples_couples")
-      .select("partner1_id, partner2_id, therapist_id")
+      .select("partner1_id, partner2_id")
       .eq("id", coupleId)
       .single();
 
     if (coupleError || !couple) {
       return res.status(404).json({ error: "Couple not found" });
-    }
-
-    if (couple.therapist_id !== therapistId) {
-      return res
-        .status(403)
-        .json({ error: "You don't have access to this couple's data" });
     }
 
     const { data: memos, error: memosError } = await supabaseAdmin

@@ -59,7 +59,7 @@ therapistRouter.get(
         });
       }
 
-      // 1. Validate therapist has access to this couple
+      // 1. Validate couple exists (therapists can access all couples)
       const { data: couple, error: coupleError } = await supabaseAdmin
         .from("Couples_couples")
         .select("*")
@@ -68,12 +68,6 @@ therapistRouter.get(
 
       if (coupleError || !couple) {
         return res.status(404).json({ error: "Couple not found" });
-      }
-
-      if (couple.therapist_id !== therapistId) {
-        return res.status(403).json({
-          error: "Unauthorized: You don't have access to this couple's data",
-        });
       }
 
       // 2. Fetch all necessary data in parallel
@@ -397,7 +391,73 @@ therapistRouter.post(
   },
 );
 
-// GET /my-couples - Get all couples assigned to current therapist
+// GET /all-couples - Get all couples (for therapist overview)
+therapistRouter.get("/all-couples", async (req: Request, res: Response) => {
+  try {
+    // Verify session and therapist authorization
+    const authResult = await verifyTherapistSession(req);
+    if (!authResult.success) {
+      return res.status(authResult.status).json({ error: authResult.error });
+    }
+
+    // Get ALL couples regardless of therapist assignment
+    const { data: couples, error: couplesError } = await supabaseAdmin
+      .from("Couples_couples")
+      .select("id, partner1_id, partner2_id, join_code, therapist_id");
+
+    if (couplesError) {
+      console.error("Error fetching all couples:", couplesError);
+      return res.status(500).json({ error: "Failed to fetch couples" });
+    }
+
+    if (!couples || couples.length === 0) {
+      return res.json({ couples: [] });
+    }
+
+    // Get all partner profiles
+    const partnerIds = couples
+      .flatMap((c) => [c.partner1_id, c.partner2_id])
+      .filter(Boolean);
+
+    // Also get therapist profiles for display
+    const therapistIds = couples
+      .map((c) => c.therapist_id)
+      .filter(Boolean);
+
+    const { data: profiles, error: profilesError } = await supabaseAdmin
+      .from("Couples_profiles")
+      .select("id, full_name, role")
+      .in("id", [...partnerIds, ...therapistIds]);
+
+    if (profilesError) {
+      console.error("Error fetching profiles:", profilesError);
+      return res.status(500).json({ error: "Failed to fetch profiles" });
+    }
+
+    // Map couples with partner names and therapist info
+    const couplesWithNames = couples.map((couple) => {
+      const partner1 = profiles?.find((p) => p.id === couple.partner1_id);
+      const partner2 = profiles?.find((p) => p.id === couple.partner2_id);
+      const therapist = profiles?.find((p) => p.id === couple.therapist_id);
+
+      return {
+        couple_id: couple.id,
+        partner1_name: partner1?.full_name || "Partner 1",
+        partner2_name: partner2?.full_name || "Partner 2",
+        join_code: couple.join_code || "",
+        therapist_id: couple.therapist_id,
+        therapist_name: therapist?.full_name || null,
+      };
+    });
+
+    res.json({ couples: couplesWithNames });
+  } catch (error: any) {
+    console.error("Get all couples error:", error);
+    res.status(500).json({ error: error.message || "Failed to fetch couples" });
+  }
+});
+
+// GET /my-couples - Get all couples assigned to current therapist (legacy, now returns all)
 therapistRouter.get("/my-couples", async (req: Request, res: Response) => {
   try {
     // Verify session and therapist authorization
@@ -406,13 +466,10 @@ therapistRouter.get("/my-couples", async (req: Request, res: Response) => {
       return res.status(authResult.status).json({ error: authResult.error });
     }
 
-    const { therapistId } = authResult;
-
-    // Get all couples for this therapist
+    // Get ALL couples - therapists can see all couples
     const { data: couples, error: couplesError } = await supabaseAdmin
       .from("Couples_couples")
-      .select("id, partner1_id, partner2_id, join_code")
-      .eq("therapist_id", therapistId);
+      .select("id, partner1_id, partner2_id, join_code, therapist_id");
 
     if (couplesError) {
       console.error("Error fetching couples:", couplesError);
@@ -478,21 +535,15 @@ therapistRouter.post(
         return res.status(400).json({ error: "couple_id is required" });
       }
 
-      // Verify this couple belongs to the therapist
+      // Verify couple exists (therapists can manage all couples)
       const { data: couple, error: coupleError } = await supabaseAdmin
         .from("Couples_couples")
-        .select("therapist_id")
+        .select("id")
         .eq("id", couple_id)
         .single();
 
       if (coupleError || !couple) {
         return res.status(404).json({ error: "Couple not found" });
-      }
-
-      if (couple.therapist_id !== therapistId) {
-        return res.status(403).json({
-          error: "You can only regenerate join codes for your own couples",
-        });
       }
 
       // Generate new 8-character join code (first 8 chars of UUID)
@@ -609,21 +660,15 @@ therapistRouter.post("/link-couple", async (req: Request, res: Response) => {
       return res.status(400).json({ error: "couple_id is required" });
     }
 
-    // Verify couple exists and is unassigned
+    // Verify couple exists (can reassign to any therapist)
     const { data: couple, error: coupleError } = await supabaseAdmin
       .from("Couples_couples")
-      .select("therapist_id")
+      .select("id, therapist_id")
       .eq("id", couple_id)
       .single();
 
     if (coupleError || !couple) {
       return res.status(404).json({ error: "Couple not found" });
-    }
-
-    if (couple.therapist_id) {
-      return res
-        .status(400)
-        .json({ error: "This couple is already assigned to a therapist" });
     }
 
     // Link the couple to this therapist

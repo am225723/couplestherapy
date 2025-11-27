@@ -310,7 +310,7 @@ aiRouter.get("/insights", async (req, res) => {
       return res.json(cached.data);
     }
 
-    // 1. Validate therapist has access to this couple
+    // 1. Validate couple exists (therapists can access all couples)
     const { data: couple, error: coupleError } = await supabaseAdmin
       .from("Couples_couples")
       .select("*")
@@ -319,12 +319,6 @@ aiRouter.get("/insights", async (req, res) => {
 
     if (coupleError || !couple) {
       return res.status(404).json({ error: "Couple not found" });
-    }
-
-    if (couple.therapist_id !== therapistId) {
-      return res.status(403).json({
-        error: "You don't have access to this couple's data",
-      });
     }
 
     // 2. Fetch last 8-12 weeks of check-ins for BOTH partners
@@ -482,7 +476,7 @@ aiRouter.post("/session-prep/:couple_id", async (req, res) => {
       return res.json(cached.data);
     }
 
-    // 1. Validate therapist has access to this couple
+    // 1. Validate couple exists (therapists can access all couples)
     const { data: couple, error: coupleError } = await supabaseAdmin
       .from("Couples_couples")
       .select("partner1_id, partner2_id, therapist_id")
@@ -491,12 +485,6 @@ aiRouter.post("/session-prep/:couple_id", async (req, res) => {
 
     if (coupleError || !couple) {
       return res.status(404).json({ error: "Couple not found" });
-    }
-
-    if (couple.therapist_id !== therapistId) {
-      return res.status(403).json({
-        error: "You don't have access to this couple's data",
-      });
     }
 
     // 2. Fetch all recent activity data (last 4 weeks) in parallel
