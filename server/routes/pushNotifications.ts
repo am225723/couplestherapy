@@ -52,8 +52,12 @@ router.post("/register-token", async (req, res) => {
 // Create scheduled notification
 router.post("/schedule", async (req, res) => {
   try {
+    console.log("=== POST /api/push-notifications/schedule ===");
+    console.log("Body:", JSON.stringify(req.body));
+    
     const authHeader = req.headers.authorization;
     if (!authHeader?.startsWith("Bearer ")) {
+      console.log("Missing or invalid auth header");
       return res.status(401).json({ error: "Unauthorized" });
     }
 
