@@ -152,13 +152,27 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Get couple_id for this user using service role
-    const supabase = createSupabaseClient();
-    const { data: profile } = await supabase
-      .from("Couples_profiles")
-      .select("couple_id")
-      .eq("id", user.id)
-      .single();
+    // Get couple_id for this user using service role REST API
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    
+    const profileResponse = await fetch(
+      `${supabaseUrl}/rest/v1/Couples_profiles?id=eq.${user.id}&select=*`,
+      {
+        headers: {
+          apikey: supabaseServiceKey,
+          Authorization: `Bearer ${supabaseServiceKey}`,
+          "Content-Type": "application/json",
+        },
+      },
+    );
+
+    if (!profileResponse.ok) {
+      throw new Error("Failed to fetch user profile");
+    }
+
+    const profiles = await profileResponse.json();
+    const profile = profiles[0];
 
     if (!profile?.couple_id) {
       return new Response(
@@ -191,7 +205,7 @@ Deno.serve(async (req) => {
 
     const usageData: Record<string, number> = {};
 
-    // Simplified - just check if any records exist
+    // Simplified - just check if any records exist using REST API
     for (const tool of tools) {
       let tableName = "";
       let column = "couple_id";
@@ -243,23 +257,45 @@ Deno.serve(async (req) => {
       }
 
       if (column === "couple_id") {
-        const { count } = await supabase
-          .from(tableName)
-          .select("*", { count: "exact", head: true })
-          .eq("couple_id", couple_id);
-        usageData[tool] = count || 0;
+        const countResponse = await fetch(
+          `${supabaseUrl}/rest/v1/${tableName}?couple_id=eq.${couple_id}&select=count=exact`,
+          {
+            headers: {
+              apikey: supabaseServiceKey,
+              Authorization: `Bearer ${supabaseServiceKey}`,
+            },
+          },
+        );
+        const count = countResponse.headers.get("content-range")?.split("/")[1] || "0";
+        usageData[tool] = parseInt(count) || 0;
       } else {
-        const { data: partners } = await supabase
-          .from("Couples_profiles")
-          .select("id")
-          .eq("couple_id", couple_id);
-
-        const partnerIds = partners?.map((p) => p.id) || [];
-        const { count } = await supabase
-          .from(tableName)
-          .select("*", { count: "exact", head: true })
-          .in(column, partnerIds);
-        usageData[tool] = count || 0;
+        const partnersResponse = await fetch(
+          `${supabaseUrl}/rest/v1/Couples_profiles?couple_id=eq.${couple_id}&select=id`,
+          {
+            headers: {
+              apikey: supabaseServiceKey,
+              Authorization: `Bearer ${supabaseServiceKey}`,
+            },
+          },
+        );
+        const partners = await partnersResponse.json();
+        const partnerIds = partners?.map((p: any) => p.id) || [];
+        
+        if (partnerIds.length > 0) {
+          const countResponse = await fetch(
+            `${supabaseUrl}/rest/v1/${tableName}?${column}=in.(${partnerIds.map((id: string) => `"${id}"`).join(",")})&select=count=exact`,
+            {
+              headers: {
+                apikey: supabaseServiceKey,
+                Authorization: `Bearer ${supabaseServiceKey}`,
+              },
+            },
+          );
+          const count = countResponse.headers.get("content-range")?.split("/")[1] || "0";
+          usageData[tool] = parseInt(count) || 0;
+        } else {
+          usageData[tool] = 0;
+        }
       }
     }
 
