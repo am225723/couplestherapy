@@ -87,9 +87,18 @@ router.post("/schedule", async (req, res) => {
     }
 
     // Convert EST to UTC (EST is UTC-5, so add 5 hours)
-    const estDate = new Date(scheduled_at);
-    const utcDate = new Date(estDate.getTime() + 5 * 60 * 60 * 1000);
-    const scheduledAtUtc = utcDate.toISOString();
+    let scheduledAtUtc: string;
+    try {
+      const estDate = new Date(scheduled_at);
+      if (isNaN(estDate.getTime())) {
+        return res.status(400).json({ error: "Invalid datetime format" });
+      }
+      const utcDate = new Date(estDate.getTime() + 5 * 60 * 60 * 1000);
+      scheduledAtUtc = utcDate.toISOString();
+    } catch (parseError) {
+      console.error("Error parsing datetime:", parseError, "Input:", scheduled_at);
+      return res.status(400).json({ error: "Invalid datetime format" });
+    }
 
     // Create scheduled notification
     const { data, error } = await supabaseAdmin
@@ -106,7 +115,15 @@ router.post("/schedule", async (req, res) => {
       .select();
 
     if (error) {
-      console.error("Error creating notification:", error);
+      console.error("Error creating notification:", error, "Payload:", {
+        therapist_id: userId,
+        couple_id,
+        user_id: user_id || null,
+        title,
+        body,
+        scheduled_at: scheduledAtUtc,
+        status: "pending",
+      });
       return res.status(500).json({ error: "Failed to create notification" });
     }
 
