@@ -75,16 +75,24 @@ router.get("/client/messages", async (req: Request, res: Response) => {
     // Fetch only "message" type thoughts for the couple that are:
     // 1. Targeted at both partners (individual_id is null), OR
     // 2. Targeted specifically at this user
-    const { data, error } = await supabaseAdmin
+    let query = supabaseAdmin
       .from("Couples_therapist_thoughts")
       .select("id, title, content, created_at, individual_id")
       .eq("couple_id", coupleId)
-      .eq("thought_type", "message")
+      .eq("thought_type", "message");
+
+    // Filter: show messages for both partners (null) OR specifically for this user
+    const { data, error } = await query
       .or(`individual_id.is.null,individual_id.eq.${userId}`)
       .order("created_at", { ascending: false })
       .limit(50);
 
-    if (error) throw error;
+    if (error) {
+      console.error("Error in client messages query:", error);
+      throw error;
+    }
+
+    console.log(`Fetched ${data?.length || 0} messages for user ${userId} in couple ${coupleId}`);
 
     // Transform to include audience type for UI
     const messages = (data || []).map(msg => ({
