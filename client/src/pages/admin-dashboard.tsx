@@ -67,6 +67,7 @@ import {
   Sliders,
   Plus,
   AlertCircle,
+  FileText,
 } from "lucide-react";
 import {
   Couple,
