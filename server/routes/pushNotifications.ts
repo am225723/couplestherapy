@@ -86,6 +86,11 @@ router.post("/schedule", async (req, res) => {
       return res.status(404).json({ error: "Couple not found" });
     }
 
+    // Convert EST to UTC (EST is UTC-5, so add 5 hours)
+    const estDate = new Date(scheduled_at);
+    const utcDate = new Date(estDate.getTime() + 5 * 60 * 60 * 1000);
+    const scheduledAtUtc = utcDate.toISOString();
+
     // Create scheduled notification
     const { data, error } = await supabaseAdmin
       .from("Couples_scheduled_notifications")
@@ -95,7 +100,7 @@ router.post("/schedule", async (req, res) => {
         user_id: user_id || null,
         title,
         body,
-        scheduled_at,
+        scheduled_at: scheduledAtUtc,
         status: "pending",
       })
       .select();
@@ -141,7 +146,15 @@ router.get("/scheduled", async (req, res) => {
       return res.status(500).json({ error: "Failed to fetch notifications" });
     }
 
-    res.json(data);
+    // Convert UTC back to EST for display (subtract 5 hours)
+    const dataWithEstTime = data?.map((notification) => ({
+      ...notification,
+      scheduled_at_est: new Date(
+        new Date(notification.scheduled_at).getTime() - 5 * 60 * 60 * 1000
+      ).toISOString(),
+    }));
+
+    res.json(dataWithEstTime);
   } catch (error) {
     console.error("Error in scheduled:", error);
     res.status(500).json({ error: "Internal server error" });
