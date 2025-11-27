@@ -128,20 +128,35 @@ Deno.serve(async (req) => {
     }
 
     const token = authHeader.replace("Bearer ", "");
-    const supabase = createSupabaseClient(token);
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser(token);
+    
+    // Validate JWT using Supabase Auth endpoint
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+    
+    const userResponse = await fetch(`${supabaseUrl}/auth/v1/user`, {
+      headers: {
+        apikey: supabaseAnonKey,
+        Authorization: `Bearer ${token}`,
+      },
+    });
 
-    if (userError || !user) {
+    if (!userResponse.ok) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 401,
       });
     }
 
-    // Get couple_id for this user
+    const user = await userResponse.json();
+    if (!user || !user.id) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 401,
+      });
+    }
+
+    // Get couple_id for this user using service role
+    const supabase = createSupabaseClient(token);
     const { data: profile } = await supabase
       .from("Couples_Profiles")
       .select("couple_id")

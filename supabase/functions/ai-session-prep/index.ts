@@ -171,18 +171,34 @@ Deno.serve(async (req) => {
     }
 
     const token = authHeader.replace("Bearer ", "");
-    const supabase = createSupabaseClient(token);
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser(token);
+    
+    // Validate JWT using Supabase Auth endpoint
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+    
+    const userResponse = await fetch(`${supabaseUrl}/auth/v1/user`, {
+      headers: {
+        apikey: supabaseAnonKey,
+        Authorization: `Bearer ${token}`,
+      },
+    });
 
-    if (userError || !user) {
+    if (!userResponse.ok) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 401,
       });
     }
+
+    const user = await userResponse.json();
+    if (!user || !user.id) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 401,
+      });
+    }
+
+    const supabase = createSupabaseClient(token);
 
     // Check if user is a therapist
     const { data: profile } = await supabase
