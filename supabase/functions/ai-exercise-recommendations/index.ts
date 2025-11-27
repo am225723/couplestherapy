@@ -41,15 +41,23 @@ interface PerplexityResponse {
 }
 
 // ========================================
-// Safe JSON Parsing
+// Text Cleaning & Safe JSON Parsing
 // ========================================
+function cleanAIResponse(text: string): string {
+  // Remove Perplexity citation numbers like [1], [2][3], etc.
+  return text.replace(/\[\d+\]/g, '').trim();
+}
+
 function safeJsonParse(text: string): any {
+  // Clean citations first
+  const cleaned = cleanAIResponse(text);
+  
   // Try direct parse first
   try {
-    return JSON.parse(text);
+    return JSON.parse(cleaned);
   } catch {
     // Try to extract JSON from markdown code blocks
-    const jsonMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/);
+    const jsonMatch = cleaned.match(/```(?:json)?\s*([\s\S]*?)```/);
     if (jsonMatch) {
       try {
         return JSON.parse(jsonMatch[1].trim());
@@ -59,7 +67,7 @@ function safeJsonParse(text: string): any {
     }
     
     // Try to find JSON object in the text
-    const objectMatch = text.match(/\{[\s\S]*\}/);
+    const objectMatch = cleaned.match(/\{[\s\S]*\}/);
     if (objectMatch) {
       try {
         return JSON.parse(objectMatch[0]);
@@ -70,18 +78,12 @@ function safeJsonParse(text: string): any {
     
     // Return a default structure if all parsing fails
     return {
-      activity_summary: {
-        not_started: [],
-        underutilized: [],
-        active: []
-      },
       recommendations: [{
         tool_name: "Weekly Check-ins",
-        rationale: "Regular check-ins help couples stay connected and identify issues early.",
-        suggested_action: "Complete your first weekly check-in together this week."
+        rationale: "A quick way to stay in sync with each other.",
+        suggested_action: "Take 5 minutes to share your highs and lows from the week."
       }],
-      parse_error: true,
-      raw_content: text.substring(0, 500)
+      parse_error: true
     };
   }
 }
@@ -313,34 +315,28 @@ Deno.serve(async (req) => {
       }
     }
 
-    const systemPrompt = `You are a compassionate couples therapist trained in evidence-based modalities including Gottman Method, Emotionally Focused Therapy (EFT), and Internal Family Systems (IFS). Your role is to analyze a couple's engagement with therapy tools and provide personalized recommendations.
+    const systemPrompt = `You are a warm, supportive relationship coach helping couples strengthen their connection. Write in a friendly, encouraging tone - like a trusted friend giving advice. Keep responses brief and actionable.
 
 Guidelines:
-- Classify tools as: "Not Started" (0 uses), "Underutilized" (1-3 uses), "Active" (4+ uses)
-- Recommend 2-3 tools that would most benefit this couple
-- Base recommendations on their current engagement patterns
-- Reference research evidence where applicable
-- Be encouraging and actionable`;
+- Use simple, everyday language (no clinical terms)
+- Keep rationales to 1 short sentence
+- Make suggested actions specific and easy to start today
+- Focus on the positive benefits, not what's missing
+- Recommend 2-3 activities maximum`;
 
-    const userPrompt = `Analyze this couple's therapy tool usage and provide recommendations:
+    const userPrompt = `Based on this couple's activity, suggest helpful next steps:
 
-USAGE DATA:
 ${Object.entries(usageData)
-  .map(([tool, count]) => `- ${tool}: ${count} uses`)
+  .map(([tool, count]) => `- ${tool}: ${count}`)
   .join("\n")}
 
-IMPORTANT: Respond ONLY with valid JSON in this exact format:
+Respond with ONLY valid JSON:
 {
-  "activity_summary": {
-    "not_started": ["tool1", "tool2"],
-    "underutilized": ["tool3"],
-    "active": ["tool4", "tool5"]
-  },
   "recommendations": [
     {
-      "tool_name": "Tool Name",
-      "rationale": "Why this tool would help based on usage patterns",
-      "suggested_action": "Specific first step to take"
+      "tool_name": "Activity Name",
+      "rationale": "One friendly sentence about why this helps.",
+      "suggested_action": "Simple next step to try today."
     }
   ]
 }`;
@@ -354,10 +350,7 @@ IMPORTANT: Respond ONLY with valid JSON in this exact format:
       JSON.stringify({
         couple_id,
         generated_at: new Date().toISOString(),
-        activity_summary: parsed.activity_summary,
-        recommendations: parsed.recommendations,
-        ai_full_response: result.content,
-        usage: result.usage,
+        recommendations: parsed.recommendations || [],
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
