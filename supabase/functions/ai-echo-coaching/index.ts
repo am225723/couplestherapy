@@ -13,13 +13,17 @@ import { safeJsonParse } from "../_shared/safe-json-parse.ts";
 // ========================================
 // Supabase Client Setup
 // ========================================
-function createSupabaseClient(authHeader: string) {
+function createSupabaseClient(token: string) {
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-  const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+  const supabaseServiceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-  return createClient(supabaseUrl, supabaseAnonKey, {
+  return createClient(supabaseUrl, supabaseServiceRoleKey, {
     global: {
-      headers: { Authorization: authHeader },
+      headers: { Authorization: `Bearer ${token}` },
+    },
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
     },
   });
 }
@@ -175,11 +179,12 @@ Deno.serve(async (req) => {
       );
     }
 
-    const supabase = createSupabaseClient(authHeader);
+    const token = authHeader.replace("Bearer ", "");
+    const supabase = createSupabaseClient(token);
     const {
       data: { user },
       error: userError,
-    } = await supabase.auth.getUser();
+    } = await supabase.auth.getUser(token);
 
     if (userError || !user) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
