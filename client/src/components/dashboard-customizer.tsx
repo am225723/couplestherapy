@@ -344,7 +344,6 @@ function WidgetListItem({
   if (!config) return null;
 
   const Icon = config.icon;
-  const showSizeControls = ["date-night", "checkin-history", "ai-suggestions"].includes(widgetId);
 
   return (
     <div
@@ -353,7 +352,7 @@ function WidgetListItem({
       onDragOver={onDragOver}
       onDrop={onDrop}
       className={cn(
-        "flex items-center gap-2 p-3 rounded-lg border cursor-move hover:border-primary/50 transition",
+        "flex items-center gap-3 p-3 rounded-lg border cursor-move hover:border-primary/50 transition",
         !enabled && "opacity-50 bg-muted/50",
       )}
     >
@@ -361,38 +360,31 @@ function WidgetListItem({
       <Checkbox
         checked={enabled}
         onCheckedChange={onToggle}
-        className="flex-shrink-0"
         data-testid={`list-checkbox-${widgetId}`}
       />
-      <div className={cn("p-2 rounded-md flex-shrink-0", config.bgColor)}>
+      <div className={cn("p-2 rounded-md", config.bgColor)}>
         <Icon className={cn("w-4 h-4", config.color)} />
       </div>
-      <div className="flex-1 min-w-0 mr-1">
-        <p className="font-medium text-sm">{config.label}</p>
-        <p className="text-xs text-muted-foreground">
+      <div className="flex-1 min-w-0">
+        <p className="font-medium text-sm truncate">{config.label}</p>
+        <p className="text-xs text-muted-foreground truncate">
           {config.description}
         </p>
       </div>
-      {showSizeControls ? (
-        <div className="flex gap-1 flex-shrink-0">
-          {(["small", "medium", "large"] as const).map((s) => (
-            <Button
-              key={s}
-              size="sm"
-              variant={size === s ? "default" : "outline"}
-              className="h-7 w-7 p-0"
-              onClick={() => onSizeChange(s)}
-              data-testid={`list-size-${s}-${widgetId}`}
-            >
-              {SIZE_DIMENSIONS[s].label}
-            </Button>
-          ))}
-        </div>
-      ) : (
-        <Badge variant="outline" className="flex-shrink-0 text-xs">
-          {SIZE_DIMENSIONS[size].label}
-        </Badge>
-      )}
+      <div className="flex gap-1">
+        {(["small", "medium", "large"] as const).map((s) => (
+          <Button
+            key={s}
+            size="sm"
+            variant={size === s ? "default" : "outline"}
+            className="h-7 w-7 p-0"
+            onClick={() => onSizeChange(s)}
+            data-testid={`list-size-${s}-${widgetId}`}
+          >
+            {SIZE_DIMENSIONS[s].label}
+          </Button>
+        ))}
+      </div>
     </div>
   );
 }
@@ -587,8 +579,9 @@ export function DashboardCustomizer({
                 <Settings2 className="h-5 w-5" />
                 Widget Configuration
               </CardTitle>
-              <CardDescription className="text-wrap">
-                Drag to reorder. Enable or disable widgets as needed. Size controls (S/M/L) appear for Date Night, Check-In History, and AI Suggestions.
+              <CardDescription>
+                Drag to reorder. All 15 widgets are shown - enable or disable as
+                needed.
               </CardDescription>
             </CardHeader>
             <CardContent>
