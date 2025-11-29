@@ -579,9 +579,8 @@ export function DashboardCustomizer({
                 <Settings2 className="h-5 w-5" />
                 Widget Configuration
               </CardTitle>
-              <CardDescription>
-                Drag to reorder. All 15 widgets are shown - enable or disable as
-                needed.
+              <CardDescription className="break-words">
+                Drag to reorder. All {ALL_WIDGETS.length} widgets are shown - enable or disable as needed.
               </CardDescription>
             </CardHeader>
             <CardContent>
