@@ -34,9 +34,8 @@ Deno.serve(async (req) => {
 
     const token = authHeader.replace("Bearer ", "");
     const payload = token.split(".")[1];
-    const decoded = JSON.parse(
-      new TextDecoder().decode(Deno.core.decode(payload))
-    );
+    // Use standard base64 decoding with atob
+    const decoded = JSON.parse(atob(payload));
     const userId = decoded.sub;
 
     const body: ScheduleRequest = await req.json();

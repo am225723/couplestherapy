@@ -231,12 +231,13 @@ export default function AdminDashboard() {
   const handleSelectCouple = (coupleId: string) => {
     const couple = couples.find((c) => c.id === coupleId);
     if (couple) {
-      navigateToSection(coupleId, "overview");
-      setSelectedCouple(couple);
-      // Only fetch if couple changed - ref is updated inside fetchCoupleData
-      if (lastFetchedCoupleIdRef.current !== couple.id) {
-        fetchCoupleData(couple);
+      // Set ref and start fetch BEFORE navigation to prevent useEffect from double-fetching
+      const shouldFetch = lastFetchedCoupleIdRef.current !== couple.id;
+      if (shouldFetch) {
+        fetchCoupleData(couple); // This sets the ref immediately at function start
       }
+      setSelectedCouple(couple);
+      navigateToSection(coupleId, "overview");
     }
   };
 
