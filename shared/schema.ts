@@ -1000,12 +1000,25 @@ export const couplesDashboardCustomization = pgTable(
       .default(
         '{"weekly-checkin":"medium","love-languages":"medium","gratitude":"medium","shared-goals":"medium","conversations":"medium","love-map":"medium","voice-memos":"medium","calendar":"medium","rituals":"medium"}',
       ),
+    // Widget-specific content customization (title, description, section visibility)
+    widget_content_overrides: jsonb("widget_content_overrides").default("{}"),
     updated_at: timestamp("updated_at").defaultNow(),
   },
 );
 
 export type DashboardCustomization =
   typeof couplesDashboardCustomization.$inferSelect;
+
+// Type for widget content overrides
+export interface WidgetContentOverride {
+  title?: string;
+  description?: string;
+  showMessages?: boolean;
+  showTodos?: boolean;
+  showResources?: boolean;
+}
+
+export type WidgetContentOverrides = Record<string, WidgetContentOverride>;
 
 // 28. SCHEDULED NOTIFICATIONS
 export const couplesScheduledNotifications = pgTable(

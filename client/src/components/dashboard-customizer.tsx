@@ -12,6 +12,9 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
 import {
   GripVertical,
   Save,
@@ -35,11 +38,13 @@ import {
   Settings2,
   Sparkles,
   History,
+  Pencil,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useMutation } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
+import type { WidgetContentOverrides } from "@shared/schema";
 
 interface DashboardCustomizerProps {
   coupleId: string;
@@ -47,6 +52,7 @@ interface DashboardCustomizerProps {
   initialOrder: string[];
   initialEnabled: Record<string, boolean>;
   initialSizes?: Record<string, "small" | "medium" | "large">;
+  initialContentOverrides?: WidgetContentOverrides;
 }
 
 const ALL_WIDGETS = [
@@ -395,6 +401,7 @@ export function DashboardCustomizer({
   initialOrder,
   initialEnabled,
   initialSizes = {},
+  initialContentOverrides = {},
 }: DashboardCustomizerProps) {
   const fullOrder = Array.from(new Set([...initialOrder, ...ALL_WIDGETS]));
 
@@ -415,8 +422,30 @@ export function DashboardCustomizer({
     });
     return defaults;
   });
+  const [contentOverrides, setContentOverrides] = useState<WidgetContentOverrides>(() => {
+    return {
+      "therapist-thoughts": {
+        title: initialContentOverrides["therapist-thoughts"]?.title || "",
+        description: initialContentOverrides["therapist-thoughts"]?.description || "",
+        showMessages: initialContentOverrides["therapist-thoughts"]?.showMessages !== false,
+        showTodos: initialContentOverrides["therapist-thoughts"]?.showTodos !== false,
+        showResources: initialContentOverrides["therapist-thoughts"]?.showResources !== false,
+      },
+      ...initialContentOverrides,
+    };
+  });
   const [draggedItem, setDraggedItem] = useState<string | null>(null);
   const { toast } = useToast();
+
+  const updateContentOverride = (widgetId: string, field: string, value: any) => {
+    setContentOverrides((prev) => ({
+      ...prev,
+      [widgetId]: {
+        ...prev[widgetId],
+        [field]: value,
+      },
+    }));
+  };
 
   const saveMutation = useMutation({
     mutationFn: async () => {
@@ -428,6 +457,7 @@ export function DashboardCustomizer({
           widget_order: order,
           enabled_widgets: enabled,
           widget_sizes: sizes,
+          widget_content_overrides: contentOverrides,
         },
       );
     },
@@ -498,7 +528,7 @@ export function DashboardCustomizer({
       </div>
 
       <Tabs defaultValue="preview" className="w-full">
-        <TabsList className="mb-4">
+        <TabsList className="mb-4 flex-wrap">
           <TabsTrigger value="preview" className="gap-2">
             <Eye className="h-4 w-4" />
             Visual Preview
@@ -506,6 +536,10 @@ export function DashboardCustomizer({
           <TabsTrigger value="list" className="gap-2">
             <Settings2 className="h-4 w-4" />
             List View
+          </TabsTrigger>
+          <TabsTrigger value="content" className="gap-2">
+            <Pencil className="h-4 w-4" />
+            Card Content
           </TabsTrigger>
         </TabsList>
 
@@ -601,6 +635,121 @@ export function DashboardCustomizer({
                   ))}
                 </div>
               </ScrollArea>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="content" className="space-y-4">
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <MessageCircle className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                "From Your Therapist" Card
+              </CardTitle>
+              <CardDescription className="break-words">
+                Customize the title, description, and visible sections of the therapist messages card on your client's dashboard.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="therapist-card-title">Card Title</Label>
+                  <Input
+                    id="therapist-card-title"
+                    placeholder="From Your Therapist"
+                    value={contentOverrides["therapist-thoughts"]?.title || ""}
+                    onChange={(e) => updateContentOverride("therapist-thoughts", "title", e.target.value)}
+                    data-testid="input-therapist-card-title"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Leave empty to use default: "From Your Therapist"
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="therapist-card-description">Card Description</Label>
+                  <Textarea
+                    id="therapist-card-description"
+                    placeholder="Messages, to-dos, and resources from your therapy sessions"
+                    value={contentOverrides["therapist-thoughts"]?.description || ""}
+                    onChange={(e) => updateContentOverride("therapist-thoughts", "description", e.target.value)}
+                    className="resize-none"
+                    rows={2}
+                    data-testid="input-therapist-card-description"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Leave empty to use default description
+                  </p>
+                </div>
+              </div>
+
+              <div className="border-t pt-4">
+                <h4 className="font-medium mb-4">Visible Sections</h4>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Choose which types of content to show in this card
+                </p>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label htmlFor="show-messages" className="font-medium">Messages</Label>
+                      <p className="text-xs text-muted-foreground">
+                        General messages and notes to the couple
+                      </p>
+                    </div>
+                    <Switch
+                      id="show-messages"
+                      checked={contentOverrides["therapist-thoughts"]?.showMessages !== false}
+                      onCheckedChange={(checked) => updateContentOverride("therapist-thoughts", "showMessages", checked)}
+                      data-testid="switch-show-messages"
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label htmlFor="show-todos" className="font-medium">To-Dos</Label>
+                      <p className="text-xs text-muted-foreground">
+                        Action items and homework assignments
+                      </p>
+                    </div>
+                    <Switch
+                      id="show-todos"
+                      checked={contentOverrides["therapist-thoughts"]?.showTodos !== false}
+                      onCheckedChange={(checked) => updateContentOverride("therapist-thoughts", "showTodos", checked)}
+                      data-testid="switch-show-todos"
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label htmlFor="show-resources" className="font-medium">Resources</Label>
+                      <p className="text-xs text-muted-foreground">
+                        Links to articles, videos, and other materials
+                      </p>
+                    </div>
+                    <Switch
+                      id="show-resources"
+                      checked={contentOverrides["therapist-thoughts"]?.showResources !== false}
+                      onCheckedChange={(checked) => updateContentOverride("therapist-thoughts", "showResources", checked)}
+                      data-testid="switch-show-resources"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="border rounded-lg p-4 bg-muted/30">
+                <h4 className="font-medium mb-2 text-sm">Preview</h4>
+                <div className="bg-gradient-to-br from-blue-50/50 to-indigo-50/50 dark:from-blue-950/20 dark:to-indigo-950/20 rounded-lg p-4 border">
+                  <div className="flex items-center gap-2 mb-1">
+                    <MessageCircle className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                    <span className="font-semibold">
+                      {contentOverrides["therapist-thoughts"]?.title || "From Your Therapist"}
+                    </span>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    {contentOverrides["therapist-thoughts"]?.description || "Messages, to-dos, and resources from your therapy sessions"}
+                  </p>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>

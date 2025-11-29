@@ -87,10 +87,22 @@ export default function ClientDashboard() {
     widget_order: string[];
     enabled_widgets: Record<string, boolean>;
     widget_sizes?: Record<string, "small" | "medium" | "large">;
+    widget_content_overrides?: Record<string, {
+      title?: string;
+      description?: string;
+      showMessages?: boolean;
+      showTodos?: boolean;
+      showResources?: boolean;
+    }>;
   }>({
     queryKey: [`/api/dashboard-customization/couple/${profile?.couple_id}`],
     enabled: !!profile?.couple_id,
   });
+
+  // Get content overrides for therapist thoughts card
+  const therapistCardOverrides = customizationQuery.data?.widget_content_overrides?.["therapist-thoughts"] || {};
+  const therapistCardTitle = therapistCardOverrides.title || "From Your Therapist";
+  const therapistCardDescription = therapistCardOverrides.description || "Messages, to-dos, and resources from your therapy sessions";
 
   // Therapist thoughts query (includes todos, messages, file references)
   const therapistThoughtsQuery = useQuery<
@@ -433,105 +445,117 @@ export default function ClientDashboard() {
 
         {therapistThoughtsQuery.isSuccess &&
           therapistThoughtsQuery.data &&
-          therapistThoughtsQuery.data.length > 0 && (
-            <Card
-              className="shadow-lg border-primary/20 bg-gradient-to-br from-blue-50/50 to-indigo-50/50 dark:from-blue-950/20 dark:to-indigo-950/20"
-              data-testid="card-therapist-thoughts"
-            >
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle className="flex items-center gap-2">
-                      <MessageCircle className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                      From Your Therapist
-                    </CardTitle>
-                    <CardDescription>
-                      Messages, to-dos, and resources from your therapy sessions
-                    </CardDescription>
+          (() => {
+            // Filter thoughts based on visibility settings
+            const filteredThoughts = therapistThoughtsQuery.data.filter((thought) => {
+              if (thought.thought_type === "message" && therapistCardOverrides.showMessages === false) return false;
+              if (thought.thought_type === "todo" && therapistCardOverrides.showTodos === false) return false;
+              if (thought.thought_type === "file_reference" && therapistCardOverrides.showResources === false) return false;
+              return true;
+            });
+            
+            if (filteredThoughts.length === 0) return null;
+            
+            return (
+              <Card
+                className="shadow-lg border-primary/20 bg-gradient-to-br from-blue-50/50 to-indigo-50/50 dark:from-blue-950/20 dark:to-indigo-950/20"
+                data-testid="card-therapist-thoughts"
+              >
+                <CardHeader>
+                  <div className="flex items-center justify-between gap-2">
+                    <div>
+                      <CardTitle className="flex items-center gap-2">
+                        <MessageCircle className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                        {therapistCardTitle}
+                      </CardTitle>
+                      <CardDescription>
+                        {therapistCardDescription}
+                      </CardDescription>
+                    </div>
+                    <Link href="/therapist-thoughts">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-primary"
+                        data-testid="button-view-all-messages"
+                      >
+                        View All
+                        <ArrowRight className="ml-1 h-4 w-4" />
+                      </Button>
+                    </Link>
                   </div>
-                  <Link href="/therapist-thoughts">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-primary"
-                      data-testid="button-view-all-messages"
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {filteredThoughts.slice(0, 4).map((thought) => (
+                    <div
+                      key={thought.id}
+                      className="p-3 bg-background/80 rounded-lg border border-border/50"
+                      data-testid={`thought-item-${thought.id}`}
                     >
-                      View All
-                      <ArrowRight className="ml-1 h-4 w-4" />
-                    </Button>
-                  </Link>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {therapistThoughtsQuery.data.slice(0, 4).map((thought) => (
-                  <div
-                    key={thought.id}
-                    className="p-3 bg-background/80 rounded-lg border border-border/50"
-                    data-testid={`thought-item-${thought.id}`}
-                  >
-                    <div className="flex items-start gap-2">
-                      <div className="mt-0.5">
-                        {thought.thought_type === "todo" ? (
-                          <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400" />
-                        ) : thought.thought_type === "file_reference" ? (
-                          <FileText className="h-4 w-4 text-orange-600 dark:text-orange-400" />
-                        ) : (
-                          <MessageCircle className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                        )}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1 flex-wrap">
-                          <p className="font-medium text-sm">
-                            {thought.title || "Untitled"}
-                          </p>
-                          <Badge
-                            variant="outline"
-                            className="text-xs h-5 px-1.5"
-                          >
-                            {thought.thought_type === "todo"
-                              ? "To-Do"
-                              : thought.thought_type === "file_reference"
-                                ? "Resource"
-                                : "Message"}
-                          </Badge>
-                          {thought.audience === "individual" && (
-                            <Badge
-                              variant="secondary"
-                              className="text-xs h-5 px-1.5 flex items-center gap-1"
-                            >
-                              <User className="h-3 w-3" />
-                              Just for you
-                            </Badge>
+                      <div className="flex items-start gap-2">
+                        <div className="mt-0.5">
+                          {thought.thought_type === "todo" ? (
+                            <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400" />
+                          ) : thought.thought_type === "file_reference" ? (
+                            <FileText className="h-4 w-4 text-orange-600 dark:text-orange-400" />
+                          ) : (
+                            <MessageCircle className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                           )}
                         </div>
-                        {thought.content && (
-                          <p className="text-sm text-muted-foreground line-clamp-2">
-                            {thought.content}
-                          </p>
-                        )}
-                        {thought.file_reference &&
-                          isValidUrl(thought.file_reference) && (
-                            <a
-                              href={thought.file_reference}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-sm text-primary hover:underline inline-flex items-center gap-1 mt-1"
-                              onClick={(e) => e.stopPropagation()}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1 flex-wrap">
+                            <p className="font-medium text-sm">
+                              {thought.title || "Untitled"}
+                            </p>
+                            <Badge
+                              variant="outline"
+                              className="text-xs h-5 px-1.5"
                             >
-                              <LinkIcon className="h-3 w-3" />
-                              Open Link
-                            </a>
+                              {thought.thought_type === "todo"
+                                ? "To-Do"
+                                : thought.thought_type === "file_reference"
+                                  ? "Resource"
+                                  : "Message"}
+                            </Badge>
+                            {thought.audience === "individual" && (
+                              <Badge
+                                variant="secondary"
+                                className="text-xs h-5 px-1.5 flex items-center gap-1"
+                              >
+                                <User className="h-3 w-3" />
+                                Just for you
+                              </Badge>
+                            )}
+                          </div>
+                          {thought.content && (
+                            <p className="text-sm text-muted-foreground line-clamp-2">
+                              {thought.content}
+                            </p>
                           )}
-                        <p className="text-xs text-muted-foreground mt-1">
-                          {new Date(thought.created_at).toLocaleDateString()}
-                        </p>
+                          {thought.file_reference &&
+                            isValidUrl(thought.file_reference) && (
+                              <a
+                                href={thought.file_reference}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-sm text-primary hover:underline inline-flex items-center gap-1 mt-1"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <LinkIcon className="h-3 w-3" />
+                                Open Link
+                              </a>
+                            )}
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {new Date(thought.created_at).toLocaleDateString()}
+                          </p>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-          )}
+                  ))}
+                </CardContent>
+              </Card>
+            );
+          })()}
 
         {isWidgetEnabled("ai-suggestions") && (
           <>

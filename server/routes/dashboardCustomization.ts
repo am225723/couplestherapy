@@ -58,6 +58,7 @@ dashboardCustomizationRouter.get(
             calendar: "medium",
             rituals: "medium",
           },
+          widget_content_overrides: {},
         });
       }
 
@@ -75,7 +76,7 @@ dashboardCustomizationRouter.post(
   async (req: Request, res: Response) => {
     try {
       const { coupleId } = req.params;
-      const { therapist_id, widget_order, enabled_widgets, widget_sizes } =
+      const { therapist_id, widget_order, enabled_widgets, widget_sizes, widget_content_overrides } =
         req.body;
 
       const { data, error } = await supabaseAdmin
@@ -96,6 +97,7 @@ dashboardCustomizationRouter.post(
           ],
           enabled_widgets: enabled_widgets || {},
           widget_sizes: widget_sizes || {},
+          widget_content_overrides: widget_content_overrides || {},
           updated_at: new Date().toISOString(),
         })
         .select()

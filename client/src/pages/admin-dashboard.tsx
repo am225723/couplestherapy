@@ -1528,6 +1528,9 @@ export default function AdminDashboard() {
                         parenting: true,
                       }
                     }
+                    initialContentOverrides={
+                      dashboardCustomizationQuery.data?.widget_content_overrides || {}
+                    }
                   />
                 </TabsContent>
 
