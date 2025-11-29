@@ -752,6 +752,154 @@ export function DashboardCustomizer({
               </div>
             </CardContent>
           </Card>
+
+          {/* Quick Action Cards Customization */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Sparkles className="h-5 w-5 text-primary" />
+                Quick Action Cards
+              </CardTitle>
+              <CardDescription className="break-words">
+                Customize the featured cards that appear at the top of your client's dashboard.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-8">
+              {/* Date Night Generator Card */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 pb-2 border-b">
+                  <Sparkles className="h-4 w-4 text-primary" />
+                  <h4 className="font-medium">Date Night Generator</h4>
+                </div>
+                
+                <div className="space-y-4 pl-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="date-night-title">Card Title</Label>
+                    <Input
+                      id="date-night-title"
+                      placeholder="Date Night Generator"
+                      value={contentOverrides["date-night"]?.title || ""}
+                      onChange={(e) => updateContentOverride("date-night", "title", e.target.value)}
+                      data-testid="input-date-night-title"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="date-night-description">Description</Label>
+                    <Textarea
+                      id="date-night-description"
+                      placeholder="Plan a meaningful date with AI-powered suggestions tailored to your preferences"
+                      value={contentOverrides["date-night"]?.description || ""}
+                      onChange={(e) => updateContentOverride("date-night", "description", e.target.value)}
+                      className="resize-none"
+                      rows={2}
+                      data-testid="input-date-night-description"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="date-night-cta">Button Text</Label>
+                    <Input
+                      id="date-night-cta"
+                      placeholder="Start Planning"
+                      value={contentOverrides["date-night"]?.ctaLabel || ""}
+                      onChange={(e) => updateContentOverride("date-night", "ctaLabel", e.target.value)}
+                      data-testid="input-date-night-cta"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Check-In History Card */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 pb-2 border-b">
+                  <History className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                  <h4 className="font-medium">Check-In History</h4>
+                </div>
+                
+                <div className="space-y-4 pl-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="checkin-history-title">Card Title</Label>
+                    <Input
+                      id="checkin-history-title"
+                      placeholder="Check-In History"
+                      value={contentOverrides["checkin-history"]?.title || ""}
+                      onChange={(e) => updateContentOverride("checkin-history", "title", e.target.value)}
+                      data-testid="input-checkin-history-title"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="checkin-history-description">Description</Label>
+                    <Textarea
+                      id="checkin-history-description"
+                      placeholder="Review your weekly reflections and track your progress over time"
+                      value={contentOverrides["checkin-history"]?.description || ""}
+                      onChange={(e) => updateContentOverride("checkin-history", "description", e.target.value)}
+                      className="resize-none"
+                      rows={2}
+                      data-testid="input-checkin-history-description"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="checkin-history-cta">Button Text</Label>
+                    <Input
+                      id="checkin-history-cta"
+                      placeholder="View Timeline"
+                      value={contentOverrides["checkin-history"]?.ctaLabel || ""}
+                      onChange={(e) => updateContentOverride("checkin-history", "ctaLabel", e.target.value)}
+                      data-testid="input-checkin-history-cta"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Preview Section */}
+              <div className="border rounded-lg p-4 bg-muted/30">
+                <h4 className="font-medium mb-3 text-sm">Preview</h4>
+                <div className="space-y-3">
+                  <div className="bg-gradient-to-br from-primary/5 to-accent/10 rounded-lg p-4 border border-primary/20">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="flex items-center gap-2 mb-1">
+                          <Sparkles className="h-5 w-5 text-primary" />
+                          <span className="font-semibold">
+                            {contentOverrides["date-night"]?.title || "Date Night Generator"}
+                          </span>
+                        </div>
+                        <p className="text-sm text-muted-foreground">
+                          {contentOverrides["date-night"]?.description || "Plan a meaningful date with AI-powered suggestions tailored to your preferences"}
+                        </p>
+                      </div>
+                      <span className="text-primary text-sm font-medium whitespace-nowrap ml-2">
+                        {contentOverrides["date-night"]?.ctaLabel || "Start Planning"} →
+                      </span>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-background rounded-lg p-4 border">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="flex items-center gap-2 mb-1">
+                          <Calendar className="h-5 w-5 text-primary" />
+                          <span className="font-semibold">
+                            {contentOverrides["checkin-history"]?.title || "Check-In History"}
+                          </span>
+                        </div>
+                        <p className="text-sm text-muted-foreground">
+                          {contentOverrides["checkin-history"]?.description || "Review your weekly reflections and track your progress over time"}
+                        </p>
+                      </div>
+                      <span className="text-primary text-sm font-medium whitespace-nowrap ml-2">
+                        {contentOverrides["checkin-history"]?.ctaLabel || "View Timeline"} →
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
 
