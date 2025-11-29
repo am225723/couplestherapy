@@ -50,7 +50,7 @@ import {
   Link as LinkIcon,
 } from "lucide-react";
 import { LoveLanguage } from "@shared/schema";
-import clientHeroImage from "@assets/generated_images/Client_app_hero_image_9fd4eaf0.png";
+import clientHeroImage from "@assets/image_1764412274201_1764412405646.jpeg";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import {
