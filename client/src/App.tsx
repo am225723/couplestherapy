@@ -102,6 +102,8 @@ import ChoreChart from "./pages/chore-chart";
 import TherapistThoughtsPage from "./pages/therapist-thoughts";
 import TherapistProfile from "./pages/therapist-profile";
 import TherapistSettings from "./pages/therapist-settings";
+import ClientProfile from "./pages/client-profile";
+import ClientSettings from "./pages/client-settings";
 import NotFound from "./pages/not-found";
 
 import _998 from "@assets/998.png";
@@ -548,10 +550,43 @@ function AuthenticatedApp() {
               </span>
             </div>
             <div className="flex items-center gap-4">
-              <span className="text-sm text-muted-foreground">
-                {profile.full_name}
-              </span>
               <ThemeToggle />
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="rounded-full hover-elevate active-elevate-2" data-testid="button-client-profile">
+                    <Avatar className="h-10 w-10 border-2 border-primary/20">
+                      {profile.avatar_url && <AvatarImage src={profile.avatar_url} alt={profile.full_name || "Profile"} />}
+                      <AvatarFallback className="bg-primary/10 text-primary font-semibold">
+                        {profile.full_name ? getInitials(profile.full_name) : "U"}
+                      </AvatarFallback>
+                    </Avatar>
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <div className="px-3 py-2">
+                    <p className="text-sm font-semibold">{profile.full_name || "User"}</p>
+                    <p className="text-xs text-muted-foreground">Client</p>
+                  </div>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link href="/profile" className="gap-2 cursor-pointer flex items-center" data-testid="menu-item-client-profile">
+                      <User className="h-4 w-4" />
+                      Profile
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/settings" className="gap-2 cursor-pointer flex items-center" data-testid="menu-item-client-settings">
+                      <Settings className="h-4 w-4" />
+                      Settings
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={signOut} className="gap-2 cursor-pointer" data-testid="menu-item-client-signout">
+                    <LogOut className="h-4 w-4" />
+                    Sign Out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </header>
           <main className="flex-1 overflow-y-auto">
@@ -613,6 +648,8 @@ function AuthenticatedApp() {
                 path="/therapist-thoughts"
                 component={TherapistThoughtsPage}
               />
+              <Route path="/profile" component={ClientProfile} />
+              <Route path="/settings" component={ClientSettings} />
               <Route path="/">
                 {profile.couple_id ? (
                   <Redirect to="/dashboard" />
