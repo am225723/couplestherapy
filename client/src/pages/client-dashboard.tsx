@@ -90,7 +90,6 @@ export default function ClientDashboard() {
     widget_content_overrides?: Record<string, {
       title?: string;
       description?: string;
-      ctaLabel?: string;
       showMessages?: boolean;
       showTodos?: boolean;
       showResources?: boolean;
@@ -104,10 +103,6 @@ export default function ClientDashboard() {
   const therapistCardOverrides = customizationQuery.data?.widget_content_overrides?.["therapist-thoughts"] || {};
   const therapistCardTitle = therapistCardOverrides.title || "From Your Therapist";
   const therapistCardDescription = therapistCardOverrides.description || "Messages, to-dos, and resources from your therapy sessions";
-
-  // Get content overrides for quick action cards
-  const dateNightOverrides = customizationQuery.data?.widget_content_overrides?.["date-night"] || {};
-  const checkinHistoryOverrides = customizationQuery.data?.widget_content_overrides?.["checkin-history"] || {};
 
   // Therapist thoughts query (includes todos, messages, file references)
   const therapistThoughtsQuery = useQuery<
@@ -402,14 +397,15 @@ export default function ClientDashboard() {
                   <div>
                     <CardTitle className="flex items-center gap-2 text-2xl">
                       <Sparkles className="h-6 w-6 text-primary" />
-                      {dateNightOverrides.title || "Date Night Generator"}
+                      Date Night Generator
                     </CardTitle>
                     <CardDescription className="text-base mt-2">
-                      {dateNightOverrides.description || "Plan a meaningful date with AI-powered suggestions tailored to your preferences"}
+                      Plan a meaningful date with AI-powered suggestions tailored
+                      to your preferences
                     </CardDescription>
                   </div>
                   <div className="flex items-center gap-2 text-primary">
-                    <span className="font-medium">{dateNightOverrides.ctaLabel || "Start Planning"}</span>
+                    <span className="font-medium">Start Planning</span>
                     <ArrowRight className="h-5 w-5" />
                   </div>
                 </div>
@@ -429,15 +425,16 @@ export default function ClientDashboard() {
                   <div>
                     <CardTitle className="flex items-center gap-2">
                       <Calendar className="h-5 w-5 text-primary" />
-                      {checkinHistoryOverrides.title || "Check-In History"}
+                      Check-In History
                     </CardTitle>
                     <CardDescription>
-                      {checkinHistoryOverrides.description || "Review your weekly reflections and track your progress over time"}
+                      Review your weekly reflections and track your progress over
+                      time
                     </CardDescription>
                   </div>
                   <div className="flex items-center gap-2 text-primary">
                     <TrendingUp className="h-5 w-5" />
-                    <span className="font-medium">{checkinHistoryOverrides.ctaLabel || "View Timeline"}</span>
+                    <span className="font-medium">View Timeline</span>
                     <ArrowRight className="h-4 w-4" />
                   </div>
                 </div>
