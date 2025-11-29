@@ -100,6 +100,8 @@ import DailyTipsPage from "./pages/daily-tips";
 import CoupleCompatibility from "./pages/couple-compatibility";
 import ChoreChart from "./pages/chore-chart";
 import TherapistThoughtsPage from "./pages/therapist-thoughts";
+import TherapistProfile from "./pages/therapist-profile";
+import TherapistSettings from "./pages/therapist-settings";
 import NotFound from "./pages/not-found";
 
 import _998 from "@assets/998.png";
@@ -488,13 +490,17 @@ function AuthenticatedApp() {
                   <p className="text-xs text-muted-foreground">Licensed Therapist</p>
                 </div>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem className="gap-2 cursor-pointer" data-testid="menu-item-profile">
-                  <User className="h-4 w-4" />
-                  Profile
+                <DropdownMenuItem asChild>
+                  <Link href="/therapist/profile" className="gap-2 cursor-pointer flex items-center" data-testid="menu-item-profile">
+                    <User className="h-4 w-4" />
+                    Profile
+                  </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem className="gap-2 cursor-pointer" data-testid="menu-item-settings">
-                  <Settings className="h-4 w-4" />
-                  Settings
+                <DropdownMenuItem asChild>
+                  <Link href="/therapist/settings" className="gap-2 cursor-pointer flex items-center" data-testid="menu-item-settings">
+                    <Settings className="h-4 w-4" />
+                    Settings
+                  </Link>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -515,6 +521,8 @@ function AuthenticatedApp() {
               component={InvitationCodesPage}
             />
             <Route path="/therapist-thoughts" component={AdminDashboard} />
+            <Route path="/therapist/profile" component={TherapistProfile} />
+            <Route path="/therapist/settings" component={TherapistSettings} />
             <Route path="/">
               <Redirect to="/admin/couple" />
             </Route>
