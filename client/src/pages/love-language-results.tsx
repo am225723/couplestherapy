@@ -151,15 +151,15 @@ export default function LoveLanguageResults() {
   const [, navigate] = useLocation();
 
   const { data: results, isLoading } = useQuery<LoveLanguage[]>({
-    queryKey: ["/api/love-languages/couple", (profile as ProfileWithCouple)?.couple_id],
+    queryKey: ["/api/love-languages/user", user?.id],
     queryFn: async () => {
       if (!user || !profile) return [];
-      const coupleId = (profile as ProfileWithCouple).couple_id || user.id;
       
+      // Query by user_id to get the current user's results
       const { data, error } = await supabase
         .from("Couples_love_languages")
         .select("*")
-        .eq("couple_id", coupleId)
+        .eq("user_id", user.id)
         .order("created_at", { ascending: false })
         .limit(1);
 
