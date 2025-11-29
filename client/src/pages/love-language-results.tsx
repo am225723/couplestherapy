@@ -279,12 +279,17 @@ export default function LoveLanguageResults() {
   const { data: allResults, isLoading } = useQuery<LoveLanguage[]>({
     queryKey: ["/api/love-languages/couple", coupleId, user?.id, partnerProfile?.id],
     queryFn: async () => {
-      if (!user) return [];
+      if (!user) {
+        console.log("No user found for love language results query");
+        return [];
+      }
       
       const userIds = [user.id];
       if (partnerProfile?.id) {
         userIds.push(partnerProfile.id);
       }
+      
+      console.log("Fetching love language results for userIds:", userIds);
       
       // Get latest result for each user
       const { data, error } = await supabase
@@ -292,6 +297,8 @@ export default function LoveLanguageResults() {
         .select("*")
         .in("user_id", userIds)
         .order("created_at", { ascending: false });
+
+      console.log("Love language query result:", { data, error });
 
       if (error) throw error;
       
@@ -302,6 +309,8 @@ export default function LoveLanguageResults() {
           latestByUser[result.user_id] = result;
         }
       }
+      
+      console.log("Latest results by user:", latestByUser);
       
       return Object.values(latestByUser);
     },
