@@ -64,29 +64,14 @@ export function ScheduleNotificationDialog({
         payload.user_id = couple.partner2_id;
       }
 
-      // Use Express backend endpoint
-      const response = await fetch("/api/push-notifications/schedule", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${sessionData.session.access_token}`,
-        },
-        body: JSON.stringify(payload),
+      // Use Supabase Edge Function
+      const { data, error } = await supabase.functions.invoke("schedule-notification", {
+        body: payload,
       });
 
-      // Get the response text first to handle non-JSON responses
-      const responseText = await response.text();
-      
-      let data;
-      try {
-        data = JSON.parse(responseText);
-      } catch {
-        console.error("Non-JSON response:", responseText);
-        throw new Error("Server returned an invalid response. Please try again.");
-      }
-
-      if (!response.ok) {
-        throw new Error(data.error || data.message || "Failed to schedule notification");
+      if (error) {
+        console.error("Edge Function error:", error);
+        throw new Error(error.message || "Failed to schedule notification");
       }
 
       return data;
