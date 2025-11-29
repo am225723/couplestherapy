@@ -74,12 +74,22 @@ export function ScheduleNotificationDialog({
         body: JSON.stringify(payload),
       });
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Failed to schedule notification");
+      // Get the response text first to handle non-JSON responses
+      const responseText = await response.text();
+      
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch {
+        console.error("Non-JSON response:", responseText);
+        throw new Error("Server returned an invalid response. Please try again.");
       }
 
-      return response.json();
+      if (!response.ok) {
+        throw new Error(data.error || data.message || "Failed to schedule notification");
+      }
+
+      return data;
     },
     onSuccess: () => {
       toast({
