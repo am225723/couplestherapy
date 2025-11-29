@@ -93,6 +93,8 @@ import ChoreChart from "./pages/chore-chart";
 import TherapistThoughtsPage from "./pages/therapist-thoughts";
 import NotFound from "./pages/not-found";
 
+import _998 from "@assets/998.png";
+
 function AppSidebar() {
   const { profile, signOut } = useAuth();
   const [location] = useLocation();
@@ -444,7 +446,7 @@ function AuthenticatedApp() {
             className="flex items-center gap-3"
             data-testid="link-therapist-home"
           >
-            <img src={coupleArt} alt="ALEIC" className="h-8 w-auto" />
+            <img src={_998} alt="ALEIC" className="h-8 w-auto" />
             <span className="text-lg font-bold bg-gradient-to-r from-primary via-accent to-secondary bg-clip-text text-transparent">
               ALEIC
             </span>
