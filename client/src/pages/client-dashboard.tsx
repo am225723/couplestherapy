@@ -49,7 +49,7 @@ import {
   FileText,
   Link as LinkIcon,
 } from "lucide-react";
-import { LoveLanguage } from "@shared/schema";
+import { LoveLanguage, TherapistPrompt } from "@shared/schema";
 import clientHeroImage from "@assets/copilot_image_1764413074633_1764413131660.jpeg";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -110,6 +110,20 @@ export default function ClientDashboard() {
     queryKey: ["/api/therapist-thoughts/client/messages"],
     enabled: !!profile?.couple_id,
     staleTime: 1000 * 60 * 5, // 5 minutes
+  });
+
+  // Therapist prompts query - custom suggestions set by therapist
+  const therapistPromptsQuery = useQuery<TherapistPrompt[]>({
+    queryKey: ["/api/therapist-prompts/couple", profile?.couple_id],
+    queryFn: async () => {
+      const response = await fetch(
+        `/api/therapist-prompts/couple/${profile?.couple_id}`,
+      );
+      if (!response.ok) throw new Error("Failed to fetch prompts");
+      return response.json();
+    },
+    enabled: !!profile?.couple_id,
+    staleTime: 1000 * 60 * 10, // 10 minutes
   });
 
   // Delete love language mutation
@@ -521,7 +535,42 @@ export default function ClientDashboard() {
             </Card>
           )}
 
-        {recommendationsQuery.isSuccess && recommendationsQuery.data && (
+        {/* Therapist Prompts (priority) or AI Recommendations (fallback) */}
+        {therapistPromptsQuery.isSuccess &&
+        therapistPromptsQuery.data &&
+        therapistPromptsQuery.data.length > 0 ? (
+          <Card
+            className="border-amber-500/20 bg-gradient-to-br from-amber-50/30 to-yellow-50/30 dark:from-amber-950/10 dark:to-yellow-950/10"
+            data-testid="card-therapist-prompts"
+          >
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base flex items-center gap-2">
+                <Sparkles className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                Suggested For You
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {therapistPromptsQuery.data.map((prompt) => (
+                <div
+                  key={prompt.id}
+                  className="p-3 rounded-lg bg-background/50 border border-amber-200/30 dark:border-amber-800/30"
+                  data-testid={`therapist-prompt-${prompt.id}`}
+                >
+                  <p className="font-medium text-sm mb-1">{prompt.title}</p>
+                  {prompt.description && (
+                    <p className="text-xs text-muted-foreground mb-2">
+                      {prompt.description}
+                    </p>
+                  )}
+                  <p className="text-xs text-amber-600 dark:text-amber-400 flex items-center gap-1.5">
+                    <Lightbulb className="h-3 w-3" />
+                    {prompt.suggested_action}
+                  </p>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        ) : recommendationsQuery.isSuccess && recommendationsQuery.data ? (
           <Card
             className="border-amber-500/20 bg-gradient-to-br from-amber-50/30 to-yellow-50/30 dark:from-amber-950/10 dark:to-yellow-950/10"
             data-testid="card-ai-recommendations"
@@ -553,32 +602,34 @@ export default function ClientDashboard() {
               )}
             </CardContent>
           </Card>
-        )}
+        ) : null}
 
-        {recommendationsQuery.isLoading && (
-          <Card
-            className="shadow-lg"
-            data-testid="card-recommendations-loading"
-          >
-            <CardContent className="py-12 flex items-center justify-center">
-              <div className="flex items-center gap-3 text-muted-foreground">
-                <Loader2 className="h-5 w-5 animate-spin" />
-                <span>Getting personalized recommendations...</span>
-              </div>
-            </CardContent>
-          </Card>
-        )}
+        {(therapistPromptsQuery.isLoading || recommendationsQuery.isLoading) &&
+          !therapistPromptsQuery.data?.length && (
+            <Card
+              className="shadow-lg"
+              data-testid="card-recommendations-loading"
+            >
+              <CardContent className="py-12 flex items-center justify-center">
+                <div className="flex items-center gap-3 text-muted-foreground">
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                  <span>Getting personalized recommendations...</span>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
-        {recommendationsQuery.isError && (
-          <Alert
-            variant="destructive"
-            data-testid="alert-recommendations-error"
-          >
-            <AlertDescription>
-              Failed to load recommendations. Please try refreshing the page.
-            </AlertDescription>
-          </Alert>
-        )}
+        {recommendationsQuery.isError &&
+          therapistPromptsQuery.isError && (
+            <Alert
+              variant="destructive"
+              data-testid="alert-recommendations-error"
+            >
+              <AlertDescription>
+                Failed to load recommendations. Please try refreshing the page.
+              </AlertDescription>
+            </Alert>
+          )}
 
         {!loading && loveLanguages.length > 0 && (
           <Card className="shadow-lg">

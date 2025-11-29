@@ -1063,3 +1063,28 @@ export const DASHBOARD_WIDGETS = [
   "calendar",
   "rituals",
 ] as const;
+
+// 29. THERAPIST PROMPTS - Custom prompts/suggestions therapists can set for couples
+export const couplesTherapistPrompts = pgTable("Couples_therapist_prompts", {
+  id: uuid("id").primaryKey(),
+  couple_id: uuid("couple_id").notNull(),
+  therapist_id: uuid("therapist_id").notNull(),
+  tool_name: text("tool_name").notNull(), // e.g., "weekly-checkin", "gratitude", "shared-goals"
+  title: text("title").notNull(), // Display title
+  description: text("description"), // Description of the activity
+  suggested_action: text("suggested_action").notNull(), // The prompt/suggestion for the couple
+  is_enabled: boolean("is_enabled").default(true),
+  display_order: integer("display_order").default(0),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow(),
+});
+
+export const insertTherapistPromptSchema = createInsertSchema(
+  couplesTherapistPrompts,
+).omit({
+  id: true,
+  created_at: true,
+  updated_at: true,
+});
+export type InsertTherapistPrompt = z.infer<typeof insertTherapistPromptSchema>;
+export type TherapistPrompt = typeof couplesTherapistPrompts.$inferSelect;

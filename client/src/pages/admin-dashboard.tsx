@@ -68,6 +68,9 @@ import {
   Plus,
   AlertCircle,
   FileText,
+  Edit,
+  Save,
+  X,
 } from "lucide-react";
 import {
   Couple,
@@ -86,6 +89,7 @@ import {
   IfsPart,
   PauseEvent,
   DashboardCustomization,
+  TherapistPrompt,
 } from "@shared/schema";
 import { DashboardCustomizer } from "@/components/dashboard-customizer";
 import { ScheduleNotificationDialog } from "@/components/schedule-notification-dialog";
@@ -147,6 +151,7 @@ export default function AdminDashboard() {
     "goals",
     "rituals",
     "dashboard-customization",
+    "prompts",
   ];
   const currentSection = validSections.includes(params?.section || "")
     ? params?.section || "overview"
@@ -173,6 +178,13 @@ export default function AdminDashboard() {
   const [dashboardCustomization, setDashboardCustomization] =
     useState<DashboardCustomization | null>(null);
   const [showAddCoupleModal, setShowAddCoupleModal] = useState(false);
+  const [editingPromptId, setEditingPromptId] = useState<string | null>(null);
+  const [newPrompt, setNewPrompt] = useState({
+    tool_name: "",
+    title: "",
+    description: "",
+    suggested_action: "",
+  });
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const lastFetchedCoupleIdRef = useRef<string | null>(null);
   const { profile, user } = useAuth();
@@ -182,6 +194,112 @@ export default function AdminDashboard() {
   const dashboardCustomizationQuery = useQuery({
     queryKey: [`/api/dashboard-customization/couple/${selectedCouple?.id}`],
     enabled: !!selectedCouple?.id,
+  });
+
+  // Fetch therapist prompts for the couple
+  const therapistPromptsQuery = useQuery<TherapistPrompt[]>({
+    queryKey: ["/api/therapist-prompts/therapist", selectedCouple?.id],
+    queryFn: async () => {
+      const response = await fetch(
+        `/api/therapist-prompts/therapist/${selectedCouple?.id}`,
+      );
+      if (!response.ok) throw new Error("Failed to fetch prompts");
+      return response.json();
+    },
+    enabled: !!selectedCouple?.id,
+  });
+
+  // Create prompt mutation
+  const createPromptMutation = useMutation({
+    mutationFn: async (promptData: {
+      couple_id: string;
+      therapist_id: string;
+      tool_name: string;
+      title: string;
+      description: string;
+      suggested_action: string;
+    }) => {
+      return apiRequest("POST", "/api/therapist-prompts", promptData);
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Prompt created successfully",
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/therapist-prompts/therapist", selectedCouple?.id],
+      });
+      setNewPrompt({
+        tool_name: "",
+        title: "",
+        description: "",
+        suggested_action: "",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to create prompt",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Update prompt mutation
+  const updatePromptMutation = useMutation({
+    mutationFn: async ({
+      id,
+      ...data
+    }: {
+      id: string;
+      tool_name?: string;
+      title?: string;
+      description?: string;
+      suggested_action?: string;
+      is_enabled?: boolean;
+    }) => {
+      return apiRequest("PUT", `/api/therapist-prompts/${id}`, data);
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Prompt updated successfully",
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/therapist-prompts/therapist", selectedCouple?.id],
+      });
+      setEditingPromptId(null);
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update prompt",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Delete prompt mutation
+  const deletePromptMutation = useMutation({
+    mutationFn: async (id: string) => {
+      return apiRequest("DELETE", `/api/therapist-prompts/${id}`);
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Prompt deleted successfully",
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/therapist-prompts/therapist", selectedCouple?.id],
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete prompt",
+        variant: "destructive",
+      });
+    },
   });
 
   // AI Session Prep mutation - uses Supabase Edge Function
@@ -820,6 +938,9 @@ export default function AdminDashboard() {
                     <TabsTrigger value="dashboard-customization">
                       Dashboard Customization
                     </TabsTrigger>
+                    <TabsTrigger value="prompts">
+                      Client Prompts
+                    </TabsTrigger>
                   </TabsList>
                 </div>
 
@@ -1402,6 +1523,312 @@ export default function AdminDashboard() {
                       }
                     }
                   />
+                </TabsContent>
+
+                {/* Client Prompts Tab - Therapist-customizable suggestions */}
+                <TabsContent value="prompts" className="space-y-6">
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="text-lg font-semibold">
+                          Client Prompts
+                        </h3>
+                        <p className="text-sm text-muted-foreground">
+                          Create custom suggestions and prompts that appear in
+                          your client's "Suggested For You" section
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Add New Prompt Form */}
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="text-base flex items-center gap-2">
+                          <Plus className="h-4 w-4" />
+                          Add New Prompt
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <label className="text-sm font-medium">
+                              Activity Type
+                            </label>
+                            <Select
+                              value={newPrompt.tool_name}
+                              onValueChange={(value) =>
+                                setNewPrompt((p) => ({ ...p, tool_name: value }))
+                              }
+                            >
+                              <SelectTrigger data-testid="select-tool-name">
+                                <SelectValue placeholder="Select activity" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="weekly-checkin">
+                                  Weekly Check-In
+                                </SelectItem>
+                                <SelectItem value="gratitude">
+                                  Gratitude Log
+                                </SelectItem>
+                                <SelectItem value="shared-goals">
+                                  Shared Goals
+                                </SelectItem>
+                                <SelectItem value="rituals">
+                                  Rituals of Connection
+                                </SelectItem>
+                                <SelectItem value="conversations">
+                                  Hold Me Tight
+                                </SelectItem>
+                                <SelectItem value="voice-memos">
+                                  Voice Memos
+                                </SelectItem>
+                                <SelectItem value="custom">
+                                  Custom Activity
+                                </SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="space-y-2">
+                            <label className="text-sm font-medium">Title</label>
+                            <Input
+                              placeholder="e.g., Gratitude Log"
+                              value={newPrompt.title}
+                              onChange={(e) =>
+                                setNewPrompt((p) => ({
+                                  ...p,
+                                  title: e.target.value,
+                                }))
+                              }
+                              data-testid="input-prompt-title"
+                            />
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium">
+                            Description (optional)
+                          </label>
+                          <Input
+                            placeholder="Brief explanation of the activity"
+                            value={newPrompt.description}
+                            onChange={(e) =>
+                              setNewPrompt((p) => ({
+                                ...p,
+                                description: e.target.value,
+                              }))
+                            }
+                            data-testid="input-prompt-description"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium">
+                            Suggested Action
+                          </label>
+                          <Textarea
+                            placeholder="e.g., Tonight, share one thing you're grateful for about each other before bed."
+                            value={newPrompt.suggested_action}
+                            onChange={(e) =>
+                              setNewPrompt((p) => ({
+                                ...p,
+                                suggested_action: e.target.value,
+                              }))
+                            }
+                            className="min-h-24"
+                            data-testid="input-prompt-action"
+                          />
+                        </div>
+                        <Button
+                          onClick={() => {
+                            if (
+                              selectedCouple &&
+                              profile?.id &&
+                              newPrompt.tool_name &&
+                              newPrompt.title &&
+                              newPrompt.suggested_action
+                            ) {
+                              createPromptMutation.mutate({
+                                couple_id: selectedCouple.id,
+                                therapist_id: profile.id,
+                                ...newPrompt,
+                              });
+                            }
+                          }}
+                          disabled={
+                            createPromptMutation.isPending ||
+                            !newPrompt.tool_name ||
+                            !newPrompt.title ||
+                            !newPrompt.suggested_action
+                          }
+                          data-testid="button-create-prompt"
+                        >
+                          {createPromptMutation.isPending ? (
+                            <>
+                              <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                              Creating...
+                            </>
+                          ) : (
+                            <>
+                              <Plus className="h-4 w-4 mr-2" />
+                              Add Prompt
+                            </>
+                          )}
+                        </Button>
+                      </CardContent>
+                    </Card>
+
+                    {/* Existing Prompts List */}
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="text-base">
+                          Active Prompts
+                        </CardTitle>
+                        <CardDescription>
+                          These prompts will appear in your client's dashboard
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        {therapistPromptsQuery.isLoading ? (
+                          <div className="flex items-center justify-center py-8">
+                            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                          </div>
+                        ) : therapistPromptsQuery.data &&
+                          therapistPromptsQuery.data.length > 0 ? (
+                          <div className="space-y-3">
+                            {therapistPromptsQuery.data.map((prompt) => (
+                              <div
+                                key={prompt.id}
+                                className={`p-4 rounded-lg border ${
+                                  prompt.is_enabled
+                                    ? "bg-background"
+                                    : "bg-muted/50 opacity-60"
+                                }`}
+                                data-testid={`prompt-item-${prompt.id}`}
+                              >
+                                {editingPromptId === prompt.id ? (
+                                  <EditPromptForm
+                                    prompt={prompt}
+                                    onSave={(data) => {
+                                      updatePromptMutation.mutate({
+                                        id: prompt.id,
+                                        ...data,
+                                      });
+                                    }}
+                                    onCancel={() => setEditingPromptId(null)}
+                                    isSaving={updatePromptMutation.isPending}
+                                  />
+                                ) : (
+                                  <div className="space-y-2">
+                                    <div className="flex items-start justify-between gap-2">
+                                      <div className="flex-1 min-w-0">
+                                        <div className="flex items-center gap-2 flex-wrap">
+                                          <span className="font-medium">
+                                            {prompt.title}
+                                          </span>
+                                          <Badge variant="outline">
+                                            {prompt.tool_name}
+                                          </Badge>
+                                          {!prompt.is_enabled && (
+                                            <Badge variant="secondary">
+                                              Disabled
+                                            </Badge>
+                                          )}
+                                        </div>
+                                        {prompt.description && (
+                                          <p className="text-sm text-muted-foreground mt-1">
+                                            {prompt.description}
+                                          </p>
+                                        )}
+                                      </div>
+                                      <div className="flex items-center gap-1">
+                                        <Button
+                                          variant="ghost"
+                                          size="icon"
+                                          onClick={() =>
+                                            setEditingPromptId(prompt.id)
+                                          }
+                                          data-testid={`button-edit-prompt-${prompt.id}`}
+                                        >
+                                          <Edit className="h-4 w-4" />
+                                        </Button>
+                                        <Button
+                                          variant="ghost"
+                                          size="icon"
+                                          onClick={() =>
+                                            updatePromptMutation.mutate({
+                                              id: prompt.id,
+                                              is_enabled: !prompt.is_enabled,
+                                            })
+                                          }
+                                          data-testid={`button-toggle-prompt-${prompt.id}`}
+                                        >
+                                          {prompt.is_enabled ? (
+                                            <CheckCircle2 className="h-4 w-4 text-green-500" />
+                                          ) : (
+                                            <XCircle className="h-4 w-4 text-muted-foreground" />
+                                          )}
+                                        </Button>
+                                        <AlertDialog>
+                                          <AlertDialogTrigger asChild>
+                                            <Button
+                                              variant="ghost"
+                                              size="icon"
+                                              data-testid={`button-delete-prompt-${prompt.id}`}
+                                            >
+                                              <Trash2 className="h-4 w-4 text-destructive" />
+                                            </Button>
+                                          </AlertDialogTrigger>
+                                          <AlertDialogContent>
+                                            <AlertDialogHeader>
+                                              <AlertDialogTitle>
+                                                Delete Prompt?
+                                              </AlertDialogTitle>
+                                              <AlertDialogDescription>
+                                                This will permanently delete
+                                                this prompt. This action cannot
+                                                be undone.
+                                              </AlertDialogDescription>
+                                            </AlertDialogHeader>
+                                            <AlertDialogFooter>
+                                              <AlertDialogCancel>
+                                                Cancel
+                                              </AlertDialogCancel>
+                                              <AlertDialogAction
+                                                onClick={() =>
+                                                  deletePromptMutation.mutate(
+                                                    prompt.id,
+                                                  )
+                                                }
+                                                className="bg-destructive hover:bg-destructive/90"
+                                              >
+                                                Delete
+                                              </AlertDialogAction>
+                                            </AlertDialogFooter>
+                                          </AlertDialogContent>
+                                        </AlertDialog>
+                                      </div>
+                                    </div>
+                                    <div className="p-3 bg-amber-50 dark:bg-amber-950/20 rounded border border-amber-200/30 dark:border-amber-800/30">
+                                      <p className="text-sm flex items-start gap-2">
+                                        <Lightbulb className="h-4 w-4 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
+                                        <span>{prompt.suggested_action}</span>
+                                      </p>
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="text-center py-8 text-muted-foreground">
+                            <p>No custom prompts yet.</p>
+                            <p className="text-sm">
+                              Create your first prompt above to give
+                              personalized suggestions to this couple.
+                            </p>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </div>
                 </TabsContent>
               </Tabs>
             </div>
@@ -3748,6 +4175,119 @@ function TherapistThoughtsPanel({
           )}
         </>
       )}
+    </div>
+  );
+}
+
+// EditPromptForm component for inline editing of prompts
+function EditPromptForm({
+  prompt,
+  onSave,
+  onCancel,
+  isSaving,
+}: {
+  prompt: TherapistPrompt;
+  onSave: (data: {
+    tool_name: string;
+    title: string;
+    description: string;
+    suggested_action: string;
+  }) => void;
+  onCancel: () => void;
+  isSaving: boolean;
+}) {
+  const [editData, setEditData] = useState({
+    tool_name: prompt.tool_name,
+    title: prompt.title,
+    description: prompt.description || "",
+    suggested_action: prompt.suggested_action,
+  });
+
+  return (
+    <div className="space-y-3">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div className="space-y-1">
+          <label className="text-xs font-medium">Activity Type</label>
+          <Select
+            value={editData.tool_name}
+            onValueChange={(value) =>
+              setEditData((d) => ({ ...d, tool_name: value }))
+            }
+          >
+            <SelectTrigger className="h-8 text-sm">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="weekly-checkin">Weekly Check-In</SelectItem>
+              <SelectItem value="gratitude">Gratitude Log</SelectItem>
+              <SelectItem value="shared-goals">Shared Goals</SelectItem>
+              <SelectItem value="rituals">Rituals of Connection</SelectItem>
+              <SelectItem value="conversations">Hold Me Tight</SelectItem>
+              <SelectItem value="voice-memos">Voice Memos</SelectItem>
+              <SelectItem value="custom">Custom Activity</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-1">
+          <label className="text-xs font-medium">Title</label>
+          <Input
+            value={editData.title}
+            onChange={(e) =>
+              setEditData((d) => ({ ...d, title: e.target.value }))
+            }
+            className="h-8 text-sm"
+            data-testid="input-edit-prompt-title"
+          />
+        </div>
+      </div>
+      <div className="space-y-1">
+        <label className="text-xs font-medium">Description</label>
+        <Input
+          value={editData.description}
+          onChange={(e) =>
+            setEditData((d) => ({ ...d, description: e.target.value }))
+          }
+          className="h-8 text-sm"
+          placeholder="Brief explanation"
+          data-testid="input-edit-prompt-description"
+        />
+      </div>
+      <div className="space-y-1">
+        <label className="text-xs font-medium">Suggested Action</label>
+        <Textarea
+          value={editData.suggested_action}
+          onChange={(e) =>
+            setEditData((d) => ({ ...d, suggested_action: e.target.value }))
+          }
+          className="min-h-20 text-sm"
+          data-testid="input-edit-prompt-action"
+        />
+      </div>
+      <div className="flex items-center gap-2 pt-2">
+        <Button
+          size="sm"
+          onClick={() => onSave(editData)}
+          disabled={isSaving || !editData.title || !editData.suggested_action}
+          data-testid="button-save-prompt"
+        >
+          {isSaving ? (
+            <Loader2 className="h-4 w-4 animate-spin mr-1" />
+          ) : (
+            <Save className="h-4 w-4 mr-1" />
+          )}
+          Save
+        </Button>
+        <Button
+          size="sm"
+          variant="ghost"
+          onClick={onCancel}
+          disabled={isSaving}
+          data-testid="button-cancel-edit-prompt"
+        >
+          <X className="h-4 w-4 mr-1" />
+          Cancel
+        </Button>
+      </div>
     </div>
   );
 }
