@@ -333,7 +333,7 @@ export default function LoveLanguageResults() {
           </CardHeader>
           <CardContent>
             <Button asChild className="w-full" data-testid="button-take-quiz">
-              <Link href="/love-language-quiz">Take the Quiz</Link>
+              <Link href="/quiz">Take the Quiz</Link>
             </Button>
           </CardContent>
         </Card>
@@ -385,7 +385,7 @@ export default function LoveLanguageResults() {
             className="gap-2"
             data-testid="button-retake-quiz"
           >
-            <Link href="/love-language-quiz">
+            <Link href="/quiz">
               <RefreshCw className="h-4 w-4" />
               Retake Quiz
             </Link>
