@@ -174,6 +174,7 @@ export default function AdminDashboard() {
     useState<DashboardCustomization | null>(null);
   const [showAddCoupleModal, setShowAddCoupleModal] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const lastFetchedCoupleIdRef = useRef<string | null>(null);
   const { profile, user } = useAuth();
   const { toast } = useToast();
 
@@ -251,12 +252,17 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     if (couples.length > 0) {
-      if (params?.id) {
-        // If ID is in URL, use it
-        const couple = couples.find((c) => c.id === params.id);
+      const targetCoupleId = params?.id || null;
+      
+      if (targetCoupleId) {
+        // If ID is in URL, use it - but only fetch if it changed
+        const couple = couples.find((c) => c.id === targetCoupleId);
         if (couple) {
           setSelectedCouple(couple);
-          fetchCoupleData(couple);
+          if (lastFetchedCoupleIdRef.current !== couple.id) {
+            lastFetchedCoupleIdRef.current = couple.id;
+            fetchCoupleData(couple);
+          }
           setAutoSelectedCoupleId(couple.id);
         }
       } else if (!autoSelectedCoupleId) {
@@ -264,13 +270,16 @@ export default function AdminDashboard() {
         const firstCouple = couples[0];
         if (firstCouple) {
           setSelectedCouple(firstCouple);
-          fetchCoupleData(firstCouple);
+          if (lastFetchedCoupleIdRef.current !== firstCouple.id) {
+            lastFetchedCoupleIdRef.current = firstCouple.id;
+            fetchCoupleData(firstCouple);
+          }
           setAutoSelectedCoupleId(firstCouple.id);
           setLocation(`/admin/couple/${firstCouple.id}/overview`);
         }
       }
     }
-  }, [match, params, couples, autoSelectedCoupleId, setLocation]);
+  }, [params?.id, couples.length, autoSelectedCoupleId]);
 
   const fetchCouples = async () => {
     if (!profile?.id) return;
@@ -572,7 +581,7 @@ export default function AdminDashboard() {
         onAddCouple={() => setShowAddCoupleModal(true)}
       />
 
-      <div className="flex flex-col flex-1 overflow-hidden">
+      <div className="flex flex-col flex-1 overflow-y-auto min-h-0">
         <header className="flex items-center justify-between p-4 border-b gap-4 shrink-0">
           <div className="flex items-center gap-4">
             {selectedCouple && (
