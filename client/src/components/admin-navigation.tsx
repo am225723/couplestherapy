@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useAuth } from "@/lib/auth-context";
 import {
   Heart,
   Users,
@@ -33,6 +34,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
+import { LogOut } from "lucide-react";
 
 interface Couple {
   id: string;
@@ -94,6 +96,7 @@ export function AdminNavigation({
   onAddCouple,
 }: AdminNavigationProps) {
   const [searchQuery, setSearchQuery] = useState("");
+  const { profile, signOut } = useAuth();
   const selectedCouple = couples.find((c) => c.id === selectedCoupleId);
 
   const getInitials = (name: string) => {
@@ -234,11 +237,34 @@ export function AdminNavigation({
           </DropdownMenu>
         </div>
 
-        <div className="ml-auto flex items-center gap-2">
+        <div className="ml-auto flex items-center gap-3">
           <Badge variant="secondary" className="gap-1 whitespace-nowrap text-xs sm:text-sm">
             <Users className="h-3 w-3" />
             <span className="hidden xs:inline">{couples.length}</span>
           </Badge>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="rounded-full hover-elevate active-elevate-2" data-testid="button-therapist-profile">
+                <Avatar className="h-10 w-10 border-2 border-primary/20">
+                  <AvatarFallback className="bg-primary/10 text-primary font-semibold">
+                    {profile?.full_name ? getInitials(profile.full_name) : "T"}
+                  </AvatarFallback>
+                </Avatar>
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <div className="px-3 py-2">
+                <p className="text-sm font-semibold">{profile?.full_name || "Therapist"}</p>
+                <p className="text-xs text-muted-foreground">Licensed Therapist</p>
+              </div>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => signOut()} className="gap-2 cursor-pointer text-destructive" data-testid="menu-item-sign-out">
+                <LogOut className="h-4 w-4" />
+                Sign Out
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
