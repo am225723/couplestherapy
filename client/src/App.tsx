@@ -27,12 +27,21 @@ import {
 import { Button } from "./components/ui/button";
 import { Avatar, AvatarFallback } from "./components/ui/avatar";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   Users,
   LogOut,
   Loader2,
   BarChart3,
   UserPlus,
   ChevronDown,
+  User,
+  Settings,
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import {
@@ -463,13 +472,32 @@ function AuthenticatedApp() {
               <LogOut className="h-4 w-4" />
               Sign Out
             </Button>
-            <button className="rounded-full hover-elevate active-elevate-2" data-testid="button-therapist-profile">
-              <Avatar className="h-10 w-10 border-2 border-primary/20">
-                <AvatarFallback className="bg-primary/10 text-primary font-semibold">
-                  {profile.full_name ? getInitials(profile.full_name) : "T"}
-                </AvatarFallback>
-              </Avatar>
-            </button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="rounded-full hover-elevate active-elevate-2" data-testid="button-therapist-profile">
+                  <Avatar className="h-10 w-10 border-2 border-primary/20">
+                    <AvatarFallback className="bg-primary/10 text-primary font-semibold">
+                      {profile.full_name ? getInitials(profile.full_name) : "T"}
+                    </AvatarFallback>
+                  </Avatar>
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <div className="px-3 py-2">
+                  <p className="text-sm font-semibold">{profile.full_name || "Therapist"}</p>
+                  <p className="text-xs text-muted-foreground">Licensed Therapist</p>
+                </div>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem className="gap-2 cursor-pointer" data-testid="menu-item-profile">
+                  <User className="h-4 w-4" />
+                  Profile
+                </DropdownMenuItem>
+                <DropdownMenuItem className="gap-2 cursor-pointer" data-testid="menu-item-settings">
+                  <Settings className="h-4 w-4" />
+                  Settings
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </header>
         <main className="flex-1 overflow-y-auto">
