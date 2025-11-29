@@ -8,6 +8,7 @@ import {
   boolean,
   numeric,
 } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -60,15 +61,17 @@ export type Couple = typeof couplesCouples.$inferSelect;
 
 // 3. LOVE LANGUAGES TABLE
 export const couplesLoveLanguages = pgTable("Couples_love_languages", {
-  id: uuid("id").primaryKey(),
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  couple_id: uuid("couple_id").notNull(),
   user_id: uuid("user_id").notNull(),
   primary_language: text("primary_language"),
   secondary_language: text("secondary_language"),
   scores: jsonb("scores"), // { words_of_affirmation: 8, quality_time: 6, ... }
+  created_at: timestamp("created_at").defaultNow(),
 });
 
 export const insertLoveLanguageSchema = createInsertSchema(couplesLoveLanguages)
-  .omit({ id: true })
+  .omit({ id: true, created_at: true })
   .extend({
     scores: z.record(z.number()),
   });
