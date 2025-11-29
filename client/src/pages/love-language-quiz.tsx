@@ -121,19 +121,19 @@ export default function LoveLanguageQuiz() {
           <div className="space-y-4">
             <Button
               variant="outline"
-              className="w-full h-auto py-6 px-6 text-left justify-start hover-elevate active-elevate-2"
+              className="w-full h-auto py-4 px-4 text-left justify-start whitespace-normal hover-elevate active-elevate-2"
               onClick={() => handleAnswer(question.optionA.language)}
               data-testid={`button-option-a-${currentQuestion}`}
             >
-              <span className="text-base">{question.optionA.text}</span>
+              <span className="text-base whitespace-normal break-words">{question.optionA.text}</span>
             </Button>
             <Button
               variant="outline"
-              className="w-full h-auto py-6 px-6 text-left justify-start hover-elevate active-elevate-2"
+              className="w-full h-auto py-4 px-4 text-left justify-start whitespace-normal hover-elevate active-elevate-2"
               onClick={() => handleAnswer(question.optionB.language)}
               data-testid={`button-option-b-${currentQuestion}`}
             >
-              <span className="text-base">{question.optionB.text}</span>
+              <span className="text-base whitespace-normal break-words">{question.optionB.text}</span>
             </Button>
           </div>
           {currentQuestion > 0 && (
