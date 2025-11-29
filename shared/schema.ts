@@ -1013,6 +1013,7 @@ export type DashboardCustomization =
 export interface WidgetContentOverride {
   title?: string;
   description?: string;
+  ctaLabel?: string; // Button text for quick action cards (e.g., "Start Planning", "View Timeline")
   showMessages?: boolean;
   showTodos?: boolean;
   showResources?: boolean;
