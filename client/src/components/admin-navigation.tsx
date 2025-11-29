@@ -237,31 +237,20 @@ export function AdminNavigation({
           </DropdownMenu>
         </div>
 
-        <div className="ml-auto flex items-center gap-3">
-          <Badge variant="secondary" className="gap-1 whitespace-nowrap text-xs sm:text-sm">
-            <Users className="h-3 w-3" />
-            <span className="hidden xs:inline">{couples.length}</span>
-          </Badge>
+        <button className="ml-auto rounded-full hover-elevate active-elevate-2" data-testid="button-therapist-profile">
+          <Avatar className="h-10 w-10 border-2 border-primary/20">
+            <AvatarFallback className="bg-primary/10 text-primary font-semibold">
+              {profile?.full_name ? getInitials(profile.full_name) : "T"}
+            </AvatarFallback>
+          </Avatar>
+        </button>
+      </div>
 
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => signOut()}
-            className="gap-2 text-destructive hover:text-destructive"
-            data-testid="button-sign-out"
-          >
-            <LogOut className="h-4 w-4" />
-            <span className="hidden sm:inline">Sign Out</span>
-          </Button>
-
-          <button className="rounded-full hover-elevate active-elevate-2" data-testid="button-therapist-profile">
-            <Avatar className="h-10 w-10 border-2 border-primary/20">
-              <AvatarFallback className="bg-primary/10 text-primary font-semibold">
-                {profile?.full_name ? getInitials(profile.full_name) : "T"}
-              </AvatarFallback>
-            </Avatar>
-          </button>
-        </div>
+      <div className="flex items-center gap-2 px-4 py-2 border-b">
+        <Badge variant="secondary" className="gap-1 whitespace-nowrap text-xs sm:text-sm">
+          <Users className="h-3 w-3" />
+          {couples.length} couples
+        </Badge>
       </div>
 
       {selectedCouple && onSelectSection && (
