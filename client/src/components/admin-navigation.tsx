@@ -31,7 +31,7 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from "@/components/ui/dropdown-menu"; // Used for couple selector dropdown
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import { LogOut } from "lucide-react";
@@ -243,28 +243,24 @@ export function AdminNavigation({
             <span className="hidden xs:inline">{couples.length}</span>
           </Badge>
 
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button className="rounded-full hover-elevate active-elevate-2" data-testid="button-therapist-profile">
-                <Avatar className="h-10 w-10 border-2 border-primary/20">
-                  <AvatarFallback className="bg-primary/10 text-primary font-semibold">
-                    {profile?.full_name ? getInitials(profile.full_name) : "T"}
-                  </AvatarFallback>
-                </Avatar>
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <div className="px-3 py-2">
-                <p className="text-sm font-semibold">{profile?.full_name || "Therapist"}</p>
-                <p className="text-xs text-muted-foreground">Licensed Therapist</p>
-              </div>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => signOut()} className="gap-2 cursor-pointer text-destructive" data-testid="menu-item-sign-out">
-                <LogOut className="h-4 w-4" />
-                Sign Out
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => signOut()}
+            className="gap-2 text-destructive hover:text-destructive"
+            data-testid="button-sign-out"
+          >
+            <LogOut className="h-4 w-4" />
+            <span className="hidden sm:inline">Sign Out</span>
+          </Button>
+
+          <button className="rounded-full hover-elevate active-elevate-2" data-testid="button-therapist-profile">
+            <Avatar className="h-10 w-10 border-2 border-primary/20">
+              <AvatarFallback className="bg-primary/10 text-primary font-semibold">
+                {profile?.full_name ? getInitials(profile.full_name) : "T"}
+              </AvatarFallback>
+            </Avatar>
+          </button>
         </div>
       </div>
 
