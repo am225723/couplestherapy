@@ -373,18 +373,11 @@ export default function TherapistProfile() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Profile Statistics</CardTitle>
-            <CardDescription>Your activity summary</CardDescription>
+            <CardTitle>Alternative Contact Information</CardTitle>
+            <CardDescription>Additional contact details and preferences</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex justify-between items-center py-2 border-b">
-              <span className="text-muted-foreground">Account Type</span>
-              <span className="font-medium">Therapist</span>
-            </div>
-            <div className="flex justify-between items-center py-2">
-              <span className="text-muted-foreground">Member Since</span>
-              <span className="font-medium">2024</span>
-            </div>
+            <p className="text-sm text-muted-foreground">No alternative contact information added yet.</p>
           </CardContent>
         </Card>
       </div>
