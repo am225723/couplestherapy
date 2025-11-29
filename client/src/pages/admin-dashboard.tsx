@@ -233,7 +233,10 @@ export default function AdminDashboard() {
     if (couple) {
       navigateToSection(coupleId, "overview");
       setSelectedCouple(couple);
-      fetchCoupleData(couple);
+      // Only fetch if couple changed - ref is updated inside fetchCoupleData
+      if (lastFetchedCoupleIdRef.current !== couple.id) {
+        fetchCoupleData(couple);
+      }
     }
   };
 
@@ -259,8 +262,8 @@ export default function AdminDashboard() {
         const couple = couples.find((c) => c.id === targetCoupleId);
         if (couple) {
           setSelectedCouple(couple);
+          // Only fetch if couple changed - ref is updated inside fetchCoupleData
           if (lastFetchedCoupleIdRef.current !== couple.id) {
-            lastFetchedCoupleIdRef.current = couple.id;
             fetchCoupleData(couple);
           }
           setAutoSelectedCoupleId(couple.id);
@@ -270,8 +273,8 @@ export default function AdminDashboard() {
         const firstCouple = couples[0];
         if (firstCouple) {
           setSelectedCouple(firstCouple);
+          // Only fetch if couple changed - ref is updated inside fetchCoupleData
           if (lastFetchedCoupleIdRef.current !== firstCouple.id) {
-            lastFetchedCoupleIdRef.current = firstCouple.id;
             fetchCoupleData(firstCouple);
           }
           setAutoSelectedCoupleId(firstCouple.id);
@@ -323,6 +326,11 @@ export default function AdminDashboard() {
   };
 
   const fetchCoupleData = async (couple: CoupleWithProfiles) => {
+    // Set ref immediately to prevent duplicate fetches from concurrent code paths
+    // This is reset in catch block if fetch fails, allowing retries
+    lastFetchedCoupleIdRef.current = couple.id;
+    const fetchingCoupleId = couple.id;
+    
     try {
       const [
         checkinsRes,
@@ -425,6 +433,10 @@ export default function AdminDashboard() {
 
       setActivities(allActivities);
     } catch (error: any) {
+      // Reset ref on error so retries are allowed
+      if (lastFetchedCoupleIdRef.current === fetchingCoupleId) {
+        lastFetchedCoupleIdRef.current = null;
+      }
       toast({
         title: "Error",
         description: error.message,

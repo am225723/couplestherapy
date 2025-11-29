@@ -2,16 +2,15 @@
 -- Run this in your Supabase SQL Editor
 
 -- Create the dashboard customization table
+-- Note: therapist_id is nullable to preserve historical data when therapists are removed
 CREATE TABLE IF NOT EXISTS "Couples_dashboard_customization" (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  couple_id UUID NOT NULL REFERENCES "Couples_couples"(id) ON DELETE CASCADE,
+  couple_id UUID NOT NULL UNIQUE REFERENCES "Couples_couples"(id) ON DELETE CASCADE,
   therapist_id UUID REFERENCES "Couples_profiles"(id) ON DELETE SET NULL,
-  widget_order JSONB DEFAULT '["weekly-checkin", "love-languages", "gratitude", "shared-goals", "conversations", "love-map", "voice-memos", "calendar", "rituals"]'::jsonb,
-  enabled_widgets JSONB DEFAULT '{}'::jsonb,
-  widget_sizes JSONB DEFAULT '{}'::jsonb,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  UNIQUE(couple_id)
+  widget_order JSONB NOT NULL DEFAULT '["weekly-checkin","love-languages","gratitude","shared-goals","conversations","love-map","voice-memos","calendar","rituals"]'::jsonb,
+  enabled_widgets JSONB NOT NULL DEFAULT '{"weekly-checkin":true,"love-languages":true,"gratitude":true,"shared-goals":true,"conversations":true,"love-map":true,"voice-memos":true,"calendar":true,"rituals":true}'::jsonb,
+  widget_sizes JSONB NOT NULL DEFAULT '{"weekly-checkin":"medium","love-languages":"medium","gratitude":"medium","shared-goals":"medium","conversations":"medium","love-map":"medium","voice-memos":"medium","calendar":"medium","rituals":"medium"}'::jsonb,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
 -- Enable RLS
