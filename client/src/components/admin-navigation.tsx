@@ -247,20 +247,20 @@ export function AdminNavigation({
       </div>
 
       {selectedCouple && onSelectSection && (
-        <div className="px-4 pb-0 overflow-x-auto">
+        <div className="px-4 pb-0">
           <Tabs value={getActiveTab()} onValueChange={handleTabChange}>
-            <TabsList className="h-auto w-full justify-start bg-transparent p-0 border-b-0 gap-1 min-w-max">
+            <TabsList className="h-auto w-full justify-start bg-transparent p-0 border-b-0 flex-wrap gap-1">
               {MAIN_TABS.map((tab) => {
                 const Icon = tab.icon;
                 return (
                   <TabsTrigger
                     key={tab.id}
                     value={tab.id}
-                    className="gap-2 data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-3 py-2 whitespace-nowrap"
+                    className="gap-2 data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-3 py-2"
                     data-testid={`tab-${tab.id}`}
                   >
                     <Icon className="h-4 w-4 shrink-0" />
-                    <span className="whitespace-nowrap">{tab.label}</span>
+                    <span>{tab.label}</span>
                   </TabsTrigger>
                 );
               })}
