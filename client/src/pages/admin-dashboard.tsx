@@ -102,7 +102,7 @@ import "react-big-calendar/lib/css/react-big-calendar.css";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { aiFunctions } from "@/lib/ai-functions";
-import adminHeroImage from "@assets/generated_images/Admin_app_hero_image_7f3581f4.png";
+import adminHeroImage from "@assets/image_1764412274201_1764412405646.jpeg";
 
 const locales = {
   "en-US": enUS,
