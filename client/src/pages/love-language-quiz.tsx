@@ -44,25 +44,32 @@ export default function LoveLanguageQuiz() {
   };
 
   const saveResults = async (finalAnswers: LoveLanguageType[]) => {
-    if (!user || !profile) return;
+    if (!user || !profile) {
+      console.log("Missing user or profile:", { user, profile });
+      return;
+    }
 
     setSaving(true);
     const { scores, primary, secondary } =
       calculateLoveLanguageScores(finalAnswers);
     const coupleId = (profile as ProfileWithCouple).couple_id;
+    
+    console.log("Saving quiz results:", { coupleId, userId: user.id, primary, secondary, scores });
 
     try {
       if (!coupleId) {
-        throw new Error("You must be linked to a couple to save quiz results");
+        throw new Error("You must be linked to a couple to save quiz results. Please complete the couple setup first.");
       }
 
-      const { error } = await supabase.from("Couples_love_languages").insert({
+      const { error, data } = await supabase.from("Couples_love_languages").insert({
         couple_id: coupleId,
         user_id: user.id,
         primary_language: primary,
         secondary_language: secondary,
         scores,
-      });
+      }).select();
+
+      console.log("Insert result:", { error, data });
 
       if (error) throw error;
 
