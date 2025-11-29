@@ -796,8 +796,8 @@ export default function AdminDashboard() {
           </Dialog>
         </header>
 
-        <main className="flex-1 overflow-hidden">
-          <ScrollArea className="flex-1">
+        <main className="flex-1 min-h-0 overflow-y-auto">
+          <ScrollArea className="h-full">
             <div className="p-4 md:p-8 space-y-6 max-w-7xl mx-auto">
               {/* Controlled Tabs - synced with URL section */}
               <Tabs value={currentSection} onValueChange={handleSelectSection}>
