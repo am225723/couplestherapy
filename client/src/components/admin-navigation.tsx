@@ -237,13 +237,6 @@ export function AdminNavigation({
           </DropdownMenu>
         </div>
 
-        <button className="ml-auto rounded-full hover-elevate active-elevate-2" data-testid="button-therapist-profile">
-          <Avatar className="h-10 w-10 border-2 border-primary/20">
-            <AvatarFallback className="bg-primary/10 text-primary font-semibold">
-              {profile?.full_name ? getInitials(profile.full_name) : "T"}
-            </AvatarFallback>
-          </Avatar>
-        </button>
       </div>
 
       <div className="flex items-center gap-2 px-4 py-2 border-b">

@@ -25,6 +25,7 @@ import {
   SidebarHeader,
 } from "@/components/ui/sidebar";
 import { Button } from "./components/ui/button";
+import { Avatar, AvatarFallback } from "./components/ui/avatar";
 import {
   Users,
   LogOut,
@@ -41,6 +42,14 @@ import {
 } from "@/components/ui/collapsible";
 import { clientMenuConfig } from "./config/clientMenuConfig";
 import coupleArt from "@assets/Screenshot_20251109_193551_Chrome Beta_1762734968356.jpg";
+
+function getInitials(fullName: string): string {
+  return fullName
+    .split(" ")
+    .map((name) => name.charAt(0).toUpperCase())
+    .join("")
+    .slice(0, 2);
+}
 
 import AuthPage from "./pages/auth";
 import TherapistSignup from "./pages/therapist-signup";
@@ -441,9 +450,6 @@ function AuthenticatedApp() {
             </span>
           </Link>
           <div className="flex items-center gap-4">
-            <span className="text-sm text-muted-foreground">
-              {profile.full_name}
-            </span>
             <ThemeToggle />
             <Button
               variant="ghost"
@@ -455,6 +461,13 @@ function AuthenticatedApp() {
               <LogOut className="h-4 w-4" />
               Sign Out
             </Button>
+            <button className="rounded-full hover-elevate active-elevate-2" data-testid="button-therapist-profile">
+              <Avatar className="h-10 w-10 border-2 border-primary/20">
+                <AvatarFallback className="bg-primary/10 text-primary font-semibold">
+                  {profile.full_name ? getInitials(profile.full_name) : "T"}
+                </AvatarFallback>
+              </Avatar>
+            </button>
           </div>
         </header>
         <main className="flex-1 overflow-y-auto">
