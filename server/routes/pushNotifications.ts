@@ -49,89 +49,13 @@ router.post("/register-token", async (req, res) => {
   }
 });
 
-// Create scheduled notification
+// Create scheduled notification (deprecated - use Edge Function instead)
+// Kept for backwards compatibility but will be removed
 router.post("/schedule", async (req, res) => {
   try {
-    console.log("=== POST /api/push-notifications/schedule ===");
-    console.log("Body:", JSON.stringify(req.body));
-    
-    const authHeader = req.headers.authorization;
-    if (!authHeader?.startsWith("Bearer ")) {
-      console.log("Missing or invalid auth header");
-      return res.status(401).json({ error: "Unauthorized" });
-    }
-
-    const token = authHeader.replace("Bearer ", "");
-    const { couple_id, user_id, title, body, scheduled_at } = req.body;
-
-    // Validate input
-    if (!couple_id || !title || !body || !scheduled_at) {
-      return res.status(400).json({ error: "Missing required fields" });
-    }
-
-    // Get user from auth header
-    let userId: string;
-    try {
-      const payload = token.split(".")[1];
-      const decoded = JSON.parse(Buffer.from(payload, "base64").toString());
-      userId = decoded.sub;
-    } catch {
-      return res.status(401).json({ error: "Invalid token" });
-    }
-
-    // Verify couple exists (therapists can send to all couples)
-    const { data: coupleData, error: coupleError } = await supabaseAdmin
-      .from("Couples_couples")
-      .select("id")
-      .eq("id", couple_id)
-      .single();
-
-    if (coupleError || !coupleData) {
-      return res.status(404).json({ error: "Couple not found" });
-    }
-
-    // Convert EST to UTC (EST is UTC-5, so add 5 hours)
-    let scheduledAtUtc: string;
-    try {
-      const estDate = new Date(scheduled_at);
-      if (isNaN(estDate.getTime())) {
-        return res.status(400).json({ error: "Invalid datetime format" });
-      }
-      const utcDate = new Date(estDate.getTime() + 5 * 60 * 60 * 1000);
-      scheduledAtUtc = utcDate.toISOString();
-    } catch (parseError) {
-      console.error("Error parsing datetime:", parseError, "Input:", scheduled_at);
-      return res.status(400).json({ error: "Invalid datetime format" });
-    }
-
-    // Create scheduled notification
-    const { data, error } = await supabaseAdmin
-      .from("Couples_scheduled_notifications")
-      .insert({
-        therapist_id: userId,
-        couple_id,
-        user_id: user_id || null,
-        title,
-        body,
-        scheduled_at: scheduledAtUtc,
-        status: "pending",
-      })
-      .select();
-
-    if (error) {
-      console.error("Error creating notification:", error, "Payload:", {
-        therapist_id: userId,
-        couple_id,
-        user_id: user_id || null,
-        title,
-        body,
-        scheduled_at: scheduledAtUtc,
-        status: "pending",
-      });
-      return res.status(500).json({ error: "Failed to create notification" });
-    }
-
-    res.json(data[0]);
+    return res.status(501).json({ 
+      error: "This endpoint has been deprecated. Use Supabase Edge Function instead." 
+    });
   } catch (error) {
     console.error("Error in schedule:", error);
     res.status(500).json({ error: "Internal server error" });

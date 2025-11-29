@@ -20,9 +20,9 @@ import {
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
 import { Loader2, Bell } from "lucide-react";
 import { Profile, Couple } from "@shared/schema";
+import { supabase } from "@/lib/supabase";
 
 interface ScheduleNotificationDialogProps {
   couple: Couple & { partner1?: Profile; partner2?: Profile };
@@ -46,6 +46,11 @@ export function ScheduleNotificationDialog({
 
   const mutation = useMutation({
     mutationFn: async () => {
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData?.session?.access_token) {
+        throw new Error("Not authenticated");
+      }
+
       const payload: any = {
         couple_id: couple.id,
         title,
@@ -59,7 +64,24 @@ export function ScheduleNotificationDialog({
         payload.user_id = couple.partner2_id;
       }
 
-      return apiRequest("POST", "/api/push-notifications/schedule", payload);
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/schedule-notification`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${sessionData.session.access_token}`,
+          },
+          body: JSON.stringify(payload),
+        }
+      );
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to schedule notification");
+      }
+
+      return response.json();
     },
     onSuccess: () => {
       toast({
