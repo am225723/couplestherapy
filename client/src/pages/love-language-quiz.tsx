@@ -49,10 +49,15 @@ export default function LoveLanguageQuiz() {
     setSaving(true);
     const { scores, primary, secondary } =
       calculateLoveLanguageScores(finalAnswers);
+    const coupleId = (profile as ProfileWithCouple).couple_id;
 
     try {
-      // Insert without couple_id since the column may not exist in Supabase
+      if (!coupleId) {
+        throw new Error("You must be linked to a couple to save quiz results");
+      }
+
       const { error } = await supabase.from("Couples_love_languages").insert({
+        couple_id: coupleId,
         user_id: user.id,
         primary_language: primary,
         secondary_language: secondary,
