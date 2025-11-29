@@ -45,6 +45,7 @@ The design emphasizes a warm, compassionate feel using the Inter font, generous 
 -   **Privacy (RLS):** Strictly enforced to ensure data privacy and prevent unauthorized access or tampering.
 -   **Cross-Therapist Access Model:** Therapists can now view and interact with all couples in the system, supporting multi-therapist practices.
 -   **Therapist Thoughts System:** A dedicated section for therapists to manage to-dos, messages, and file references for clients.
+-   **Therapist Prompt Customization:** Therapists can create custom prompts and suggestions for each couple via the "Prompts" tab in the admin dashboard. These prompts appear in the "Suggested For You" section on the client dashboard, replacing AI-generated recommendations when available. Features include create/edit/delete, enable/disable toggles, and drag-to-reorder functionality.
 
 **Feature Specifications:**
 
