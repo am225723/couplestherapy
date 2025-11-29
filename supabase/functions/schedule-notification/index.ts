@@ -1,6 +1,6 @@
 // ========================================
 // Schedule Notification Handler
-// ========================================
+// =a=======================================
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
