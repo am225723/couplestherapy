@@ -19,12 +19,17 @@ import { useAuth } from "@/lib/auth-context";
 import { useToast } from "@/hooks/use-toast";
 import { Heart, Loader2 } from "lucide-react";
 
+interface ProfileWithCouple {
+  couple_id?: string;
+  [key: string]: any;
+}
+
 export default function LoveLanguageQuiz() {
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState<LoveLanguageType[]>([]);
   const [saving, setSaving] = useState(false);
   const [, navigate] = useLocation();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const { toast } = useToast();
 
   const handleAnswer = (language: LoveLanguageType) => {
@@ -39,14 +44,17 @@ export default function LoveLanguageQuiz() {
   };
 
   const saveResults = async (finalAnswers: LoveLanguageType[]) => {
-    if (!user) return;
+    if (!user || !profile) return;
 
     setSaving(true);
     const { scores, primary, secondary } =
       calculateLoveLanguageScores(finalAnswers);
 
     try {
+      const coupleId = (profile as ProfileWithCouple).couple_id || user.id;
+      
       const { error } = await supabase.from("Couples_love_languages").insert({
+        couple_id: coupleId,
         user_id: user.id,
         primary_language: primary,
         secondary_language: secondary,

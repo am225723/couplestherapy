@@ -15,6 +15,11 @@ import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/lib/supabase";
 import { useQuery } from "@tanstack/react-query";
 import { LoveLanguageType, LoveLanguage } from "@shared/schema";
+
+interface ProfileWithCouple {
+  couple_id?: string;
+  [key: string]: any;
+}
 import {
   Heart,
   MessageCircle,
@@ -142,24 +147,26 @@ const loveLanguageDetails: Record<
 };
 
 export default function LoveLanguageResults() {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const [, navigate] = useLocation();
 
   const { data: results, isLoading } = useQuery<LoveLanguage[]>({
-    queryKey: ["/api/love-languages/user", user?.id],
+    queryKey: ["/api/love-languages/couple", (profile as ProfileWithCouple)?.couple_id],
     queryFn: async () => {
-      if (!user) return [];
+      if (!user || !profile) return [];
+      const coupleId = (profile as ProfileWithCouple).couple_id || user.id;
+      
       const { data, error } = await supabase
         .from("Couples_love_languages")
         .select("*")
-        .eq("user_id", user.id)
+        .eq("couple_id", coupleId)
         .order("created_at", { ascending: false })
         .limit(1);
 
       if (error) throw error;
       return data || [];
     },
-    enabled: !!user,
+    enabled: !!user && !!profile,
   });
 
   const latestResult = results?.[0];
