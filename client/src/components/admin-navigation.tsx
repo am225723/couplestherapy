@@ -235,10 +235,9 @@ export function AdminNavigation({
         </div>
 
         <div className="flex items-center gap-2 w-full sm:w-auto">
-          <Badge variant="secondary" className="gap-1 text-xs sm:text-sm whitespace-nowrap">
+          <Badge variant="secondary" className="gap-1 whitespace-nowrap">
             <Users className="h-3 w-3" />
-            <span>{couples.length}</span>
-            <span className="hidden sm:inline">couples</span>
+            {couples.length} couples
           </Badge>
         </div>
       </div>
@@ -246,18 +245,18 @@ export function AdminNavigation({
       {selectedCouple && onSelectSection && (
         <div className="px-4 pb-0">
           <Tabs value={getActiveTab()} onValueChange={handleTabChange}>
-            <TabsList className="h-10 w-full justify-start bg-transparent p-0 border-b-0 flex-wrap overflow-x-auto">
+            <TabsList className="h-auto w-full justify-start bg-transparent p-0 border-b-0 flex-wrap gap-1">
               {MAIN_TABS.map((tab) => {
                 const Icon = tab.icon;
                 return (
                   <TabsTrigger
                     key={tab.id}
                     value={tab.id}
-                    className="gap-2 data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-2 sm:px-4 text-sm sm:text-base"
+                    className="gap-2 data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-3 py-2"
                     data-testid={`tab-${tab.id}`}
                   >
                     <Icon className="h-4 w-4 shrink-0" />
-                    <span className="hidden sm:inline">{tab.label}</span>
+                    <span>{tab.label}</span>
                   </TabsTrigger>
                 );
               })}
