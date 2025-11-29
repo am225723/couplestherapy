@@ -51,6 +51,7 @@ router.post("/register-token", async (req, res) => {
 
 // Create scheduled notification
 router.post("/schedule", async (req, res) => {
+  console.log("[DEBUG] /schedule endpoint hit", { body: req.body, headers: req.headers.authorization?.substring(0, 20) });
   try {
     const authHeader = req.headers.authorization;
     if (!authHeader?.startsWith("Bearer ")) {
