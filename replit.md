@@ -46,6 +46,7 @@ The design emphasizes a warm, compassionate feel using the Inter font, generous 
 -   **Cross-Therapist Access Model:** Therapists can now view and interact with all couples in the system, supporting multi-therapist practices.
 -   **Therapist Thoughts System:** A dedicated section for therapists to manage to-dos, messages, and file references for clients.
 -   **Therapist Prompt Customization:** Therapists can create custom prompts and suggestions for each couple via the "Prompts" tab in the admin dashboard. These prompts appear in the "Suggested For You" section on the client dashboard, replacing AI-generated recommendations when available. Features include create/edit/delete, enable/disable toggles, and drag-to-reorder functionality.
+-   **Widget Content Customization:** Therapists can personalize the "From Your Therapist" card for each couple via the "Card Content" tab in the dashboard customizer. This includes custom title, description, and section visibility toggles (Messages, To-Dos, Resources). Client dashboard applies these customizations with sensible fallbacks. Stored as `widget_content_overrides` jsonb in `Couples_dashboard_customization` table.
 
 **Feature Specifications:**
 
