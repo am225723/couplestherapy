@@ -291,21 +291,21 @@ export default function LoveLanguageResults() {
       
       console.log("Fetching love language results for userIds:", userIds);
       
-      // Get latest result for each user
+      // Get results for users (no created_at column in Supabase, so just fetch all)
       const { data, error } = await supabase
         .from("Couples_love_languages")
         .select("*")
-        .in("user_id", userIds)
-        .order("created_at", { ascending: false });
+        .in("user_id", userIds);
 
       console.log("Love language query result:", { data, error });
 
       if (error) throw error;
       
-      // Get only the latest result for each user
+      // Get the latest result for each user (by id if multiple exist)
       const latestByUser: Record<string, LoveLanguage> = {};
       for (const result of (data || [])) {
-        if (!latestByUser[result.user_id]) {
+        // If we already have a result for this user, keep the one with the larger id (more recent)
+        if (!latestByUser[result.user_id] || result.id > latestByUser[result.user_id].id) {
           latestByUser[result.user_id] = result;
         }
       }
