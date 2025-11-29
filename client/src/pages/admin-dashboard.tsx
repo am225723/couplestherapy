@@ -356,8 +356,14 @@ export default function AdminDashboard() {
       ]);
 
       // Fetch voice memos via secure API endpoint (metadata only - no storage paths or transcripts)
+      const { data: sessionData } = await supabase.auth.getSession();
       const voiceMemosResponse = await fetch(
         `/api/voice-memos/therapist/${couple.id}`,
+        {
+          headers: sessionData?.session?.access_token
+            ? { Authorization: `Bearer ${sessionData.session.access_token}` }
+            : {},
+        }
       );
       const voiceMemosData = voiceMemosResponse.ok
         ? await voiceMemosResponse.json()
