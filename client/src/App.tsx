@@ -25,7 +25,7 @@ import {
   SidebarHeader,
 } from "@/components/ui/sidebar";
 import { Button } from "./components/ui/button";
-import { Avatar, AvatarFallback } from "./components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "./components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -478,6 +478,7 @@ function AuthenticatedApp() {
               <DropdownMenuTrigger asChild>
                 <button className="rounded-full hover-elevate active-elevate-2" data-testid="button-therapist-profile">
                   <Avatar className="h-10 w-10 border-2 border-primary/20">
+                    {profile.avatar_url && <AvatarImage src={profile.avatar_url} alt={profile.full_name || "Profile"} />}
                     <AvatarFallback className="bg-primary/10 text-primary font-semibold">
                       {profile.full_name ? getInitials(profile.full_name) : "T"}
                     </AvatarFallback>
