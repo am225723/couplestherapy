@@ -49,13 +49,70 @@ router.post("/register-token", async (req, res) => {
   }
 });
 
-// Create scheduled notification (deprecated - use Edge Function instead)
-// Kept for backwards compatibility but will be removed
+// Create scheduled notification
 router.post("/schedule", async (req, res) => {
   try {
-    return res.status(501).json({ 
-      error: "This endpoint has been deprecated. Use Supabase Edge Function instead." 
-    });
+    const authHeader = req.headers.authorization;
+    if (!authHeader?.startsWith("Bearer ")) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    const token = authHeader.replace("Bearer ", "");
+    let userId: string;
+    try {
+      const payload = token.split(".")[1];
+      const decoded = JSON.parse(Buffer.from(payload, "base64").toString());
+      userId = decoded.sub;
+    } catch {
+      return res.status(401).json({ error: "Invalid token" });
+    }
+
+    const { couple_id, user_id, title, body, scheduled_at } = req.body;
+
+    if (!couple_id || !title || !body || !scheduled_at) {
+      return res.status(400).json({ error: "Missing required fields" });
+    }
+
+    // Verify couple exists
+    const { data: coupleData, error: coupleError } = await supabaseAdmin
+      .from("Couples_couples")
+      .select("id")
+      .eq("id", couple_id)
+      .single();
+
+    if (coupleError || !coupleData) {
+      return res.status(404).json({ error: "Couple not found" });
+    }
+
+    // Convert EST to UTC (EST is UTC-5, so add 5 hours)
+    const estDate = new Date(scheduled_at);
+    if (isNaN(estDate.getTime())) {
+      return res.status(400).json({ error: "Invalid datetime format" });
+    }
+
+    const utcDate = new Date(estDate.getTime() + 5 * 60 * 60 * 1000);
+    const scheduledAtUtc = utcDate.toISOString();
+
+    // Create scheduled notification
+    const { data, error } = await supabaseAdmin
+      .from("Couples_scheduled_notifications")
+      .insert({
+        therapist_id: userId,
+        couple_id,
+        user_id: user_id || null,
+        title,
+        body,
+        scheduled_at: scheduledAtUtc,
+        status: "pending",
+      })
+      .select();
+
+    if (error) {
+      console.error("Error creating notification:", error);
+      return res.status(500).json({ error: "Failed to create notification" });
+    }
+
+    res.json(data?.[0] || { success: true });
   } catch (error) {
     console.error("Error in schedule:", error);
     res.status(500).json({ error: "Internal server error" });

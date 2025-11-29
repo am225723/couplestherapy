@@ -64,17 +64,15 @@ export function ScheduleNotificationDialog({
         payload.user_id = couple.partner2_id;
       }
 
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/schedule-notification`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${sessionData.session.access_token}`,
-          },
-          body: JSON.stringify(payload),
-        }
-      );
+      // Use Express backend endpoint
+      const response = await fetch("/api/push-notifications/schedule", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${sessionData.session.access_token}`,
+        },
+        body: JSON.stringify(payload),
+      });
 
       if (!response.ok) {
         const error = await response.json();
