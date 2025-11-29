@@ -136,18 +136,18 @@ export function AdminNavigation({
 
   return (
     <div className="border-b bg-card">
-      <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 px-4 py-3">
+      <div className="flex items-center gap-4 px-4 py-3">
         <div className="flex items-center gap-2 shrink-0">
           <Heart className="h-6 w-6 text-primary" />
-          <span className="font-semibold text-lg hidden sm:inline">ALEIC Therapist</span>
+          <span className="font-semibold text-base sm:text-lg">ALEIC</span>
         </div>
 
-        <div className="flex-1 flex items-center gap-3 w-full sm:max-w-xl">
+        <div className="flex-1 flex items-center gap-3">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
                 variant="outline"
-                className="gap-2 min-w-0 flex-1 sm:flex-none sm:min-w-[200px] justify-between text-xs sm:text-base"
+                className="gap-2 min-w-0 flex-1 justify-between text-xs sm:text-base"
                 data-testid="dropdown-couple-selector"
               >
                 {selectedCouple ? (
@@ -234,10 +234,10 @@ export function AdminNavigation({
           </DropdownMenu>
         </div>
 
-        <div className="flex items-center gap-2 w-full sm:w-auto">
-          <Badge variant="secondary" className="gap-1 whitespace-nowrap">
+        <div className="ml-auto flex items-center gap-2">
+          <Badge variant="secondary" className="gap-1 whitespace-nowrap text-xs sm:text-sm">
             <Users className="h-3 w-3" />
-            {couples.length} couples
+            <span className="hidden xs:inline">{couples.length}</span>
           </Badge>
         </div>
       </div>
