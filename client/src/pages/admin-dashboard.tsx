@@ -776,7 +776,7 @@ export default function AdminDashboard() {
 
         <main className="flex-1 overflow-hidden">
           <ScrollArea className="flex-1">
-            <div className="p-8 space-y-6 max-w-7xl mx-auto">
+            <div className="p-4 md:p-8 space-y-6 max-w-7xl mx-auto">
               {/* Controlled Tabs - synced with URL section */}
               <Tabs value={currentSection} onValueChange={handleSelectSection}>
                 {/* TabsList hidden - navigation via sidebar only */}
