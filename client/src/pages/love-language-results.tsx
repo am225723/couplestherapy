@@ -157,27 +157,47 @@ const loveLanguageDetails: Record<
 };
 
 const compatibilityInsights: Record<string, { harmony: string; growth: string; rituals: string[] }> = {
-  "Words of Affirmation-Words of Affirmation": {
-    harmony: "You both thrive on verbal expressions of love. Your shared language makes communication natural and affirming.",
-    growth: "Be careful not to rely only on words - sometimes actions need to back them up. Practice expressing love in other ways too.",
-    rituals: ["Daily appreciation sharing", "Weekly love letter exchange", "Morning affirmation rituals"],
+  "Acts of Service-Acts of Service": {
+    harmony: "You both show love through actions. Your home runs smoothly as you both naturally help each other.",
+    growth: "Don't keep score of who does what. Remember to occasionally express love in other ways too.",
+    rituals: ["Alternating breakfast in bed", "Weekend chore partnerships", "Surprise task completion"],
   },
-  "Words of Affirmation-Quality Time": {
-    harmony: "One of you fills up through words, the other through presence. Together you create deeply meaningful conversations.",
-    growth: "The Quality Time partner should practice verbalizing their feelings more. The Words partner should put down distractions and be fully present.",
-    rituals: ["Daily check-ins with compliments", "Weekly uninterrupted date nights", "Morning coffee conversations"],
+  "Acts of Service-Physical Touch": {
+    harmony: "Caring actions paired with physical affection show complete love. A massage after a long day combines both languages.",
+    growth: "The Acts partner should remember that sometimes just sitting close matters more than doing. The Touch partner can show love through helpful actions.",
+    rituals: ["Pampering spa nights", "Cooking together with lots of hugs", "Physical affection after acts of service"],
   },
-  "Words of Affirmation-Receiving Gifts": {
-    harmony: "Thoughtful notes with gifts can be incredibly meaningful. Words partner can write meaningful cards; Gifts partner shows love through tokens of affection.",
-    growth: "Remember that words without thoughtful gestures may feel empty to one, while gifts without verbal appreciation may feel hollow to the other.",
-    rituals: ["Love notes with small surprises", "Anniversary letters with meaningful gifts", "Verbal thanks for every gift given"],
+  "Acts of Service-Quality Time": {
+    harmony: "Doing tasks together becomes quality time. The Acts partner shows love through shared activities and projects.",
+    growth: "The Acts partner should sometimes just sit and be present without 'doing.' The Quality Time partner can show love by helping with tasks.",
+    rituals: ["Cooking meals together", "Weekend projects as dates", "Morning routines shared"],
   },
-  "Words of Affirmation-Acts of Service": {
+  "Acts of Service-Receiving Gifts": {
+    harmony: "Gifts of service (like handling a dreaded task) can be incredibly meaningful. Practical gifts that help are doubly loved.",
+    growth: "The Gifts partner should sometimes give the gift of doing. The Acts partner should occasionally add a thoughtful token to their service.",
+    rituals: ["Gifts that make life easier", "Service surprises with a bow", "Practical presents with love notes"],
+  },
+  "Acts of Service-Words of Affirmation": {
     harmony: "One shows love through helpful actions, the other through verbal appreciation. The Acts partner's efforts can be deeply acknowledged.",
     growth: "The Acts partner should practice saying 'I love you' more. The Words partner should occasionally show love through helpful actions.",
     rituals: ["Thank-you rituals for daily tasks", "Verbal appreciation before bed", "Weekly acts of service with love notes"],
   },
-  "Words of Affirmation-Physical Touch": {
+  "Physical Touch-Physical Touch": {
+    harmony: "You both feel most loved through physical connection. Your relationship is naturally affectionate and warm.",
+    growth: "Make sure to communicate verbally too. Physical touch should enhance, not replace, emotional intimacy.",
+    rituals: ["Morning and evening cuddle time", "Frequent hand-holding", "Daily massage exchanges"],
+  },
+  "Physical Touch-Quality Time": {
+    harmony: "Being together with physical closeness is the ultimate combination. Cuddling while talking creates deep intimacy.",
+    growth: "Make sure quality time includes meaningful conversation, not just physical presence. Balance active dates with cozy togetherness.",
+    rituals: ["Evening cuddle and chat time", "Walking hand in hand", "Physical affection during all activities together"],
+  },
+  "Physical Touch-Receiving Gifts": {
+    harmony: "Thoughtful gifts combined with physical affection create powerful moments. A gift given with a hug means twice as much.",
+    growth: "Remember that presence and touch can be as valuable as any gift. Sometimes the best present is simply being held.",
+    rituals: ["Gifts presented with kisses", "Surprise treats with cuddle time", "Physical affection as the main gift"],
+  },
+  "Physical Touch-Words of Affirmation": {
     harmony: "Combining affectionate words with physical closeness creates powerful moments of connection.",
     growth: "The Touch partner should practice verbalizing feelings during intimate moments. The Words partner should initiate more physical affection.",
     rituals: ["Hugs with spoken affirmations", "Holding hands while sharing appreciation", "Cuddle time with meaningful conversation"],
@@ -192,45 +212,25 @@ const compatibilityInsights: Record<string, { harmony: string; growth: string; r
     growth: "Quality Time partner should occasionally surprise with thoughtful tokens. Gifts partner should focus on experiences over material items.",
     rituals: ["Monthly experience gifts", "Surprise date planning", "Memory-making adventures"],
   },
-  "Quality Time-Acts of Service": {
-    harmony: "Doing tasks together becomes quality time. The Acts partner shows love through shared activities and projects.",
-    growth: "The Acts partner should sometimes just sit and be present without 'doing.' The Quality Time partner can show love by helping with tasks.",
-    rituals: ["Cooking meals together", "Weekend projects as dates", "Morning routines shared"],
-  },
-  "Quality Time-Physical Touch": {
-    harmony: "Being together with physical closeness is the ultimate combination. Cuddling while talking creates deep intimacy.",
-    growth: "Make sure quality time includes meaningful conversation, not just physical presence. Balance active dates with cozy togetherness.",
-    rituals: ["Evening cuddle and chat time", "Walking hand in hand", "Physical affection during all activities together"],
+  "Quality Time-Words of Affirmation": {
+    harmony: "One of you fills up through words, the other through presence. Together you create deeply meaningful conversations.",
+    growth: "The Quality Time partner should practice verbalizing their feelings more. The Words partner should put down distractions and be fully present.",
+    rituals: ["Daily check-ins with compliments", "Weekly uninterrupted date nights", "Morning coffee conversations"],
   },
   "Receiving Gifts-Receiving Gifts": {
     harmony: "You both appreciate thoughtful tokens of love. Gift-giving becomes a joyful exchange of affection.",
     growth: "Be careful not to make love feel transactional. Focus on thoughtfulness over expense or frequency.",
     rituals: ["Monthly surprise exchange", "Meaningful occasion celebrations", "Just-because gift traditions"],
   },
-  "Receiving Gifts-Acts of Service": {
-    harmony: "Gifts of service (like handling a dreaded task) can be incredibly meaningful. Practical gifts that help are doubly loved.",
-    growth: "The Gifts partner should sometimes give the gift of doing. The Acts partner should occasionally add a thoughtful token to their service.",
-    rituals: ["Gifts that make life easier", "Service surprises with a bow", "Practical presents with love notes"],
+  "Receiving Gifts-Words of Affirmation": {
+    harmony: "Thoughtful notes with gifts can be incredibly meaningful. Words partner can write meaningful cards; Gifts partner shows love through tokens of affection.",
+    growth: "Remember that words without thoughtful gestures may feel empty to one, while gifts without verbal appreciation may feel hollow to the other.",
+    rituals: ["Love notes with small surprises", "Anniversary letters with meaningful gifts", "Verbal thanks for every gift given"],
   },
-  "Receiving Gifts-Physical Touch": {
-    harmony: "Thoughtful gifts combined with physical affection create powerful moments. A gift given with a hug means twice as much.",
-    growth: "Remember that presence and touch can be as valuable as any gift. Sometimes the best present is simply being held.",
-    rituals: ["Gifts presented with kisses", "Surprise treats with cuddle time", "Physical affection as the main gift"],
-  },
-  "Acts of Service-Acts of Service": {
-    harmony: "You both show love through actions. Your home runs smoothly as you both naturally help each other.",
-    growth: "Don't keep score of who does what. Remember to occasionally express love in other ways too.",
-    rituals: ["Alternating breakfast in bed", "Weekend chore partnerships", "Surprise task completion"],
-  },
-  "Acts of Service-Physical Touch": {
-    harmony: "Caring actions paired with physical affection show complete love. A massage after a long day combines both languages.",
-    growth: "The Acts partner should remember that sometimes just sitting close matters more than doing. The Touch partner can show love through helpful actions.",
-    rituals: ["Pampering spa nights", "Cooking together with lots of hugs", "Physical affection after acts of service"],
-  },
-  "Physical Touch-Physical Touch": {
-    harmony: "You both feel most loved through physical connection. Your relationship is naturally affectionate and warm.",
-    growth: "Make sure to communicate verbally too. Physical touch should enhance, not replace, emotional intimacy.",
-    rituals: ["Morning and evening cuddle time", "Frequent hand-holding", "Daily massage exchanges"],
+  "Words of Affirmation-Words of Affirmation": {
+    harmony: "You both thrive on verbal expressions of love. Your shared language makes communication natural and affirming.",
+    growth: "Be careful not to rely only on words - sometimes actions need to back them up. Practice expressing love in other ways too.",
+    rituals: ["Daily appreciation sharing", "Weekly love letter exchange", "Morning affirmation rituals"],
   },
 };
 
