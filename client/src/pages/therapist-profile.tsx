@@ -5,12 +5,20 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2, ArrowLeft } from "lucide-react";
 import { Link } from "wouter";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { supabase } from "@/lib/supabase";
 
 export default function TherapistProfile() {
-  const { profile } = useAuth();
+  const { profile, user } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [fullName, setFullName] = useState(profile?.full_name || "");
+  const [email, setEmail] = useState("");
+
+  useEffect(() => {
+    if (user?.email) {
+      setEmail(user.email);
+    }
+  }, [user]);
 
   if (!profile) {
     return (
@@ -74,7 +82,7 @@ export default function TherapistProfile() {
               <Input
                 id="email"
                 type="email"
-                value={profile.id || ""}
+                value={email}
                 disabled
                 data-testid="input-email"
               />
