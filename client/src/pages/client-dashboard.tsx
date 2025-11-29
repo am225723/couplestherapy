@@ -49,7 +49,7 @@ import {
   FileText,
   Link as LinkIcon,
 } from "lucide-react";
-import { LoveLanguage, TherapistPrompt } from "@shared/schema";
+import { LoveLanguage } from "@shared/schema";
 import clientHeroImage from "@assets/copilot_image_1764413074633_1764413131660.jpeg";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -112,19 +112,6 @@ export default function ClientDashboard() {
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
 
-  // Therapist prompts query - custom suggestions set by therapist
-  const therapistPromptsQuery = useQuery<TherapistPrompt[]>({
-    queryKey: ["/api/therapist-prompts/couple", profile?.couple_id],
-    queryFn: async () => {
-      const response = await fetch(
-        `/api/therapist-prompts/couple/${profile?.couple_id}`,
-      );
-      if (!response.ok) throw new Error("Failed to fetch prompts");
-      return response.json();
-    },
-    enabled: !!profile?.couple_id,
-    staleTime: 1000 * 60 * 10, // 10 minutes
-  });
 
   // Delete love language mutation
   const deleteLoveLanguageMutation = useMutation({
@@ -357,6 +344,13 @@ export default function ClientDashboard() {
     return sizeClasses[size as keyof typeof sizeClasses] || sizeClasses.medium;
   };
 
+  // Check if a widget is enabled (default true if not specified)
+  const isWidgetEnabled = (widgetId: string): boolean => {
+    const customization = customizationQuery.data;
+    if (!customization?.enabled_widgets) return true;
+    return customization.enabled_widgets[widgetId] !== false;
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <div className="relative h-80 overflow-hidden">
@@ -380,58 +374,62 @@ export default function ClientDashboard() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 -mt-16 pb-12 space-y-12">
-        <Link href="/date-night">
-          <Card
-            className="shadow-lg hover-elevate active-elevate-2 cursor-pointer border-primary/20 bg-gradient-to-br from-primary/5 to-accent/10"
-            data-testid="card-date-night-featured"
-          >
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="flex items-center gap-2 text-2xl">
-                    <Sparkles className="h-6 w-6 text-primary" />
-                    Date Night Generator
-                  </CardTitle>
-                  <CardDescription className="text-base mt-2">
-                    Plan a meaningful date with AI-powered suggestions tailored
-                    to your preferences
-                  </CardDescription>
+        {isWidgetEnabled("date-night") && (
+          <Link href="/date-night">
+            <Card
+              className="shadow-lg hover-elevate active-elevate-2 cursor-pointer border-primary/20 bg-gradient-to-br from-primary/5 to-accent/10"
+              data-testid="card-date-night-featured"
+            >
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="flex items-center gap-2 text-2xl">
+                      <Sparkles className="h-6 w-6 text-primary" />
+                      Date Night Generator
+                    </CardTitle>
+                    <CardDescription className="text-base mt-2">
+                      Plan a meaningful date with AI-powered suggestions tailored
+                      to your preferences
+                    </CardDescription>
+                  </div>
+                  <div className="flex items-center gap-2 text-primary">
+                    <span className="font-medium">Start Planning</span>
+                    <ArrowRight className="h-5 w-5" />
+                  </div>
                 </div>
-                <div className="flex items-center gap-2 text-primary">
-                  <span className="font-medium">Start Planning</span>
-                  <ArrowRight className="h-5 w-5" />
-                </div>
-              </div>
-            </CardHeader>
-          </Card>
-        </Link>
+              </CardHeader>
+            </Card>
+          </Link>
+        )}
 
-        <Link href="/checkin-history">
-          <Card
-            className="shadow-lg hover-elevate active-elevate-2 cursor-pointer border-primary/20"
-            data-testid="card-checkin-history"
-          >
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="flex items-center gap-2">
-                    <Calendar className="h-5 w-5 text-primary" />
-                    Check-In History
-                  </CardTitle>
-                  <CardDescription>
-                    Review your weekly reflections and track your progress over
-                    time
-                  </CardDescription>
+        {isWidgetEnabled("checkin-history") && (
+          <Link href="/checkin-history">
+            <Card
+              className="shadow-lg hover-elevate active-elevate-2 cursor-pointer border-primary/20"
+              data-testid="card-checkin-history"
+            >
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="flex items-center gap-2">
+                      <Calendar className="h-5 w-5 text-primary" />
+                      Check-In History
+                    </CardTitle>
+                    <CardDescription>
+                      Review your weekly reflections and track your progress over
+                      time
+                    </CardDescription>
+                  </div>
+                  <div className="flex items-center gap-2 text-primary">
+                    <TrendingUp className="h-5 w-5" />
+                    <span className="font-medium">View Timeline</span>
+                    <ArrowRight className="h-4 w-4" />
+                  </div>
                 </div>
-                <div className="flex items-center gap-2 text-primary">
-                  <TrendingUp className="h-5 w-5" />
-                  <span className="font-medium">View Timeline</span>
-                  <ArrowRight className="h-4 w-4" />
-                </div>
-              </div>
-            </CardHeader>
-          </Card>
-        </Link>
+              </CardHeader>
+            </Card>
+          </Link>
+        )}
 
         {therapistThoughtsQuery.isSuccess &&
           therapistThoughtsQuery.data &&
@@ -535,101 +533,68 @@ export default function ClientDashboard() {
             </Card>
           )}
 
-        {/* Therapist Prompts (priority) or AI Recommendations (fallback) */}
-        {therapistPromptsQuery.isSuccess &&
-        therapistPromptsQuery.data &&
-        therapistPromptsQuery.data.length > 0 ? (
-          <Card
-            className="border-amber-500/20 bg-gradient-to-br from-amber-50/30 to-yellow-50/30 dark:from-amber-950/10 dark:to-yellow-950/10"
-            data-testid="card-therapist-prompts"
-          >
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base flex items-center gap-2">
-                <Sparkles className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-                Suggested For You
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {therapistPromptsQuery.data.map((prompt) => (
-                <div
-                  key={prompt.id}
-                  className="p-3 rounded-lg bg-background/50 border border-amber-200/30 dark:border-amber-800/30"
-                  data-testid={`therapist-prompt-${prompt.id}`}
-                >
-                  <p className="font-medium text-sm mb-1">{prompt.title}</p>
-                  {prompt.description && (
-                    <p className="text-xs text-muted-foreground mb-2">
-                      {prompt.description}
-                    </p>
+        {isWidgetEnabled("ai-suggestions") && (
+          <>
+            {recommendationsQuery.isSuccess && recommendationsQuery.data && (
+              <Card
+                className="border-amber-500/20 bg-gradient-to-br from-amber-50/30 to-yellow-50/30 dark:from-amber-950/10 dark:to-yellow-950/10"
+                data-testid="card-ai-recommendations"
+              >
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <Sparkles className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                    Suggested For You
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {recommendationsQuery.data.recommendations.map(
+                    (rec: any, idx: number) => (
+                      <div
+                        key={idx}
+                        className="p-3 rounded-lg bg-background/50 border border-amber-200/30 dark:border-amber-800/30"
+                        data-testid={`recommendation-${idx}`}
+                      >
+                        <p className="font-medium text-sm mb-1">{rec.tool_name}</p>
+                        <p className="text-xs text-muted-foreground mb-2">
+                          {rec.rationale}
+                        </p>
+                        <p className="text-xs text-amber-600 dark:text-amber-400 flex items-center gap-1.5">
+                          <Lightbulb className="h-3 w-3" />
+                          {rec.suggested_action}
+                        </p>
+                      </div>
+                    ),
                   )}
-                  <p className="text-xs text-amber-600 dark:text-amber-400 flex items-center gap-1.5">
-                    <Lightbulb className="h-3 w-3" />
-                    {prompt.suggested_action}
-                  </p>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-        ) : recommendationsQuery.isSuccess && recommendationsQuery.data ? (
-          <Card
-            className="border-amber-500/20 bg-gradient-to-br from-amber-50/30 to-yellow-50/30 dark:from-amber-950/10 dark:to-yellow-950/10"
-            data-testid="card-ai-recommendations"
-          >
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base flex items-center gap-2">
-                <Sparkles className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-                Suggested For You
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {recommendationsQuery.data.recommendations.map(
-                (rec: any, idx: number) => (
-                  <div
-                    key={idx}
-                    className="p-3 rounded-lg bg-background/50 border border-amber-200/30 dark:border-amber-800/30"
-                    data-testid={`recommendation-${idx}`}
-                  >
-                    <p className="font-medium text-sm mb-1">{rec.tool_name}</p>
-                    <p className="text-xs text-muted-foreground mb-2">
-                      {rec.rationale}
-                    </p>
-                    <p className="text-xs text-amber-600 dark:text-amber-400 flex items-center gap-1.5">
-                      <Lightbulb className="h-3 w-3" />
-                      {rec.suggested_action}
-                    </p>
+                </CardContent>
+              </Card>
+            )}
+
+            {recommendationsQuery.isLoading && (
+              <Card
+                className="shadow-lg"
+                data-testid="card-recommendations-loading"
+              >
+                <CardContent className="py-12 flex items-center justify-center">
+                  <div className="flex items-center gap-3 text-muted-foreground">
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                    <span>Getting personalized recommendations...</span>
                   </div>
-                ),
-              )}
-            </CardContent>
-          </Card>
-        ) : null}
+                </CardContent>
+              </Card>
+            )}
 
-        {(therapistPromptsQuery.isLoading || recommendationsQuery.isLoading) &&
-          !therapistPromptsQuery.data?.length && (
-            <Card
-              className="shadow-lg"
-              data-testid="card-recommendations-loading"
-            >
-              <CardContent className="py-12 flex items-center justify-center">
-                <div className="flex items-center gap-3 text-muted-foreground">
-                  <Loader2 className="h-5 w-5 animate-spin" />
-                  <span>Getting personalized recommendations...</span>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-        {recommendationsQuery.isError &&
-          therapistPromptsQuery.isError && (
-            <Alert
-              variant="destructive"
-              data-testid="alert-recommendations-error"
-            >
-              <AlertDescription>
-                Failed to load recommendations. Please try refreshing the page.
-              </AlertDescription>
-            </Alert>
-          )}
+            {recommendationsQuery.isError && (
+              <Alert
+                variant="destructive"
+                data-testid="alert-recommendations-error"
+              >
+                <AlertDescription>
+                  Failed to load recommendations. Please try refreshing the page.
+                </AlertDescription>
+              </Alert>
+            )}
+          </>
+        )}
 
         {!loading && loveLanguages.length > 0 && (
           <Card className="shadow-lg">

@@ -1486,6 +1486,9 @@ export default function AdminDashboard() {
                     therapistId={profile?.id || ""}
                     initialOrder={
                       dashboardCustomizationQuery.data?.widget_order || [
+                        "date-night",
+                        "checkin-history",
+                        "ai-suggestions",
                         "weekly-checkin",
                         "love-languages",
                         "gratitude",
@@ -1505,6 +1508,9 @@ export default function AdminDashboard() {
                     }
                     initialEnabled={
                       dashboardCustomizationQuery.data?.enabled_widgets || {
+                        "date-night": true,
+                        "checkin-history": true,
+                        "ai-suggestions": true,
                         "weekly-checkin": true,
                         "love-languages": true,
                         gratitude: true,

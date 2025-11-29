@@ -65,7 +65,6 @@ const MAIN_TABS = [
   { id: "overview", label: "Overview", icon: Home },
   { id: "insights", label: "Insights", icon: TrendingUp },
   { id: "tools", label: "Therapy Tools", icon: Wrench },
-  { id: "prompts", label: "Prompts", icon: Sparkles },
   { id: "customize", label: "Customize", icon: LayoutDashboard },
 ];
 
@@ -124,7 +123,6 @@ export function AdminNavigation({
   const getActiveTab = () => {
     if (currentSection === "overview") return "overview";
     if (currentSection === "dashboard-customization") return "customize";
-    if (currentSection === "prompts") return "prompts";
     if (INSIGHT_SECTIONS.some((s) => s.id === currentSection))
       return "insights";
     if (TOOL_SECTIONS.some((s) => s.id === currentSection)) return "tools";
@@ -135,7 +133,6 @@ export function AdminNavigation({
     if (!onSelectSection) return;
     if (tab === "overview") onSelectSection("overview");
     else if (tab === "customize") onSelectSection("dashboard-customization");
-    else if (tab === "prompts") onSelectSection("prompts");
     else if (tab === "insights") onSelectSection("checkins");
     else if (tab === "tools") onSelectSection("messages");
   };

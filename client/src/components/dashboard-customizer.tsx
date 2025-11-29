@@ -33,6 +33,8 @@ import {
   TrendingUp,
   Eye,
   Settings2,
+  Sparkles,
+  History,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -48,6 +50,9 @@ interface DashboardCustomizerProps {
 }
 
 const ALL_WIDGETS = [
+  "date-night",
+  "checkin-history",
+  "ai-suggestions",
   "weekly-checkin",
   "love-languages",
   "gratitude",
@@ -75,6 +80,27 @@ const WIDGET_CONFIG: Record<
     description: string;
   }
 > = {
+  "date-night": {
+    label: "Date Night Generator",
+    icon: Sparkles,
+    color: "text-primary",
+    bgColor: "bg-primary/10",
+    description: "AI-powered date night planning",
+  },
+  "checkin-history": {
+    label: "Check-In History",
+    icon: History,
+    color: "text-blue-600 dark:text-blue-400",
+    bgColor: "bg-blue-100 dark:bg-blue-900/30",
+    description: "Review weekly check-in timeline",
+  },
+  "ai-suggestions": {
+    label: "AI Suggestions",
+    icon: Sparkles,
+    color: "text-amber-600 dark:text-amber-400",
+    bgColor: "bg-amber-100 dark:bg-amber-900/30",
+    description: "Personalized activity recommendations",
+  },
   "weekly-checkin": {
     label: "Weekly Check-in",
     icon: TrendingUp,
