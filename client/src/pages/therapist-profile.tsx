@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/dialog";
 import { Slider } from "@/components/ui/slider";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2, ArrowLeft, Upload, AlertCircle } from "lucide-react";
+import { Loader2, ArrowLeft, Upload, AlertCircle, Calendar, CheckCircle2 } from "lucide-react";
 import { Link } from "wouter";
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/lib/supabase";
@@ -94,6 +94,8 @@ export default function TherapistProfile() {
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<CropArea | null>(null);
   const [fileValidationError, setFileValidationError] = useState<string | null>(null);
+  const [googleCalendarConnected, setGoogleCalendarConnected] = useState(false);
+  const [appleCalendarConnected, setAppleCalendarConnected] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -373,11 +375,54 @@ export default function TherapistProfile() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Alternative Contact Information</CardTitle>
-            <CardDescription>Additional contact details and preferences</CardDescription>
+            <CardTitle className="flex items-center gap-2">
+              <Calendar className="h-5 w-5" />
+              Calendar Integrations
+            </CardTitle>
+            <CardDescription>Connect your calendar for scheduling and availability management</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <p className="text-sm text-muted-foreground">No alternative contact information added yet.</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="border rounded-lg p-4 flex flex-col gap-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="font-semibold">Google Calendar</h3>
+                    <p className="text-sm text-muted-foreground">Sync your Google Calendar</p>
+                  </div>
+                  {googleCalendarConnected && <CheckCircle2 className="h-5 w-5 text-green-600" />}
+                </div>
+                <Button
+                  variant={googleCalendarConnected ? "secondary" : "outline"}
+                  className="w-full"
+                  onClick={() => setGoogleCalendarConnected(!googleCalendarConnected)}
+                  data-testid="button-google-calendar"
+                >
+                  {googleCalendarConnected ? "Disconnect" : "Connect"}
+                </Button>
+              </div>
+
+              <div className="border rounded-lg p-4 flex flex-col gap-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="font-semibold">Apple Calendar</h3>
+                    <p className="text-sm text-muted-foreground">Sync your Apple Calendar</p>
+                  </div>
+                  {appleCalendarConnected && <CheckCircle2 className="h-5 w-5 text-green-600" />}
+                </div>
+                <Button
+                  variant={appleCalendarConnected ? "secondary" : "outline"}
+                  className="w-full"
+                  onClick={() => setAppleCalendarConnected(!appleCalendarConnected)}
+                  data-testid="button-apple-calendar"
+                >
+                  {appleCalendarConnected ? "Disconnect" : "Connect"}
+                </Button>
+              </div>
+            </div>
+
+            <p className="text-xs text-muted-foreground mt-4">
+              Connected calendars will sync your availability and help coordinate sessions with clients.
+            </p>
           </CardContent>
         </Card>
       </div>
