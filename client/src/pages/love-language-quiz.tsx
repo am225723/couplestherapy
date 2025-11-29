@@ -51,10 +51,8 @@ export default function LoveLanguageQuiz() {
       calculateLoveLanguageScores(finalAnswers);
 
     try {
-      const coupleId = (profile as ProfileWithCouple).couple_id || user.id;
-      
+      // Insert without couple_id since the column may not exist in Supabase
       const { error } = await supabase.from("Couples_love_languages").insert({
-        couple_id: coupleId,
         user_id: user.id,
         primary_language: primary,
         secondary_language: secondary,

@@ -62,7 +62,7 @@ export type Couple = typeof couplesCouples.$inferSelect;
 // 3. LOVE LANGUAGES TABLE
 export const couplesLoveLanguages = pgTable("Couples_love_languages", {
   id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
-  couple_id: uuid("couple_id").notNull(),
+  couple_id: uuid("couple_id"), // Optional - may not exist in all Supabase instances
   user_id: uuid("user_id").notNull(),
   primary_language: text("primary_language"),
   secondary_language: text("secondary_language"),
@@ -71,9 +71,10 @@ export const couplesLoveLanguages = pgTable("Couples_love_languages", {
 });
 
 export const insertLoveLanguageSchema = createInsertSchema(couplesLoveLanguages)
-  .omit({ id: true, created_at: true })
+  .omit({ id: true, created_at: true, couple_id: true })
   .extend({
     scores: z.record(z.number()),
+    couple_id: z.string().uuid().optional(),
   });
 export type InsertLoveLanguage = z.infer<typeof insertLoveLanguageSchema>;
 export type LoveLanguage = typeof couplesLoveLanguages.$inferSelect;
