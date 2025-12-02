@@ -1,18 +1,26 @@
 // ========================================
 // Supabase Edge Function: AI Insights
 // ========================================
-// Analyzes weekly check-in data using Perplexity AI to generate clinical insights for therapists
+// Analyzes ALL couple data using Perplexity AI to generate clinical insights for therapists
+//
+// DATA SOURCES:
+// - Weekly Check-ins (connectedness, conflict, appreciation, needs)
+// - Love Languages (primary/secondary languages for each partner)
+// - Attachment Styles (anxious, avoidant, secure, disorganized)
+// - Gratitude Logs (what partners appreciate about each other)
+// - Shared Goals (progress on joint goals)
+// - Rituals of Connection (relationship rituals)
+// - Hold Me Tight Conversations (EFT-based conversations)
+// - Echo & Empathy Sessions (communication exercises)
+// - Couple Journal Entries (shared reflections)
 //
 // PRIVACY APPROACH:
 // - Uses anonymized labels ("Partner 1", "Partner 2") when sending data to Perplexity AI
 // - Never sends actual user names to external AI service
 // - Allowlist logging approach: only logs field presence/counts, never actual user data
 //
-// ARCHITECTURE:
-// - All code inlined in single file (no shared imports for simpler deployment)
-// - Uses fetch() for Perplexity API calls
-// - Validates therapist access before analyzing data
-// - Returns structured insights (summary, discrepancies, patterns, recommendations)
+// ACCESS MODEL:
+// - Cross-therapist access: Any authenticated therapist can view any couple's insights
 
 // ========================================
 // CORS Headers
@@ -73,6 +81,70 @@ interface WeeklyCheckIn {
   created_at: string;
 }
 
+interface LoveLanguage {
+  id: string;
+  user_id: string;
+  couple_id: string;
+  primary_language: string;
+  secondary_language: string;
+  created_at: string;
+}
+
+interface AttachmentStyle {
+  id: string;
+  user_id: string;
+  couple_id: string;
+  attachment_style: string;
+  anxious_score: number;
+  avoidant_score: number;
+  secure_score: number;
+  created_at: string;
+}
+
+interface GratitudeLog {
+  id: string;
+  couple_id: string;
+  user_id: string;
+  content: string;
+  created_at: string;
+}
+
+interface SharedGoal {
+  id: string;
+  couple_id: string;
+  title: string;
+  description: string;
+  status: string;
+  progress: number;
+  created_at: string;
+}
+
+interface Ritual {
+  id: string;
+  couple_id: string;
+  name: string;
+  frequency: string;
+  last_completed: string;
+  created_at: string;
+}
+
+interface Conversation {
+  id: string;
+  couple_id: string;
+  type: string;
+  status: string;
+  created_at: string;
+}
+
+interface JournalEntry {
+  id: string;
+  couple_id: string;
+  user_id: string;
+  content: string;
+  mood: string;
+  created_at: string;
+}
+
 interface Couple {
   id: string;
   partner1_id: string;
@@ -87,8 +159,10 @@ interface AIInsightResponse {
   discrepancies: string[];
   patterns: string[];
   recommendations: string[];
+  strengths: string[];
   raw_analysis: string;
   citations?: string[];
+  data_sources: string[];
 }
 
 // ========================================
@@ -100,8 +174,6 @@ function redactForLogging(data: any): any {
   }
 
   const redacted: any = {};
-
-  // Allowlist approach: only log safe metadata
   const safeFields = ["couple_id", "therapist_id", "timestamp"];
 
   for (const key of safeFields) {
@@ -110,7 +182,6 @@ function redactForLogging(data: any): any {
     }
   }
 
-  // Log counts instead of actual data
   if ("checkins" in data && Array.isArray(data.checkins)) {
     redacted.checkins_count = data.checkins.length;
   }
@@ -119,7 +190,7 @@ function redactForLogging(data: any): any {
 }
 
 // ========================================
-// Perplexity AI Helper (Inlined)
+// Perplexity AI Helper
 // ========================================
 async function analyzeWithPerplexity(
   systemPrompt: string,
@@ -138,7 +209,7 @@ async function analyzeWithPerplexity(
       { role: "user", content: userPrompt },
     ],
     temperature: 0.2,
-    max_tokens: 1500,
+    max_tokens: 2000,
   };
 
   const response = await fetch("https://api.perplexity.ai/chat/completions", {
@@ -168,16 +239,42 @@ async function analyzeWithPerplexity(
 }
 
 // ========================================
+// Data Fetching Helpers
+// ========================================
+async function fetchFromSupabase(
+  supabaseUrl: string,
+  supabaseServiceKey: string,
+  table: string,
+  query: string,
+): Promise<any[]> {
+  const response = await fetch(
+    `${supabaseUrl}/rest/v1/${table}?${query}`,
+    {
+      headers: {
+        apikey: supabaseServiceKey,
+        Authorization: `Bearer ${supabaseServiceKey}`,
+        "Content-Type": "application/json",
+      },
+    },
+  );
+
+  if (!response.ok) {
+    console.error(`Failed to fetch from ${table}:`, response.statusText);
+    return [];
+  }
+
+  return response.json();
+}
+
+// ========================================
 // Main Edge Function Handler
 // ========================================
 Deno.serve(async (req) => {
-  // Handle CORS preflight
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
 
   try {
-    // Parse query parameters
     const url = new URL(req.url);
     const coupleId = url.searchParams.get("couple_id");
 
@@ -189,7 +286,6 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Initialize Supabase clients
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
     const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY");
@@ -198,7 +294,7 @@ Deno.serve(async (req) => {
       throw new Error("Supabase configuration missing");
     }
 
-    // SECURITY: Validate JWT and extract therapist_id from authenticated session
+    // Validate JWT and authenticate user
     const authHeader = req.headers.get("Authorization");
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
       return new Response(
@@ -212,7 +308,6 @@ Deno.serve(async (req) => {
 
     const jwt = authHeader.replace("Bearer ", "");
 
-    // Verify JWT and get user session using anon key
     const sessionResponse = await fetch(`${supabaseUrl}/auth/v1/user`, {
       headers: {
         apikey: supabaseAnonKey,
@@ -242,23 +337,13 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Get therapist profile for authenticated user
-    const profileResponse = await fetch(
-      `${supabaseUrl}/rest/v1/Couples_profiles?id=eq.${user.id}&select=*`,
-      {
-        headers: {
-          apikey: supabaseServiceKey,
-          Authorization: `Bearer ${supabaseServiceKey}`,
-          "Content-Type": "application/json",
-        },
-      },
+    // Get user profile to verify therapist role
+    const profiles = await fetchFromSupabase(
+      supabaseUrl,
+      supabaseServiceKey,
+      "Couples_profiles",
+      `id=eq.${user.id}&select=*`,
     );
-
-    if (!profileResponse.ok) {
-      throw new Error("Failed to fetch user profile");
-    }
-
-    const profiles = await profileResponse.json();
     const profile = profiles[0];
 
     if (!profile || profile.user_type !== "therapist") {
@@ -273,29 +358,18 @@ Deno.serve(async (req) => {
       );
     }
 
-    const therapistId = profile.id;
     console.log(
       "Generating AI insights for:",
-      redactForLogging({ couple_id: coupleId, therapist_id: therapistId }),
+      redactForLogging({ couple_id: coupleId, therapist_id: profile.id }),
     );
 
-    // 1. Validate therapist has access to this couple
-    const coupleResponse = await fetch(
-      `${supabaseUrl}/rest/v1/Couples_couples?id=eq.${coupleId}&select=*`,
-      {
-        headers: {
-          apikey: supabaseServiceKey,
-          Authorization: `Bearer ${supabaseServiceKey}`,
-          "Content-Type": "application/json",
-        },
-      },
+    // Fetch couple data (cross-therapist access - any therapist can view any couple)
+    const couples: Couple[] = await fetchFromSupabase(
+      supabaseUrl,
+      supabaseServiceKey,
+      "Couples_couples",
+      `id=eq.${coupleId}&select=*`,
     );
-
-    if (!coupleResponse.ok) {
-      throw new Error("Failed to fetch couple data");
-    }
-
-    const couples: Couple[] = await coupleResponse.json();
     const couple = couples[0];
 
     if (!couple) {
@@ -305,44 +379,89 @@ Deno.serve(async (req) => {
       });
     }
 
-    if (couple.therapist_id !== therapistId) {
-      return new Response(
-        JSON.stringify({
-          error: "You don't have access to this couple's data",
-        }),
-        {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-          status: 403,
-        },
-      );
-    }
-
-    // 2. Fetch last 12 weeks of check-ins
+    // Fetch ALL data sources in parallel
     const twelveWeeksAgo = new Date();
     twelveWeeksAgo.setDate(twelveWeeksAgo.getDate() - 84);
+    const dateFilter = twelveWeeksAgo.toISOString();
 
-    const checkinsResponse = await fetch(
-      `${supabaseUrl}/rest/v1/Couples_weekly_checkins?couple_id=eq.${coupleId}&created_at=gte.${twelveWeeksAgo.toISOString()}&order=year.asc,week_number.asc&select=*`,
-      {
-        headers: {
-          apikey: supabaseServiceKey,
-          Authorization: `Bearer ${supabaseServiceKey}`,
-          "Content-Type": "application/json",
-        },
-      },
-    );
+    const [
+      checkins,
+      loveLanguages,
+      attachmentStyles,
+      gratitudeLogs,
+      sharedGoals,
+      rituals,
+      conversations,
+      journalEntries,
+    ] = await Promise.all([
+      fetchFromSupabase(
+        supabaseUrl,
+        supabaseServiceKey,
+        "Couples_weekly_checkins",
+        `couple_id=eq.${coupleId}&created_at=gte.${dateFilter}&order=created_at.desc&select=*`,
+      ),
+      fetchFromSupabase(
+        supabaseUrl,
+        supabaseServiceKey,
+        "Couples_love_languages",
+        `couple_id=eq.${coupleId}&select=*`,
+      ),
+      fetchFromSupabase(
+        supabaseUrl,
+        supabaseServiceKey,
+        "Couples_attachment_style",
+        `couple_id=eq.${coupleId}&select=*`,
+      ),
+      fetchFromSupabase(
+        supabaseUrl,
+        supabaseServiceKey,
+        "Couples_gratitude_logs",
+        `couple_id=eq.${coupleId}&created_at=gte.${dateFilter}&order=created_at.desc&limit=20&select=*`,
+      ),
+      fetchFromSupabase(
+        supabaseUrl,
+        supabaseServiceKey,
+        "Couples_shared_goals",
+        `couple_id=eq.${coupleId}&select=*`,
+      ),
+      fetchFromSupabase(
+        supabaseUrl,
+        supabaseServiceKey,
+        "Couples_rituals",
+        `couple_id=eq.${coupleId}&select=*`,
+      ),
+      fetchFromSupabase(
+        supabaseUrl,
+        supabaseServiceKey,
+        "Couples_conversations",
+        `couple_id=eq.${coupleId}&created_at=gte.${dateFilter}&order=created_at.desc&select=*`,
+      ),
+      fetchFromSupabase(
+        supabaseUrl,
+        supabaseServiceKey,
+        "Couples_journal_entries",
+        `couple_id=eq.${coupleId}&created_at=gte.${dateFilter}&order=created_at.desc&limit=10&select=*`,
+      ),
+    ]);
 
-    if (!checkinsResponse.ok) {
-      throw new Error("Failed to fetch check-ins");
-    }
+    // Track which data sources have content
+    const dataSources: string[] = [];
+    
+    // Check if we have ANY data at all
+    const hasAnyData = 
+      checkins.length > 0 ||
+      loveLanguages.length > 0 ||
+      attachmentStyles.length > 0 ||
+      gratitudeLogs.length > 0 ||
+      sharedGoals.length > 0 ||
+      rituals.length > 0 ||
+      conversations.length > 0 ||
+      journalEntries.length > 0;
 
-    const checkins: WeeklyCheckIn[] = await checkinsResponse.json();
-
-    if (!checkins || checkins.length === 0) {
+    if (!hasAnyData) {
       return new Response(
         JSON.stringify({
-          error:
-            "No check-in data available for this couple in the last 12 weeks",
+          error: "No data available for this couple. Clients need to complete at least one activity or assessment to generate insights.",
         }),
         {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -351,127 +470,225 @@ Deno.serve(async (req) => {
       );
     }
 
-    console.log("Fetched check-ins:", redactForLogging({ checkins }));
+    // Build comprehensive user prompt
+    let userPrompt = `Analyze the following relationship data for a couple in therapy. Use all available data to provide comprehensive insights.\n\n`;
 
-    // 3. Format data for Perplexity AI analysis
-    // PRIVACY: Use anonymized labels instead of actual names
-    const weeklyData: Record<string, any[]> = {};
-
-    checkins.forEach((checkin) => {
-      const weekKey = `${checkin.year}-W${checkin.week_number}`;
-      if (!weeklyData[weekKey]) {
-        weeklyData[weekKey] = [];
-      }
-      const partnerId = checkin.user_id === couple.partner1_id ? 1 : 2;
-      weeklyData[weekKey].push({
-        partnerId,
-        partnerLabel: `Partner ${partnerId}`, // Anonymized - no real names
-        connectedness: checkin.q_connectedness,
-        conflict: checkin.q_conflict,
-        appreciation: checkin.q_appreciation,
-        regrettableIncident: checkin.q_regrettable_incident,
-        need: checkin.q_my_need,
-        createdAt: checkin.created_at,
+    // Add Love Languages
+    if (loveLanguages.length > 0) {
+      dataSources.push("Love Languages");
+      userPrompt += `=== LOVE LANGUAGES ===\n`;
+      loveLanguages.forEach((ll: LoveLanguage) => {
+        const partnerId = ll.user_id === couple.partner1_id ? 1 : 2;
+        userPrompt += `Partner ${partnerId}: Primary - ${ll.primary_language}, Secondary - ${ll.secondary_language}\n`;
       });
-    });
-
-    // Build user prompt
-    let userPrompt = `Analyze the following weekly check-in data for a couple in therapy:\n\n`;
-
-    const sortedWeeks = Object.keys(weeklyData).sort();
-    sortedWeeks.forEach((weekKey) => {
-      const weekCheckins = weeklyData[weekKey];
-      const [year, weekNum] = weekKey.split("-W");
-      const sampleDate = weekCheckins[0]?.createdAt
-        ? new Date(weekCheckins[0].createdAt).toLocaleDateString()
-        : "";
-
-      userPrompt += `Week ${weekNum}, ${year} (${sampleDate}):\n`;
-
-      weekCheckins.forEach((checkin) => {
-        userPrompt += `- ${checkin.partnerLabel}: Connectedness: ${checkin.connectedness}/10, Conflict: ${checkin.conflict}/10\n`;
-        userPrompt += `  Appreciation: "${checkin.appreciation}"\n`;
-        userPrompt += `  Regrettable Incident: "${checkin.regrettableIncident}"\n`;
-        userPrompt += `  Need: "${checkin.need}"\n`;
-      });
-
       userPrompt += "\n";
-    });
+    }
 
-    userPrompt += `\nBased on this data, provide:\n`;
-    userPrompt += `1. A brief summary of the couple's relationship dynamics\n`;
-    userPrompt += `2. Key discrepancies between partners' perceptions (list 3-5 specific points)\n`;
-    userPrompt += `3. Important patterns and trends over time (list 3-5 specific observations)\n`;
-    userPrompt += `4. Therapeutic recommendations for the therapist (list 3-5 actionable items)\n`;
+    // Add Attachment Styles
+    if (attachmentStyles.length > 0) {
+      dataSources.push("Attachment Styles");
+      userPrompt += `=== ATTACHMENT STYLES ===\n`;
+      attachmentStyles.forEach((as: AttachmentStyle) => {
+        const partnerId = as.user_id === couple.partner1_id ? 1 : 2;
+        userPrompt += `Partner ${partnerId}: Style - ${as.attachment_style}\n`;
+        userPrompt += `  Anxious: ${as.anxious_score}/100, Avoidant: ${as.avoidant_score}/100, Secure: ${as.secure_score}/100\n`;
+      });
+      userPrompt += "\n";
+    }
 
-    const systemPrompt = `You are an expert couples therapist analyzing weekly check-in data from a therapeutic intervention. Analyze the provided data to identify:
-1. Significant discrepancies between partners' perceptions (connectedness and conflict scores)
-2. Temporal patterns and trends
-3. Areas of concern requiring therapeutic attention
-4. Potential relationship strengths to build upon
-5. Specific recommendations for the therapist
+    // Add Weekly Check-ins
+    if (checkins.length > 0) {
+      dataSources.push("Weekly Check-ins");
+      userPrompt += `=== WEEKLY CHECK-INS (Last 12 weeks) ===\n`;
+      
+      const weeklyData: Record<string, any[]> = {};
+      checkins.forEach((checkin: WeeklyCheckIn) => {
+        const weekKey = `${checkin.year}-W${checkin.week_number}`;
+        if (!weeklyData[weekKey]) {
+          weeklyData[weekKey] = [];
+        }
+        const partnerId = checkin.user_id === couple.partner1_id ? 1 : 2;
+        weeklyData[weekKey].push({
+          partnerId,
+          connectedness: checkin.q_connectedness,
+          conflict: checkin.q_conflict,
+          appreciation: checkin.q_appreciation,
+          regrettableIncident: checkin.q_regrettable_incident,
+          need: checkin.q_my_need,
+        });
+      });
 
-Be precise, evidence-based, and therapeutically sensitive. Format your response as structured insights.`;
+      Object.keys(weeklyData).sort().forEach((weekKey) => {
+        userPrompt += `\n${weekKey}:\n`;
+        weeklyData[weekKey].forEach((c) => {
+          userPrompt += `Partner ${c.partnerId}: Connectedness ${c.connectedness}/10, Conflict ${c.conflict}/10\n`;
+          if (c.appreciation) userPrompt += `  Appreciation: "${c.appreciation}"\n`;
+          if (c.need) userPrompt += `  Need: "${c.need}"\n`;
+        });
+      });
+      userPrompt += "\n";
+    }
 
-    // 4. Call Perplexity API
+    // Add Gratitude Logs
+    if (gratitudeLogs.length > 0) {
+      dataSources.push("Gratitude Logs");
+      userPrompt += `=== RECENT GRATITUDE LOGS ===\n`;
+      gratitudeLogs.slice(0, 10).forEach((gl: GratitudeLog) => {
+        const partnerId = gl.user_id === couple.partner1_id ? 1 : 2;
+        userPrompt += `Partner ${partnerId}: "${gl.content}"\n`;
+      });
+      userPrompt += "\n";
+    }
+
+    // Add Shared Goals
+    if (sharedGoals.length > 0) {
+      dataSources.push("Shared Goals");
+      userPrompt += `=== SHARED GOALS ===\n`;
+      sharedGoals.forEach((sg: SharedGoal) => {
+        userPrompt += `- "${sg.title}" (Status: ${sg.status}, Progress: ${sg.progress}%)\n`;
+        if (sg.description) userPrompt += `  Description: ${sg.description}\n`;
+      });
+      userPrompt += "\n";
+    }
+
+    // Add Rituals
+    if (rituals.length > 0) {
+      dataSources.push("Rituals of Connection");
+      userPrompt += `=== RITUALS OF CONNECTION ===\n`;
+      rituals.forEach((r: Ritual) => {
+        userPrompt += `- "${r.name}" (Frequency: ${r.frequency})\n`;
+      });
+      userPrompt += "\n";
+    }
+
+    // Add Conversations (Hold Me Tight, Echo & Empathy)
+    if (conversations.length > 0) {
+      dataSources.push("Therapeutic Conversations");
+      userPrompt += `=== THERAPEUTIC CONVERSATIONS ===\n`;
+      const convCounts: Record<string, number> = {};
+      conversations.forEach((c: Conversation) => {
+        convCounts[c.type] = (convCounts[c.type] || 0) + 1;
+      });
+      Object.entries(convCounts).forEach(([type, count]) => {
+        userPrompt += `- ${type}: ${count} sessions\n`;
+      });
+      userPrompt += "\n";
+    }
+
+    // Add Journal Entries
+    if (journalEntries.length > 0) {
+      dataSources.push("Journal Entries");
+      userPrompt += `=== RECENT JOURNAL ENTRIES ===\n`;
+      journalEntries.slice(0, 5).forEach((je: JournalEntry) => {
+        const partnerId = je.user_id === couple.partner1_id ? 1 : 2;
+        userPrompt += `Partner ${partnerId} (Mood: ${je.mood || "not specified"}): "${je.content?.substring(0, 200)}..."\n`;
+      });
+      userPrompt += "\n";
+    }
+
+    // Request structured analysis
+    userPrompt += `\n=== ANALYSIS REQUEST ===
+Based on ALL the data above, provide:
+1. A comprehensive summary of this couple's relationship dynamics (2-3 paragraphs)
+2. Key discrepancies or differences between partners (list 3-5 specific points)
+3. Important patterns and trends observed (list 3-5 specific observations)
+4. Relationship strengths to build upon (list 3-5 strengths)
+5. Therapeutic recommendations for the therapist (list 5-7 actionable items)
+
+Consider how different data sources inform each other (e.g., how love languages affect appreciation expressions, how attachment styles influence conflict patterns).`;
+
+    const systemPrompt = `You are an expert couples therapist with training in Emotionally Focused Therapy (EFT), the Gottman Method, and attachment theory. You are analyzing comprehensive relationship data from a therapeutic intervention platform.
+
+Your task is to synthesize ALL available data sources to provide clinically meaningful insights:
+- Consider how love languages and attachment styles interact
+- Identify patterns across different activities (check-ins, gratitude, goals)
+- Look for discrepancies between partners' perceptions and experiences
+- Note engagement levels with different therapeutic tools
+- Provide evidence-based, actionable recommendations
+
+Be precise, therapeutically sensitive, and solution-focused. Use anonymized labels ("Partner 1", "Partner 2") throughout your analysis.
+
+Format your response with clear sections:
+**SUMMARY**
+[2-3 paragraph overview]
+
+**DISCREPANCIES**
+- [bullet points]
+
+**PATTERNS**
+- [bullet points]
+
+**STRENGTHS**
+- [bullet points]
+
+**RECOMMENDATIONS**
+- [numbered actionable items]`;
+
+    // Call Perplexity API
     const analysisResult = await analyzeWithPerplexity(
       systemPrompt,
       userPrompt,
     );
 
-    // 5. Parse and structure the response
+    // Parse and structure the response
     const rawAnalysis = analysisResult.content;
-
     const lines = rawAnalysis.split("\n").filter((line) => line.trim());
 
     let summary = "";
     const discrepancies: string[] = [];
     const patterns: string[] = [];
+    const strengths: string[] = [];
     const recommendations: string[] = [];
 
     let currentSection = "";
 
     lines.forEach((line) => {
       const lowerLine = line.toLowerCase();
+      const trimmedLine = line.trim();
 
-      if (lowerLine.includes("summary") || lowerLine.includes("dynamic")) {
+      if (lowerLine.includes("**summary**") || lowerLine.includes("summary:")) {
         currentSection = "summary";
-      } else if (lowerLine.includes("discrepanc")) {
+      } else if (lowerLine.includes("**discrepanc") || lowerLine.includes("discrepancies:")) {
         currentSection = "discrepancies";
-      } else if (lowerLine.includes("pattern") || lowerLine.includes("trend")) {
+      } else if (lowerLine.includes("**pattern") || lowerLine.includes("patterns:")) {
         currentSection = "patterns";
-      } else if (
-        lowerLine.includes("recommendation") ||
-        lowerLine.includes("therapeutic")
-      ) {
+      } else if (lowerLine.includes("**strength") || lowerLine.includes("strengths:")) {
+        currentSection = "strengths";
+      } else if (lowerLine.includes("**recommendation") || lowerLine.includes("recommendations:")) {
         currentSection = "recommendations";
-      } else if (line.trim().match(/^[\d\-\*•]/)) {
-        // This is a list item
-        const cleanedLine = line.trim().replace(/^[\d\-\*•.)\s]+/, "");
-        if (currentSection === "discrepancies") {
-          discrepancies.push(cleanedLine);
-        } else if (currentSection === "patterns") {
-          patterns.push(cleanedLine);
-        } else if (currentSection === "recommendations") {
-          recommendations.push(cleanedLine);
+      } else if (trimmedLine.match(/^[\d\-\*•]/)) {
+        const cleanedLine = trimmedLine.replace(/^[\d\-\*•.)\s]+/, "").trim();
+        if (cleanedLine) {
+          if (currentSection === "discrepancies") {
+            discrepancies.push(cleanedLine);
+          } else if (currentSection === "patterns") {
+            patterns.push(cleanedLine);
+          } else if (currentSection === "strengths") {
+            strengths.push(cleanedLine);
+          } else if (currentSection === "recommendations") {
+            recommendations.push(cleanedLine);
+          }
         }
-      } else if (currentSection === "summary" && line.trim()) {
-        summary += line.trim() + " ";
+      } else if (currentSection === "summary" && trimmedLine && !trimmedLine.startsWith("**")) {
+        summary += trimmedLine + " ";
       }
     });
 
-    // Fallback if parsing didn't work well
+    // Fallbacks
     if (!summary) {
-      summary = rawAnalysis.substring(0, 300) + "...";
+      summary = rawAnalysis.substring(0, 500) + "...";
     }
     if (discrepancies.length === 0) {
-      discrepancies.push("Analysis completed - see raw analysis for details");
+      discrepancies.push("See detailed analysis below");
     }
     if (patterns.length === 0) {
-      patterns.push("Analysis completed - see raw analysis for details");
+      patterns.push("See detailed analysis below");
+    }
+    if (strengths.length === 0) {
+      strengths.push("See detailed analysis below");
     }
     if (recommendations.length === 0) {
-      recommendations.push("Analysis completed - see raw analysis for details");
+      recommendations.push("See detailed analysis below");
     }
 
     const insights: AIInsightResponse = {
@@ -481,12 +698,14 @@ Be precise, evidence-based, and therapeutically sensitive. Format your response 
       discrepancies,
       patterns,
       recommendations,
+      strengths,
       raw_analysis: rawAnalysis,
       citations: analysisResult.citations,
+      data_sources: dataSources,
     };
 
     console.log(
-      "Successfully generated insights for couple:",
+      "Successfully generated comprehensive insights for couple:",
       redactForLogging({ couple_id: coupleId }),
     );
 
