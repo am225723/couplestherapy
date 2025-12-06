@@ -39,12 +39,13 @@ router.get("/:couple_id", async (req, res) => {
 
     let hasAccess = false;
     if (profile.role === "therapist") {
+      // Cross-therapist access: any therapist can view any couple's calendar
       const { data: couple } = await supabaseAdmin
         .from("Couples_couples")
-        .select("therapist_id")
+        .select("id")
         .eq("id", couple_id)
         .single();
-      hasAccess = couple?.therapist_id === user.id;
+      hasAccess = !!couple; // Access granted if couple exists
     } else {
       hasAccess = profile.couple_id === couple_id;
     }

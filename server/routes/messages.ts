@@ -37,12 +37,13 @@ router.get("/:couple_id", async (req, res) => {
 
     let hasAccess = false;
     if (profile.role === "therapist") {
+      // Cross-therapist access: any therapist can view any couple's messages
       const { data: couple } = await supabaseAdmin
         .from("Couples_couples")
-        .select("therapist_id")
+        .select("id")
         .eq("id", coupleId)
         .single();
-      hasAccess = couple?.therapist_id === user.id;
+      hasAccess = !!couple; // Access granted if couple exists
     } else {
       hasAccess = profile.couple_id === coupleId;
     }
@@ -125,12 +126,13 @@ router.post("/", async (req, res) => {
 
     let hasAccess = false;
     if (profile.role === "therapist") {
+      // Cross-therapist access: any therapist can send messages to any couple
       const { data: couple } = await supabaseAdmin
         .from("Couples_couples")
-        .select("therapist_id")
+        .select("id")
         .eq("id", couple_id)
         .single();
-      hasAccess = couple?.therapist_id === user.id;
+      hasAccess = !!couple; // Access granted if couple exists
     } else {
       hasAccess = profile.couple_id === couple_id;
     }
@@ -212,12 +214,13 @@ router.put("/:message_id/read", async (req, res) => {
 
     let hasAccess = false;
     if (profile.role === "therapist") {
+      // Cross-therapist access: any therapist can update message read status
       const { data: couple } = await supabaseAdmin
         .from("Couples_couples")
-        .select("therapist_id")
+        .select("id")
         .eq("id", message.couple_id)
         .single();
-      hasAccess = couple?.therapist_id === user.id;
+      hasAccess = !!couple; // Access granted if couple exists
     } else {
       hasAccess = profile.couple_id === message.couple_id;
     }

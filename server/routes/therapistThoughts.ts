@@ -26,16 +26,15 @@ router.get("/couple/:coupleId", async (req: Request, res: Response) => {
 
     const { coupleId } = req.params;
 
-    // Verify therapist has access to this couple
+    // Cross-therapist access: verify couple exists (any therapist can access any couple)
     const { data: couple } = await supabaseAdmin
       .from("Couples_couples")
       .select("id")
       .eq("id", coupleId)
-      .eq("therapist_id", authResult.therapistId)
       .single();
 
     if (!couple) {
-      return res.status(403).json({ error: "Access denied" });
+      return res.status(404).json({ error: "Couple not found" });
     }
 
     // Fetch therapist thoughts for the couple
@@ -120,16 +119,15 @@ router.post("/couple/:coupleId", async (req: Request, res: Response) => {
     const { coupleId } = req.params;
     const body = thoughtSchema.parse(req.body);
 
-    // Verify therapist has access
+    // Cross-therapist access: verify couple exists (any therapist can create thoughts for any couple)
     const { data: couple } = await supabaseAdmin
       .from("Couples_couples")
       .select("id")
       .eq("id", coupleId)
-      .eq("therapist_id", authResult.therapistId)
       .single();
 
     if (!couple) {
-      return res.status(403).json({ error: "Access denied" });
+      return res.status(404).json({ error: "Couple not found" });
     }
 
     const { data, error } = await supabaseAdmin

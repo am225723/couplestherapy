@@ -456,16 +456,15 @@ router.get("/therapist/:couple_id", async (req, res) => {
 
     const { couple_id } = req.params;
 
-    // Verify therapist is assigned to this couple
+    // Cross-therapist access: verify couple exists (any therapist can view any couple's data)
     const { data: couple, error: coupleError } = await supabaseAdmin
       .from("Couples_couples")
       .select("*")
       .eq("id", couple_id)
-      .eq("therapist_id", therapistAuth.therapistId)
       .single();
 
     if (coupleError || !couple) {
-      return res.status(403).json({ error: "Access denied to this couple" });
+      return res.status(404).json({ error: "Couple not found" });
     }
 
     // Get most recent completed session

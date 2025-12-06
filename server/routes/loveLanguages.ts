@@ -73,19 +73,18 @@ router.delete("/:id", async (req, res) => {
       return res.status(404).json({ error: "Love language result not found" });
     }
 
-    // Get the user's couple to verify therapist is assigned
+    // Cross-therapist access: verify user belongs to a couple in the system
     const { data: couples, error: coupleError } = await supabaseAdmin
       .from("Couples_couples")
       .select("id")
-      .eq("therapist_id", therapistAuth.therapistId)
       .or(
         `partner1_id.eq.${loveLanguage.user_id},partner2_id.eq.${loveLanguage.user_id}`,
       );
 
     if (coupleError || !couples || couples.length === 0) {
       return res
-        .status(403)
-        .json({ error: "Access denied to this love language result" });
+        .status(404)
+        .json({ error: "Love language result not associated with any couple" });
     }
 
     // Delete the love language result

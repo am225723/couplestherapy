@@ -97,11 +97,10 @@ aiRouter.get("/analytics", async (req, res) => {
 
     const therapistId = authResult.therapistId;
 
-    // Get all couples for this therapist
+    // Cross-therapist access: Get ALL couples in the system (any therapist can view all couples)
     const { data: couples, error: couplesError } = await supabaseAdmin
       .from("Couples_couples")
-      .select("*")
-      .eq("therapist_id", therapistId);
+      .select("*");
 
     if (couplesError) throw couplesError;
     if (!couples || couples.length === 0) {
