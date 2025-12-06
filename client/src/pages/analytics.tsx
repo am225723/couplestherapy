@@ -1,36 +1,12 @@
 import { useAuth } from "@/lib/auth-context";
 import { useQuery } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
-import { aiFunctions, AIInsightsResponse } from "@/lib/ai-functions";
-
-// API response types (not from database schema)
-interface CoupleAnalytics {
-  couple_id: string;
-  partner1_name: string;
-  partner2_name: string;
-  last_activity_date: string | null;
-  engagement_score: number;
-  checkin_completion_rate: number;
-  gratitude_count: number;
-  goals_completed: number;
-  goals_total: number;
-  conversations_count: number;
-  rituals_count: number;
-  total_checkins: number;
-  checkins_this_month: number;
-  avg_connectedness: number;
-  avg_conflict: number;
-}
-
-interface TherapistAnalytics {
-  therapist_id: string;
-  total_couples: number;
-  active_couples: number;
-  overall_checkin_rate: number;
-  total_gratitude_logs: number;
-  total_comments_given: number;
-  couples: CoupleAnalytics[];
-}
+import {
+  aiFunctions,
+  AIInsightsResponse,
+  TherapistAnalyticsResponse,
+  CoupleAnalytics,
+} from "@/lib/ai-functions";
 import {
   Card,
   CardContent,
@@ -532,8 +508,9 @@ export default function AnalyticsPage() {
     null,
   );
 
-  const { data, isLoading, error } = useQuery<TherapistAnalytics>({
-    queryKey: ["/api/ai/analytics"],
+  const { data, isLoading, error } = useQuery<TherapistAnalyticsResponse>({
+    queryKey: ["therapist-analytics"],
+    queryFn: () => aiFunctions.getTherapistAnalytics(),
     enabled: !!profile?.id,
   });
 
