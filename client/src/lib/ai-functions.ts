@@ -109,8 +109,10 @@ export interface AIInsightsResponse {
   discrepancies: string[];
   patterns: string[];
   recommendations: string[];
+  strengths: string[];
   raw_analysis: string;
   citations?: string[];
+  data_sources: string[];
 }
 
 // ========================================

@@ -1,12 +1,36 @@
 import { useAuth } from "@/lib/auth-context";
 import { useQuery } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
-import type {
-  TherapistAnalytics,
-  CoupleAnalytics,
-  AIInsight,
-} from "@shared/schema";
 import { aiFunctions, AIInsightsResponse } from "@/lib/ai-functions";
+
+// API response types (not from database schema)
+interface CoupleAnalytics {
+  couple_id: string;
+  partner1_name: string;
+  partner2_name: string;
+  last_activity_date: string | null;
+  engagement_score: number;
+  checkin_completion_rate: number;
+  gratitude_count: number;
+  goals_completed: number;
+  goals_total: number;
+  conversations_count: number;
+  rituals_count: number;
+  total_checkins: number;
+  checkins_this_month: number;
+  avg_connectedness: number;
+  avg_conflict: number;
+}
+
+interface TherapistAnalytics {
+  therapist_id: string;
+  total_couples: number;
+  active_couples: number;
+  overall_checkin_rate: number;
+  total_gratitude_logs: number;
+  total_comments_given: number;
+  couples: CoupleAnalytics[];
+}
 import {
   Card,
   CardContent,
@@ -313,9 +337,9 @@ function AIInsightsDialog({
           <Alert>
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
-              No insights available. There may not be enough check-in data yet.
-              At least 4 weeks of check-ins are needed to generate meaningful
-              insights.
+              No insights available. Please ensure at least one activity or 
+              assessment has been completed (Love Languages, Weekly Check-ins, 
+              Gratitude Logs, etc.) to generate meaningful insights.
             </AlertDescription>
           </Alert>
         )}
@@ -383,6 +407,26 @@ function AIInsightsDialog({
               </Card>
             )}
 
+            {insights.strengths && insights.strengths.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Badge variant="outline">Strengths</Badge>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ul className="space-y-2" data-testid="list-ai-strengths">
+                    {insights.strengths.map((item, index) => (
+                      <li key={index} className="flex gap-2 text-sm">
+                        <span className="text-muted-foreground mt-1">•</span>
+                        <span>{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </CardContent>
+              </Card>
+            )}
+
             {insights.recommendations &&
               insights.recommendations.length > 0 && (
                 <Card>
@@ -406,6 +450,23 @@ function AIInsightsDialog({
                   </CardContent>
                 </Card>
               )}
+
+            {insights.data_sources && insights.data_sources.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-sm">Data Sources Used</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex flex-wrap gap-2">
+                    {insights.data_sources.map((source, index) => (
+                      <Badge key={index} variant="secondary" className="text-xs">
+                        {source}
+                      </Badge>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             {insights.citations && insights.citations.length > 0 && (
               <Card>

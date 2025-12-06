@@ -1,15 +1,65 @@
 import { Router } from "express";
 import { supabaseAdmin } from "../supabase.js";
-import type {
-  TherapistAnalytics,
-  CoupleAnalytics,
-  AIInsight,
-  SessionPrepResult,
-} from "../../shared/schema.js";
 import { analyzeCheckInsWithPerplexity } from "../perplexity.js";
 import { safeJsonParse } from "../_shared/safe-json-parse.js";
 import { verifyTherapistSession, verifyUserSession } from "../helpers.js";
 import { z } from "zod";
+
+// API response types (not from database schema)
+interface CoupleAnalytics {
+  couple_id: string;
+  partner1_name: string;
+  partner2_name: string;
+  last_activity_date: string | null;
+  engagement_score: number;
+  checkin_completion_rate: number;
+  gratitude_count: number;
+  goals_completed: number;
+  goals_total: number;
+  conversations_count: number;
+  rituals_count: number;
+  total_checkins: number;
+  checkins_this_month: number;
+  avg_connectedness: number;
+  avg_conflict: number;
+}
+
+interface TherapistAnalytics {
+  therapist_id: string;
+  total_couples: number;
+  active_couples: number;
+  overall_checkin_rate: number;
+  total_gratitude_logs: number;
+  total_comments_given: number;
+  couples: CoupleAnalytics[];
+}
+
+interface AIInsight {
+  couple_id: string;
+  generated_at: string;
+  summary: string;
+  discrepancies: string[];
+  patterns: string[];
+  recommendations: string[];
+  raw_analysis: string;
+  citations?: string[];
+}
+
+interface SessionPrepResult {
+  couple_id: string;
+  generated_at: string;
+  engagement_summary: string;
+  concerning_patterns: string[];
+  positive_patterns: string[];
+  session_focus_areas: string[];
+  recommended_interventions: string[];
+  ai_analysis: string;
+  usage?: {
+    prompt_tokens: number;
+    completion_tokens: number;
+    total_tokens: number;
+  };
+}
 
 const aiRouter = Router();
 

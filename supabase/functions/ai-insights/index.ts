@@ -275,8 +275,19 @@ Deno.serve(async (req) => {
   }
 
   try {
+    // Support both query params (GET) and body (POST) for couple_id
     const url = new URL(req.url);
-    const coupleId = url.searchParams.get("couple_id");
+    let coupleId = url.searchParams.get("couple_id");
+    
+    // If not in query params, try to get from request body
+    if (!coupleId && req.method === "POST") {
+      try {
+        const body = await req.json();
+        coupleId = body.couple_id;
+      } catch {
+        // Body parsing failed, coupleId remains null
+      }
+    }
 
     if (!coupleId) {
       console.error("Missing required parameter: couple_id");
