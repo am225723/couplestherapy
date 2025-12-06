@@ -1875,24 +1875,20 @@ function MessagesTab({
   const { toast } = useToast();
 
   const { data: messages = [], isLoading } = useQuery<MessageWithSender[]>({
-    queryKey: ["/api/messages", coupleId],
+    queryKey: ["therapist-messages", coupleId],
     queryFn: async () => {
-      const response = await fetch(`/api/messages/${coupleId}`);
-      if (!response.ok) throw new Error("Failed to fetch messages");
-      return response.json();
+      const result = await aiFunctions.getMessages(coupleId);
+      return result as unknown as MessageWithSender[];
     },
     enabled: !!coupleId,
   });
 
   const sendMessageMutation = useMutation({
     mutationFn: async (text: string) => {
-      return apiRequest("POST", "/api/messages", {
-        couple_id: coupleId,
-        message_text: text,
-      });
+      return aiFunctions.sendMessage(coupleId, text);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/messages", coupleId] });
+      queryClient.invalidateQueries({ queryKey: ["therapist-messages", coupleId] });
       setMessageText("");
     },
     onError: (error: any) => {
@@ -1954,7 +1950,7 @@ function MessagesTab({
           };
 
           queryClient.setQueryData<MessageWithSender[]>(
-            ["/api/messages", coupleId],
+            ["therapist-messages", coupleId],
             (old = []) => [...old, messageWithSender],
           );
         },
@@ -3809,13 +3805,15 @@ function TherapistThoughtsPanel({
   };
 
   const thoughtsQuery = useQuery({
-    queryKey: [`/api/therapist-thoughts/couple/${coupleId}`],
+    queryKey: ["therapist-thoughts", coupleId],
+    queryFn: () => aiFunctions.getTherapistThoughts(coupleId),
     retry: 1,
   });
 
   const createMutation = useMutation({
     mutationFn: async () => {
-      return apiRequest("POST", `/api/therapist-thoughts/couple/${coupleId}`, {
+      return aiFunctions.createTherapistThought({
+        couple_id: coupleId,
         thought_type: newThought.thought_type,
         title: newThought.title,
         content: newThought.content,
@@ -3834,7 +3832,7 @@ function TherapistThoughtsPanel({
       setIsOpen(false);
       toast({ title: "Success", description: "Thought added" });
       queryClient.invalidateQueries({
-        queryKey: [`/api/therapist-thoughts/couple/${coupleId}`],
+        queryKey: ["therapist-thoughts", coupleId],
       });
     },
     onError: (error: any) => {
@@ -3848,12 +3846,12 @@ function TherapistThoughtsPanel({
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      return apiRequest("DELETE", `/api/therapist-thoughts/${id}`);
+      return aiFunctions.deleteTherapistThought(id);
     },
     onSuccess: () => {
       toast({ title: "Success", description: "Thought deleted" });
       queryClient.invalidateQueries({
-        queryKey: [`/api/therapist-thoughts/couple/${coupleId}`],
+        queryKey: ["therapist-thoughts", coupleId],
       });
     },
   });

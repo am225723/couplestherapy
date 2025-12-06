@@ -185,16 +185,19 @@ export interface Message {
 // Shared Invoke Helper
 // ========================================
 
+type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
+
 async function invokeFunction<T>(
   functionName: string,
   payload?: Record<string, any>,
+  method: HttpMethod = "POST",
 ): Promise<T> {
   const { data, error } = await supabase.functions.invoke(functionName, {
-    body: payload,
+    body: method === "GET" ? undefined : payload,
+    method,
   });
 
   if (error) {
-    // Enhanced error handling using status code when available
     const status = (error as any).status;
 
     if (
@@ -216,7 +219,56 @@ async function invokeFunction<T>(
     throw new Error(error.message || `Failed to call ${functionName}`);
   }
 
+  if (data === null || data === undefined) {
+    return {} as T;
+  }
+
   return data as T;
+}
+
+async function invokeFunctionWithParams<T>(
+  functionName: string,
+  queryParams: Record<string, string>,
+  method: HttpMethod = "GET",
+): Promise<T> {
+  const { data: sessionData } = await supabase.auth.getSession();
+  const accessToken = sessionData?.session?.access_token;
+
+  if (!accessToken) {
+    throw new Error("Session expired. Please log in again.");
+  }
+
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+  const params = new URLSearchParams(queryParams);
+  const queryString = params.toString();
+  const url = queryString 
+    ? `${supabaseUrl}/functions/v1/${functionName}?${queryString}` 
+    : `${supabaseUrl}/functions/v1/${functionName}`;
+
+  const response = await fetch(url, {
+    method,
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
+    },
+  });
+
+  if (!response.ok) {
+    if (response.status === 401) {
+      throw new Error("Session expired. Please log in again.");
+    }
+    if (response.status === 403) {
+      throw new Error("Access denied. You do not have permission to perform this action.");
+    }
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.error || `Failed to call ${functionName}`);
+  }
+
+  const text = await response.text();
+  if (!text) {
+    return {} as T;
+  }
+  return JSON.parse(text);
 }
 
 // ========================================
@@ -287,7 +339,7 @@ export const aiFunctions = {
    * Get therapist analytics for all couples (Therapist-only, cross-therapist access)
    */
   async getTherapistAnalytics(): Promise<TherapistAnalyticsResponse> {
-    return invokeFunction<TherapistAnalyticsResponse>("therapist-analytics");
+    return invokeFunctionWithParams<TherapistAnalyticsResponse>("therapist-analytics", {});
   },
 
   /**
@@ -295,7 +347,7 @@ export const aiFunctions = {
    * @param coupleId - The couple ID to get thoughts for
    */
   async getTherapistThoughts(coupleId: string): Promise<TherapistThought[]> {
-    return invokeFunction<TherapistThought[]>("therapist-thoughts", {
+    return invokeFunctionWithParams<TherapistThought[]>("therapist-thoughts", {
       couple_id: coupleId,
     });
   },
@@ -307,7 +359,7 @@ export const aiFunctions = {
   async createTherapistThought(
     input: TherapistThoughtInput,
   ): Promise<TherapistThought> {
-    return invokeFunction<TherapistThought>("therapist-thoughts", input);
+    return invokeFunction<TherapistThought>("therapist-thoughts", input, "POST");
   },
 
   /**
@@ -322,7 +374,7 @@ export const aiFunctions = {
     return invokeFunction<TherapistThought>("therapist-thoughts", {
       thought_id: thoughtId,
       ...updates,
-    });
+    }, "PATCH");
   },
 
   /**
@@ -332,7 +384,7 @@ export const aiFunctions = {
   async deleteTherapistThought(thoughtId: string): Promise<{ success: boolean }> {
     return invokeFunction<{ success: boolean }>("therapist-thoughts", {
       thought_id: thoughtId,
-    });
+    }, "DELETE");
   },
 
   /**
@@ -340,7 +392,7 @@ export const aiFunctions = {
    * @param coupleId - The couple ID to get messages for
    */
   async getMessages(coupleId: string): Promise<Message[]> {
-    return invokeFunction<Message[]>("therapist-messages", {
+    return invokeFunctionWithParams<Message[]>("therapist-messages", {
       couple_id: coupleId,
     });
   },
@@ -354,7 +406,7 @@ export const aiFunctions = {
     return invokeFunction<Message>("therapist-messages", {
       couple_id: coupleId,
       message_text: messageText,
-    });
+    }, "POST");
   },
 
   /**
@@ -364,6 +416,6 @@ export const aiFunctions = {
   async markMessageRead(messageId: string): Promise<{ success: boolean }> {
     return invokeFunction<{ success: boolean }>("therapist-messages", {
       message_id: messageId,
-    });
+    }, "PUT");
   },
 };
