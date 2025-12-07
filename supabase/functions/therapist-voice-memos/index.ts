@@ -1,3 +1,8 @@
+// Therapist Voice Memos Edge Function
+// Provides voice memo metadata for therapist dashboards
+// Uses cross-therapist access model: any authenticated therapist can view any couple's data
+// This supports multi-therapist practices as specified in project requirements
+
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 import { corsHeaders } from "../_shared/cors.ts";
 import { verifyTherapistAuth, verifyCoupleExists } from "../_shared/auth.ts";
