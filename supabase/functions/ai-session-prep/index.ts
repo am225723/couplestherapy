@@ -223,7 +223,7 @@ Deno.serve(async (req) => {
 
     // Get partner IDs
     const { data: partners } = await adminSupabase
-      .from("Couples_Profiles")
+      .from("Couples_profiles")
       .select("id, full_name")
       .eq("couple_id", couple_id)
       .eq("role", "client");
@@ -245,7 +245,7 @@ Deno.serve(async (req) => {
 
     // Weekly check-ins
     const { count: checkinsCount } = await adminSupabase
-      .from("Couples_WeeklyCheckIns")
+      .from("Couples_weekly_checkins")
       .select("*", { count: "exact", head: true })
       .in("user_id", partnerIds)
       .gte("created_at", thirtyDaysAgo.toISOString());
@@ -253,7 +253,7 @@ Deno.serve(async (req) => {
 
     // Gratitude logs
     const { count: gratitudeCount } = await adminSupabase
-      .from("Couples_GratitudeLogs")
+      .from("Couples_gratitude_logs")
       .select("*", { count: "exact", head: true })
       .eq("couple_id", couple_id)
       .gte("created_at", thirtyDaysAgo.toISOString());
@@ -261,7 +261,7 @@ Deno.serve(async (req) => {
 
     // Shared goals
     const { count: goalsCount } = await adminSupabase
-      .from("Couples_SharedGoals")
+      .from("Couples_shared_goals")
       .select("*", { count: "exact", head: true })
       .eq("couple_id", couple_id)
       .gte("created_at", thirtyDaysAgo.toISOString());
@@ -269,7 +269,7 @@ Deno.serve(async (req) => {
 
     // Rituals
     const { count: ritualsCount } = await adminSupabase
-      .from("Couples_Rituals")
+      .from("Couples_rituals")
       .select("*", { count: "exact", head: true })
       .eq("couple_id", couple_id)
       .gte("created_at", thirtyDaysAgo.toISOString());
@@ -277,7 +277,7 @@ Deno.serve(async (req) => {
 
     // Hold Me Tight conversations
     const { count: hmtCount } = await adminSupabase
-      .from("Couples_HoldMeTightConversations")
+      .from("Couples_hold_me_tight_conversations")
       .select("*", { count: "exact", head: true })
       .eq("couple_id", couple_id)
       .gte("created_at", thirtyDaysAgo.toISOString());
@@ -285,7 +285,7 @@ Deno.serve(async (req) => {
 
     // Echo & Empathy sessions
     const { count: echoCount } = await adminSupabase
-      .from("Couples_EchoSessions")
+      .from("Couples_echo_sessions")
       .select("*", { count: "exact", head: true })
       .eq("couple_id", couple_id)
       .gte("created_at", thirtyDaysAgo.toISOString());
@@ -293,7 +293,7 @@ Deno.serve(async (req) => {
 
     // Pause button usage
     const { count: pauseCount } = await adminSupabase
-      .from("Couples_PauseHistory")
+      .from("Couples_pause_history")
       .select("*", { count: "exact", head: true })
       .eq("couple_id", couple_id)
       .gte("created_at", thirtyDaysAgo.toISOString());
