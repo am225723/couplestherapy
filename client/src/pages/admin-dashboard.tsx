@@ -950,6 +950,7 @@ export default function AdminDashboard() {
                     <TabsTrigger value="checkins">Weekly Check-ins</TabsTrigger>
                     <TabsTrigger value="languages">Love Languages</TabsTrigger>
                     <TabsTrigger value="attachment">Attachment Styles</TabsTrigger>
+                    <TabsTrigger value="enneagram">Enneagram</TabsTrigger>
                     <TabsTrigger value="lovemap">Love Map Quiz</TabsTrigger>
                     <TabsTrigger value="echo">Echo & Empathy</TabsTrigger>
                     <TabsTrigger value="ifs">IFS Exercises</TabsTrigger>
@@ -957,6 +958,11 @@ export default function AdminDashboard() {
                     <TabsTrigger value="activity">Activity Feed</TabsTrigger>
                     <TabsTrigger value="messages">Messages</TabsTrigger>
                     <TabsTrigger value="calendar">Calendar</TabsTrigger>
+                    <TabsTrigger value="conversations">Hold Me Tight</TabsTrigger>
+                    <TabsTrigger value="goals">Shared Goals</TabsTrigger>
+                    <TabsTrigger value="rituals">Rituals</TabsTrigger>
+                    <TabsTrigger value="journal">Journal Entries</TabsTrigger>
+                    <TabsTrigger value="analytics">AI Analytics</TabsTrigger>
                     <TabsTrigger value="therapy-tools">
                       Therapy Tools
                     </TabsTrigger>
