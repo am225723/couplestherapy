@@ -78,6 +78,8 @@ import {
   WeeklyCheckin,
   LoveLanguage,
   AttachmentAssessment,
+  EnneagramAssessment,
+  JournalEntry,
   GratitudeLog,
   SharedGoal,
   Ritual,
@@ -140,6 +142,7 @@ export default function AdminDashboard() {
     "checkins",
     "languages",
     "attachment",
+    "enneagram",
     "lovemap",
     "echo",
     "ifs",
@@ -152,6 +155,7 @@ export default function AdminDashboard() {
     "conversations",
     "goals",
     "rituals",
+    "journal",
     "dashboard-customization",
     "prompts",
   ];
@@ -169,6 +173,8 @@ export default function AdminDashboard() {
   >([]);
   const [loveLanguages, setLoveLanguages] = useState<LoveLanguage[]>([]);
   const [attachmentStyles, setAttachmentStyles] = useState<AttachmentAssessment[]>([]);
+  const [enneagramAssessments, setEnneagramAssessments] = useState<EnneagramAssessment[]>([]);
+  const [journalEntries, setJournalEntries] = useState<JournalEntry[]>([]);
   const [activities, setActivities] = useState<any[]>([]);
   const [commentText, setCommentText] = useState("");
   const [isPrivate, setIsPrivate] = useState(false);
@@ -458,6 +464,8 @@ export default function AdminDashboard() {
         checkinsRes,
         languagesRes,
         attachmentRes,
+        enneagramRes,
+        journalRes,
         gratitudeRes,
         goalsRes,
         ritualsRes,
@@ -477,6 +485,16 @@ export default function AdminDashboard() {
           .from("Couples_attachment_assessments")
           .select("*")
           .in("user_id", [couple.partner1_id, couple.partner2_id]),
+        supabase
+          .from("Couples_enneagram_assessments")
+          .select("*")
+          .in("user_id", [couple.partner1_id, couple.partner2_id]),
+        supabase
+          .from("Couples_journal_entries")
+          .select("*")
+          .eq("couple_id", couple.id)
+          .eq("privacy_level", "therapist")
+          .order("created_at", { ascending: false }),
         supabase
           .from("Couples_gratitude_logs")
           .select("*")
@@ -520,6 +538,8 @@ export default function AdminDashboard() {
       setCheckins(checkinsWithAuthors);
       setLoveLanguages(languagesRes.data || []);
       setAttachmentStyles(attachmentRes.data || []);
+      setEnneagramAssessments(enneagramRes.data || []);
+      setJournalEntries(journalRes.data || []);
 
       const allActivities = [
         ...(gratitudeRes.data || []).map((item) => ({
@@ -1263,6 +1283,154 @@ export default function AdminDashboard() {
                       </Card>
                     )}
                   </div>
+                </TabsContent>
+
+                <TabsContent value="enneagram" className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {enneagramAssessments.map((assessment) => {
+                      const partner = [
+                        selectedCouple.partner1,
+                        selectedCouple.partner2,
+                      ].find((p) => p?.id === assessment.user_id);
+                      const enneagramTypeNames: Record<number, string> = {
+                        1: "The Reformer",
+                        2: "The Helper",
+                        3: "The Achiever",
+                        4: "The Individualist",
+                        5: "The Investigator",
+                        6: "The Loyalist",
+                        7: "The Enthusiast",
+                        8: "The Challenger",
+                        9: "The Peacemaker",
+                      };
+                      return (
+                        <Card key={assessment.id}>
+                          <CardHeader>
+                            <CardTitle>
+                              {partner?.full_name || "Unknown"}
+                            </CardTitle>
+                            <CardDescription>
+                              Enneagram Assessment
+                            </CardDescription>
+                          </CardHeader>
+                          <CardContent className="space-y-4">
+                            <div className="space-y-2">
+                              <Label className="text-sm text-muted-foreground">
+                                Primary Type
+                              </Label>
+                              <p className="text-lg font-semibold text-primary">
+                                Type {assessment.primary_type}: {assessment.primary_type ? enneagramTypeNames[assessment.primary_type] : "Not assessed"}
+                              </p>
+                            </div>
+                            {assessment.primary_score !== null && (
+                              <div className="space-y-3">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-sm text-muted-foreground">Primary Score</span>
+                                  <span className="text-sm font-medium">{assessment.primary_score}%</span>
+                                </div>
+                                <Progress value={assessment.primary_score} className="h-2" />
+                              </div>
+                            )}
+                            {assessment.secondary_type && (
+                              <div className="space-y-2">
+                                <Label className="text-sm text-muted-foreground">
+                                  Secondary Type (Wing)
+                                </Label>
+                                <p className="text-sm">
+                                  Type {assessment.secondary_type}: {enneagramTypeNames[assessment.secondary_type]}
+                                </p>
+                              </div>
+                            )}
+                            {assessment.couple_dynamics && (
+                              <div className="space-y-2">
+                                <Label className="text-sm text-muted-foreground">
+                                  Couple Dynamics
+                                </Label>
+                                <p className="text-sm text-muted-foreground">
+                                  {assessment.couple_dynamics}
+                                </p>
+                              </div>
+                            )}
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
+                    {enneagramAssessments.length === 0 && (
+                      <Card className="col-span-full">
+                        <CardContent className="pt-6 text-center text-muted-foreground">
+                          No Enneagram assessments completed yet.
+                        </CardContent>
+                      </Card>
+                    )}
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="journal" className="space-y-6">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Shared Journal Entries</CardTitle>
+                      <CardDescription>
+                        Journal entries shared with therapist by the couple
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      {journalEntries.length > 0 ? (
+                        <div className="space-y-4">
+                          {journalEntries.map((entry) => {
+                            const author = [
+                              selectedCouple.partner1,
+                              selectedCouple.partner2,
+                            ].find((p) => p?.id === entry.created_by);
+                            return (
+                              <Card key={entry.id} className="border-l-4 border-l-primary">
+                                <CardHeader className="pb-2">
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                      <Avatar className="h-8 w-8">
+                                        <AvatarFallback className="text-xs">
+                                          {author?.full_name?.charAt(0) || "?"}
+                                        </AvatarFallback>
+                                      </Avatar>
+                                      <div>
+                                        <p className="text-sm font-medium">{author?.full_name || "Unknown"}</p>
+                                        <p className="text-xs text-muted-foreground">
+                                          {entry.created_at
+                                            ? format(new Date(entry.created_at), "MMM d, yyyy 'at' h:mm a")
+                                            : ""}
+                                        </p>
+                                      </div>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                      {entry.entry_type && (
+                                        <Badge variant="outline" className="capitalize">
+                                          {entry.entry_type}
+                                        </Badge>
+                                      )}
+                                      {entry.mood && (
+                                        <Badge variant="secondary" className="capitalize">
+                                          {entry.mood}
+                                        </Badge>
+                                      )}
+                                    </div>
+                                  </div>
+                                  {entry.title && (
+                                    <CardTitle className="text-base mt-2">{entry.title}</CardTitle>
+                                  )}
+                                </CardHeader>
+                                <CardContent>
+                                  <p className="text-sm whitespace-pre-wrap">{entry.content}</p>
+                                </CardContent>
+                              </Card>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <p className="text-center text-muted-foreground py-8">
+                          No journal entries shared with therapist yet.
+                        </p>
+                      )}
+                    </CardContent>
+                  </Card>
                 </TabsContent>
 
                 <TabsContent value="activity" className="space-y-4">

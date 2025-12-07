@@ -72,6 +72,7 @@ const INSIGHT_SECTIONS = [
   { id: "checkins", label: "Weekly Check-ins", icon: TrendingUp },
   { id: "languages", label: "Love Languages", icon: Heart },
   { id: "attachment", label: "Attachment Styles", icon: Users },
+  { id: "enneagram", label: "Enneagram", icon: Brain },
   { id: "lovemap", label: "Love Map", icon: Map },
   { id: "analytics", label: "AI Analytics", icon: Brain },
 ];
@@ -85,6 +86,7 @@ const TOOL_SECTIONS = [
   { id: "calendar", label: "Calendar", icon: Calendar },
   { id: "rituals", label: "Rituals", icon: Book },
   { id: "ifs", label: "IFS Exercises", icon: Brain },
+  { id: "journal", label: "Journal Entries", icon: Book },
   { id: "activity", label: "Activity Feed", icon: Activity },
 ];
 
