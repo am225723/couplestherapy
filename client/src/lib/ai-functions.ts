@@ -181,6 +181,15 @@ export interface Message {
   };
 }
 
+export interface VoiceMemoMetadata {
+  id: string;
+  sender_name: string;
+  recipient_name: string;
+  duration_secs: number | null;
+  is_listened: boolean;
+  created_at: string;
+}
+
 // ========================================
 // Shared Invoke Helper
 // ========================================
@@ -417,5 +426,20 @@ export const aiFunctions = {
     return invokeFunction<{ success: boolean }>("therapist-messages", {
       message_id: messageId,
     }, "PUT");
+  },
+
+  // ========================================
+  // Voice Memo Functions (Therapist-only)
+  // ========================================
+
+  /**
+   * Get voice memo metadata for a couple (Therapist-only, cross-therapist access)
+   * Returns metadata only, no audio content for privacy
+   * @param coupleId - The couple ID to get voice memos for
+   */
+  async getTherapistVoiceMemos(coupleId: string): Promise<VoiceMemoMetadata[]> {
+    return invokeFunctionWithParams<VoiceMemoMetadata[]>("therapist-voice-memos", {
+      couple_id: coupleId,
+    });
   },
 };

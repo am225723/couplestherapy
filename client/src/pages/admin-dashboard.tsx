@@ -491,19 +491,14 @@ export default function AdminDashboard() {
           .order("created_at", { ascending: false }),
       ]);
 
-      // Fetch voice memos via secure API endpoint (metadata only - no storage paths or transcripts)
-      const { data: sessionData } = await supabase.auth.getSession();
-      const voiceMemosResponse = await fetch(
-        `/api/voice-memos/therapist/${couple.id}`,
-        {
-          headers: sessionData?.session?.access_token
-            ? { Authorization: `Bearer ${sessionData.session.access_token}` }
-            : {},
-        }
-      );
-      const voiceMemosData = voiceMemosResponse.ok
-        ? await voiceMemosResponse.json()
-        : [];
+      // Fetch voice memos via Edge Function (metadata only - no storage paths or transcripts)
+      let voiceMemosData: any[] = [];
+      try {
+        voiceMemosData = await aiFunctions.getTherapistVoiceMemos(couple.id);
+      } catch (error) {
+        console.error("Failed to fetch voice memos:", error);
+        voiceMemosData = [];
+      }
 
       const profiles = [couple.partner1, couple.partner2].filter(
         Boolean,
