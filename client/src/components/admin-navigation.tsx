@@ -71,6 +71,7 @@ const MAIN_TABS = [
 const INSIGHT_SECTIONS = [
   { id: "checkins", label: "Weekly Check-ins", icon: TrendingUp },
   { id: "languages", label: "Love Languages", icon: Heart },
+  { id: "attachment", label: "Attachment Styles", icon: Users },
   { id: "lovemap", label: "Love Map", icon: Map },
   { id: "analytics", label: "AI Analytics", icon: Brain },
 ];

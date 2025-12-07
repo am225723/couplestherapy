@@ -77,6 +77,7 @@ import {
   Profile,
   WeeklyCheckin,
   LoveLanguage,
+  AttachmentAssessment,
   GratitudeLog,
   SharedGoal,
   Ritual,
@@ -138,6 +139,7 @@ export default function AdminDashboard() {
     "overview",
     "checkins",
     "languages",
+    "attachment",
     "lovemap",
     "echo",
     "ifs",
@@ -166,6 +168,7 @@ export default function AdminDashboard() {
     (WeeklyCheckin & { author?: Profile })[]
   >([]);
   const [loveLanguages, setLoveLanguages] = useState<LoveLanguage[]>([]);
+  const [attachmentStyles, setAttachmentStyles] = useState<AttachmentAssessment[]>([]);
   const [activities, setActivities] = useState<any[]>([]);
   const [commentText, setCommentText] = useState("");
   const [isPrivate, setIsPrivate] = useState(false);
@@ -454,6 +457,7 @@ export default function AdminDashboard() {
       const [
         checkinsRes,
         languagesRes,
+        attachmentRes,
         gratitudeRes,
         goalsRes,
         ritualsRes,
@@ -467,6 +471,10 @@ export default function AdminDashboard() {
           .limit(2),
         supabase
           .from("Couples_love_languages")
+          .select("*")
+          .in("user_id", [couple.partner1_id, couple.partner2_id]),
+        supabase
+          .from("Couples_attachment_assessments")
           .select("*")
           .in("user_id", [couple.partner1_id, couple.partner2_id]),
         supabase
@@ -511,6 +519,7 @@ export default function AdminDashboard() {
 
       setCheckins(checkinsWithAuthors);
       setLoveLanguages(languagesRes.data || []);
+      setAttachmentStyles(attachmentRes.data || []);
 
       const allActivities = [
         ...(gratitudeRes.data || []).map((item) => ({
@@ -920,6 +929,7 @@ export default function AdminDashboard() {
                     <TabsTrigger value="overview">Overview</TabsTrigger>
                     <TabsTrigger value="checkins">Weekly Check-ins</TabsTrigger>
                     <TabsTrigger value="languages">Love Languages</TabsTrigger>
+                    <TabsTrigger value="attachment">Attachment Styles</TabsTrigger>
                     <TabsTrigger value="lovemap">Love Map Quiz</TabsTrigger>
                     <TabsTrigger value="echo">Echo & Empathy</TabsTrigger>
                     <TabsTrigger value="ifs">IFS Exercises</TabsTrigger>
@@ -1193,6 +1203,65 @@ export default function AdminDashboard() {
                         </Card>
                       );
                     })}
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="attachment" className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {attachmentStyles.map((style) => {
+                      const partner = [
+                        selectedCouple.partner1,
+                        selectedCouple.partner2,
+                      ].find((p) => p?.id === style.user_id);
+                      return (
+                        <Card key={style.id}>
+                          <CardHeader>
+                            <CardTitle>
+                              {partner?.full_name || "Unknown"}
+                            </CardTitle>
+                            <CardDescription>
+                              Attachment Assessment
+                            </CardDescription>
+                          </CardHeader>
+                          <CardContent className="space-y-4">
+                            <div className="space-y-2">
+                              <Label className="text-sm text-muted-foreground">
+                                Attachment Style
+                              </Label>
+                              <p className="text-lg font-semibold text-primary capitalize">
+                                {style.attachment_style?.replace(/-/g, " ") || "Not assessed"}
+                              </p>
+                            </div>
+                            {style.score !== null && (
+                              <div className="space-y-3">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-sm text-muted-foreground">Assessment Score</span>
+                                  <span className="text-sm font-medium">{style.score}%</span>
+                                </div>
+                                <Progress value={style.score} className="h-2" />
+                              </div>
+                            )}
+                            {style.dynamics_with_partner && (
+                              <div className="space-y-2">
+                                <Label className="text-sm text-muted-foreground">
+                                  Dynamics with Partner
+                                </Label>
+                                <p className="text-sm text-muted-foreground">
+                                  {style.dynamics_with_partner}
+                                </p>
+                              </div>
+                            )}
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
+                    {attachmentStyles.length === 0 && (
+                      <Card className="col-span-full">
+                        <CardContent className="pt-6 text-center text-muted-foreground">
+                          No attachment style assessments completed yet.
+                        </CardContent>
+                      </Card>
+                    )}
                   </div>
                 </TabsContent>
 
