@@ -1,5 +1,8 @@
 import { useState, useMemo } from "react";
-import { useRoute } from "wouter";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/lib/auth-context";
+import { queryClient } from "@/lib/queryClient";
 import {
   Card,
   CardContent,
@@ -8,30 +11,28 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { useAuth } from "@/lib/auth-context";
+import { Slider } from "@/components/ui/slider";
 import { useToast } from "@/hooks/use-toast";
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { apiRequest, queryClient } from "@/lib/queryClient";
+import {
+  Loader2,
+  Smile,
+  Frown,
+  Meh,
+  Heart,
+  Brain,
+  Zap,
+  Cloud,
+  Sparkles,
+  User,
+  Users,
+  Calendar,
+  TrendingUp,
+  Sun,
+  Moon,
+  Plus,
+} from "lucide-react";
+import { format, subDays, startOfDay } from "date-fns";
 import {
   LineChart,
   Line,
@@ -41,503 +42,891 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
+  Area,
+  AreaChart,
   BarChart,
   Bar,
 } from "recharts";
-import { Plus, Loader2, AlertCircle, TrendingUp, Heart } from "lucide-react";
-
-interface MoodEntry {
-  id: string;
-  couple_id: string;
-  user_id: string;
-  mood_level: number;
-  emotion_primary: string;
-  emotion_secondary?: string;
-  notes?: string;
-  created_at: string;
-  user?: { full_name: string };
-}
-
-interface MoodStats {
-  partner1: { name: string; avgMood: number; entries: number };
-  partner2: { name: string; avgMood: number; entries: number };
-  overallTrend: string;
-}
+import type { MoodEntry } from "@shared/schema";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const EMOTIONS = [
-  "Happy",
-  "Sad",
-  "Anxious",
-  "Excited",
-  "Calm",
-  "Frustrated",
-  "Grateful",
-  "Overwhelmed",
-  "Content",
-  "Nervous",
-  "Hopeful",
-  "Discouraged",
-  "Connected",
-  "Distant",
-  "Energetic",
-  "Tired",
+  { name: "Happy", icon: Smile, color: "#22c55e", value: 8 },
+  { name: "Excited", icon: Sparkles, color: "#f59e0b", value: 9 },
+  { name: "Calm", icon: Cloud, color: "#06b6d4", value: 7 },
+  { name: "Grateful", icon: Heart, color: "#ec4899", value: 8 },
+  { name: "Content", icon: Sun, color: "#84cc16", value: 7 },
+  { name: "Hopeful", icon: TrendingUp, color: "#8b5cf6", value: 7 },
+  { name: "Neutral", icon: Meh, color: "#6b7280", value: 5 },
+  { name: "Tired", icon: Moon, color: "#64748b", value: 4 },
+  { name: "Anxious", icon: Zap, color: "#f97316", value: 3 },
+  { name: "Stressed", icon: Brain, color: "#ef4444", value: 3 },
+  { name: "Sad", icon: Frown, color: "#3b82f6", value: 2 },
+  { name: "Frustrated", icon: Zap, color: "#dc2626", value: 2 },
 ];
 
-const EMOTION_COLORS: Record<string, string> = {
-  Happy: "#fbbf24",
-  Sad: "#60a5fa",
-  Anxious: "#f87171",
-  Excited: "#f472b6",
-  Calm: "#86efac",
-  Frustrated: "#fb7185",
-  Grateful: "#c084fc",
-  Overwhelmed: "#f97316",
-  Content: "#a78bfa",
-  Nervous: "#f59e0b",
-  Hopeful: "#34d399",
-  Discouraged: "#6b7280",
-  Connected: "#ec4899",
-  Distant: "#9ca3af",
-  Energetic: "#fbbf24",
-  Tired: "#475569",
+const getEmotionConfig = (name: string) => {
+  return EMOTIONS.find((e) => e.name === name) || EMOTIONS[6];
 };
 
 export default function MoodTracker() {
-  const { profile } = useAuth();
+  const { user, profile } = useAuth();
+  const coupleId = profile?.couple_id;
   const { toast } = useToast();
+  const [selectedEmotion, setSelectedEmotion] = useState<string>("");
+  const [moodLevel, setMoodLevel] = useState<number>(5);
+  const [notes, setNotes] = useState("");
+  const [timeRange, setTimeRange] = useState<"7d" | "30d" | "90d">("30d");
 
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [newEntry, setNewEntry] = useState({
-    mood_level: 5,
-    emotion_primary: "Calm",
-    emotion_secondary: "",
-    notes: "",
+  const { data: partnerProfile } = useQuery({
+    queryKey: ["/api/partner", coupleId],
+    queryFn: async () => {
+      if (!coupleId || !user) return null;
+
+      const { data: couple } = await supabase
+        .from("Couples_couples")
+        .select("partner1_id, partner2_id")
+        .eq("id", coupleId)
+        .single();
+
+      if (!couple) return null;
+
+      const partnerId =
+        couple.partner1_id === user.id
+          ? couple.partner2_id
+          : couple.partner1_id;
+      if (!partnerId) return null;
+
+      const { data: partner } = await supabase
+        .from("Couples_profiles")
+        .select("id, full_name")
+        .eq("id", partnerId)
+        .single();
+
+      return partner;
+    },
+    enabled: !!coupleId && !!user,
   });
 
-  // Fetch mood entries
-  const entriesQuery = useQuery({
-    queryKey: [`/api/mood-tracker/couple/${profile?.couple_id}`],
-    enabled: !!profile?.couple_id,
+  const daysToFetch =
+    timeRange === "7d" ? 7 : timeRange === "30d" ? 30 : 90;
+
+  const { data: myMoodEntries, isLoading: isLoadingMyMoods } = useQuery<
+    MoodEntry[]
+  >({
+    queryKey: ["/api/mood/mine", coupleId, user?.id, timeRange],
+    queryFn: async () => {
+      if (!user || !coupleId) return [];
+
+      const startDate = subDays(new Date(), daysToFetch);
+
+      const { data, error } = await supabase
+        .from("Couples_mood_entries")
+        .select("*")
+        .eq("couple_id", coupleId)
+        .eq("user_id", user.id)
+        .gte("created_at", startDate.toISOString())
+        .order("created_at", { ascending: true });
+
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!user && !!coupleId,
   });
 
-  // Fetch mood stats
-  const statsQuery = useQuery({
-    queryKey: [`/api/mood-tracker/couple/${profile?.couple_id}/stats`],
-    enabled: !!profile?.couple_id,
-  });
+  const { data: partnerMoodEntries, isLoading: isLoadingPartnerMoods } =
+    useQuery<MoodEntry[]>({
+      queryKey: ["/api/mood/partner", coupleId, partnerProfile?.id, timeRange],
+      queryFn: async () => {
+        if (!partnerProfile?.id || !coupleId) return [];
 
-  const createMutation = useMutation({
-    mutationFn: async () => {
-      if (!profile?.couple_id) throw new Error("No couple ID");
-      return apiRequest(
-        "POST",
-        `/api/mood-tracker/couple/${profile.couple_id}`,
-        newEntry,
-      );
+        const startDate = subDays(new Date(), daysToFetch);
+
+        const { data, error } = await supabase
+          .from("Couples_mood_entries")
+          .select("*")
+          .eq("couple_id", coupleId)
+          .eq("user_id", partnerProfile.id)
+          .gte("created_at", startDate.toISOString())
+          .order("created_at", { ascending: true });
+
+        if (error) throw error;
+        return data || [];
+      },
+      enabled: !!partnerProfile?.id && !!coupleId,
+    });
+
+  const logMoodMutation = useMutation({
+    mutationFn: async (data: {
+      emotion_primary: string;
+      mood_level: number;
+      notes?: string;
+    }) => {
+      if (!user || !coupleId) throw new Error("Not authenticated");
+
+      const { error } = await supabase.from("Couples_mood_entries").insert({
+        id: crypto.randomUUID(),
+        couple_id: coupleId,
+        user_id: user.id,
+        emotion_primary: data.emotion_primary,
+        mood_level: data.mood_level,
+        notes: data.notes || null,
+      });
+
+      if (error) throw error;
     },
     onSuccess: () => {
-      setNewEntry({
-        mood_level: 5,
-        emotion_primary: "Calm",
-        emotion_secondary: "",
-        notes: "",
-      });
-      setIsDialogOpen(false);
-      toast({ title: "Success", description: "Mood entry recorded" });
-      queryClient.invalidateQueries({
-        queryKey: [`/api/mood-tracker/couple/${profile?.couple_id}`],
-      });
-      queryClient.invalidateQueries({
-        queryKey: [`/api/mood-tracker/couple/${profile?.couple_id}/stats`],
+      queryClient.invalidateQueries({ queryKey: ["/api/mood/mine"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/mood/partner"] });
+      setSelectedEmotion("");
+      setMoodLevel(5);
+      setNotes("");
+      toast({
+        title: "Mood logged",
+        description: "Your mood has been recorded successfully.",
       });
     },
-    onError: (error: any) => {
+    onError: () => {
       toast({
         title: "Error",
-        description: error?.message || "Failed to save mood entry",
+        description: "Failed to log mood. Please try again.",
         variant: "destructive",
       });
     },
   });
 
-  const deleteMutation = useMutation({
-    mutationFn: async (id: string) => {
-      return apiRequest("DELETE", `/api/mood-tracker/${id}`);
-    },
-    onSuccess: () => {
-      toast({ title: "Success", description: "Mood entry deleted" });
-      queryClient.invalidateQueries({
-        queryKey: [`/api/mood-tracker/couple/${profile?.couple_id}`],
+  const handleLogMood = () => {
+    if (!selectedEmotion) {
+      toast({
+        title: "Select an emotion",
+        description: "Please select how you're feeling before logging.",
+        variant: "destructive",
       });
-      queryClient.invalidateQueries({
-        queryKey: [`/api/mood-tracker/couple/${profile?.couple_id}/stats`],
-      });
-    },
-  });
+      return;
+    }
 
-  const entries = (entriesQuery.data || []) as MoodEntry[];
-  const stats = (statsQuery.data || {}) as MoodStats;
+    logMoodMutation.mutate({
+      emotion_primary: selectedEmotion,
+      mood_level: moodLevel,
+      notes: notes.trim() || undefined,
+    });
+  };
 
-  // Prepare data for chart
-  const chartData = useMemo(() => {
-    const last30Days = entries
-      .filter(
-        (e) =>
-          new Date(e.created_at) >
-          new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
-      )
-      .reverse()
-      .map((e) => ({
-        date: new Date(e.created_at).toLocaleDateString("en-US", {
-          month: "short",
-          day: "numeric",
-        }),
-        fullDate: e.created_at,
-        [e.user?.full_name || "Unknown"]: e.mood_level,
-      }));
+  const prepareChartData = () => {
+    const dateMap: Record<
+      string,
+      { date: string; myMood?: number; partnerMood?: number }
+    > = {};
 
-    // Merge duplicate dates
-    const merged: Record<string, any> = {};
-    last30Days.forEach((item) => {
-      if (!merged[item.date]) {
-        merged[item.date] = { date: item.date, fullDate: item.fullDate };
+    for (let i = daysToFetch - 1; i >= 0; i--) {
+      const date = format(subDays(new Date(), i), "MMM dd");
+      dateMap[date] = { date };
+    }
+
+    myMoodEntries?.forEach((entry) => {
+      const date = format(new Date(entry.created_at!), "MMM dd");
+      if (dateMap[date]) {
+        dateMap[date].myMood = entry.mood_level;
       }
-      Object.assign(
-        merged[item.date],
-        Object.fromEntries(
-          Object.entries(item).filter(
-            ([k]) => k !== "date" && k !== "fullDate",
-          ),
-        ),
-      );
     });
 
-    return Object.values(merged);
-  }, [entries]);
+    partnerMoodEntries?.forEach((entry) => {
+      const date = format(new Date(entry.created_at!), "MMM dd");
+      if (dateMap[date]) {
+        dateMap[date].partnerMood = entry.mood_level;
+      }
+    });
 
-  // Emotion frequency
-  const emotionFrequency = useMemo(() => {
+    return Object.values(dateMap);
+  };
+
+  const chartData = prepareChartData();
+
+  const getTodaysMood = () => {
+    const today = startOfDay(new Date());
+    return myMoodEntries?.find((entry) => {
+      const entryDate = startOfDay(new Date(entry.created_at!));
+      return entryDate.getTime() === today.getTime();
+    });
+  };
+
+  const todaysMood = getTodaysMood();
+
+  const getRecentMoods = () => {
+    return myMoodEntries?.slice(-5).reverse() || [];
+  };
+
+  const getMoodStats = () => {
+    if (!myMoodEntries?.length) return null;
+
+    const emotionCounts: Record<string, number> = {};
+    let totalLevel = 0;
+
+    myMoodEntries.forEach((entry) => {
+      if (entry.emotion_primary) {
+        emotionCounts[entry.emotion_primary] =
+          (emotionCounts[entry.emotion_primary] || 0) + 1;
+      }
+      totalLevel += entry.mood_level;
+    });
+
+    const averageMood = totalLevel / myMoodEntries.length;
+    const mostFrequent = Object.entries(emotionCounts).sort(
+      ([, a], [, b]) => b - a
+    )[0]?.[0];
+
+    return {
+      averageMood,
+      mostFrequent,
+      totalEntries: myMoodEntries.length,
+    };
+  };
+
+  const getEmotionFrequency = () => {
     const freq: Record<string, number> = {};
-    entries.forEach((e) => {
-      freq[e.emotion_primary] = (freq[e.emotion_primary] || 0) + 1;
+    myMoodEntries?.forEach((entry) => {
+      if (entry.emotion_primary) {
+        freq[entry.emotion_primary] = (freq[entry.emotion_primary] || 0) + 1;
+      }
     });
     return Object.entries(freq)
       .map(([emotion, count]) => ({ emotion, count }))
       .sort((a, b) => b.count - a.count)
-      .slice(0, 8);
-  }, [entries]);
+      .slice(0, 6);
+  };
+
+  const stats = getMoodStats();
+  const emotionFrequency = getEmotionFrequency();
+
+  const isLoading = isLoadingMyMoods || isLoadingPartnerMoods;
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
-    <div className="max-w-6xl mx-auto p-4 md:p-6 space-y-6">
-      {/* Header */}
-      <div className="space-y-2">
-        <h1 className="text-3xl font-bold flex items-center gap-2">
-          <Heart className="w-8 h-8 text-primary" />
-          Couples Mood Tracker
-        </h1>
-        <p className="text-muted-foreground">
-          Track and visualize your emotional journey together
-        </p>
-      </div>
-
-      {/* Stats Cards */}
-      {stats?.partner1 && stats?.partner2 && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm">{stats.partner1.name}</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <div className="flex items-end gap-2">
-                <span className="text-3xl font-bold">
-                  {stats.partner1.avgMood}
-                </span>
-                <span className="text-sm text-muted-foreground">/10</span>
-              </div>
-              <p className="text-xs text-muted-foreground">
-                {stats.partner1.entries} entries (30 days)
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm">{stats.partner2.name}</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <div className="flex items-end gap-2">
-                <span className="text-3xl font-bold">
-                  {stats.partner2.avgMood}
-                </span>
-                <span className="text-sm text-muted-foreground">/10</span>
-              </div>
-              <p className="text-xs text-muted-foreground">
-                {stats.partner2.entries} entries (30 days)
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm flex items-center gap-2">
-                <TrendingUp className="w-4 h-4" />
-                Trend
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Badge
-                variant={
-                  stats.overallTrend === "balanced" ? "secondary" : "default"
-                }
-              >
-                {stats.overallTrend === "partner1_higher"
-                  ? `${stats.partner1.name} higher`
-                  : stats.overallTrend === "partner2_higher"
-                    ? `${stats.partner2.name} higher`
-                    : "Balanced"}
-              </Badge>
-            </CardContent>
-          </Card>
+    <div className="min-h-screen bg-background p-4 md:p-8">
+      <div className="max-w-6xl mx-auto space-y-6">
+        <div className="flex items-center gap-3">
+          <div className="p-3 bg-primary/10 rounded-full">
+            <Heart className="h-8 w-8 text-primary" />
+          </div>
+          <div>
+            <h1 className="text-3xl font-bold" data-testid="text-page-title">
+              Mood Tracker
+            </h1>
+            <p className="text-muted-foreground">
+              Track your emotional journey together
+            </p>
+          </div>
         </div>
-      )}
 
-      {/* Add Mood Button */}
-      <div className="flex justify-end">
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button size="lg" className="gap-2">
-              <Plus className="w-4 h-4" />
-              Log Your Mood
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="w-full max-w-sm">
-            <DialogHeader>
-              <DialogTitle>How are you feeling?</DialogTitle>
-              <DialogDescription>
-                Record your mood and emotions
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div>
-                <Label className="text-sm mb-2 block">
-                  Mood Level: {newEntry.mood_level}/10
-                </Label>
-                <input
-                  type="range"
-                  min="1"
-                  max="10"
-                  value={newEntry.mood_level}
-                  onChange={(e) =>
-                    setNewEntry({
-                      ...newEntry,
-                      mood_level: parseInt(e.target.value),
-                    })
-                  }
-                  className="w-full"
-                  data-testid="slider-mood-level"
-                />
-              </div>
+        <Tabs defaultValue="log" className="space-y-6">
+          <TabsList className="grid w-full max-w-md grid-cols-3">
+            <TabsTrigger value="log" data-testid="tab-log-mood">
+              <Plus className="h-4 w-4 mr-2" />
+              Log Mood
+            </TabsTrigger>
+            <TabsTrigger value="journey" data-testid="tab-journey">
+              <TrendingUp className="h-4 w-4 mr-2" />
+              Journey
+            </TabsTrigger>
+            <TabsTrigger value="compare" data-testid="tab-compare">
+              <Users className="h-4 w-4 mr-2" />
+              Compare
+            </TabsTrigger>
+          </TabsList>
 
-              <div>
-                <Label className="text-sm mb-2 block">Primary Emotion</Label>
-                <Select
-                  value={newEntry.emotion_primary}
-                  onValueChange={(value) =>
-                    setNewEntry({ ...newEntry, emotion_primary: value })
-                  }
-                >
-                  <SelectTrigger data-testid="select-emotion-primary">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {EMOTIONS.map((emotion) => (
-                      <SelectItem key={emotion} value={emotion}>
-                        {emotion}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+          <TabsContent value="log" className="space-y-6">
+            {todaysMood && (
+              <Card className="border-primary/20 bg-primary/5">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Calendar className="h-5 w-5" />
+                    Today's Mood
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-center gap-4">
+                    {(() => {
+                      const config = getEmotionConfig(
+                        todaysMood.emotion_primary || ""
+                      );
+                      const IconComponent = config.icon;
+                      return (
+                        <>
+                          <div
+                            className="p-3 rounded-full"
+                            style={{ backgroundColor: `${config.color}20` }}
+                          >
+                            <IconComponent
+                              className="h-8 w-8"
+                              style={{ color: config.color }}
+                            />
+                          </div>
+                          <div>
+                            <p className="font-semibold text-lg">
+                              {todaysMood.emotion_primary}
+                            </p>
+                            <p className="text-sm text-muted-foreground">
+                              Mood Level: {todaysMood.mood_level}/10
+                            </p>
+                            {todaysMood.notes && (
+                              <p className="text-sm mt-1 italic">
+                                "{todaysMood.notes}"
+                              </p>
+                            )}
+                          </div>
+                        </>
+                      );
+                    })()}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
-              <div>
-                <Label className="text-sm mb-2 block">
-                  Secondary Emotion (Optional)
-                </Label>
-                <Select
-                  value={newEntry.emotion_secondary || ""}
-                  onValueChange={(value) =>
-                    setNewEntry({ ...newEntry, emotion_secondary: value || "" })
-                  }
-                >
-                  <SelectTrigger data-testid="select-emotion-secondary">
-                    <SelectValue placeholder="None" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {EMOTIONS.map((emotion) => (
-                      <SelectItem key={emotion} value={emotion}>
-                        {emotion}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <Label className="text-sm mb-2 block">Notes (Optional)</Label>
-                <Textarea
-                  placeholder="What's on your mind?"
-                  value={newEntry.notes}
-                  onChange={(e) =>
-                    setNewEntry({ ...newEntry, notes: e.target.value })
-                  }
-                  className="resize-none text-sm min-h-20"
-                  data-testid="textarea-mood-notes"
-                />
-              </div>
-
-              <Button
-                onClick={() => createMutation.mutate()}
-                disabled={createMutation.isPending}
-                className="w-full"
-                data-testid="button-submit-mood"
-              >
-                {createMutation.isPending ? "Saving..." : "Save Mood Entry"}
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
-      </div>
-
-      {/* Charts */}
-      {chartData.length > 0 ? (
-        <div className="space-y-6">
-          {/* Mood Trend Chart */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Mood Trend (30 Days)</CardTitle>
-              <CardDescription>
-                Your emotional journey over time
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={chartData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="date" fontSize={12} />
-                  <YAxis domain={[1, 10]} />
-                  <Tooltip />
-                  <Legend />
-                  {Object.keys(chartData[0] || {})
-                    .filter((k) => k !== "date" && k !== "fullDate")
-                    .map((partner, idx) => (
-                      <Line
-                        key={partner}
-                        type="monotone"
-                        dataKey={partner}
-                        stroke={idx === 0 ? "#ec4899" : "#06b6d4"}
-                        connectNulls
-                        dot={false}
-                      />
-                    ))}
-                </LineChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-
-          {/* Emotion Frequency Chart */}
-          {emotionFrequency.length > 0 && (
             <Card>
               <CardHeader>
-                <CardTitle>Emotion Frequency</CardTitle>
-                <CardDescription>Most common emotions logged</CardDescription>
+                <CardTitle>How are you feeling?</CardTitle>
+                <CardDescription>
+                  Select your current emotion and mood level
+                </CardDescription>
               </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={emotionFrequency}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="emotion" fontSize={12} />
-                    <YAxis />
-                    <Tooltip />
-                    <Bar dataKey="count" fill="#8b5cf6" radius={[8, 8, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
+              <CardContent className="space-y-6">
+                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
+                  {EMOTIONS.map((emotion) => {
+                    const IconComponent = emotion.icon;
+                    const isSelected = selectedEmotion === emotion.name;
+
+                    return (
+                      <button
+                        key={emotion.name}
+                        onClick={() => setSelectedEmotion(emotion.name)}
+                        className={`p-4 rounded-xl border-2 transition-all flex flex-col items-center gap-2 hover-elevate ${
+                          isSelected
+                            ? "border-primary bg-primary/10"
+                            : "border-border hover:border-primary/50"
+                        }`}
+                        data-testid={`button-emotion-${emotion.name.toLowerCase()}`}
+                      >
+                        <IconComponent
+                          className="h-6 w-6"
+                          style={{ color: emotion.color }}
+                        />
+                        <span className="text-xs font-medium">
+                          {emotion.name}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <div className="space-y-3">
+                  <label className="text-sm font-medium">
+                    Mood Level: {moodLevel}/10
+                  </label>
+                  <Slider
+                    value={[moodLevel]}
+                    onValueChange={(value) => setMoodLevel(value[0])}
+                    min={1}
+                    max={10}
+                    step={1}
+                    className="w-full"
+                    data-testid="slider-mood-level"
+                  />
+                  <div className="flex justify-between text-xs text-muted-foreground">
+                    <span>Very Low</span>
+                    <span>Neutral</span>
+                    <span>Very High</span>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">
+                    Notes (optional)
+                  </label>
+                  <Textarea
+                    placeholder="What's contributing to this feeling? Any context you want to remember?"
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                    className="resize-none"
+                    rows={3}
+                    data-testid="input-mood-notes"
+                  />
+                </div>
+
+                <Button
+                  onClick={handleLogMood}
+                  disabled={!selectedEmotion || logMoodMutation.isPending}
+                  className="w-full"
+                  data-testid="button-log-mood"
+                >
+                  {logMoodMutation.isPending ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Logging...
+                    </>
+                  ) : (
+                    <>
+                      <Heart className="h-4 w-4 mr-2" />
+                      Log Mood
+                    </>
+                  )}
+                </Button>
               </CardContent>
             </Card>
-          )}
-        </div>
-      ) : entriesQuery.isLoading ? (
-        <Card>
-          <CardContent className="py-12 flex justify-center">
-            <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
-          </CardContent>
-        </Card>
-      ) : (
-        <Alert>
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>
-            No mood entries yet. Start tracking your emotions today!
-          </AlertDescription>
-        </Alert>
-      )}
 
-      {/* Recent Entries */}
-      {entries.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Recent Entries</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3 max-h-96 overflow-y-auto">
-            {entries.slice(0, 10).map((entry) => (
-              <div
-                key={entry.id}
-                className="p-3 bg-muted rounded-lg flex items-start justify-between"
-              >
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="font-semibold text-sm">
-                      {entry.user?.full_name || "Unknown"}
-                    </span>
-                    <Badge
-                      style={{
-                        backgroundColor:
-                          EMOTION_COLORS[entry.emotion_primary] || "#6b7280",
-                      }}
-                    >
-                      {entry.emotion_primary}
-                    </Badge>
+            {getRecentMoods().length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Recent Entries</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {getRecentMoods().map((entry) => {
+                      const config = getEmotionConfig(
+                        entry.emotion_primary || ""
+                      );
+                      const IconComponent = config.icon;
+                      return (
+                        <div
+                          key={entry.id}
+                          className="flex items-center gap-3 p-3 rounded-lg bg-muted/50"
+                          data-testid={`mood-entry-${entry.id}`}
+                        >
+                          <IconComponent
+                            className="h-5 w-5"
+                            style={{ color: config.color }}
+                          />
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium">
+                                {entry.emotion_primary}
+                              </span>
+                              <span className="text-xs text-muted-foreground">
+                                ({entry.mood_level}/10)
+                              </span>
+                            </div>
+                            {entry.notes && (
+                              <p className="text-sm text-muted-foreground truncate">
+                                {entry.notes}
+                              </p>
+                            )}
+                          </div>
+                          <span className="text-sm text-muted-foreground">
+                            {format(
+                              new Date(entry.created_at!),
+                              "MMM d, h:mm a"
+                            )}
+                          </span>
+                        </div>
+                      );
+                    })}
                   </div>
-                  <div className="flex items-center gap-3 mb-1">
-                    <span className="text-lg font-bold">
-                      {entry.mood_level}/10
-                    </span>
-                    <span className="text-xs text-muted-foreground">
-                      {new Date(entry.created_at).toLocaleDateString("en-US", {
-                        month: "short",
-                        day: "numeric",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </span>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+
+          <TabsContent value="journey" className="space-y-6">
+            <div className="flex gap-2 justify-end">
+              {(["7d", "30d", "90d"] as const).map((range) => (
+                <Button
+                  key={range}
+                  variant={timeRange === range ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setTimeRange(range)}
+                  data-testid={`button-range-${range}`}
+                >
+                  {range === "7d"
+                    ? "7 Days"
+                    : range === "30d"
+                      ? "30 Days"
+                      : "90 Days"}
+                </Button>
+              ))}
+            </div>
+
+            {stats && (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <Card>
+                  <CardContent className="pt-6">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-primary/10 rounded-lg">
+                        <TrendingUp className="h-5 w-5 text-primary" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">
+                          Average Mood
+                        </p>
+                        <p className="text-2xl font-bold">
+                          {stats.averageMood.toFixed(1)}/10
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardContent className="pt-6">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-primary/10 rounded-lg">
+                        <Heart className="h-5 w-5 text-primary" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">
+                          Most Common
+                        </p>
+                        <p className="text-2xl font-bold">
+                          {stats.mostFrequent || "N/A"}
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardContent className="pt-6">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-primary/10 rounded-lg">
+                        <Calendar className="h-5 w-5 text-primary" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">
+                          Total Entries
+                        </p>
+                        <p className="text-2xl font-bold">
+                          {stats.totalEntries}
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Your Emotional Journey</CardTitle>
+                <CardDescription>
+                  Track how your mood changes over time
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {myMoodEntries?.length ? (
+                  <div className="h-[300px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart data={chartData}>
+                        <defs>
+                          <linearGradient
+                            id="myMoodGradient"
+                            x1="0"
+                            y1="0"
+                            x2="0"
+                            y2="1"
+                          >
+                            <stop
+                              offset="5%"
+                              stopColor="hsl(var(--primary))"
+                              stopOpacity={0.3}
+                            />
+                            <stop
+                              offset="95%"
+                              stopColor="hsl(var(--primary))"
+                              stopOpacity={0}
+                            />
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
+                        <XAxis
+                          dataKey="date"
+                          tick={{ fontSize: 12 }}
+                          tickLine={false}
+                        />
+                        <YAxis
+                          domain={[1, 10]}
+                          tick={{ fontSize: 12 }}
+                          tickLine={false}
+                        />
+                        <Tooltip
+                          contentStyle={{
+                            backgroundColor: "hsl(var(--card))",
+                            border: "1px solid hsl(var(--border))",
+                            borderRadius: "8px",
+                          }}
+                        />
+                        <Area
+                          type="monotone"
+                          dataKey="myMood"
+                          stroke="hsl(var(--primary))"
+                          fillOpacity={1}
+                          fill="url(#myMoodGradient)"
+                          strokeWidth={2}
+                          connectNulls
+                          name="My Mood"
+                        />
+                      </AreaChart>
+                    </ResponsiveContainer>
                   </div>
-                  {entry.notes && (
-                    <p className="text-sm text-muted-foreground line-clamp-2">
-                      {entry.notes}
+                ) : (
+                  <div className="h-[300px] flex items-center justify-center text-muted-foreground">
+                    <div className="text-center">
+                      <Meh className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                      <p>No mood entries yet</p>
+                      <p className="text-sm">
+                        Start logging your moods to see your journey
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {emotionFrequency.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Emotion Frequency</CardTitle>
+                  <CardDescription>
+                    Your most common emotions this period
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-[250px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={emotionFrequency} layout="vertical">
+                        <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
+                        <XAxis type="number" tick={{ fontSize: 12 }} />
+                        <YAxis
+                          type="category"
+                          dataKey="emotion"
+                          tick={{ fontSize: 12 }}
+                          width={80}
+                        />
+                        <Tooltip
+                          contentStyle={{
+                            backgroundColor: "hsl(var(--card))",
+                            border: "1px solid hsl(var(--border))",
+                            borderRadius: "8px",
+                          }}
+                        />
+                        <Bar
+                          dataKey="count"
+                          fill="hsl(var(--primary))"
+                          radius={[0, 4, 4, 0]}
+                        />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+
+          <TabsContent value="compare" className="space-y-6">
+            <div className="flex gap-2 justify-end">
+              {(["7d", "30d", "90d"] as const).map((range) => (
+                <Button
+                  key={range}
+                  variant={timeRange === range ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setTimeRange(range)}
+                  data-testid={`button-compare-range-${range}`}
+                >
+                  {range === "7d"
+                    ? "7 Days"
+                    : range === "30d"
+                      ? "30 Days"
+                      : "90 Days"}
+                </Button>
+              ))}
+            </div>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="h-5 w-5" />
+                  Mood Comparison
+                </CardTitle>
+                <CardDescription>
+                  See how your moods align with your partner's
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {myMoodEntries?.length || partnerMoodEntries?.length ? (
+                  <div className="h-[350px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={chartData}>
+                        <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
+                        <XAxis
+                          dataKey="date"
+                          tick={{ fontSize: 12 }}
+                          tickLine={false}
+                        />
+                        <YAxis
+                          domain={[1, 10]}
+                          tick={{ fontSize: 12 }}
+                          tickLine={false}
+                        />
+                        <Tooltip
+                          contentStyle={{
+                            backgroundColor: "hsl(var(--card))",
+                            border: "1px solid hsl(var(--border))",
+                            borderRadius: "8px",
+                          }}
+                        />
+                        <Legend />
+                        <Line
+                          type="monotone"
+                          dataKey="myMood"
+                          stroke="hsl(var(--primary))"
+                          strokeWidth={2}
+                          dot={{ fill: "hsl(var(--primary))", r: 4 }}
+                          connectNulls
+                          name="My Mood"
+                        />
+                        <Line
+                          type="monotone"
+                          dataKey="partnerMood"
+                          stroke="#f43f5e"
+                          strokeWidth={2}
+                          dot={{ fill: "#f43f5e", r: 4 }}
+                          connectNulls
+                          name={partnerProfile?.full_name || "Partner"}
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                ) : (
+                  <div className="h-[350px] flex items-center justify-center text-muted-foreground">
+                    <div className="text-center">
+                      <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                      <p>No mood data to compare</p>
+                      <p className="text-sm">
+                        Both partners need to log moods to see comparison
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <User className="h-5 w-5" />
+                    Your Recent Moods
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {myMoodEntries?.length ? (
+                    <div className="space-y-2">
+                      {myMoodEntries
+                        .slice(-5)
+                        .reverse()
+                        .map((entry) => {
+                          const config = getEmotionConfig(
+                            entry.emotion_primary || ""
+                          );
+                          const IconComponent = config.icon;
+                          return (
+                            <div
+                              key={entry.id}
+                              className="flex items-center justify-between p-2 rounded-lg bg-muted/50"
+                            >
+                              <div className="flex items-center gap-2">
+                                <IconComponent
+                                  className="h-4 w-4"
+                                  style={{ color: config.color }}
+                                />
+                                <span className="text-sm">
+                                  {entry.emotion_primary}
+                                </span>
+                                <span className="text-xs text-muted-foreground">
+                                  ({entry.mood_level}/10)
+                                </span>
+                              </div>
+                              <span className="text-xs text-muted-foreground">
+                                {format(new Date(entry.created_at!), "MMM d")}
+                              </span>
+                            </div>
+                          );
+                        })}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground text-center py-4">
+                      No entries yet
                     </p>
                   )}
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => deleteMutation.mutate(entry.id)}
-                  data-testid={`button-delete-mood-${entry.id}`}
-                >
-                  Delete
-                </Button>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-      )}
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Heart className="h-5 w-5 text-rose-500" />
+                    {partnerProfile?.full_name || "Partner"}'s Recent Moods
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {partnerMoodEntries?.length ? (
+                    <div className="space-y-2">
+                      {partnerMoodEntries
+                        .slice(-5)
+                        .reverse()
+                        .map((entry) => {
+                          const config = getEmotionConfig(
+                            entry.emotion_primary || ""
+                          );
+                          const IconComponent = config.icon;
+                          return (
+                            <div
+                              key={entry.id}
+                              className="flex items-center justify-between p-2 rounded-lg bg-muted/50"
+                            >
+                              <div className="flex items-center gap-2">
+                                <IconComponent
+                                  className="h-4 w-4"
+                                  style={{ color: config.color }}
+                                />
+                                <span className="text-sm">
+                                  {entry.emotion_primary}
+                                </span>
+                                <span className="text-xs text-muted-foreground">
+                                  ({entry.mood_level}/10)
+                                </span>
+                              </div>
+                              <span className="text-xs text-muted-foreground">
+                                {format(new Date(entry.created_at!), "MMM d")}
+                              </span>
+                            </div>
+                          );
+                        })}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground text-center py-4">
+                      {partnerProfile
+                        ? "No entries yet"
+                        : "Partner not linked yet"}
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+        </Tabs>
+      </div>
     </div>
   );
 }
