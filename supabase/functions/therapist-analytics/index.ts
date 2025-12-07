@@ -112,7 +112,7 @@ Deno.serve(async (req) => {
       supabaseAdmin
         .from("Couples_therapist_comments")
         .select("*")
-        .eq("therapist_id", authResult.therapistId),
+        .in("couple_id", coupleIds),
     ]);
 
     const coupleAnalytics: CoupleAnalytics[] = couples.map((couple: any) => {

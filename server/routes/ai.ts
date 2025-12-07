@@ -158,7 +158,7 @@ aiRouter.get("/analytics", async (req, res) => {
       supabaseAdmin
         .from("Couples_therapist_comments")
         .select("*")
-        .eq("therapist_id", therapistId),
+        .in("couple_id", coupleIds),
     ]);
 
     // Calculate per-couple analytics
