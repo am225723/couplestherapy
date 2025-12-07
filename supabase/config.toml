@@ -28,9 +28,6 @@ enabled = true
 [functions.ai-date-night]
 verify_jwt = true
 
-[functions.ai-analytics]
-verify_jwt = true
-
 [functions.ai-insights]
 verify_jwt = true
 
@@ -47,4 +44,22 @@ verify_jwt = true
 verify_jwt = true
 
 [functions.ai-session-prep]
+verify_jwt = true
+
+[functions.schedule-notification]
+verify_jwt = true
+
+[functions.send-scheduled-notifications]
+verify_jwt = true
+
+[functions.therapist-analytics]
+verify_jwt = true
+
+[functions.therapist-messages]
+verify_jwt = true
+
+[functions.therapist-thoughts]
+verify_jwt = true
+
+[functions.therapist-voice-memos]
 verify_jwt = true
