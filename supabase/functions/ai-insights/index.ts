@@ -357,7 +357,7 @@ Deno.serve(async (req) => {
     );
     const profile = profiles[0];
 
-    if (!profile || profile.user_type !== "therapist") {
+    if (!profile || profile.role !== "therapist") {
       return new Response(
         JSON.stringify({
           error: "Access denied. Only therapists can access insights.",
