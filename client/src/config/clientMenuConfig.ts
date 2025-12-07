@@ -107,10 +107,22 @@ export const clientMenuConfig: MenuCategory[] = [
         testId: "nav-attachment",
       },
       {
+        title: "My Attachment Results",
+        url: "/attachment-results",
+        icon: Sparkles,
+        testId: "nav-attachment-results",
+      },
+      {
         title: "Enneagram Assessment",
         url: "/enneagram-assessment",
         icon: Compass,
         testId: "nav-enneagram",
+      },
+      {
+        title: "My Enneagram Results",
+        url: "/enneagram-results",
+        icon: Sparkles,
+        testId: "nav-enneagram-results",
       },
       {
         title: "Four Horsemen",
