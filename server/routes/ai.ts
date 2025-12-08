@@ -1755,4 +1755,168 @@ Be warm, creative, and encouraging. Emphasize connection, fun, and breaking rout
   }
 });
 
+// AI PERSONALIZED DAILY TIP (Based on couple's assessment results)
+const dailyTipCache = new Map<string, { data: any; timestamp: number; date: string }>();
+const DAILY_TIP_CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
+
+aiRouter.get("/personalized-daily-tip", async (req, res) => {
+  try {
+    // Verify user session and get user info
+    const authResult = await verifyUserSession(req);
+    if (!authResult.success) {
+      return res.status(authResult.status).json({ error: authResult.error });
+    }
+
+    const { userId, coupleId } = authResult;
+    const today = new Date().toISOString().split("T")[0];
+
+    // Check cache first - tips are cached per couple per day
+    const cacheKey = `daily-tip:${coupleId}:${today}`;
+    const cached = dailyTipCache.get(cacheKey);
+    if (cached && cached.date === today && Date.now() - cached.timestamp < DAILY_TIP_CACHE_TTL_MS) {
+      return res.json(cached.data);
+    }
+
+    // Fetch couple's assessment data in parallel
+    const [
+      { data: attachmentResults },
+      { data: enneagramResults },
+      { data: loveLanguageResults },
+    ] = await Promise.all([
+      supabaseAdmin
+        .from("Couples_attachment_assessments")
+        .select("user_id, attachment_style, score")
+        .eq("couple_id", coupleId)
+        .order("created_at", { ascending: false })
+        .limit(2),
+      supabaseAdmin
+        .from("Couples_enneagram_assessments")
+        .select("user_id, primary_type, secondary_type, primary_score")
+        .eq("couple_id", coupleId)
+        .order("created_at", { ascending: false })
+        .limit(2),
+      supabaseAdmin
+        .from("Couples_love_languages")
+        .select("user_id, primary_language, secondary_language")
+        .eq("couple_id", coupleId)
+        .order("created_at", { ascending: false })
+        .limit(2),
+    ]);
+
+    // Build assessment context for AI
+    let assessmentContext = "Couple Assessment Profile:\n";
+    let hasAssessmentData = false;
+
+    if (attachmentResults && attachmentResults.length > 0) {
+      hasAssessmentData = true;
+      assessmentContext += "\nAttachment Styles:\n";
+      attachmentResults.forEach((r, i) => {
+        assessmentContext += `- Partner ${i + 1}: ${r.attachment_style || "Not assessed"}\n`;
+      });
+    }
+
+    if (enneagramResults && enneagramResults.length > 0) {
+      hasAssessmentData = true;
+      assessmentContext += "\nEnneagram Types:\n";
+      enneagramResults.forEach((r, i) => {
+        assessmentContext += `- Partner ${i + 1}: Type ${r.primary_type || "Not assessed"}${r.secondary_type ? ` (wing ${r.secondary_type})` : ""}\n`;
+      });
+    }
+
+    if (loveLanguageResults && loveLanguageResults.length > 0) {
+      hasAssessmentData = true;
+      assessmentContext += "\nLove Languages:\n";
+      loveLanguageResults.forEach((r, i) => {
+        assessmentContext += `- Partner ${i + 1}: ${r.primary_language || "Not assessed"}${r.secondary_language ? ` and ${r.secondary_language}` : ""}\n`;
+      });
+    }
+
+    if (!hasAssessmentData) {
+      // Return a generic tip if no assessments completed
+      const genericTip = {
+        category: "connection",
+        title: "Start Your Journey",
+        description: "Take an assessment together to get personalized relationship tips tailored to your unique dynamic.",
+        action_prompt: "Complete the Attachment Style or Love Language assessment today",
+        is_personalized: false,
+      };
+      return res.json(genericTip);
+    }
+
+    // Build Perplexity prompt for personalized tip
+    const systemPrompt = `You are a warm, supportive couples therapist speaking directly to a couple. 
+Generate ONE personalized daily relationship tip based on their assessment profiles. 
+The tip should be actionable, specific to their dynamic, and achievable in a single day.
+Use 'you' and 'your' to address them directly. Keep it encouraging and practical.
+Always respond with valid JSON only.`;
+
+    const userPrompt = `${assessmentContext}
+
+Based on these assessment results, generate ONE personalized daily tip for this couple that addresses their unique dynamic.
+
+Consider:
+- How their attachment styles interact
+- How their personality types complement or challenge each other
+- How they can best express love in ways their partner receives it
+
+IMPORTANT: Respond with ONLY valid JSON in this exact format:
+{
+  "category": "connection|communication|intimacy|gratitude|growth",
+  "title": "Short, engaging title (5-8 words)",
+  "description": "2-3 sentences explaining the tip and why it matters for this specific couple",
+  "action_prompt": "One specific action they can take today"
+}
+Return ONLY the JSON, no additional text or markdown formatting.`;
+
+    // Call Perplexity AI
+    const analysisResult = await analyzeCheckInsWithPerplexity({
+      systemPrompt,
+      userPrompt,
+    });
+
+    const aiFullResponse = analysisResult.content;
+
+    let parsed;
+    try {
+      parsed = safeJsonParse(aiFullResponse);
+
+      if (!parsed || !parsed.title || !parsed.description) {
+        throw new Error("Invalid AI response structure");
+      }
+    } catch (parseError: any) {
+      console.error("Failed to parse AI daily tip:", parseError.message, aiFullResponse);
+      return res.status(500).json({
+        error: "Failed to generate personalized tip. Please try again.",
+        details: parseError.message,
+      });
+    }
+
+    // Build response
+    const response = {
+      ...parsed,
+      is_personalized: true,
+      generated_at: new Date().toISOString(),
+      assessment_summary: {
+        has_attachment: (attachmentResults?.length || 0) > 0,
+        has_enneagram: (enneagramResults?.length || 0) > 0,
+        has_love_language: (loveLanguageResults?.length || 0) > 0,
+      },
+    };
+
+    // Cache the result
+    dailyTipCache.set(cacheKey, {
+      data: response,
+      timestamp: Date.now(),
+      date: today,
+    });
+
+    res.json(response);
+  } catch (error: any) {
+    console.error("AI Personalized Daily Tip error:", error);
+    res.status(500).json({
+      error: error.message || "Failed to generate personalized daily tip",
+    });
+  }
+});
+
 export default aiRouter;

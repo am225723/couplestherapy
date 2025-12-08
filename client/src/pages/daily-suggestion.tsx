@@ -7,7 +7,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
-import { queryClient } from "@/lib/queryClient";
+import { queryClient, apiRequest } from "@/lib/queryClient";
 import { format, subDays } from "date-fns";
 import {
   Heart,
@@ -51,6 +51,20 @@ interface SuggestionHistory {
   shown_date: string;
   completed: boolean;
   suggestion?: DailySuggestion;
+}
+
+interface PersonalizedTip {
+  category: string;
+  title: string;
+  description: string;
+  action_prompt: string;
+  is_personalized: boolean;
+  generated_at?: string;
+  assessment_summary?: {
+    has_attachment: boolean;
+    has_enneagram: boolean;
+    has_love_language: boolean;
+  };
 }
 
 const iconMap: Record<string, typeof Heart> = {
@@ -204,6 +218,24 @@ export default function DailySuggestion() {
     enabled: !!coupleId,
   });
 
+  const { data: personalizedTip, isLoading: personalizedLoading, error: personalizedError } = useQuery<PersonalizedTip>({
+    queryKey: ["/api/ai/personalized-daily-tip", coupleId],
+    queryFn: async () => {
+      const response = await fetch("/api/ai/personalized-daily-tip", {
+        credentials: "include",
+      });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || "Failed to fetch personalized tip");
+      }
+      const data = await response.json();
+      return data as PersonalizedTip;
+    },
+    enabled: !!coupleId && !!user,
+    retry: 1,
+    staleTime: 1000 * 60 * 60, // 1 hour
+  });
+
   const completeMutation = useMutation({
     mutationFn: async () => {
       if (!todaySuggestion) throw new Error("No suggestion to complete");
@@ -245,6 +277,69 @@ export default function DailySuggestion() {
   return (
     <div className="container mx-auto py-8 px-4 max-w-2xl">
       <div className="space-y-6">
+        {personalizedTip && personalizedTip.is_personalized && (
+          <Card className="overflow-hidden border-2 border-primary/30 bg-gradient-to-br from-primary/5 to-accent/10">
+            <div className="h-2 bg-gradient-to-r from-primary to-accent" />
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="h-5 w-5 text-primary" />
+                  <CardTitle>Your Personalized Daily Tip</CardTitle>
+                </div>
+                <Badge className={categoryColors[personalizedTip.category] || "bg-primary/10 text-primary"}>
+                  {personalizedTip.category}
+                </Badge>
+              </div>
+              <CardDescription className="flex items-center gap-2">
+                <span>Based on your assessment results</span>
+                {personalizedTip.assessment_summary && (
+                  <span className="text-xs">
+                    ({[
+                      personalizedTip.assessment_summary.has_attachment && "Attachment",
+                      personalizedTip.assessment_summary.has_enneagram && "Enneagram", 
+                      personalizedTip.assessment_summary.has_love_language && "Love Language",
+                    ].filter(Boolean).join(", ")})
+                  </span>
+                )}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-start gap-4">
+                <div className="p-3 rounded-full bg-primary/10">
+                  <Heart className="h-8 w-8 text-primary" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-xl font-semibold mb-2" data-testid="text-personalized-title">
+                    {personalizedTip.title}
+                  </h3>
+                  <p className="text-muted-foreground" data-testid="text-personalized-description">
+                    {personalizedTip.description}
+                  </p>
+                </div>
+              </div>
+
+              {personalizedTip.action_prompt && (
+                <div className="p-4 rounded-lg bg-primary/10 border border-primary/20">
+                  <p className="text-sm font-medium text-center">
+                    {personalizedTip.action_prompt}
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+        {personalizedLoading && (
+          <Card className="overflow-hidden">
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                <CardTitle>Loading Your Personalized Tip...</CardTitle>
+              </div>
+            </CardHeader>
+          </Card>
+        )}
+
         <Card className="overflow-hidden">
           <div className={`h-2 ${categoryColors[suggestion?.category || "connection"]?.split(" ")[0] || "bg-primary"}`} />
           <CardHeader>
