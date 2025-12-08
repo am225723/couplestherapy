@@ -10,21 +10,81 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { Compass, ArrowLeft, ArrowRight, Check } from "lucide-react";
+import { Compass, ArrowLeft, ArrowRight, Check, Loader2 } from "lucide-react";
 import {
   enneagramQuestions,
   calculateEnneagramType,
   enneagramTypeInfo,
 } from "@/data/enneagramQuestions";
+import { useAuth } from "@/lib/auth-context";
+import { supabase } from "@/lib/supabase";
+import { useMutation } from "@tanstack/react-query";
+import { queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
+import { useLocation } from "wouter";
+
+interface ProfileWithCouple {
+  couple_id?: string;
+  [key: string]: any;
+}
 
 const QUESTIONS_PER_PAGE = 6;
 
 export default function EnneagramAssessmentPage() {
+  const { user, profile } = useAuth();
+  const { toast } = useToast();
+  const [, navigate] = useLocation();
+  const coupleId = (profile as ProfileWithCouple)?.couple_id;
+
   const [currentPage, setCurrentPage] = useState(0);
   const [responses, setResponses] = useState<{ [key: number]: number }>({});
   const [showResults, setShowResults] = useState(false);
+  const [calculatedResults, setCalculatedResults] = useState<{
+    dominantType: number;
+    scores: Record<number, number>;
+  } | null>(null);
 
   const totalPages = Math.ceil(enneagramQuestions.length / QUESTIONS_PER_PAGE);
+
+  const saveResultsMutation = useMutation({
+    mutationFn: async (results: { dominantType: number; scores: Record<number, number> }) => {
+      if (!user || !coupleId) throw new Error("Not authenticated");
+      
+      const sortedScores = Object.entries(results.scores)
+        .sort((a, b) => Number(b[1]) - Number(a[1]));
+      const secondaryType = sortedScores.length > 1 ? parseInt(sortedScores[1][0]) : null;
+      
+      const { error } = await supabase
+        .from("Couples_enneagram_assessments")
+        .insert({
+          id: crypto.randomUUID(),
+          couple_id: coupleId,
+          user_id: user.id,
+          primary_type: results.dominantType,
+          secondary_type: secondaryType,
+          primary_score: results.scores[results.dominantType],
+          secondary_score: secondaryType ? results.scores[secondaryType] : null,
+          couple_dynamics: null,
+        });
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/enneagram/couple", coupleId] });
+      toast({
+        title: "Assessment Saved",
+        description: "Your Enneagram results have been saved.",
+      });
+    },
+    onError: (error) => {
+      console.error("Failed to save enneagram results:", error);
+      toast({
+        title: "Error Saving Results",
+        description: "Your results are shown but could not be saved. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
   const currentQuestions = enneagramQuestions.slice(
     currentPage * QUESTIONS_PER_PAGE,
     (currentPage + 1) * QUESTIONS_PER_PAGE,
@@ -41,7 +101,18 @@ export default function EnneagramAssessmentPage() {
     if (currentPage < totalPages - 1) {
       setCurrentPage((prev) => prev + 1);
     } else if (Object.keys(responses).length === enneagramQuestions.length) {
+      const results = calculateEnneagramType(responses);
+      setCalculatedResults(results);
       setShowResults(true);
+      if (user && coupleId) {
+        saveResultsMutation.mutate(results);
+      } else {
+        toast({
+          title: "Unable to Save",
+          description: "Your results are displayed but couldn't be saved. Please ensure you're logged in and linked to a couple.",
+          variant: "destructive",
+        });
+      }
     }
   };
 
@@ -55,8 +126,8 @@ export default function EnneagramAssessmentPage() {
     (q) => responses[q.id] !== undefined,
   );
 
-  if (showResults) {
-    const { dominantType, scores } = calculateEnneagramType(responses);
+  if (showResults && calculatedResults) {
+    const { dominantType, scores } = calculatedResults;
     const info =
       enneagramTypeInfo[dominantType as keyof typeof enneagramTypeInfo];
 
@@ -188,14 +259,29 @@ export default function EnneagramAssessmentPage() {
                 </CardContent>
               </Card>
 
-              <div className="flex justify-center">
+              <div className="flex justify-center gap-4 flex-wrap">
+                {saveResultsMutation.isPending && (
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span>Saving your results...</span>
+                  </div>
+                )}
+                <Button
+                  onClick={() => navigate("/enneagram-results")}
+                  size="lg"
+                  data-testid="button-view-results"
+                >
+                  View My Results
+                </Button>
                 <Button
                   onClick={() => {
                     setShowResults(false);
                     setCurrentPage(0);
                     setResponses({});
+                    setCalculatedResults(null);
                   }}
                   size="lg"
+                  variant="outline"
                   data-testid="button-retake"
                 >
                   Retake Assessment

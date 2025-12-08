@@ -99,7 +99,15 @@ export default function AttachmentAssessmentPage() {
       const results = calculateAttachmentStyle(responses);
       setCalculatedResults(results);
       setShowResults(true);
-      saveResultsMutation.mutate(results);
+      if (user && coupleId) {
+        saveResultsMutation.mutate(results);
+      } else {
+        toast({
+          title: "Unable to Save",
+          description: "Your results are displayed but couldn't be saved. Please ensure you're logged in and linked to a couple.",
+          variant: "destructive",
+        });
+      }
     }
   };
 
