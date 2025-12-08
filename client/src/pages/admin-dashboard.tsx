@@ -96,6 +96,7 @@ import {
 } from "@shared/schema";
 import { DashboardCustomizer } from "@/components/dashboard-customizer";
 import { ScheduleNotificationDialog } from "@/components/schedule-notification-dialog";
+import { CheckinReminders } from "@/components/checkin-reminders";
 import {
   formatDistanceToNow,
   format,
@@ -971,6 +972,9 @@ export default function AdminDashboard() {
                     </TabsTrigger>
                     <TabsTrigger value="prompts">
                       Client Prompts
+                    </TabsTrigger>
+                    <TabsTrigger value="reminders">
+                      Reminders
                     </TabsTrigger>
                   </TabsList>
                 </div>
@@ -2076,6 +2080,12 @@ export default function AdminDashboard() {
                       </CardContent>
                     </Card>
                   </div>
+                </TabsContent>
+
+                <TabsContent value="reminders" className="space-y-6">
+                  {selectedCouple && (
+                    <CheckinReminders couple={selectedCouple} />
+                  )}
                 </TabsContent>
               </Tabs>
             </div>

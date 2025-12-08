@@ -215,6 +215,12 @@ export const clientMenuConfig: MenuCategory[] = [
         testId: "nav-daily-tips",
       },
       {
+        title: "Daily Suggestion",
+        url: "/daily-suggestion",
+        icon: Sparkles,
+        testId: "nav-daily-suggestion",
+      },
+      {
         title: "Mood Tracker",
         url: "/mood-tracker",
         icon: Heart,

@@ -99,6 +99,7 @@ import CoupleJournalPage from "./pages/couple-journal";
 import FinancialToolkitPage from "./pages/financial-toolkit";
 import MoodTrackerPage from "./pages/mood-tracker";
 import DailyTipsPage from "./pages/daily-tips";
+import DailySuggestionPage from "./pages/daily-suggestion";
 import CoupleCompatibility from "./pages/couple-compatibility";
 import ChoreChart from "./pages/chore-chart";
 import TherapistThoughtsPage from "./pages/therapist-thoughts";
@@ -656,6 +657,7 @@ function AuthenticatedApp() {
               />
               <Route path="/mood-tracker" component={MoodTrackerPage} />
               <Route path="/daily-tips" component={DailyTipsPage} />
+              <Route path="/daily-suggestion" component={DailySuggestionPage} />
               <Route
                 path="/therapist-thoughts"
                 component={TherapistThoughtsPage}
