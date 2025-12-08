@@ -10,20 +10,76 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { Heart, ArrowLeft, ArrowRight, Check } from "lucide-react";
+import { Heart, ArrowLeft, ArrowRight, Check, Loader2 } from "lucide-react";
 import {
   attachmentQuestions,
   calculateAttachmentStyle,
 } from "@/data/attachmentQuestions";
+import { useAuth } from "@/lib/auth-context";
+import { supabase } from "@/lib/supabase";
+import { useMutation } from "@tanstack/react-query";
+import { queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
+import { useLocation } from "wouter";
+
+interface ProfileWithCouple {
+  couple_id?: string;
+  [key: string]: any;
+}
 
 const QUESTIONS_PER_PAGE = 5;
 
 export default function AttachmentAssessmentPage() {
+  const { user, profile } = useAuth();
+  const { toast } = useToast();
+  const [, navigate] = useLocation();
+  const coupleId = (profile as ProfileWithCouple)?.couple_id;
+
   const [currentPage, setCurrentPage] = useState(0);
   const [responses, setResponses] = useState<{ [key: number]: number }>({});
   const [showResults, setShowResults] = useState(false);
+  const [calculatedResults, setCalculatedResults] = useState<{
+    primaryStyle: string;
+    scores: Record<string, number>;
+  } | null>(null);
 
   const totalPages = Math.ceil(attachmentQuestions.length / QUESTIONS_PER_PAGE);
+
+  const saveResultsMutation = useMutation({
+    mutationFn: async (results: { primaryStyle: string; scores: Record<string, number> }) => {
+      if (!user || !coupleId) throw new Error("Not authenticated");
+      
+      const { error } = await supabase
+        .from("Couples_attachment_assessments")
+        .insert({
+          id: crypto.randomUUID(),
+          couple_id: coupleId,
+          user_id: user.id,
+          attachment_style: results.primaryStyle,
+          score: results.scores[results.primaryStyle],
+          dynamics_with_partner: null,
+          triggers: null,
+          repair_strategies: null,
+        });
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/attachment/couple", coupleId] });
+      toast({
+        title: "Assessment Saved",
+        description: "Your attachment style results have been saved.",
+      });
+    },
+    onError: (error) => {
+      console.error("Failed to save attachment results:", error);
+      toast({
+        title: "Error Saving Results",
+        description: "Your results are shown but could not be saved. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
   const currentQuestions = attachmentQuestions.slice(
     currentPage * QUESTIONS_PER_PAGE,
     (currentPage + 1) * QUESTIONS_PER_PAGE,
@@ -40,7 +96,10 @@ export default function AttachmentAssessmentPage() {
     if (currentPage < totalPages - 1) {
       setCurrentPage((prev) => prev + 1);
     } else if (Object.keys(responses).length === attachmentQuestions.length) {
+      const results = calculateAttachmentStyle(responses);
+      setCalculatedResults(results);
       setShowResults(true);
+      saveResultsMutation.mutate(results);
     }
   };
 
@@ -54,8 +113,8 @@ export default function AttachmentAssessmentPage() {
     (q) => responses[q.id] !== undefined,
   );
 
-  if (showResults) {
-    const { primaryStyle, scores } = calculateAttachmentStyle(responses);
+  if (showResults && calculatedResults) {
+    const { primaryStyle, scores } = calculatedResults;
 
     const styleDescriptions = {
       secure: {
@@ -122,7 +181,7 @@ export default function AttachmentAssessmentPage() {
       },
     };
 
-    const info = styleDescriptions[primaryStyle];
+    const info = styleDescriptions[primaryStyle as keyof typeof styleDescriptions];
 
     return (
       <div className="min-h-screen bg-background p-6">
@@ -184,7 +243,7 @@ export default function AttachmentAssessmentPage() {
                     </CardHeader>
                     <CardContent>
                       <ul className="space-y-2">
-                        {info.strengths.map((strength, idx) => (
+                        {info.strengths.map((strength: string, idx: number) => (
                           <li key={idx} className="flex items-start gap-2">
                             <span className="text-primary mt-1">•</span>
                             <span>{strength}</span>
@@ -202,7 +261,7 @@ export default function AttachmentAssessmentPage() {
                     </CardHeader>
                     <CardContent>
                       <ul className="space-y-2">
-                        {info.growthAreas.map((area, idx) => (
+                        {info.growthAreas.map((area: string, idx: number) => (
                           <li key={idx} className="flex items-start gap-2">
                             <span className="text-primary mt-1">•</span>
                             <span>{area}</span>
@@ -231,14 +290,29 @@ export default function AttachmentAssessmentPage() {
                 </CardContent>
               </Card>
 
-              <div className="flex justify-center">
+              <div className="flex justify-center gap-4 flex-wrap">
+                {saveResultsMutation.isPending && (
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span>Saving your results...</span>
+                  </div>
+                )}
+                <Button
+                  onClick={() => navigate("/attachment-results")}
+                  size="lg"
+                  data-testid="button-view-results"
+                >
+                  View My Results
+                </Button>
                 <Button
                   onClick={() => {
                     setShowResults(false);
                     setCurrentPage(0);
                     setResponses({});
+                    setCalculatedResults(null);
                   }}
                   size="lg"
+                  variant="outline"
                   data-testid="button-retake"
                 >
                   Retake Assessment
