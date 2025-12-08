@@ -96,7 +96,7 @@ export function CheckinReminders({ couple }: CheckinRemindersProps) {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/checkin-schedules"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/checkin-schedules", couple.id] });
       toast({
         title: "Reminder Created",
         description: "Weekly check-in reminder has been scheduled.",
@@ -126,7 +126,7 @@ export function CheckinReminders({ couple }: CheckinRemindersProps) {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/checkin-schedules"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/checkin-schedules", couple.id] });
     },
     onError: () => {
       toast({
@@ -146,7 +146,7 @@ export function CheckinReminders({ couple }: CheckinRemindersProps) {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/checkin-schedules"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/checkin-schedules", couple.id] });
       toast({
         title: "Reminder Deleted",
         description: "The check-in reminder has been removed.",

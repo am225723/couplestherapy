@@ -124,6 +124,45 @@ export default function ClientDashboard() {
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
 
+  // Daily suggestion query
+  const today = new Date().toISOString().split("T")[0];
+  const dailySuggestionQuery = useQuery<{
+    id: string;
+    completed: boolean;
+    suggestion: {
+      id: string;
+      category: string;
+      title: string;
+      description: string;
+      action_prompt: string | null;
+    } | null;
+  } | null>({
+    queryKey: ["/api/daily-suggestion", profile?.couple_id],
+    queryFn: async () => {
+      if (!profile?.couple_id) return null;
+      const { data, error } = await supabase
+        .from("Couples_suggestion_history")
+        .select("id, completed, suggestion:Couples_daily_suggestions(id, category, title, description, action_prompt)")
+        .eq("couple_id", profile.couple_id)
+        .eq("shown_date", today)
+        .single();
+      if (error && error.code !== "PGRST116") throw error;
+      if (!data) return null;
+      return {
+        id: data.id,
+        completed: data.completed,
+        suggestion: data.suggestion as {
+          id: string;
+          category: string;
+          title: string;
+          description: string;
+          action_prompt: string | null;
+        } | null,
+      };
+    },
+    enabled: !!profile?.couple_id,
+    staleTime: 1000 * 60 * 60, // 1 hour
+  });
 
   // Delete love language mutation
   const deleteLoveLanguageMutation = useMutation({
@@ -556,6 +595,44 @@ export default function ClientDashboard() {
               </Card>
             );
           })()}
+
+        {dailySuggestionQuery.isSuccess && dailySuggestionQuery.data?.suggestion && (
+          <Link href="/daily-suggestion">
+            <Card
+              className="border-teal-500/20 bg-gradient-to-br from-teal-50/30 to-emerald-50/30 dark:from-teal-950/10 dark:to-emerald-950/10 hover-elevate cursor-pointer"
+              data-testid="card-daily-suggestion"
+            >
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <Sparkles className="h-4 w-4 text-teal-600 dark:text-teal-400" />
+                    Today's Suggestion
+                  </CardTitle>
+                  <Badge
+                    variant={dailySuggestionQuery.data.completed ? "default" : "secondary"}
+                    className="text-xs"
+                  >
+                    {dailySuggestionQuery.data.completed ? "Completed" : dailySuggestionQuery.data.suggestion.category}
+                  </Badge>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <p className="font-medium text-sm mb-1">
+                  {dailySuggestionQuery.data.suggestion.title}
+                </p>
+                <p className="text-xs text-muted-foreground mb-2">
+                  {dailySuggestionQuery.data.suggestion.description}
+                </p>
+                {dailySuggestionQuery.data.suggestion.action_prompt && (
+                  <p className="text-xs text-teal-600 dark:text-teal-400 flex items-center gap-1.5">
+                    <Lightbulb className="h-3 w-3" />
+                    {dailySuggestionQuery.data.suggestion.action_prompt}
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+          </Link>
+        )}
 
         {isWidgetEnabled("ai-suggestions") && (
           <>

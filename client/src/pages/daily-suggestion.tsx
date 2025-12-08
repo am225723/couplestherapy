@@ -119,20 +119,20 @@ export default function DailySuggestion() {
         .eq("couple_id", coupleId)
         .gte("shown_date", sevenDaysAgo);
 
-      const recentIds = recentShown?.map((r) => r.suggestion_id) || [];
+      const recentIds = new Set(recentShown?.map((r) => r.suggestion_id) || []);
 
-      let query = supabase
+      const { data: allSuggestions, error: suggestionsError } = await supabase
         .from("Couples_daily_suggestions")
         .select("*")
         .eq("is_active", true);
 
-      if (recentIds.length > 0) {
-        query = query.not("id", "in", `(${recentIds.join(",")})`);
-      }
+      if (suggestionsError) throw suggestionsError;
 
-      const { data: suggestions, error: suggestionsError } = await query;
+      const suggestions = (allSuggestions || []).filter(
+        (s) => !recentIds.has(s.id)
+      );
 
-      if (suggestionsError || !suggestions || suggestions.length === 0) {
+      if (!suggestions || suggestions.length === 0) {
         const { data: anySuggestion } = await supabase
           .from("Couples_daily_suggestions")
           .select("*")
@@ -214,7 +214,9 @@ export default function DailySuggestion() {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/suggestion"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/suggestion/today"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/suggestion/history"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/daily-suggestion"] });
       toast({
         title: "Great job!",
         description: "You completed today's relationship suggestion.",
