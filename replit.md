@@ -33,6 +33,7 @@ The ALEIC platform supports both web and mobile applications, sharing a common b
 -   **Realtime:** Supabase Realtime for live updates.
 -   **Storage:** Supabase Storage for media.
 -   **AI Integration:** Seven AI features implemented as Supabase Edge Functions for performance and scalability, secured with JWT authentication and role-based access control. These include `ai-exercise-recommendations`, `ai-empathy-prompt`, `ai-echo-coaching`, `ai-voice-memo-sentiment`, `ai-session-prep`, `ai-insights`, and `ai-date-night`.
+-   **Personalized Daily Tips:** AI-powered daily relationship tips personalized to each couple based on their completed assessments (attachment style, enneagram type, love language). Uses Perplexity AI with 24-hour caching per couple. Falls back to generic tips if no assessment data available. Displayed prominently above the regular daily suggestion on the Daily Suggestion page.
 -   **Push Notifications:** System for therapists to schedule notifications to couples via Edge Functions and Expo Push Service.
 
 **UI/UX Decisions:**
