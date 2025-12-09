@@ -48,6 +48,7 @@ The design emphasizes a warm, compassionate feel using the Inter font, generous 
 -   **Therapist Thoughts System:** A dedicated section for therapists to manage to-dos, messages, and file references for clients.
 -   **Therapist Prompt Customization:** Therapists can create custom prompts and suggestions for each couple via the "Prompts" tab in the admin dashboard. These prompts appear in the "Suggested For You" section on the client dashboard, replacing AI-generated recommendations when available. Features include create/edit/delete, enable/disable toggles, and drag-to-reorder functionality.
 -   **Widget Content Customization:** Therapists can personalize the "From Your Therapist" card for each couple via the "Card Content" tab in the dashboard customizer. This includes custom title, description, and section visibility toggles (Messages, To-Dos, Resources). Client dashboard applies these customizations with sensible fallbacks. Stored as `widget_content_overrides` jsonb in `Couples_dashboard_customization` table.
+-   **Module Subscriptions:** Per-user subscription system for add-on modules (Chores App, IFS App, Conflict Resolution). Uses Stripe for payment processing with monthly ($5) and yearly ($50) pricing options. Database tables: `Couples_modules`, `Couples_module_subscriptions`, `Couples_module_access_tokens`. Stripe webhooks handle subscription lifecycle events (creation, updates, cancellation). Short-lived access tokens (15-minute expiry) provide secure authentication for launching external module apps via iframe/embed.
 
 **Feature Specifications:**
 
@@ -67,3 +68,4 @@ The design emphasizes a warm, compassionate feel using the Inter font, generous 
 -   **State Management**: TanStack Query v5
 -   **Web Components**: react-big-calendar, React Beautiful DnD
 -   **Mobile Components**: expo-image-picker, expo-av, expo-notifications, react-native-calendars
+-   **Payments**: Stripe (for module subscriptions via stripe-replit-sync)
