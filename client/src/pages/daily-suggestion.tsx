@@ -8,6 +8,7 @@ import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
+import { aiFunctions, PersonalizedTipResponse } from "@/lib/ai-functions";
 import { format, subDays } from "date-fns";
 import {
   Heart,
@@ -53,19 +54,6 @@ interface SuggestionHistory {
   suggestion?: DailySuggestion;
 }
 
-interface PersonalizedTip {
-  category: string;
-  title: string;
-  description: string;
-  action_prompt: string;
-  is_personalized: boolean;
-  generated_at?: string;
-  assessment_summary?: {
-    has_attachment: boolean;
-    has_enneagram: boolean;
-    has_love_language: boolean;
-  };
-}
 
 const iconMap: Record<string, typeof Heart> = {
   Heart,
@@ -218,19 +206,9 @@ export default function DailySuggestion() {
     enabled: !!coupleId,
   });
 
-  const { data: personalizedTip, isLoading: personalizedLoading, error: personalizedError } = useQuery<PersonalizedTip>({
-    queryKey: ["/api/ai/personalized-daily-tip", coupleId],
-    queryFn: async () => {
-      const response = await fetch("/api/ai/personalized-daily-tip", {
-        credentials: "include",
-      });
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || "Failed to fetch personalized tip");
-      }
-      const data = await response.json();
-      return data as PersonalizedTip;
-    },
+  const { data: personalizedTip, isLoading: personalizedLoading, error: personalizedError } = useQuery<PersonalizedTipResponse>({
+    queryKey: ["ai-personalized-daily-tip", coupleId],
+    queryFn: () => aiFunctions.getPersonalizedDailyTip(),
     enabled: !!coupleId && !!user,
     retry: 1,
     staleTime: 1000 * 60 * 60, // 1 hour

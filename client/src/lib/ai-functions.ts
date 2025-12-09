@@ -190,6 +190,20 @@ export interface VoiceMemoMetadata {
   created_at: string;
 }
 
+export interface PersonalizedTipResponse {
+  category: string;
+  title: string;
+  description: string;
+  action_prompt: string;
+  is_personalized: boolean;
+  generated_at?: string;
+  assessment_summary?: {
+    has_attachment: boolean;
+    has_enneagram: boolean;
+    has_love_language: boolean;
+  };
+}
+
 // ========================================
 // Shared Invoke Helper
 // ========================================
@@ -441,5 +455,13 @@ export const aiFunctions = {
     return invokeFunctionWithParams<VoiceMemoMetadata[]>("therapist-voice-memos", {
       couple_id: coupleId,
     });
+  },
+
+  /**
+   * Get personalized daily tip based on couple's assessments (Client access)
+   * Returns a personalized tip if assessments are completed, generic tip otherwise
+   */
+  async getPersonalizedDailyTip(): Promise<PersonalizedTipResponse> {
+    return invokeFunctionWithParams<PersonalizedTipResponse>("ai-personalized-daily-tip", {});
   },
 };

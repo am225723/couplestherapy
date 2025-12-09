@@ -1,11 +1,15 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
-
+// ========================================
+// CORS Headers
+// ========================================
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
     "authorization, x-client-info, apikey, content-type",
 };
 
+// ========================================
+// Type Definitions
+// ========================================
 interface PerplexityMessage {
   role: "system" | "user" | "assistant";
   content: string;
@@ -51,35 +55,48 @@ interface PersonalizedTip {
   };
 }
 
-function safeJsonParse(jsonString: string, defaultValue: any = null) {
-  if (!jsonString || typeof jsonString !== "string") {
-    return defaultValue;
-  }
-  
-  let cleaned = jsonString.trim();
-  
-  if (cleaned.startsWith("```json")) {
-    cleaned = cleaned.slice(7);
-  } else if (cleaned.startsWith("```")) {
-    cleaned = cleaned.slice(3);
-  }
-  if (cleaned.endsWith("```")) {
-    cleaned = cleaned.slice(0, -3);
-  }
-  cleaned = cleaned.trim();
-  
+// ========================================
+// Text Cleaning & Safe JSON Parsing
+// ========================================
+function cleanAIResponse(text: string): string {
+  return text.replace(/\[\d+\]/g, "").trim();
+}
+
+function safeJsonParse(text: string): any {
+  const cleaned = cleanAIResponse(text);
+
   try {
     return JSON.parse(cleaned);
-  } catch (error) {
-    console.error("Failed to parse JSON:", error);
-    return defaultValue;
+  } catch {
+    const jsonMatch = cleaned.match(/```(?:json)?\s*([\s\S]*?)```/);
+    if (jsonMatch) {
+      try {
+        return JSON.parse(jsonMatch[1].trim());
+      } catch {
+        // Continue to next attempt
+      }
+    }
+
+    const objectMatch = cleaned.match(/\{[\s\S]*\}/);
+    if (objectMatch) {
+      try {
+        return JSON.parse(objectMatch[0]);
+      } catch {
+        // Continue to fallback
+      }
+    }
+
+    return null;
   }
 }
 
+// ========================================
+// Perplexity API Integration
+// ========================================
 async function analyzeWithPerplexity(
   systemPrompt: string,
   userPrompt: string,
-): Promise<{ content: string; citations?: string[] }> {
+): Promise<{ content: string }> {
   const apiKey = Deno.env.get("PERPLEXITY_API_KEY");
 
   if (!apiKey) {
@@ -114,56 +131,70 @@ async function analyzeWithPerplexity(
 
   return {
     content: data.choices[0]?.message?.content || "",
-    citations: data.citations,
   };
 }
 
+// ========================================
+// Main Edge Function Handler
+// ========================================
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
 
   try {
-    const supabaseUrl = Deno.env.get("SUPABASE_URL");
-    const supabaseServiceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-
-    if (!supabaseUrl || !supabaseServiceRoleKey) {
-      return new Response(
-        JSON.stringify({ error: "Server configuration error" }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
-      );
-    }
-
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    if (!authHeader) {
       return new Response(
-        JSON.stringify({ error: "No authorization token provided" }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 401 }
+        JSON.stringify({ error: "Missing authorization header" }),
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 401,
+        },
       );
     }
 
     const token = authHeader.replace("Bearer ", "");
-    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceRoleKey);
 
-    const { data: { user }, error: userError } = await supabaseAdmin.auth.getUser(token);
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+    const supabaseServiceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-    if (userError || !user) {
-      return new Response(
-        JSON.stringify({ error: "Invalid or expired session" }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 401 }
-      );
+    const userResponse = await fetch(`${supabaseUrl}/auth/v1/user`, {
+      headers: {
+        apikey: supabaseAnonKey,
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!userResponse.ok) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 401,
+      });
     }
+
+    const user = await userResponse.json();
+    const userId = user.id;
+
+    const { createClient } = await import(
+      "https://esm.sh/@supabase/supabase-js@2.39.3"
+    );
+    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceRoleKey);
 
     const { data: profile, error: profileError } = await supabaseAdmin
       .from("Couples_profiles")
       .select("id, role, couple_id")
-      .eq("id", user.id)
+      .eq("id", userId)
       .single();
 
     if (profileError || !profile) {
       return new Response(
         JSON.stringify({ error: "User profile not found" }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 403 }
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 403,
+        },
       );
     }
 
@@ -171,7 +202,10 @@ Deno.serve(async (req) => {
     if (!coupleId) {
       return new Response(
         JSON.stringify({ error: "User not linked to a couple" }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 400,
+        },
       );
     }
 
@@ -182,13 +216,13 @@ Deno.serve(async (req) => {
       .select("*")
       .eq("couple_id", coupleId)
       .eq("tip_date", today)
-      .single();
+      .maybeSingle();
 
-    if (cachedTip) {
-      return new Response(
-        JSON.stringify(cachedTip.tip_data),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
-      );
+    if (cachedTip && cachedTip.tip_data) {
+      return new Response(JSON.stringify(cachedTip.tip_data), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
     }
 
     const [
@@ -245,16 +279,18 @@ Deno.serve(async (req) => {
 
     if (!hasAssessmentData) {
       const genericTip: PersonalizedTip = {
-        category: "connection",
+        category: "growth",
         title: "Start Your Journey",
-        description: "Take an assessment together to get personalized relationship tips tailored to your unique dynamic.",
-        action_prompt: "Complete the Attachment Style or Love Language assessment today",
+        description:
+          "Take an assessment together to get personalized relationship tips tailored to your unique dynamic.",
+        action_prompt:
+          "Complete the Attachment Style or Love Language assessment today",
         is_personalized: false,
       };
-      return new Response(
-        JSON.stringify(genericTip),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
-      );
+      return new Response(JSON.stringify(genericTip), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
     }
 
     const systemPrompt = `You are a warm, supportive couples therapist speaking directly to a couple. 
@@ -286,10 +322,25 @@ Return ONLY the JSON, no additional text or markdown formatting.`;
 
     if (!parsed || !parsed.title || !parsed.description) {
       console.error("Failed to parse AI response:", result.content);
-      return new Response(
-        JSON.stringify({ error: "Failed to generate personalized tip. Please try again." }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
-      );
+      const fallbackTip: PersonalizedTip = {
+        category: "connection",
+        title: "Connect With Your Partner Today",
+        description:
+          "Take a moment to share something you appreciate about your partner. Small gestures of gratitude strengthen your bond.",
+        action_prompt:
+          "Tell your partner one thing you love about them today",
+        is_personalized: true,
+        generated_at: new Date().toISOString(),
+        assessment_summary: {
+          has_attachment: (attachmentResults?.length || 0) > 0,
+          has_enneagram: (enneagramResults?.length || 0) > 0,
+          has_love_language: (loveLanguageResults?.length || 0) > 0,
+        },
+      };
+      return new Response(JSON.stringify(fallbackTip), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
     }
 
     const response: PersonalizedTip = {
@@ -303,26 +354,32 @@ Return ONLY the JSON, no additional text or markdown formatting.`;
       },
     };
 
-    await supabaseAdmin
-      .from("Couples_personalized_tips_cache")
-      .upsert({
-        couple_id: coupleId,
-        tip_date: today,
-        tip_data: response,
-        created_at: new Date().toISOString(),
-      }, { onConflict: "couple_id,tip_date" });
+    try {
+      await supabaseAdmin.from("Couples_personalized_tips_cache").upsert(
+        {
+          couple_id: coupleId,
+          tip_date: today,
+          tip_data: response,
+          created_at: new Date().toISOString(),
+        },
+        { onConflict: "couple_id,tip_date" },
+      );
+    } catch (cacheError) {
+      console.error("Failed to cache tip (non-fatal):", cacheError);
+    }
 
-    return new Response(
-      JSON.stringify(response),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
-    );
+    return new Response(JSON.stringify(response), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 200,
+    });
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error occurred";
     console.error("AI Personalized Daily Tip error:", errorMessage);
 
-    return new Response(
-      JSON.stringify({ error: errorMessage }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
-    );
+    return new Response(JSON.stringify({ error: errorMessage }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 500,
+    });
   }
 });
