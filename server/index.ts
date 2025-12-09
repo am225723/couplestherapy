@@ -1,6 +1,9 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes.js";
 import { setupVite, serveStatic, log } from "./vite.js";
+import { runMigrations } from "stripe-replit-sync";
+import { getStripeSync } from "./stripeClient.js";
+import { WebhookHandlers } from "./webhookHandlers.js";
 
 const app = express();
 
@@ -9,6 +12,71 @@ declare module "http" {
     rawBody: unknown;
   }
 }
+
+// Initialize Stripe schema and sync (only if DATABASE_URL is available)
+async function initStripe() {
+  const databaseUrl = process.env.DATABASE_URL;
+  if (!databaseUrl) {
+    console.log("Skipping Stripe init: DATABASE_URL not set");
+    return;
+  }
+
+  try {
+    console.log("Initializing Stripe schema...");
+    await runMigrations({ databaseUrl });
+    console.log("Stripe schema ready");
+
+    const stripeSync = await getStripeSync();
+
+    // Set up managed webhook
+    const domains = process.env.REPLIT_DOMAINS?.split(",") || [];
+    const webhookBaseUrl = domains.length > 0 ? `https://${domains[0]}` : "http://localhost:5000";
+    
+    console.log("Setting up managed webhook...");
+    const { webhook, uuid } = await stripeSync.findOrCreateManagedWebhook(
+      `${webhookBaseUrl}/api/stripe/webhook`,
+      {
+        enabled_events: ["*"],
+        description: "ALEIC module subscriptions webhook",
+      }
+    );
+    console.log(`Webhook configured: ${webhook.url} (UUID: ${uuid})`);
+
+    // Sync Stripe data in background
+    stripeSync.syncBackfill()
+      .then(() => console.log("Stripe data synced"))
+      .catch((err: any) => console.error("Stripe sync error:", err));
+  } catch (error) {
+    console.error("Failed to initialize Stripe:", error);
+  }
+}
+
+// Initialize Stripe before setting up routes
+await initStripe();
+
+// Register Stripe webhook route BEFORE express.json() - it needs raw body
+app.post(
+  "/api/stripe/webhook/:uuid",
+  express.raw({ type: "application/json" }),
+  async (req, res) => {
+    const signature = req.headers["stripe-signature"];
+    if (!signature) {
+      return res.status(400).json({ error: "Missing stripe-signature" });
+    }
+
+    try {
+      const sig = Array.isArray(signature) ? signature[0] : signature;
+      const { uuid } = req.params;
+      await WebhookHandlers.processWebhook(req.body as Buffer, sig, uuid);
+      res.status(200).json({ received: true });
+    } catch (error: any) {
+      console.error("Webhook error:", error.message);
+      res.status(400).json({ error: "Webhook processing error" });
+    }
+  }
+);
+
+// Now apply JSON middleware for all other routes
 app.use(
   express.json({
     verify: (req, _res, buf) => {

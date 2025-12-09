@@ -100,4 +100,4 @@ args = "npm run dev"
 waitForPort = 5000
 
 [agent]
-integrations = ["perplexity_v0:1.0.0"]
+integrations = ["perplexity_v0:1.0.0", "stripe:2.0.0"]

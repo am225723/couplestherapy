@@ -1102,3 +1102,69 @@ export const insertTherapistPromptSchema = createInsertSchema(
 });
 export type InsertTherapistPrompt = z.infer<typeof insertTherapistPromptSchema>;
 export type TherapistPrompt = typeof couplesTherapistPrompts.$inferSelect;
+
+// ============ MODULE SUBSCRIPTIONS ============
+
+// 30. AVAILABLE MODULES - Registry of purchasable modules
+export const couplesModules = pgTable("Couples_modules", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  slug: text("slug").notNull().unique(), // 'chores', 'ifs', 'conflict-resolution'
+  name: text("name").notNull(),
+  description: text("description"),
+  icon: text("icon"), // Lucide icon name
+  app_url: text("app_url"), // URL to the external Replit app
+  is_active: boolean("is_active").default(true),
+  created_at: timestamp("created_at").defaultNow(),
+});
+
+export const insertModuleSchema = createInsertSchema(couplesModules).omit({
+  id: true,
+  created_at: true,
+});
+export type InsertModule = z.infer<typeof insertModuleSchema>;
+export type Module = typeof couplesModules.$inferSelect;
+
+// Module pricing is stored in Stripe products/prices with metadata:
+// - product metadata: { module_slug: 'chores', type: 'module' }
+// - price metadata: { interval: 'month' | 'year' }
+
+// 31. USER MODULE SUBSCRIPTIONS - Per-user access to modules
+export const couplesModuleSubscriptions = pgTable("Couples_module_subscriptions", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  user_id: uuid("user_id").notNull(), // Per-user, not per-couple
+  module_id: uuid("module_id").notNull(),
+  stripe_subscription_id: text("stripe_subscription_id"),
+  stripe_customer_id: text("stripe_customer_id"),
+  status: text("status").notNull().default("active"), // 'active', 'canceled', 'past_due', 'trialing'
+  current_period_start: timestamp("current_period_start"),
+  current_period_end: timestamp("current_period_end"),
+  cancel_at_period_end: boolean("cancel_at_period_end").default(false),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow(),
+});
+
+export const insertModuleSubscriptionSchema = createInsertSchema(
+  couplesModuleSubscriptions,
+).omit({
+  id: true,
+  created_at: true,
+  updated_at: true,
+});
+export type InsertModuleSubscription = z.infer<typeof insertModuleSubscriptionSchema>;
+export type ModuleSubscription = typeof couplesModuleSubscriptions.$inferSelect;
+
+// 32. MODULE ACCESS TOKENS - Short-lived tokens for secure module access
+export const couplesModuleAccessTokens = pgTable("Couples_module_access_tokens", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  user_id: uuid("user_id").notNull(),
+  module_id: uuid("module_id").notNull(),
+  token_hash: text("token_hash").notNull(),
+  expires_at: timestamp("expires_at").notNull(),
+  created_at: timestamp("created_at").defaultNow(),
+});
+
+export type ModuleAccessToken = typeof couplesModuleAccessTokens.$inferSelect;
+
+// Available module slugs
+export const MODULE_SLUGS = ["chores", "ifs", "conflict-resolution"] as const;
+export type ModuleSlug = (typeof MODULE_SLUGS)[number];
