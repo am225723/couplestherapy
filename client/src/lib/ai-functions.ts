@@ -204,6 +204,37 @@ export interface PersonalizedTipResponse {
   };
 }
 
+// Conflict Resolution Types
+export interface ConflictStatementRequest {
+  feeling: string;
+  situation: string;
+  because: string;
+  request: string;
+  firmness: number;
+}
+
+export interface ConflictStatementResponse {
+  enhanced_statement: string;
+  impact_preview: string;
+  tone_description: string;
+}
+
+export interface ConflictSuggestionsRequest {
+  feeling: string;
+  situation: string;
+  because?: string;
+  request?: string;
+  enhanced_statement?: string;
+}
+
+export interface ConflictSuggestionsResponse {
+  suggestions: Array<{
+    title: string;
+    content: string;
+    category: string;
+  }>;
+}
+
 // ========================================
 // Shared Invoke Helper
 // ========================================
@@ -463,5 +494,25 @@ export const aiFunctions = {
    */
   async getPersonalizedDailyTip(): Promise<PersonalizedTipResponse> {
     return invokeFunctionWithParams<PersonalizedTipResponse>("ai-personalized-daily-tip", {});
+  },
+
+  // ========================================
+  // Conflict Resolution Functions (Client access)
+  // ========================================
+
+  /**
+   * Generate an enhanced I-statement with AI assistance
+   * @param payload - The I-statement components and firmness level
+   */
+  async generateConflictStatement(payload: ConflictStatementRequest): Promise<ConflictStatementResponse> {
+    return invokeFunction<ConflictStatementResponse>("conflict-generate-statement", payload);
+  },
+
+  /**
+   * Get AI-powered suggestions for conflict resolution
+   * @param payload - The conflict context
+   */
+  async generateConflictSuggestions(payload: ConflictSuggestionsRequest): Promise<ConflictSuggestionsResponse> {
+    return invokeFunction<ConflictSuggestionsResponse>("conflict-generate-suggestions", payload);
   },
 };

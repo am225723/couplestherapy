@@ -27,6 +27,7 @@ import {
   Link2,
   ListTodo,
   Package,
+  Shield,
 } from "lucide-react";
 
 export interface MenuRoute {
@@ -168,6 +169,12 @@ export const clientMenuConfig: MenuCategory[] = [
         url: "/conversation",
         icon: MessageCircle,
         testId: "nav-hold-me-tight",
+      },
+      {
+        title: "Conflict Resolution",
+        url: "/conflict-resolution",
+        icon: Shield,
+        testId: "nav-conflict-resolution",
       },
       {
         title: "Pause Button",

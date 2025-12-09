@@ -1168,3 +1168,62 @@ export type ModuleAccessToken = typeof couplesModuleAccessTokens.$inferSelect;
 // Available module slugs
 export const MODULE_SLUGS = ["chores", "ifs", "conflict-resolution"] as const;
 export type ModuleSlug = (typeof MODULE_SLUGS)[number];
+
+// ============ CONFLICT RESOLUTION MODULE ============
+
+// 33. CONFLICT SESSIONS - Saved I-Statement sessions
+export const couplesConflictSessions = pgTable("Couples_conflict_sessions", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  user_id: uuid("user_id").notNull(),
+  couple_id: uuid("couple_id").notNull(),
+  
+  // I-Statement components
+  feeling: text("feeling").notNull(),
+  situation: text("situation").notNull(),
+  because: text("because").notNull(),
+  request: text("request").notNull(),
+  
+  // Generated content
+  firmness: integer("firmness").notNull().default(50),
+  enhanced_statement: text("enhanced_statement"),
+  impact_preview: text("impact_preview"),
+  ai_suggestions: jsonb("ai_suggestions").default([]),
+  
+  // Metadata
+  title: text("title"),
+  is_favorite: boolean("is_favorite").default(false),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow(),
+});
+
+export const insertConflictSessionSchema = createInsertSchema(
+  couplesConflictSessions,
+).omit({
+  id: true,
+  created_at: true,
+  updated_at: true,
+}).extend({
+  ai_suggestions: z.array(z.object({
+    title: z.string(),
+    content: z.string(),
+    category: z.string(),
+  })).optional(),
+});
+export type InsertConflictSession = z.infer<typeof insertConflictSessionSchema>;
+export type ConflictSession = typeof couplesConflictSessions.$inferSelect;
+
+// 34. CONFLICT AI EVENTS - Audit log for AI interactions
+export const couplesConflictAiEvents = pgTable("Couples_conflict_ai_events", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  session_id: uuid("session_id"),
+  user_id: uuid("user_id").notNull(),
+  request_type: text("request_type").notNull(), // 'generate_statement' | 'generate_suggestions'
+  prompt_payload: jsonb("prompt_payload").notNull(),
+  response_text: text("response_text"),
+  response_parsed: jsonb("response_parsed"),
+  error_message: text("error_message"),
+  duration_ms: integer("duration_ms"),
+  created_at: timestamp("created_at").defaultNow(),
+});
+
+export type ConflictAiEvent = typeof couplesConflictAiEvents.$inferSelect;

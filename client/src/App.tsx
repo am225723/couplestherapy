@@ -108,6 +108,7 @@ import TherapistSettings from "./pages/therapist-settings";
 import ClientProfile from "./pages/client-profile";
 import ClientSettings from "./pages/client-settings";
 import ModulesPage from "./pages/modules";
+import ConflictResolution from "./pages/conflict-resolution";
 import NotFound from "./pages/not-found";
 
 import _998 from "@assets/998.png";
@@ -667,6 +668,7 @@ function AuthenticatedApp() {
               <Route path="/profile" component={ClientProfile} />
               <Route path="/settings" component={ClientSettings} />
               <Route path="/modules" component={ModulesPage} />
+              <Route path="/conflict-resolution" component={ConflictResolution} />
               <Route path="/">
                 {profile.couple_id ? (
                   <Redirect to="/dashboard" />

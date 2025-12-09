@@ -32,6 +32,7 @@ import dashboardCustomizationRouter from "./routes/dashboardCustomization.js";
 import pushNotificationsRouter from "./routes/pushNotifications.js";
 import therapistPromptsRouter from "./routes/therapistPrompts.js";
 import modulesRouter from "./routes/modules.js";
+import conflictRouter from "./routes/conflict.js";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Register all feature-based routers
@@ -70,6 +71,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use("/api/voice-memos", voiceMemosRouter);
   app.use("/api/therapist-prompts", therapistPromptsRouter);
   app.use("/api/modules", modulesRouter);
+  app.use("/api/conflict", conflictRouter);
 
   // Create and return the HTTP server
   const httpServer = createServer(app);
