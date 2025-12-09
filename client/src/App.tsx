@@ -107,6 +107,7 @@ import TherapistProfile from "./pages/therapist-profile";
 import TherapistSettings from "./pages/therapist-settings";
 import ClientProfile from "./pages/client-profile";
 import ClientSettings from "./pages/client-settings";
+import ModulesPage from "./pages/modules";
 import NotFound from "./pages/not-found";
 
 import _998 from "@assets/998.png";
@@ -380,6 +381,7 @@ function AuthenticatedApp() {
         "/enneagram-assessment",
         "/couple-journal",
         "/financial-toolkit",
+        "/modules",
       ];
 
       const isTherapist = profile.role === "therapist";
@@ -664,6 +666,7 @@ function AuthenticatedApp() {
               />
               <Route path="/profile" component={ClientProfile} />
               <Route path="/settings" component={ClientSettings} />
+              <Route path="/modules" component={ModulesPage} />
               <Route path="/">
                 {profile.couple_id ? (
                   <Redirect to="/dashboard" />

@@ -26,6 +26,7 @@ import {
   DollarSign,
   Link2,
   ListTodo,
+  Package,
 } from "lucide-react";
 
 export interface MenuRoute {
@@ -293,6 +294,20 @@ export const clientMenuConfig: MenuCategory[] = [
         url: "/rituals",
         icon: Coffee,
         testId: "nav-rituals",
+      },
+    ],
+  },
+  {
+    id: "subscriptions",
+    label: "Add-on Modules",
+    icon: Package,
+    defaultOpen: false,
+    routes: [
+      {
+        title: "Module Catalog",
+        url: "/modules",
+        icon: Package,
+        testId: "nav-modules",
       },
     ],
   },
