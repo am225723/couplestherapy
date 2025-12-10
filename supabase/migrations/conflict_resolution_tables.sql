@@ -8,11 +8,15 @@ CREATE TABLE IF NOT EXISTS "Couples_conflict_sessions" (
   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   couple_id UUID NOT NULL,
   
-  -- I-Statement components
-  feeling TEXT NOT NULL,
-  situation TEXT NOT NULL,
-  because TEXT NOT NULL,
-  request TEXT NOT NULL,
+  -- Input mode and free-form text
+  input_mode TEXT DEFAULT 'structured', -- "express" or "structured"
+  free_text TEXT, -- For Express Freely mode
+  
+  -- I-Statement components (for structured mode, may be empty for express)
+  feeling TEXT NOT NULL DEFAULT '',
+  situation TEXT NOT NULL DEFAULT '',
+  because TEXT NOT NULL DEFAULT '',
+  request TEXT NOT NULL DEFAULT '',
   
   -- Generated content
   firmness INTEGER NOT NULL DEFAULT 50 CHECK (firmness >= 0 AND firmness <= 100),

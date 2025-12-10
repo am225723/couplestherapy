@@ -211,6 +211,8 @@ export interface ConflictStatementRequest {
   because: string;
   request: string;
   firmness: number;
+  mode?: "express" | "structured";
+  free_text?: string;
 }
 
 export interface ConflictStatementResponse {
@@ -225,6 +227,8 @@ export interface ConflictSuggestionsRequest {
   because?: string;
   request?: string;
   enhanced_statement?: string;
+  mode?: "express" | "structured";
+  free_text?: string;
 }
 
 export interface ConflictSuggestionsResponse {

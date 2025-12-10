@@ -1177,11 +1177,15 @@ export const couplesConflictSessions = pgTable("Couples_conflict_sessions", {
   user_id: uuid("user_id").notNull(),
   couple_id: uuid("couple_id").notNull(),
   
-  // I-Statement components
-  feeling: text("feeling").notNull(),
-  situation: text("situation").notNull(),
-  because: text("because").notNull(),
-  request: text("request").notNull(),
+  // Input mode and free-form text
+  input_mode: text("input_mode").default("structured"), // "express" or "structured"
+  free_text: text("free_text"), // For Express Freely mode
+  
+  // I-Statement components (for structured mode)
+  feeling: text("feeling").notNull().default(""),
+  situation: text("situation").notNull().default(""),
+  because: text("because").notNull().default(""),
+  request: text("request").notNull().default(""),
   
   // Generated content
   firmness: integer("firmness").notNull().default(50),
@@ -1203,6 +1207,8 @@ export const insertConflictSessionSchema = createInsertSchema(
   created_at: true,
   updated_at: true,
 }).extend({
+  input_mode: z.enum(["express", "structured"]).optional(),
+  free_text: z.string().nullable().optional(),
   ai_suggestions: z.array(z.object({
     title: z.string(),
     content: z.string(),

@@ -14,6 +14,8 @@ interface GenerateRequest {
   because: string;
   request: string;
   firmness: number; // 0-100, where 0=gentle, 100=assertive
+  mode?: "express" | "structured";
+  free_text?: string;
 }
 
 interface GenerateResponse {
@@ -167,16 +169,29 @@ Deno.serve(async (req) => {
 
     // Parse request body
     const body: GenerateRequest = await req.json();
-    const { feeling, situation, because, request, firmness = 50 } = body;
+    const { feeling, situation, because, request, firmness = 50, mode = "structured", free_text } = body;
 
-    if (!feeling || !situation || !because || !request) {
-      return new Response(
-        JSON.stringify({ error: "Missing required fields: feeling, situation, because, request" }),
-        {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-          status: 400,
-        },
-      );
+    // Validate based on mode
+    if (mode === "express") {
+      if (!free_text || free_text.trim().length < 10) {
+        return new Response(
+          JSON.stringify({ error: "Please express what you want to say (at least 10 characters)" }),
+          {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+            status: 400,
+          },
+        );
+      }
+    } else {
+      if (!feeling || !situation || !because || !request) {
+        return new Response(
+          JSON.stringify({ error: "Missing required fields: feeling, situation, because, request" }),
+          {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+            status: 400,
+          },
+        );
+      }
     }
 
     const toneDescription = getToneDescription(firmness);
@@ -186,7 +201,40 @@ Your role is to help individuals express their feelings and needs in a way that 
 You craft I-statements that are emotionally honest, specific, and constructive.
 Always respond with valid JSON only.`;
 
-    const userPrompt = `Transform these raw inputs into an enhanced I-statement:
+    let userPrompt: string;
+
+    if (mode === "express") {
+      userPrompt = `Transform this raw, unfiltered expression into a healthy, constructive I-statement:
+
+RAW EXPRESSION (user's honest feelings - may contain blame, frustration, or harsh language):
+"${free_text}"
+
+DESIRED TONE: ${toneDescription} (firmness level: ${firmness}/100)
+
+Your task:
+1. Identify the underlying feelings and needs in this raw expression
+2. Extract the specific situation or behavior being referenced
+3. Understand the emotional impact on the speaker
+4. Determine what the speaker is actually asking for or needing
+5. Transform this into a non-blaming, emotionally honest I-statement that matches the requested tone
+
+The I-statement should follow this structure:
+- "I feel [emotion]..."
+- "when [specific observable behavior/situation without blame]..."
+- "because [personal impact/need]..."
+- "Could we [specific request]?"
+
+Also provide a brief "impact preview" - how this transformed statement might be received by a partner.
+
+IMPORTANT: Respond with ONLY valid JSON in this exact format:
+{
+  "enhanced_statement": "The complete I-statement ready to use",
+  "impact_preview": "Brief prediction of how this might be received",
+  "tone_description": "Description of the tone used"
+}
+Return ONLY the JSON, no additional text.`;
+    } else {
+      userPrompt = `Transform these raw inputs into an enhanced I-statement:
 
 INPUTS:
 - Feeling: "${feeling}"
@@ -212,6 +260,7 @@ IMPORTANT: Respond with ONLY valid JSON in this exact format:
   "tone_description": "Description of the tone used"
 }
 Return ONLY the JSON, no additional text.`;
+    }
 
     const result = await analyzeWithPerplexity(systemPrompt, userPrompt);
     const parsed = safeJsonParse(result.content);
@@ -227,7 +276,9 @@ Return ONLY the JSON, no additional text.`;
     await supabaseAdmin.from("Couples_conflict_ai_events").insert({
       user_id: userId,
       request_type: "generate_statement",
-      prompt_payload: { feeling, situation, because, request, firmness },
+      prompt_payload: mode === "express" 
+        ? { mode, free_text, firmness }
+        : { mode, feeling, situation, because, request, firmness },
       response_text: result.content,
       response_parsed: parsed,
       error_message: parsed ? null : "Failed to parse AI response",
@@ -235,12 +286,21 @@ Return ONLY the JSON, no additional text.`;
     });
 
     if (!parsed || !parsed.enhanced_statement) {
-      // Fallback response
-      const fallbackStatement = `I feel ${feeling} when ${situation}, because ${because}. Could we ${request}?`;
+      // Fallback response - construct a meaningful message based on mode
+      let fallbackStatement: string;
+      if (mode === "express" && free_text) {
+        // For express mode, create a generic but helpful I-statement
+        const truncatedContext = free_text.slice(0, 100);
+        fallbackStatement = `I'm feeling something important that I need to express about: "${truncatedContext}..." Could we talk about this together so I can share what's on my mind?`;
+      } else if (feeling && situation) {
+        fallbackStatement = `I feel ${feeling} when ${situation}${because ? `, because ${because}` : ''}. ${request ? `Could we ${request}?` : 'Can we talk about this?'}`;
+      } else {
+        fallbackStatement = "I have something important I'd like to discuss with you. Could we find a good time to talk?";
+      }
       return new Response(
         JSON.stringify({
           enhanced_statement: fallbackStatement,
-          impact_preview: "This I-statement clearly expresses your feelings without blame, making it easier for your partner to hear and respond constructively.",
+          impact_preview: "This I-statement focuses on expressing your feelings without blame, opening the door for constructive dialogue.",
           tone_description: toneDescription,
         }),
         {
