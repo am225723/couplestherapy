@@ -1919,4 +1919,290 @@ Return ONLY the JSON, no additional text or markdown formatting.`;
   }
 });
 
+// Growth Plan cache
+const growthPlanCache = new Map<string, { data: any; timestamp: number }>();
+const GROWTH_PLAN_CACHE_TTL_MS = 30 * 60 * 1000; // 30 minutes
+
+// AI GROWTH PLAN (Personalized Exercises and Goals for Couples)
+aiRouter.get("/growth-plan", async (req, res) => {
+  try {
+    // Verify user session
+    const authResult = await verifyUserSession(req);
+    if (!authResult.success) {
+      return res.status(authResult.status).json({ error: authResult.error });
+    }
+
+    const userId = authResult.userId;
+
+    // Get user's couple_id
+    const { data: profile, error: profileError } = await supabaseAdmin
+      .from("Couples_profiles")
+      .select("couple_id, full_name")
+      .eq("id", userId)
+      .single();
+
+    if (profileError || !profile?.couple_id) {
+      return res.status(400).json({ error: "User not linked to a couple" });
+    }
+
+    const coupleId = profile.couple_id;
+
+    // Check cache first
+    const cacheKey = `growth-plan:${coupleId}`;
+    const cached = growthPlanCache.get(cacheKey);
+    if (cached && Date.now() - cached.timestamp < GROWTH_PLAN_CACHE_TTL_MS) {
+      return res.json(cached.data);
+    }
+
+    // Get couple info
+    const { data: couple, error: coupleError } = await supabaseAdmin
+      .from("Couples_couples")
+      .select("partner1_id, partner2_id")
+      .eq("id", coupleId)
+      .single();
+
+    if (coupleError || !couple) {
+      return res.status(404).json({ error: "Couple not found" });
+    }
+
+    const partnerIds = [couple.partner1_id, couple.partner2_id];
+
+    // Fetch all assessment data in parallel
+    const [loveLanguages, attachments, enneagrams, checkins, goals] = await Promise.all([
+      supabaseAdmin
+        .from("Couples_love_languages")
+        .select("user_id, primary_language, secondary_language")
+        .in("user_id", partnerIds),
+      supabaseAdmin
+        .from("Couples_attachment_results")
+        .select("user_id, attachment_style, scores")
+        .in("user_id", partnerIds),
+      supabaseAdmin
+        .from("Couples_enneagram_results")
+        .select("user_id, dominant_type, wing")
+        .in("user_id", partnerIds),
+      supabaseAdmin
+        .from("Couples_weekly_checkins")
+        .select("user_id, overall_satisfaction, communication_rating, created_at")
+        .in("user_id", partnerIds)
+        .order("created_at", { ascending: false })
+        .limit(10),
+      supabaseAdmin
+        .from("Couples_shared_goals")
+        .select("title, status, category")
+        .eq("couple_id", coupleId)
+        .limit(10),
+    ]);
+
+    // Build personalization context
+    const personalizationContext: any = {};
+
+    if (loveLanguages.data?.length) {
+      personalizationContext.love_languages = loveLanguages.data.map(
+        (ll) => `${ll.primary_language}${ll.secondary_language ? ` (secondary: ${ll.secondary_language})` : ""}`
+      );
+    }
+
+    if (attachments.data?.length) {
+      personalizationContext.attachment_styles = attachments.data.map((a) => a.attachment_style);
+    }
+
+    if (enneagrams.data?.length) {
+      personalizationContext.enneagram_types = enneagrams.data.map(
+        (e) => `Type ${e.dominant_type}${e.wing ? `w${e.wing}` : ""}`
+      );
+    }
+
+    if (checkins.data?.length) {
+      const avgSatisfaction =
+        checkins.data.reduce((sum, c) => sum + (c.overall_satisfaction || 0), 0) /
+        checkins.data.length;
+      personalizationContext.recent_satisfaction = Math.round(avgSatisfaction * 10) / 10;
+    }
+
+    if (goals.data?.length) {
+      personalizationContext.goal_areas = [...new Set(goals.data.map((g) => g.category).filter(Boolean))];
+    }
+
+    // Check if we have any assessment data
+    const hasPersonalization = Object.keys(personalizationContext).length > 0;
+
+    // Build prompt for AI
+    const systemPrompt = `You are an expert couples therapist creating a personalized relationship growth plan. 
+Based on the couple's assessment results, create a tailored set of exercises and goals that will strengthen their relationship.
+Focus on their specific dynamics, attachment patterns, and communication needs.
+Always respond with valid JSON only.`;
+
+    let userPrompt = "";
+    if (hasPersonalization) {
+      userPrompt = `Create a personalized relationship growth plan based on this couple's profile:
+
+${JSON.stringify(personalizationContext, null, 2)}
+
+Generate exercises and goals that specifically address their attachment dynamics, love language preferences, and personality types.`;
+    } else {
+      userPrompt = `Create a general relationship growth plan with exercises and goals that help couples build stronger connections, improve communication, and deepen intimacy.`;
+    }
+
+    userPrompt += `
+
+IMPORTANT: Respond with ONLY valid JSON in this exact format:
+{
+  "exercises": [
+    {
+      "id": "exercise-1",
+      "title": "Exercise name",
+      "description": "2-3 sentences describing the exercise",
+      "category": "communication|intimacy|conflict|appreciation|goals",
+      "duration_minutes": 15,
+      "frequency": "daily|weekly|bi-weekly",
+      "rationale": "Why this exercise helps this specific couple"
+    }
+  ],
+  "goals": [
+    {
+      "id": "goal-1",
+      "title": "Goal name",
+      "description": "What this goal achieves",
+      "category": "communication|intimacy|conflict|appreciation|goals",
+      "milestones": [
+        {"id": "m1", "title": "First milestone", "description": "What to achieve"},
+        {"id": "m2", "title": "Second milestone", "description": "Next step"}
+      ],
+      "timeline_weeks": 4
+    }
+  ],
+  "personalization_summary": "Brief summary of how this plan is tailored to the couple"
+}
+
+Generate 4-6 exercises and 3-4 goals. Return ONLY the JSON, no additional text.`;
+
+    // Call Perplexity AI
+    const analysisResult = await analyzeCheckInsWithPerplexity({
+      systemPrompt,
+      userPrompt,
+    });
+
+    const aiFullResponse = analysisResult.content;
+
+    let parsed;
+    try {
+      parsed = safeJsonParse(aiFullResponse);
+
+      if (!parsed || !parsed.exercises || !parsed.goals) {
+        throw new Error("Invalid AI response structure");
+      }
+    } catch (parseError: any) {
+      console.error("Failed to parse AI growth plan:", parseError.message, aiFullResponse);
+      // Return a default plan
+      parsed = getDefaultGrowthPlan();
+    }
+
+    // Build response
+    const response = {
+      couple_id: coupleId,
+      generated_at: new Date().toISOString(),
+      exercises: parsed.exercises || [],
+      goals: parsed.goals || [],
+      personalization_summary: parsed.personalization_summary || "General relationship growth plan",
+      personalization_context: hasPersonalization ? personalizationContext : null,
+    };
+
+    // Cache the result
+    growthPlanCache.set(cacheKey, {
+      data: response,
+      timestamp: Date.now(),
+    });
+
+    res.json(response);
+  } catch (error: any) {
+    console.error("AI Growth Plan error:", error);
+    res.status(500).json({
+      error: error.message || "Failed to generate growth plan",
+    });
+  }
+});
+
+function getDefaultGrowthPlan() {
+  return {
+    exercises: [
+      {
+        id: "exercise-1",
+        title: "Daily Appreciation Share",
+        description: "Take turns sharing one thing you appreciate about each other. Be specific about actions, qualities, or moments that made an impact.",
+        category: "appreciation",
+        duration_minutes: 10,
+        frequency: "daily",
+        rationale: "Regular appreciation builds emotional connection and reinforces positive behaviors.",
+      },
+      {
+        id: "exercise-2",
+        title: "Stress-Reducing Conversation",
+        description: "Spend 20 minutes discussing each other's day. Focus on listening without offering solutions unless asked.",
+        category: "communication",
+        duration_minutes: 20,
+        frequency: "daily",
+        rationale: "Daily check-ins reduce emotional distance and build understanding.",
+      },
+      {
+        id: "exercise-3",
+        title: "Weekly Dream Sharing",
+        description: "Share a dream, hope, or aspiration with your partner. Ask curious questions to understand their inner world better.",
+        category: "intimacy",
+        duration_minutes: 30,
+        frequency: "weekly",
+        rationale: "Understanding each other's dreams deepens emotional intimacy.",
+      },
+      {
+        id: "exercise-4",
+        title: "Repair Conversation Practice",
+        description: "Practice using 'I feel' statements and making repair attempts after minor disagreements.",
+        category: "conflict",
+        duration_minutes: 15,
+        frequency: "weekly",
+        rationale: "Building repair skills prevents negative cycles from escalating.",
+      },
+    ],
+    goals: [
+      {
+        id: "goal-1",
+        title: "Establish Daily Connection Ritual",
+        description: "Create a consistent daily practice of meaningful connection.",
+        category: "communication",
+        milestones: [
+          { id: "m1", title: "Choose a ritual", description: "Decide on a daily connection activity together" },
+          { id: "m2", title: "Practice for one week", description: "Complete the ritual every day for 7 days" },
+          { id: "m3", title: "Reflect and adjust", description: "Discuss what's working and refine the ritual" },
+        ],
+        timeline_weeks: 4,
+      },
+      {
+        id: "goal-2",
+        title: "Improve Conflict Resolution",
+        description: "Develop healthier patterns for handling disagreements.",
+        category: "conflict",
+        milestones: [
+          { id: "m1", title: "Identify triggers", description: "Each partner identifies their top 3 conflict triggers" },
+          { id: "m2", title: "Create a repair toolkit", description: "Develop 3-5 repair attempts that work for you both" },
+          { id: "m3", title: "Practice during low-stakes moments", description: "Use repair attempts in minor disagreements" },
+        ],
+        timeline_weeks: 6,
+      },
+      {
+        id: "goal-3",
+        title: "Deepen Emotional Intimacy",
+        description: "Build a stronger emotional bond through vulnerability and understanding.",
+        category: "intimacy",
+        milestones: [
+          { id: "m1", title: "Share childhood memories", description: "Each share 3 formative childhood experiences" },
+          { id: "m2", title: "Discuss fears and dreams", description: "Have a deep conversation about hopes and fears" },
+          { id: "m3", title: "Create shared meaning", description: "Identify values and traditions that matter to you both" },
+        ],
+        timeline_weeks: 8,
+      },
+    ],
+    personalization_summary: "This general growth plan focuses on building connection, improving communication, and deepening intimacy.",
+  };
+}
+
 export default aiRouter;
