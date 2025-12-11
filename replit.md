@@ -55,6 +55,7 @@ The design emphasizes a warm, compassionate feel using the Inter font, generous 
 -   **Auto-save Drafts:** Attachment and Enneagram assessments auto-save progress to localStorage every 30 seconds with recovery banner UI for restoring previous drafts. Uses custom `useAutoSave` hook with unique keys per assessment type.
 -   **Mobile Optimization:** Swipe gesture navigation for compatibility tabs using custom `useSwipe` hook (50px threshold). Touch-optimized checkboxes with larger hit targets (p-2 -m-2 touch-manipulation).
 -   **In-memory Caching:** Compatibility insights use Map-based cache with 5-minute TTL and max 100 entries with LRU eviction in `client/src/lib/cache.ts`.
+-   **AI-Powered Relationship Growth Plan:** Personalized exercises and goals generated via Supabase Edge Function (`ai-growth-plan`) using Perplexity AI. Analyzes couple's assessments (attachment style, love language, enneagram) and recent activity to create tailored recommendations. Frontend page at `/growth-plan` displays exercises with frequency/duration and goals with milestone tracking. Database tables: `Couples_growth_plans`, `Couples_growth_exercise_progress`, `Couples_growth_goal_progress` (SQL migration ready at `supabase/migrations/growth_plans.sql`).
 
 **Feature Specifications:**
 

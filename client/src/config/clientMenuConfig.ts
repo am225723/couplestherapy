@@ -29,6 +29,7 @@ import {
   Package,
   Shield,
   TrendingUp,
+  Zap,
 } from "lucide-react";
 
 export interface MenuRoute {
@@ -76,6 +77,12 @@ export const clientMenuConfig: MenuCategory[] = [
         url: "/progress-timeline",
         icon: TrendingUp,
         testId: "nav-progress-timeline",
+      },
+      {
+        title: "Growth Plan",
+        url: "/growth-plan",
+        icon: Zap,
+        testId: "nav-growth-plan",
       },
     ],
   },

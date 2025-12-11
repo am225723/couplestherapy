@@ -115,6 +115,45 @@ export interface AIInsightsResponse {
   data_sources: string[];
 }
 
+export interface GrowthExercise {
+  id: string;
+  title: string;
+  description: string;
+  category: "communication" | "intimacy" | "conflict" | "appreciation" | "goals";
+  duration_minutes: number;
+  frequency: "daily" | "weekly" | "bi-weekly";
+  rationale: string;
+}
+
+export interface GrowthGoal {
+  id: string;
+  title: string;
+  description: string;
+  target_date_weeks: number;
+  milestones: string[];
+  category: string;
+}
+
+export interface GrowthPlanResponse {
+  couple_id: string;
+  generated_at: string;
+  plan_summary: string;
+  focus_areas: string[];
+  exercises: GrowthExercise[];
+  goals: GrowthGoal[];
+  personalization_context: {
+    attachment_styles?: string[];
+    love_languages?: string[];
+    enneagram_types?: string[];
+  };
+  ai_full_response: string;
+  usage: {
+    prompt_tokens: number;
+    completion_tokens: number;
+    total_tokens: number;
+  };
+}
+
 export interface CoupleAnalytics {
   couple_id: string;
   partner1_name: string;
@@ -518,5 +557,17 @@ export const aiFunctions = {
    */
   async generateConflictSuggestions(payload: ConflictSuggestionsRequest): Promise<ConflictSuggestionsResponse> {
     return invokeFunction<ConflictSuggestionsResponse>("conflict-generate-suggestions", payload);
+  },
+
+  // ========================================
+  // Growth Plan Functions (Client access)
+  // ========================================
+
+  /**
+   * Generate a personalized relationship growth plan with exercises and goals
+   * Based on couple's assessments (attachment, love language, enneagram) and activity
+   */
+  async getGrowthPlan(): Promise<GrowthPlanResponse> {
+    return invokeFunction<GrowthPlanResponse>("ai-growth-plan");
   },
 };
