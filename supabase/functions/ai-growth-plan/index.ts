@@ -3,8 +3,6 @@
 // Generates personalized exercises and goals based on couple's assessments
 // ========================================
 
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.0";
-
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
@@ -63,26 +61,6 @@ interface GrowthGoal {
   category: string;
 }
 
-interface GrowthPlanResponse {
-  couple_id: string;
-  generated_at: string;
-  plan_summary: string;
-  focus_areas: string[];
-  exercises: GrowthExercise[];
-  goals: GrowthGoal[];
-  personalization_context: {
-    attachment_styles?: string[];
-    love_languages?: string[];
-    enneagram_types?: string[];
-  };
-  ai_full_response: string;
-  usage: {
-    prompt_tokens: number;
-    completion_tokens: number;
-    total_tokens: number;
-  };
-}
-
 // ========================================
 // Text Cleaning & Safe JSON Parsing
 // ========================================
@@ -114,33 +92,78 @@ function safeJsonParse(text: string): any {
       }
     }
 
-    return {
-      plan_summary: "We recommend focusing on daily connection rituals and weekly appreciation exercises.",
-      focus_areas: ["Communication", "Appreciation"],
-      exercises: [
-        {
-          id: "default-1",
-          title: "Daily Check-in",
-          description: "Share one high and one low from your day with your partner.",
-          category: "communication",
-          duration_minutes: 10,
-          frequency: "daily",
-          rationale: "Regular check-ins help maintain emotional connection.",
-        },
-      ],
-      goals: [
-        {
-          id: "default-goal-1",
-          title: "Strengthen Communication",
-          description: "Improve daily communication habits over the next month.",
-          target_date_weeks: 4,
-          milestones: ["Complete 7 daily check-ins", "Have one weekly deeper conversation"],
-          category: "communication",
-        },
-      ],
-      parse_error: true,
-    };
+    return getDefaultGrowthPlan();
   }
+}
+
+function getDefaultGrowthPlan() {
+  return {
+    exercises: [
+      {
+        id: "exercise-1",
+        title: "Daily Appreciation Share",
+        description: "Take turns sharing one thing you appreciate about each other. Be specific about actions, qualities, or moments that made an impact.",
+        category: "appreciation",
+        duration_minutes: 10,
+        frequency: "daily",
+        rationale: "Regular appreciation builds emotional connection and reinforces positive behaviors.",
+      },
+      {
+        id: "exercise-2",
+        title: "Stress-Reducing Conversation",
+        description: "Spend 20 minutes discussing each other's day. Focus on listening without offering solutions unless asked.",
+        category: "communication",
+        duration_minutes: 20,
+        frequency: "daily",
+        rationale: "Daily check-ins reduce emotional distance and build understanding.",
+      },
+      {
+        id: "exercise-3",
+        title: "Weekly Dream Sharing",
+        description: "Share a dream, hope, or aspiration with your partner. Ask curious questions to understand their inner world better.",
+        category: "intimacy",
+        duration_minutes: 30,
+        frequency: "weekly",
+        rationale: "Understanding each other's dreams deepens emotional intimacy.",
+      },
+      {
+        id: "exercise-4",
+        title: "Repair Conversation Practice",
+        description: "Practice using 'I feel' statements and making repair attempts after minor disagreements.",
+        category: "conflict",
+        duration_minutes: 15,
+        frequency: "weekly",
+        rationale: "Building repair skills prevents negative cycles from escalating.",
+      },
+    ],
+    goals: [
+      {
+        id: "goal-1",
+        title: "Establish Daily Connection Ritual",
+        description: "Create a consistent daily practice of meaningful connection.",
+        category: "communication",
+        milestones: ["Choose a ritual", "Practice for one week", "Reflect and adjust"],
+        target_date_weeks: 4,
+      },
+      {
+        id: "goal-2",
+        title: "Improve Conflict Resolution",
+        description: "Develop healthier patterns for handling disagreements.",
+        category: "conflict",
+        milestones: ["Identify triggers", "Create a repair toolkit", "Practice during low-stakes moments"],
+        target_date_weeks: 6,
+      },
+      {
+        id: "goal-3",
+        title: "Deepen Emotional Intimacy",
+        description: "Build a stronger emotional bond through vulnerability and understanding.",
+        category: "intimacy",
+        milestones: ["Share childhood memories", "Discuss fears and dreams", "Create shared meaning"],
+        target_date_weeks: 8,
+      },
+    ],
+    personalization_summary: "This general growth plan focuses on building connection, improving communication, and deepening intimacy.",
+  };
 }
 
 // ========================================
@@ -201,6 +224,7 @@ Deno.serve(async (req) => {
   }
 
   try {
+    // Get user from auth header
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
       return new Response(
@@ -209,25 +233,54 @@ Deno.serve(async (req) => {
       );
     }
 
+    const token = authHeader.replace("Bearer ", "");
+
+    // Validate JWT using Supabase Auth endpoint
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
-    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-      global: { headers: { Authorization: authHeader } },
+
+    const userResponse = await fetch(`${supabaseUrl}/auth/v1/user`, {
+      headers: {
+        apikey: supabaseAnonKey,
+        Authorization: `Bearer ${token}`,
+      },
     });
 
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) {
+    if (!userResponse.ok) {
       return new Response(
         JSON.stringify({ error: "Unauthorized" }),
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    const { data: profile } = await supabase
-      .from("Couples_profiles")
-      .select("couple_id, full_name")
-      .eq("id", user.id)
-      .single();
+    const user = await userResponse.json();
+    if (!user || !user.id) {
+      return new Response(
+        JSON.stringify({ error: "Unauthorized" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Get couple_id for this user using service role REST API
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+
+    const profileResponse = await fetch(
+      `${supabaseUrl}/rest/v1/Couples_profiles?id=eq.${user.id}&select=couple_id,full_name`,
+      {
+        headers: {
+          apikey: supabaseServiceKey,
+          Authorization: `Bearer ${supabaseServiceKey}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    if (!profileResponse.ok) {
+      throw new Error("Failed to fetch user profile");
+    }
+
+    const profiles = await profileResponse.json();
+    const profile = profiles[0];
 
     if (!profile?.couple_id) {
       return new Response(
@@ -238,11 +291,24 @@ Deno.serve(async (req) => {
 
     const coupleId = profile.couple_id;
 
-    const { data: couple } = await supabase
-      .from("Couples_couples")
-      .select("partner1_id, partner2_id")
-      .eq("id", coupleId)
-      .single();
+    // Get couple info
+    const coupleResponse = await fetch(
+      `${supabaseUrl}/rest/v1/Couples_couples?id=eq.${coupleId}&select=partner1_id,partner2_id`,
+      {
+        headers: {
+          apikey: supabaseServiceKey,
+          Authorization: `Bearer ${supabaseServiceKey}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    if (!coupleResponse.ok) {
+      throw new Error("Failed to fetch couple");
+    }
+
+    const couples = await coupleResponse.json();
+    const couple = couples[0];
 
     if (!couple) {
       return new Response(
@@ -253,147 +319,137 @@ Deno.serve(async (req) => {
 
     const partnerIds = [couple.partner1_id, couple.partner2_id];
 
-    const [loveLanguages, attachments, enneagrams, checkins, goals] = await Promise.all([
-      supabase
-        .from("Couples_love_languages")
-        .select("user_id, primary_language, secondary_language")
-        .in("user_id", partnerIds),
-      supabase
-        .from("Couples_attachment_results")
-        .select("user_id, attachment_style, scores")
-        .in("user_id", partnerIds),
-      supabase
-        .from("Couples_enneagram_results")
-        .select("user_id, dominant_type, wing")
-        .in("user_id", partnerIds),
-      supabase
-        .from("Couples_weekly_checkins")
-        .select("user_id, overall_satisfaction, communication_rating, created_at")
-        .in("user_id", partnerIds)
-        .order("created_at", { ascending: false })
-        .limit(10),
-      supabase
-        .from("Couples_shared_goals")
-        .select("title, status, category")
-        .eq("couple_id", coupleId)
-        .limit(10),
+    // Fetch all assessment data in parallel
+    const [loveLanguagesRes, attachmentsRes, enneagramsRes] = await Promise.all([
+      fetch(
+        `${supabaseUrl}/rest/v1/Couples_love_languages?user_id=in.(${partnerIds.join(",")})&select=user_id,primary_language,secondary_language`,
+        {
+          headers: {
+            apikey: supabaseServiceKey,
+            Authorization: `Bearer ${supabaseServiceKey}`,
+            "Content-Type": "application/json",
+          },
+        }
+      ),
+      fetch(
+        `${supabaseUrl}/rest/v1/Couples_attachment_results?user_id=in.(${partnerIds.join(",")})&select=user_id,attachment_style,scores`,
+        {
+          headers: {
+            apikey: supabaseServiceKey,
+            Authorization: `Bearer ${supabaseServiceKey}`,
+            "Content-Type": "application/json",
+          },
+        }
+      ),
+      fetch(
+        `${supabaseUrl}/rest/v1/Couples_enneagram_results?user_id=in.(${partnerIds.join(",")})&select=user_id,dominant_type,wing`,
+        {
+          headers: {
+            apikey: supabaseServiceKey,
+            Authorization: `Bearer ${supabaseServiceKey}`,
+            "Content-Type": "application/json",
+          },
+        }
+      ),
     ]);
 
+    const loveLanguages = loveLanguagesRes.ok ? await loveLanguagesRes.json() : [];
+    const attachments = attachmentsRes.ok ? await attachmentsRes.json() : [];
+    const enneagrams = enneagramsRes.ok ? await enneagramsRes.json() : [];
+
+    // Build personalization context
     const personalizationContext: any = {};
 
-    if (loveLanguages.data?.length) {
-      personalizationContext.love_languages = loveLanguages.data.map(
-        (ll) => `${ll.primary_language}${ll.secondary_language ? ` (secondary: ${ll.secondary_language})` : ""}`
+    if (loveLanguages?.length) {
+      personalizationContext.love_languages = loveLanguages.map(
+        (ll: any) => `${ll.primary_language}${ll.secondary_language ? ` (secondary: ${ll.secondary_language})` : ""}`
       );
     }
 
-    if (attachments.data?.length) {
-      personalizationContext.attachment_styles = attachments.data.map((a) => a.attachment_style);
+    if (attachments?.length) {
+      personalizationContext.attachment_styles = attachments.map((a: any) => a.attachment_style);
     }
 
-    if (enneagrams.data?.length) {
-      personalizationContext.enneagram_types = enneagrams.data.map(
-        (e) => `Type ${e.dominant_type}${e.wing ? `w${e.wing}` : ""}`
+    if (enneagrams?.length) {
+      personalizationContext.enneagram_types = enneagrams.map(
+        (e: any) => `Type ${e.dominant_type}${e.wing ? `w${e.wing}` : ""}`
       );
     }
 
-    let avgSatisfaction = 0;
-    let avgCommunication = 0;
-    if (checkins.data?.length) {
-      avgSatisfaction = checkins.data.reduce((sum, c) => sum + (c.overall_satisfaction || 0), 0) / checkins.data.length;
-      avgCommunication = checkins.data.reduce((sum, c) => sum + (c.communication_rating || 0), 0) / checkins.data.length;
+    const hasPersonalization = Object.keys(personalizationContext).length > 0;
+
+    // Build prompt for AI
+    const systemPrompt = `You are an expert couples therapist creating a personalized relationship growth plan. 
+Based on the couple's assessment results, create a tailored set of exercises and goals that will strengthen their relationship.
+Focus on their specific dynamics, attachment patterns, and communication needs.
+Always respond with valid JSON only.`;
+
+    let userPrompt = "";
+    if (hasPersonalization) {
+      userPrompt = `Create a personalized relationship growth plan based on this couple's profile:
+
+${JSON.stringify(personalizationContext, null, 2)}
+
+Generate exercises and goals that specifically address their attachment dynamics, love language preferences, and personality types.`;
+    } else {
+      userPrompt = `Create a general relationship growth plan with exercises and goals that help couples build stronger connections, improve communication, and deepen intimacy.`;
     }
 
-    const completedGoals = goals.data?.filter((g) => g.status === "completed").length || 0;
-    const activeGoals = goals.data?.filter((g) => g.status === "active").length || 0;
+    userPrompt += `
 
-    const systemPrompt = `You are a couples therapy AI assistant specializing in creating personalized relationship growth plans. Based on the couple's assessment results and recent activity, create a comprehensive but achievable growth plan.
-
-Your response MUST be valid JSON with exactly this structure:
+IMPORTANT: Respond with ONLY valid JSON in this exact format:
 {
-  "plan_summary": "A 2-3 sentence overview of the personalized growth plan",
-  "focus_areas": ["Area 1", "Area 2", "Area 3"],
   "exercises": [
     {
       "id": "exercise-1",
-      "title": "Exercise Title",
-      "description": "Detailed description of the exercise",
+      "title": "Exercise name",
+      "description": "2-3 sentences describing the exercise",
       "category": "communication|intimacy|conflict|appreciation|goals",
       "duration_minutes": 15,
       "frequency": "daily|weekly|bi-weekly",
-      "rationale": "Why this exercise is recommended based on their profile"
+      "rationale": "Why this exercise helps this specific couple"
     }
   ],
   "goals": [
     {
       "id": "goal-1",
-      "title": "Goal Title",
-      "description": "What they will achieve",
-      "target_date_weeks": 4,
-      "milestones": ["Milestone 1", "Milestone 2", "Milestone 3"],
-      "category": "communication|intimacy|trust|appreciation"
+      "title": "Goal name",
+      "description": "What this goal achieves",
+      "category": "communication|intimacy|conflict|appreciation|goals",
+      "milestones": ["First milestone", "Second milestone", "Third milestone"],
+      "target_date_weeks": 4
     }
-  ]
+  ],
+  "personalization_summary": "Brief summary of how this plan is tailored to the couple"
 }
 
-Generate 4-6 exercises and 2-3 goals. Make them specific to the couple's attachment styles, love languages, and enneagram types if available.`;
+Generate 4-6 exercises and 3-4 goals. Return ONLY the JSON, no additional text.`;
 
-    const userPrompt = `Create a personalized relationship growth plan for this couple:
+    // Call Perplexity AI
+    const analysisResult = await analyzeWithPerplexity(systemPrompt, userPrompt);
+    const aiFullResponse = analysisResult.content;
 
-ASSESSMENT DATA:
-${personalizationContext.love_languages ? `Love Languages: ${personalizationContext.love_languages.join(", ")}` : "Love Languages: Not assessed yet"}
-${personalizationContext.attachment_styles ? `Attachment Styles: ${personalizationContext.attachment_styles.join(", ")}` : "Attachment Styles: Not assessed yet"}
-${personalizationContext.enneagram_types ? `Enneagram Types: ${personalizationContext.enneagram_types.join(", ")}` : "Enneagram Types: Not assessed yet"}
+    const parsed = safeJsonParse(aiFullResponse);
 
-RECENT ACTIVITY:
-- Average satisfaction rating: ${avgSatisfaction.toFixed(1)}/5
-- Average communication rating: ${avgCommunication.toFixed(1)}/5
-- Completed goals: ${completedGoals}
-- Active goals: ${activeGoals}
-
-Please create a growth plan that:
-1. Addresses any gaps in their communication or connection
-2. Builds on their existing strengths
-3. Considers their personality types and love languages
-4. Includes both daily habits and longer-term goals`;
-
-    const aiResult = await analyzeWithPerplexity(systemPrompt, userPrompt);
-    const parsed = safeJsonParse(aiResult.content);
-
-    const response: GrowthPlanResponse = {
+    // Build response
+    const response = {
       couple_id: coupleId,
       generated_at: new Date().toISOString(),
-      plan_summary: parsed.plan_summary || "Focus on daily connection and weekly appreciation rituals.",
-      focus_areas: parsed.focus_areas || ["Communication", "Appreciation"],
-      exercises: (parsed.exercises || []).map((e: any, idx: number) => ({
-        id: e.id || `exercise-${idx + 1}`,
-        title: e.title || "Connection Exercise",
-        description: e.description || "",
-        category: e.category || "communication",
-        duration_minutes: e.duration_minutes || 15,
-        frequency: e.frequency || "weekly",
-        rationale: e.rationale || "",
-      })),
-      goals: (parsed.goals || []).map((g: any, idx: number) => ({
-        id: g.id || `goal-${idx + 1}`,
-        title: g.title || "Relationship Goal",
-        description: g.description || "",
-        target_date_weeks: g.target_date_weeks || 4,
-        milestones: g.milestones || [],
-        category: g.category || "communication",
-      })),
-      personalization_context: personalizationContext,
-      ai_full_response: aiResult.content,
-      usage: aiResult.usage,
+      exercises: parsed.exercises || [],
+      goals: parsed.goals || [],
+      personalization_summary: parsed.personalization_summary || "General relationship growth plan",
+      personalization_context: hasPersonalization ? personalizationContext : null,
+      usage: analysisResult.usage,
     };
 
     return new Response(JSON.stringify(response), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 200,
     });
-  } catch (error) {
-    console.error("Growth Plan Error:", error);
+  } catch (error: any) {
+    console.error("AI Growth Plan error:", error);
     return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : "Internal server error" }),
+      JSON.stringify({ error: error.message || "Failed to generate growth plan" }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }

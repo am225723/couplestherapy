@@ -1947,10 +1947,11 @@ aiRouter.get("/growth-plan", async (req, res) => {
 
     const coupleId = profile.couple_id;
 
-    // Check cache first
+    // Check cache first (skip if refresh=true query param)
     const cacheKey = `growth-plan:${coupleId}`;
+    const forceRefresh = req.query.refresh === "true";
     const cached = growthPlanCache.get(cacheKey);
-    if (cached && Date.now() - cached.timestamp < GROWTH_PLAN_CACHE_TTL_MS) {
+    if (!forceRefresh && cached && Date.now() - cached.timestamp < GROWTH_PLAN_CACHE_TTL_MS) {
       return res.json(cached.data);
     }
 
