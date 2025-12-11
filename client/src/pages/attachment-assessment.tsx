@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Card,
   CardContent,
@@ -10,7 +10,8 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { Heart, ArrowLeft, ArrowRight, Check, Loader2 } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Heart, ArrowLeft, ArrowRight, Check, Loader2, RotateCcw, Save } from "lucide-react";
 import {
   attachmentQuestions,
   calculateAttachmentStyle,
@@ -20,6 +21,7 @@ import { useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
+import { useAutoSave } from "@/hooks/use-auto-save";
 
 interface ProfileWithCouple {
   couple_id?: string;
@@ -41,6 +43,36 @@ export default function AttachmentAssessmentPage() {
     primaryStyle: string;
     scores: Record<string, number>;
   } | null>(null);
+  const [showDraftRecovery, setShowDraftRecovery] = useState(false);
+
+  const { loadDraft, clearDraft, hasDraft } = useAutoSave(
+    { responses, currentPage },
+    { key: `attachment_assessment_${user?.id || "anon"}`, debounceMs: 500 }
+  );
+
+  useEffect(() => {
+    if (hasDraft() && Object.keys(responses).length === 0) {
+      setShowDraftRecovery(true);
+    }
+  }, []);
+
+  const handleRestoreDraft = () => {
+    const draft = loadDraft();
+    if (draft) {
+      setResponses(draft.responses || {});
+      setCurrentPage(draft.currentPage || 0);
+      toast({
+        title: "Progress Restored",
+        description: "Your previous answers have been restored.",
+      });
+    }
+    setShowDraftRecovery(false);
+  };
+
+  const handleDiscardDraft = () => {
+    clearDraft();
+    setShowDraftRecovery(false);
+  };
 
   const totalPages = Math.ceil(attachmentQuestions.length / QUESTIONS_PER_PAGE);
 
@@ -88,6 +120,7 @@ export default function AttachmentAssessmentPage() {
       const results = calculateAttachmentStyle(responses);
       setCalculatedResults(results);
       setShowResults(true);
+      clearDraft();
       if (user && coupleId) {
         saveResultsMutation.mutate(results);
       } else {
@@ -324,7 +357,24 @@ export default function AttachmentAssessmentPage() {
 
   return (
     <div className="min-h-screen bg-background p-6">
-      <div className="max-w-4xl mx-auto py-12">
+      <div className="max-w-4xl mx-auto py-12 space-y-4">
+        {showDraftRecovery && (
+          <Alert className="border-primary/50 bg-primary/5">
+            <Save className="h-4 w-4" />
+            <AlertDescription className="flex items-center justify-between flex-wrap gap-3">
+              <span>You have unsaved progress from a previous session.</span>
+              <div className="flex gap-2">
+                <Button size="sm" onClick={handleRestoreDraft} data-testid="button-restore-draft">
+                  <RotateCcw className="h-4 w-4 mr-1" />
+                  Restore
+                </Button>
+                <Button size="sm" variant="outline" onClick={handleDiscardDraft} data-testid="button-discard-draft">
+                  Start Fresh
+                </Button>
+              </div>
+            </AlertDescription>
+          </Alert>
+        )}
         <Card data-testid="card-assessment">
           <CardHeader>
             <div className="flex items-center gap-3 mb-4">

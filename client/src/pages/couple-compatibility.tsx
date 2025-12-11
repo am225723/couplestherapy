@@ -1,3 +1,4 @@
+import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   Card,
@@ -21,14 +22,17 @@ import {
   TrendingUp,
   Lightbulb,
   Users,
-  ArrowRight,
   Link2,
   Compass,
   MessageCircle,
   Scale,
   Sparkles,
   CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
+import { cache, getCacheKey } from "@/lib/cache";
+import { useSwipe } from "@/hooks/use-swipe";
 
 interface AssessmentData {
   partner1: {
@@ -112,11 +116,16 @@ const ENNEAGRAM_NAMES: Record<number, string> = {
 export default function CoupleCompatibility() {
   const { profile } = useAuth();
   const coupleId = profile?.couple_id;
+  const [activeTab, setActiveTab] = useState("insights");
 
   const assessmentsQuery = useQuery<AssessmentData | null>({
     queryKey: ["/api/compatibility", coupleId],
     queryFn: async () => {
       if (!coupleId) return null;
+
+      const cacheKey = getCacheKey("compatibility", coupleId);
+      const cached = cache.get<AssessmentData>(cacheKey);
+      if (cached) return cached;
 
       const { data: couple } = await supabase
         .from("Couples_couples")
@@ -197,10 +206,27 @@ export default function CoupleCompatibility() {
           };
       }
 
+      cache.set(cacheKey, data, 5 * 60 * 1000);
       return data;
     },
     enabled: !!coupleId,
     staleTime: 1000 * 60 * 5,
+  });
+
+  const tabOrder = ["insights", assessmentsQuery.data?.partner1?.id, assessmentsQuery.data?.partner2?.id].filter(Boolean) as string[];
+  
+  const handleTabChange = (direction: "left" | "right") => {
+    const currentIndex = tabOrder.indexOf(activeTab);
+    if (direction === "left" && currentIndex > 0) {
+      setActiveTab(tabOrder[currentIndex - 1]);
+    } else if (direction === "right" && currentIndex < tabOrder.length - 1) {
+      setActiveTab(tabOrder[currentIndex + 1]);
+    }
+  };
+
+  const swipeHandlers = useSwipe({
+    onSwipeLeft: () => handleTabChange("right"),
+    onSwipeRight: () => handleTabChange("left"),
   });
 
   const generateInsights = (data: AssessmentData): CompatibilityInsight[] => {
@@ -369,19 +395,42 @@ export default function CoupleCompatibility() {
           <PartnerSummaryCard partner={assessments.partner2} />
         </div>
 
-        <Tabs defaultValue="insights" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="insights" data-testid="tab-insights">
-              Insights
-            </TabsTrigger>
-            <TabsTrigger value={assessments.partner1.id} data-testid="tab-partner1">
-              {assessments.partner1.name}
-            </TabsTrigger>
-            <TabsTrigger value={assessments.partner2.id} data-testid="tab-partner2">
-              {assessments.partner2.name}
-            </TabsTrigger>
-          </TabsList>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => handleTabChange("left")}
+              disabled={tabOrder.indexOf(activeTab) === 0}
+              className="md:hidden"
+              data-testid="button-tab-prev"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="insights" data-testid="tab-insights">
+                Insights
+              </TabsTrigger>
+              <TabsTrigger value={assessments.partner1.id} data-testid="tab-partner1">
+                {assessments.partner1.name}
+              </TabsTrigger>
+              <TabsTrigger value={assessments.partner2.id} data-testid="tab-partner2">
+                {assessments.partner2.name}
+              </TabsTrigger>
+            </TabsList>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => handleTabChange("right")}
+              disabled={tabOrder.indexOf(activeTab) === tabOrder.length - 1}
+              className="md:hidden"
+              data-testid="button-tab-next"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
 
+          <div {...swipeHandlers} className="touch-pan-y">
           <TabsContent value="insights" className="space-y-4">
             {insights.length === 0 ? (
               <Card>
@@ -469,6 +518,7 @@ export default function CoupleCompatibility() {
               otherPartner={assessments.partner1}
             />
           </TabsContent>
+          </div>
         </Tabs>
       </div>
     </div>

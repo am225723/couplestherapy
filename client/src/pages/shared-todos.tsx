@@ -380,14 +380,21 @@ export default function SharedTodosPage() {
             <Card key={todo.id} className="hover-elevate" data-testid={`card-todo-${todo.id}`}>
               <CardContent className="py-4">
                 <div className="flex items-start gap-3">
-                  <Checkbox
-                    checked={todo.is_completed}
-                    onCheckedChange={(checked) => {
-                      toggleMutation.mutate({ id: todo.id, is_completed: !!checked });
-                    }}
-                    className="mt-1"
-                    data-testid={`checkbox-todo-${todo.id}`}
-                  />
+                  <button
+                    type="button"
+                    className="p-2 -m-2 touch-manipulation"
+                    onClick={() => toggleMutation.mutate({ id: todo.id, is_completed: !todo.is_completed })}
+                    data-testid={`checkbox-wrapper-${todo.id}`}
+                  >
+                    <Checkbox
+                      checked={todo.is_completed}
+                      onCheckedChange={(checked) => {
+                        toggleMutation.mutate({ id: todo.id, is_completed: !!checked });
+                      }}
+                      className="h-5 w-5"
+                      data-testid={`checkbox-todo-${todo.id}`}
+                    />
+                  </button>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2 flex-wrap">
                       <h3 className="font-medium">{todo.title}</h3>
@@ -454,13 +461,21 @@ export default function SharedTodosPage() {
             <Card key={todo.id} className="opacity-60" data-testid={`card-todo-completed-${todo.id}`}>
               <CardContent className="py-4">
                 <div className="flex items-start gap-3">
-                  <Checkbox
-                    checked={todo.is_completed}
-                    onCheckedChange={(checked) => {
-                      toggleMutation.mutate({ id: todo.id, is_completed: !!checked });
-                    }}
-                    className="mt-1"
-                  />
+                  <button
+                    type="button"
+                    className="p-2 -m-2 touch-manipulation"
+                    onClick={() => toggleMutation.mutate({ id: todo.id, is_completed: !todo.is_completed })}
+                    data-testid={`checkbox-wrapper-completed-${todo.id}`}
+                  >
+                    <Checkbox
+                      checked={todo.is_completed}
+                      onCheckedChange={(checked) => {
+                        toggleMutation.mutate({ id: todo.id, is_completed: !!checked });
+                      }}
+                      className="h-5 w-5"
+                      data-testid={`checkbox-todo-completed-${todo.id}`}
+                    />
+                  </button>
                   <div className="flex-1 min-w-0">
                     <h3 className="font-medium line-through">{todo.title}</h3>
                     <p className="text-xs text-muted-foreground mt-1">

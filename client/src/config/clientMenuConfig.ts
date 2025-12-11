@@ -28,6 +28,7 @@ import {
   ListTodo,
   Package,
   Shield,
+  TrendingUp,
 } from "lucide-react";
 
 export interface MenuRoute {
@@ -69,6 +70,12 @@ export const clientMenuConfig: MenuCategory[] = [
         url: "/couple-compatibility",
         icon: Heart,
         testId: "nav-compatibility",
+      },
+      {
+        title: "Progress Timeline",
+        url: "/progress-timeline",
+        icon: TrendingUp,
+        testId: "nav-progress-timeline",
       },
     ],
   },

@@ -102,6 +102,7 @@ import MoodTrackerPage from "./pages/mood-tracker";
 import DailyTipsPage from "./pages/daily-tips";
 import DailySuggestionPage from "./pages/daily-suggestion";
 import CoupleCompatibility from "./pages/couple-compatibility";
+import ProgressTimelinePage from "./pages/progress-timeline";
 import ChoreChart from "./pages/chore-chart";
 import TherapistThoughtsPage from "./pages/therapist-thoughts";
 import TherapistProfile from "./pages/therapist-profile";
@@ -671,6 +672,7 @@ function AuthenticatedApp() {
               <Route path="/modules" component={ModulesPage} />
               <Route path="/conflict-resolution" component={ConflictResolution} />
               <Route path="/shared-todos" component={SharedTodosPage} />
+              <Route path="/progress-timeline" component={ProgressTimelinePage} />
               <Route path="/">
                 {profile.couple_id ? (
                   <Redirect to="/dashboard" />
