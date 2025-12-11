@@ -77,6 +77,7 @@ import RitualsPage from "./pages/rituals";
 import HoldMeTightPage from "./pages/hold-me-tight";
 import VoiceMemosPage from "./pages/voice-memos";
 import DateNightPage from "./pages/date-night";
+import SharedTodosPage from "./pages/shared-todos";
 import MessagesPage from "./pages/messages";
 import CalendarPage from "./pages/calendar";
 import EchoEmpathyPage from "./pages/echo-empathy";
@@ -669,6 +670,7 @@ function AuthenticatedApp() {
               <Route path="/settings" component={ClientSettings} />
               <Route path="/modules" component={ModulesPage} />
               <Route path="/conflict-resolution" component={ConflictResolution} />
+              <Route path="/shared-todos" component={SharedTodosPage} />
               <Route path="/">
                 {profile.couple_id ? (
                   <Redirect to="/dashboard" />

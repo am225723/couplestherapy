@@ -490,6 +490,7 @@ export const couplesDailyTips = pgTable("Couples_daily_tips", {
   couple_id: uuid("couple_id").notNull(),
   tip_text: text("tip_text").notNull(),
   category: text("category").notNull(), // 'communication', 'intimacy', 'conflict', 'gratitude', 'connection', 'growth'
+  source: text("source").default("ai"),
   created_at: timestamp("created_at").defaultNow(),
 });
 
@@ -518,12 +519,14 @@ export const couplesNotificationPreferences = pgTable(
   {
     id: uuid("id").primaryKey(),
     couple_id: uuid("couple_id").notNull(),
+    user_id: uuid("user_id").notNull(),
     tips_enabled: boolean("tips_enabled").default(true),
     tips_frequency: text("tips_frequency").default("daily"), // 'daily', 'weekly'
-    tips_time: text("tips_time").default("09:00"),
-    push_enabled: boolean("push_enabled").default(true),
-    email_enabled: boolean("email_enabled").default(false),
+    tips_time: text("tips_time").default("08:00:00"),
+    push_notifications_enabled: boolean("push_notifications_enabled").default(true),
+    email_notifications_enabled: boolean("email_notifications_enabled").default(false),
     created_at: timestamp("created_at").defaultNow(),
+    updated_at: timestamp("updated_at").defaultNow(),
   },
 );
 
@@ -532,6 +535,7 @@ export const insertNotificationPreferencesSchema = createInsertSchema(
 ).omit({
   id: true,
   created_at: true,
+  updated_at: true,
 });
 export type InsertNotificationPreferences = z.infer<
   typeof insertNotificationPreferencesSchema
@@ -1233,3 +1237,39 @@ export const couplesConflictAiEvents = pgTable("Couples_conflict_ai_events", {
 });
 
 export type ConflictAiEvent = typeof couplesConflictAiEvents.$inferSelect;
+
+// ============ SHARED TO-DO LIST MODULE ============
+
+// 35. SHARED TO-DOS - Tasks shared between couples and therapists
+export const couplesSharedTodos = pgTable("Couples_shared_todos", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  couple_id: uuid("couple_id").notNull(),
+  title: text("title").notNull(),
+  description: text("description"),
+  assigned_to: uuid("assigned_to"), // null = unassigned, user_id = assigned to specific person
+  assigned_by: uuid("assigned_by").notNull(), // who created/assigned the task
+  due_date: timestamp("due_date"),
+  priority: text("priority").default("medium"), // 'low', 'medium', 'high'
+  category: text("category"), // 'therapy', 'relationship', 'personal', 'household', etc.
+  is_completed: boolean("is_completed").default(false),
+  completed_by: uuid("completed_by"),
+  completed_at: timestamp("completed_at"),
+  is_therapist_assigned: boolean("is_therapist_assigned").default(false), // true if assigned by therapist
+  therapist_notes: text("therapist_notes"), // private notes only visible to therapist
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow(),
+});
+
+export const insertSharedTodoSchema = createInsertSchema(couplesSharedTodos).omit({
+  id: true,
+  created_at: true,
+  updated_at: true,
+  completed_at: true,
+  completed_by: true,
+}).extend({
+  title: z.string().min(1, "Title is required"),
+  priority: z.enum(["low", "medium", "high"]).optional(),
+  category: z.string().optional(),
+});
+export type InsertSharedTodo = z.infer<typeof insertSharedTodoSchema>;
+export type SharedTodo = typeof couplesSharedTodos.$inferSelect;

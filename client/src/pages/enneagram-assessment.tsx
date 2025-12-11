@@ -17,9 +17,8 @@ import {
   enneagramTypeInfo,
 } from "@/data/enneagramQuestions";
 import { useAuth } from "@/lib/auth-context";
-import { supabase } from "@/lib/supabase";
 import { useMutation } from "@tanstack/react-query";
-import { queryClient } from "@/lib/queryClient";
+import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
 
@@ -54,23 +53,15 @@ export default function EnneagramAssessmentPage() {
         .sort((a, b) => Number(b[1]) - Number(a[1]));
       const secondaryType = sortedScores.length > 1 ? parseInt(sortedScores[1][0]) : null;
       
-      const { error } = await supabase
-        .from("Couples_enneagram_assessments")
-        .insert({
-          id: crypto.randomUUID(),
-          couple_id: coupleId,
-          user_id: user.id,
-          primary_type: results.dominantType,
-          secondary_type: secondaryType,
-          primary_score: results.scores[results.dominantType],
-          secondary_score: secondaryType ? results.scores[secondaryType] : null,
-          couple_dynamics: null,
-        });
-      
-      if (error) throw error;
+      return apiRequest("POST", "/api/enneagram/assessments", {
+        primary_type: results.dominantType,
+        secondary_type: secondaryType,
+        primary_score: results.scores[results.dominantType],
+        secondary_score: secondaryType ? results.scores[secondaryType] : null,
+      });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/enneagram/couple", coupleId] });
+      queryClient.invalidateQueries({ queryKey: ["/api/enneagram/assessments/couple"] });
       toast({
         title: "Assessment Saved",
         description: "Your Enneagram results have been saved.",

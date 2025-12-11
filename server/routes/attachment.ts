@@ -1,6 +1,15 @@
 import { Router } from "express";
 import { supabaseAdmin } from "../supabase.js";
 import { verifyTherapistSession, verifyUserSession } from "../helpers.js";
+import { z } from "zod";
+
+const saveAssessmentSchema = z.object({
+  attachment_style: z.enum(["secure", "anxious", "avoidant", "disorganized"]),
+  score: z.number().optional(),
+  dynamics_with_partner: z.string().optional().nullable(),
+  triggers: z.array(z.string()).optional().nullable(),
+  repair_strategies: z.array(z.string()).optional().nullable(),
+});
 
 const router = Router();
 
@@ -338,6 +347,113 @@ router.get("/results/couple", async (req, res) => {
     res
       .status(500)
       .json({ error: error.message || "Failed to fetch couple results" });
+  }
+});
+
+// POST /assessments - Save assessment results directly (without session flow)
+router.post("/assessments", async (req, res) => {
+  try {
+    const authResult = await verifyUserSession(req);
+    if (!authResult.success) {
+      return res.status(authResult.status).json({ error: authResult.error });
+    }
+
+    // Validate request body
+    const parseResult = saveAssessmentSchema.safeParse(req.body);
+    if (!parseResult.success) {
+      return res.status(400).json({ error: parseResult.error.errors[0].message });
+    }
+
+    // Get user's couple_id from their profile
+    const { data: profile } = await supabaseAdmin
+      .from("Couples_profiles")
+      .select("couple_id")
+      .eq("id", authResult.userId)
+      .single();
+
+    if (!profile?.couple_id) {
+      return res.status(400).json({ error: "User is not part of a couple" });
+    }
+
+    const { attachment_style, score, dynamics_with_partner, triggers, repair_strategies } = parseResult.data;
+
+    const { data, error } = await supabaseAdmin
+      .from("Couples_attachment_assessments")
+      .insert({
+        couple_id: profile.couple_id,
+        user_id: authResult.userId,
+        attachment_style,
+        score,
+        dynamics_with_partner,
+        triggers,
+        repair_strategies,
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    res.status(201).json(data);
+  } catch (error: any) {
+    console.error("Error saving attachment assessment:", error);
+    res.status(500).json({ error: error.message || "Failed to save assessment" });
+  }
+});
+
+// GET /assessments/my - Get user's assessment results
+router.get("/assessments/my", async (req, res) => {
+  try {
+    const authResult = await verifyUserSession(req);
+    if (!authResult.success) {
+      return res.status(authResult.status).json({ error: authResult.error });
+    }
+
+    const { data, error } = await supabaseAdmin
+      .from("Couples_attachment_assessments")
+      .select("*")
+      .eq("user_id", authResult.userId)
+      .order("created_at", { ascending: false });
+
+    if (error) throw error;
+
+    res.json(data);
+  } catch (error: any) {
+    console.error("Error fetching attachment assessments:", error);
+    res.status(500).json({ error: error.message || "Failed to fetch assessments" });
+  }
+});
+
+// GET /assessments/couple - Get couple's assessment results
+router.get("/assessments/couple", async (req, res) => {
+  try {
+    const authResult = await verifyUserSession(req);
+    if (!authResult.success) {
+      return res.status(authResult.status).json({ error: authResult.error });
+    }
+
+    // Get user's couple_id
+    const { data: profile } = await supabaseAdmin
+      .from("Couples_profiles")
+      .select("couple_id")
+      .eq("id", authResult.userId)
+      .single();
+
+    if (!profile?.couple_id) {
+      return res.status(400).json({ error: "User is not part of a couple" });
+    }
+
+    const { data, error } = await supabaseAdmin
+      .from("Couples_attachment_assessments")
+      .select("*")
+      .eq("couple_id", profile.couple_id)
+      .order("created_at", { ascending: false });
+
+    if (error) throw error;
+
+    res.json(data);
+  } catch (error: any) {
+    console.error("Error fetching couple attachment assessments:", error);
+    res.status(500).json({ error: error.message || "Failed to fetch couple assessments" });
   }
 });
 

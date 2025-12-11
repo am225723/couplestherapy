@@ -16,9 +16,8 @@ import {
   calculateAttachmentStyle,
 } from "@/data/attachmentQuestions";
 import { useAuth } from "@/lib/auth-context";
-import { supabase } from "@/lib/supabase";
 import { useMutation } from "@tanstack/react-query";
-import { queryClient } from "@/lib/queryClient";
+import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
 
@@ -49,23 +48,13 @@ export default function AttachmentAssessmentPage() {
     mutationFn: async (results: { primaryStyle: string; scores: Record<string, number> }) => {
       if (!user || !coupleId) throw new Error("Not authenticated");
       
-      const { error } = await supabase
-        .from("Couples_attachment_assessments")
-        .insert({
-          id: crypto.randomUUID(),
-          couple_id: coupleId,
-          user_id: user.id,
-          attachment_style: results.primaryStyle,
-          score: results.scores[results.primaryStyle],
-          dynamics_with_partner: null,
-          triggers: null,
-          repair_strategies: null,
-        });
-      
-      if (error) throw error;
+      return apiRequest("POST", "/api/attachment/assessments", {
+        attachment_style: results.primaryStyle,
+        score: results.scores[results.primaryStyle],
+      });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/attachment/couple", coupleId] });
+      queryClient.invalidateQueries({ queryKey: ["/api/attachment/assessments/couple"] });
       toast({
         title: "Assessment Saved",
         description: "Your attachment style results have been saved.",

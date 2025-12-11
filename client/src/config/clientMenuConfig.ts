@@ -285,6 +285,12 @@ export const clientMenuConfig: MenuCategory[] = [
         testId: "nav-chores",
       },
       {
+        title: "Shared To-Do List",
+        url: "/shared-todos",
+        icon: ListTodo,
+        testId: "nav-shared-todos",
+      },
+      {
         title: "Shared Goals",
         url: "/goals",
         icon: Target,
