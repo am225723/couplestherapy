@@ -55,7 +55,11 @@ import {
   aiFunctions,
   ExerciseRecommendationsResponse,
 } from "@/lib/ai-functions";
-import { Responsive, WidthProvider } from "react-grid-layout/legacy";
+
+// --- FIXED IMPORTS START ---
+import RGL from "react-grid-layout";
+const { Responsive, WidthProvider } = RGL;
+// --- FIXED IMPORTS END ---
 
 const GridLayout = WidthProvider(Responsive);
 
@@ -779,7 +783,7 @@ export default function ClientDashboard() {
             {activities.map((activity) => {
               const Icon = activity.icon;
               return (
-                <div key={activity.widgetId}>
+                <div key={activity.widgetId} data-grid={layout.find(l => l.i === activity.widgetId) || { w: 4, h: 2 }}>
                   <Link to={activity.path}>
                     <GlassCard className="h-full">
                       <GlassCardHeader>
