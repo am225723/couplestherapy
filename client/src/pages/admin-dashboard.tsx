@@ -159,6 +159,13 @@ export default function AdminDashboard() {
     "journal",
     "dashboard-customization",
     "prompts",
+    "gratitude",
+    "conflict",
+    "voice-memos",
+    "financial",
+    "growth-plan",
+    "progress-timeline",
+    "mood",
   ];
   const currentSection = validSections.includes(params?.section || "")
     ? params?.section || "overview"
@@ -2086,6 +2093,116 @@ export default function AdminDashboard() {
                   {selectedCouple && (
                     <CheckinReminders couple={selectedCouple} />
                   )}
+                </TabsContent>
+
+                <TabsContent value="gratitude" className="space-y-4">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Gratitude Log</CardTitle>
+                      <CardDescription>
+                        Gratitude entries shared between partners
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <GratitudeTab coupleId={selectedCouple.id} />
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+
+                <TabsContent value="conflict" className="space-y-4">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Conflict Resolution Sessions</CardTitle>
+                      <CardDescription>
+                        I-Statement sessions and resolution progress
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <ConflictResolutionTab coupleId={selectedCouple.id} />
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+
+                <TabsContent value="voice-memos" className="space-y-4">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Voice Memos</CardTitle>
+                      <CardDescription>
+                        Audio messages exchanged between partners
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <VoiceMemosTab coupleId={selectedCouple.id} />
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+
+                <TabsContent value="financial" className="space-y-4">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Financial Toolkit</CardTitle>
+                      <CardDescription>
+                        Money management activities and budgeting
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <FinancialToolkitTab coupleId={selectedCouple.id} />
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+
+                <TabsContent value="growth-plan" className="space-y-4">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Growth Plan</CardTitle>
+                      <CardDescription>
+                        AI-powered personalized exercises and goals
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <GrowthPlanTab coupleId={selectedCouple.id} />
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+
+                <TabsContent value="progress-timeline" className="space-y-4">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Progress Timeline</CardTitle>
+                      <CardDescription>
+                        Relationship milestones and achievements
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <ProgressTimelineTab coupleId={selectedCouple.id} />
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+
+                <TabsContent value="mood" className="space-y-4">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Mood Tracker</CardTitle>
+                      <CardDescription>
+                        Emotional wellbeing tracking for both partners
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <MoodTrackerTab coupleId={selectedCouple.id} />
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+
+                <TabsContent value="goals" className="space-y-4">
+                  <GoalsTab coupleId={selectedCouple.id} />
+                </TabsContent>
+
+                <TabsContent value="rituals" className="space-y-4">
+                  <RitualsTab coupleId={selectedCouple.id} />
+                </TabsContent>
+
+                <TabsContent value="conversations" className="space-y-4">
+                  <ConversationsTab coupleId={selectedCouple.id} />
                 </TabsContent>
               </Tabs>
             </div>
@@ -4544,5 +4661,566 @@ function EditPromptForm({
         </Button>
       </div>
     </div>
+  );
+}
+
+function GratitudeTab({ coupleId }: { coupleId: string }) {
+  const { data: gratitudeEntries = [], isLoading } = useQuery({
+    queryKey: ["gratitude-entries", coupleId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("Couples_gratitude_log")
+        .select("*, author:Couples_profiles!author_id(full_name)")
+        .eq("couple_id", coupleId)
+        .order("created_at", { ascending: false })
+        .limit(20);
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!coupleId,
+  });
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  if (gratitudeEntries.length === 0) {
+    return (
+      <div className="text-center py-8 text-muted-foreground">
+        <p>No gratitude entries yet.</p>
+        <p className="text-sm">The couple hasn't shared any gratitude moments.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      {gratitudeEntries.map((entry: any) => (
+        <div key={entry.id} className="p-3 border rounded-md">
+          <p className="text-sm">{entry.content}</p>
+          <div className="flex items-center justify-between mt-2 text-xs text-muted-foreground">
+            <span>{entry.author?.full_name || "Unknown"}</span>
+            <span>{format(new Date(entry.created_at), "MMM d, yyyy")}</span>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function ConflictResolutionTab({ coupleId }: { coupleId: string }) {
+  const { data: sessions = [], isLoading } = useQuery({
+    queryKey: ["conflict-sessions", coupleId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("Couples_conflict_sessions")
+        .select("*")
+        .eq("couple_id", coupleId)
+        .order("created_at", { ascending: false })
+        .limit(20);
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!coupleId,
+  });
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  if (sessions.length === 0) {
+    return (
+      <div className="text-center py-8 text-muted-foreground">
+        <p>No conflict resolution sessions yet.</p>
+        <p className="text-sm">The couple hasn't used the I-Statement builder.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      {sessions.map((session: any) => (
+        <div key={session.id} className="p-3 border rounded-md">
+          <div className="flex items-center justify-between">
+            <Badge variant={session.status === "resolved" ? "default" : "secondary"}>
+              {session.status}
+            </Badge>
+            <span className="text-xs text-muted-foreground">
+              {format(new Date(session.created_at), "MMM d, yyyy")}
+            </span>
+          </div>
+          {session.topic && <p className="text-sm mt-2">{session.topic}</p>}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function VoiceMemosTab({ coupleId }: { coupleId: string }) {
+  const { data: memos = [], isLoading } = useQuery({
+    queryKey: ["voice-memos", coupleId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("Couples_voice_memos")
+        .select("*, sender:Couples_profiles!sender_id(full_name)")
+        .eq("couple_id", coupleId)
+        .order("created_at", { ascending: false })
+        .limit(20);
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!coupleId,
+  });
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  if (memos.length === 0) {
+    return (
+      <div className="text-center py-8 text-muted-foreground">
+        <p>No voice memos yet.</p>
+        <p className="text-sm">The couple hasn't exchanged any audio messages.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      {memos.map((memo: any) => (
+        <div key={memo.id} className="p-3 border rounded-md">
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium">{memo.sender?.full_name || "Unknown"}</span>
+            <span className="text-xs text-muted-foreground">
+              {format(new Date(memo.created_at), "MMM d, yyyy h:mm a")}
+            </span>
+          </div>
+          {memo.transcript && (
+            <p className="text-sm text-muted-foreground mt-2 italic">"{memo.transcript}"</p>
+          )}
+          <div className="text-xs text-muted-foreground mt-1">
+            Duration: {memo.duration_seconds ? `${Math.floor(memo.duration_seconds / 60)}:${(memo.duration_seconds % 60).toString().padStart(2, '0')}` : "Unknown"}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function FinancialToolkitTab({ coupleId }: { coupleId: string }) {
+  const { data: budgets = [], isLoading } = useQuery({
+    queryKey: ["financial-budgets", coupleId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("Couples_financial_budgets")
+        .select("*")
+        .eq("couple_id", coupleId)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!coupleId,
+  });
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  if (budgets.length === 0) {
+    return (
+      <div className="text-center py-8 text-muted-foreground">
+        <p>No financial data yet.</p>
+        <p className="text-sm">The couple hasn't set up any budgets.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      {budgets.map((budget: any) => (
+        <div key={budget.id} className="p-3 border rounded-md">
+          <div className="flex items-center justify-between">
+            <span className="font-medium">{budget.category}</span>
+            <span className="text-sm">${budget.amount?.toLocaleString()}</span>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function GrowthPlanTab({ coupleId }: { coupleId: string }) {
+  const { data: plans = [], isLoading } = useQuery({
+    queryKey: ["growth-plans", coupleId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("Couples_growth_plans")
+        .select("*")
+        .eq("couple_id", coupleId)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!coupleId,
+  });
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  if (plans.length === 0) {
+    return (
+      <div className="text-center py-8 text-muted-foreground">
+        <p>No growth plans yet.</p>
+        <p className="text-sm">The couple hasn't generated an AI-powered growth plan.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      {plans.map((plan: any) => (
+        <div key={plan.id} className="p-4 border rounded-md space-y-3">
+          <div className="flex items-center justify-between">
+            <Badge>{plan.status || "active"}</Badge>
+            <span className="text-xs text-muted-foreground">
+              {format(new Date(plan.created_at), "MMM d, yyyy")}
+            </span>
+          </div>
+          {plan.exercises && (
+            <div>
+              <p className="text-sm font-medium mb-2">Exercises:</p>
+              <ul className="text-sm text-muted-foreground space-y-1">
+                {(plan.exercises as any[]).slice(0, 3).map((ex: any, i: number) => (
+                  <li key={i}>{ex.name || ex.title}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function ProgressTimelineTab({ coupleId }: { coupleId: string }) {
+  const { data: events = [], isLoading } = useQuery({
+    queryKey: ["progress-events", coupleId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("Couples_progress_events")
+        .select("*")
+        .eq("couple_id", coupleId)
+        .order("event_date", { ascending: false })
+        .limit(30);
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!coupleId,
+  });
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  if (events.length === 0) {
+    return (
+      <div className="text-center py-8 text-muted-foreground">
+        <p>No progress events yet.</p>
+        <p className="text-sm">Milestones and achievements will appear here.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      {events.map((event: any) => (
+        <div key={event.id} className="flex gap-3 p-3 border rounded-md">
+          <div className="flex-shrink-0 w-2 h-2 mt-2 rounded-full bg-primary" />
+          <div className="flex-1">
+            <p className="text-sm font-medium">{event.title || event.event_type}</p>
+            {event.description && (
+              <p className="text-sm text-muted-foreground">{event.description}</p>
+            )}
+            <span className="text-xs text-muted-foreground">
+              {format(new Date(event.event_date || event.created_at), "MMM d, yyyy")}
+            </span>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function MoodTrackerTab({ coupleId }: { coupleId: string }) {
+  const { data: entries = [], isLoading } = useQuery({
+    queryKey: ["mood-entries", coupleId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("Couples_mood_entries")
+        .select("*, author:Couples_profiles!user_id(full_name)")
+        .eq("couple_id", coupleId)
+        .order("created_at", { ascending: false })
+        .limit(20);
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!coupleId,
+  });
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  if (entries.length === 0) {
+    return (
+      <div className="text-center py-8 text-muted-foreground">
+        <p>No mood entries yet.</p>
+        <p className="text-sm">Partners haven't logged their emotional states.</p>
+      </div>
+    );
+  }
+
+  const getMoodColor = (mood: number) => {
+    if (mood >= 4) return "bg-green-500";
+    if (mood >= 3) return "bg-yellow-500";
+    return "bg-red-500";
+  };
+
+  return (
+    <div className="space-y-3">
+      {entries.map((entry: any) => (
+        <div key={entry.id} className="p-3 border rounded-md">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className={`w-3 h-3 rounded-full ${getMoodColor(entry.mood_score)}`} />
+              <span className="font-medium">{entry.author?.full_name || "Unknown"}</span>
+            </div>
+            <span className="text-xs text-muted-foreground">
+              {format(new Date(entry.created_at), "MMM d, yyyy")}
+            </span>
+          </div>
+          {entry.notes && <p className="text-sm text-muted-foreground mt-2">{entry.notes}</p>}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function GoalsTab({ coupleId }: { coupleId: string }) {
+  const { data: goals = [], isLoading } = useQuery({
+    queryKey: ["shared-goals", coupleId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("Couples_shared_goals")
+        .select("*")
+        .eq("couple_id", coupleId)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!coupleId,
+  });
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  if (goals.length === 0) {
+    return (
+      <Card>
+        <CardContent className="py-8">
+          <div className="text-center text-muted-foreground">
+            <p>No shared goals yet.</p>
+            <p className="text-sm">The couple hasn't set any goals together.</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Shared Goals</CardTitle>
+        <CardDescription>Goals the couple is working toward together</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        {goals.map((goal: any) => (
+          <div key={goal.id} className="p-3 border rounded-md">
+            <div className="flex items-center justify-between">
+              <span className="font-medium">{goal.title}</span>
+              <Badge variant={goal.completed ? "default" : "secondary"}>
+                {goal.completed ? "Completed" : "In Progress"}
+              </Badge>
+            </div>
+            {goal.description && (
+              <p className="text-sm text-muted-foreground mt-1">{goal.description}</p>
+            )}
+            {goal.target_date && (
+              <p className="text-xs text-muted-foreground mt-2">
+                Target: {format(new Date(goal.target_date), "MMM d, yyyy")}
+              </p>
+            )}
+          </div>
+        ))}
+      </CardContent>
+    </Card>
+  );
+}
+
+function RitualsTab({ coupleId }: { coupleId: string }) {
+  const { data: rituals = [], isLoading } = useQuery({
+    queryKey: ["rituals", coupleId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("Couples_rituals")
+        .select("*")
+        .eq("couple_id", coupleId)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!coupleId,
+  });
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  if (rituals.length === 0) {
+    return (
+      <Card>
+        <CardContent className="py-8">
+          <div className="text-center text-muted-foreground">
+            <p>No rituals of connection yet.</p>
+            <p className="text-sm">The couple hasn't established any rituals.</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Rituals of Connection</CardTitle>
+        <CardDescription>Special routines and traditions</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        {rituals.map((ritual: any) => (
+          <div key={ritual.id} className="p-3 border rounded-md">
+            <div className="flex items-center justify-between">
+              <span className="font-medium">{ritual.name || ritual.title}</span>
+              {ritual.frequency && (
+                <Badge variant="outline">{ritual.frequency}</Badge>
+              )}
+            </div>
+            {ritual.description && (
+              <p className="text-sm text-muted-foreground mt-1">{ritual.description}</p>
+            )}
+          </div>
+        ))}
+      </CardContent>
+    </Card>
+  );
+}
+
+function ConversationsTab({ coupleId }: { coupleId: string }) {
+  const { data: conversations = [], isLoading } = useQuery({
+    queryKey: ["hmt-conversations", coupleId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("Couples_hold_me_tight")
+        .select("*")
+        .eq("couple_id", coupleId)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!coupleId,
+  });
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  if (conversations.length === 0) {
+    return (
+      <Card>
+        <CardContent className="py-8">
+          <div className="text-center text-muted-foreground">
+            <p>No Hold Me Tight conversations yet.</p>
+            <p className="text-sm">The couple hasn't completed any structured conversations.</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Hold Me Tight Conversations</CardTitle>
+        <CardDescription>Emotionally-focused conversation exercises</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        {conversations.map((conv: any) => (
+          <div key={conv.id} className="p-3 border rounded-md">
+            <div className="flex items-center justify-between">
+              <span className="font-medium">{conv.conversation_type || "Conversation"}</span>
+              <span className="text-xs text-muted-foreground">
+                {format(new Date(conv.created_at), "MMM d, yyyy")}
+              </span>
+            </div>
+            {conv.status && (
+              <Badge variant={conv.status === "completed" ? "default" : "secondary"} className="mt-2">
+                {conv.status}
+              </Badge>
+            )}
+          </div>
+        ))}
+      </CardContent>
+    </Card>
   );
 }

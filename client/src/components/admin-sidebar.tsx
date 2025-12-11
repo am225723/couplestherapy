@@ -13,6 +13,17 @@ import {
   Map,
   ChevronDown,
   LayoutDashboard,
+  Link2,
+  Compass,
+  Lightbulb,
+  BookMarked,
+  Mic,
+  Scale,
+  DollarSign,
+  Zap,
+  Clock,
+  Smile,
+  FileEdit,
 } from "lucide-react";
 import {
   Sidebar,
@@ -68,9 +79,18 @@ const sectionGroups = [
     sections: [
       { id: "overview", label: "Overview", icon: Home },
       { id: "checkins", label: "Weekly Check-ins", icon: TrendingUp },
+      { id: "analytics", label: "AI Analytics", icon: Brain },
+    ],
+  },
+  {
+    id: "assessments",
+    label: "Assessments",
+    defaultOpen: true,
+    sections: [
       { id: "languages", label: "Love Languages", icon: Heart },
       { id: "lovemap", label: "Love Map Quiz", icon: Map },
-      { id: "analytics", label: "AI Analytics", icon: Brain },
+      { id: "attachment", label: "Attachment Style", icon: Link2 },
+      { id: "enneagram", label: "Enneagram", icon: Compass },
     ],
   },
   {
@@ -82,6 +102,19 @@ const sectionGroups = [
       { id: "echo", label: "Echo & Empathy", icon: Users },
       { id: "pause", label: "Pause History", icon: Pause },
       { id: "conversations", label: "Hold Me Tight", icon: Heart },
+      { id: "conflict", label: "Conflict Resolution", icon: Scale },
+      { id: "voice-memos", label: "Voice Memos", icon: Mic },
+    ],
+  },
+  {
+    id: "activities",
+    label: "Activities & Tracking",
+    defaultOpen: false,
+    sections: [
+      { id: "activity", label: "Activity Feed", icon: TrendingUp },
+      { id: "gratitude", label: "Gratitude Log", icon: Lightbulb },
+      { id: "journal", label: "Couple Journal", icon: BookMarked },
+      { id: "mood", label: "Mood Tracker", icon: Smile },
     ],
   },
   {
@@ -92,6 +125,16 @@ const sectionGroups = [
       { id: "goals", label: "Shared Goals", icon: Target },
       { id: "calendar", label: "Calendar", icon: Calendar },
       { id: "rituals", label: "Rituals", icon: Book },
+      { id: "financial", label: "Financial Toolkit", icon: DollarSign },
+    ],
+  },
+  {
+    id: "growth",
+    label: "Growth & Progress",
+    defaultOpen: false,
+    sections: [
+      { id: "growth-plan", label: "Growth Plan", icon: Zap },
+      { id: "progress-timeline", label: "Progress Timeline", icon: Clock },
     ],
   },
   {
@@ -99,7 +142,6 @@ const sectionGroups = [
     label: "Support Resources",
     defaultOpen: false,
     sections: [
-      { id: "activity", label: "Activity Feed", icon: TrendingUp },
       { id: "ifs", label: "IFS Exercises", icon: Brain },
       { id: "therapy-tools", label: "Therapy Tools", icon: Book },
     ],
@@ -113,6 +155,11 @@ const sectionGroups = [
         id: "dashboard-customization",
         label: "Customize Dashboard",
         icon: LayoutDashboard,
+      },
+      {
+        id: "prompts",
+        label: "Custom Prompts",
+        icon: FileEdit,
       },
     ],
   },
