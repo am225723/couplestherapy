@@ -136,13 +136,13 @@ export default function CoupleCompatibility() {
           .select("user_id, primary_language, secondary_language")
           .in("user_id", [couple.partner1_id, couple.partner2_id]),
         supabase
-          .from("Couples_attachment_assessments")
+          .from("Couples_attachment_results")
           .select("user_id, attachment_style")
           .in("user_id", [couple.partner1_id, couple.partner2_id])
           .order("created_at", { ascending: false }),
         supabase
-          .from("Couples_enneagram_assessments")
-          .select("user_id, primary_type, secondary_type")
+          .from("Couples_enneagram_results")
+          .select("user_id, dominant_type, secondary_type")
           .in("user_id", [couple.partner1_id, couple.partner2_id])
           .order("created_at", { ascending: false }),
       ]);
@@ -187,12 +187,12 @@ export default function CoupleCompatibility() {
         const p2Enn = enneagrams.find((e) => e.user_id === couple.partner2_id);
         if (p1Enn)
           data.partner1.enneagramType = {
-            primary: p1Enn.primary_type,
+            primary: p1Enn.dominant_type,
             secondary: p1Enn.secondary_type,
           };
         if (p2Enn)
           data.partner2.enneagramType = {
-            primary: p2Enn.primary_type,
+            primary: p2Enn.dominant_type,
             secondary: p2Enn.secondary_type,
           };
       }
