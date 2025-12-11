@@ -148,16 +148,17 @@ export default function ClientDashboard() {
         .single();
       if (error && error.code !== "PGRST116") throw error;
       if (!data) return null;
+      const suggestionData = Array.isArray(data.suggestion) ? data.suggestion[0] : data.suggestion;
       return {
         id: data.id,
         completed: data.completed,
-        suggestion: data.suggestion as {
-          id: string;
-          category: string;
-          title: string;
-          description: string;
-          action_prompt: string | null;
-        } | null,
+        suggestion: suggestionData ? {
+          id: suggestionData.id,
+          category: suggestionData.category,
+          title: suggestionData.title,
+          description: suggestionData.description,
+          action_prompt: suggestionData.action_prompt,
+        } : null,
       };
     },
     enabled: !!profile?.couple_id,
