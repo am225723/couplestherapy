@@ -55,7 +55,11 @@ import {
   aiFunctions,
   ExerciseRecommendationsResponse,
 } from "@/lib/ai-functions";
-import { Responsive, WidthProvider } from "react-grid-layout";
+
+// --- FIXED IMPORTS START ---
+import RGL from "react-grid-layout";
+const { Responsive, WidthProvider } = RGL;
+// --- FIXED IMPORTS END ---
 
 const GridLayout = WidthProvider(Responsive);
 
