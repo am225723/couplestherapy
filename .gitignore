@@ -5,3 +5,11 @@ server/public
 vite.config.ts.*
 *.tar.gz
 api/index.js
+.env
+.env.*
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+dev.log
+vite.log
+/home/jules/verification

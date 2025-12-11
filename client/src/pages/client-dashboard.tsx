@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
 import { Link } from "wouter";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  GlassCard,
+  GlassCardContent,
+  GlassCardDescription,
+  GlassCardHeader,
+  GlassCardTitle,
+} from "@/components/ui/glass-card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -44,19 +44,20 @@ import {
   Lightbulb,
   Trash2,
   User,
-  Users,
   CheckCircle2,
   FileText,
   Link as LinkIcon,
 } from "lucide-react";
 import { LoveLanguage } from "@shared/schema";
-import clientHeroImage from "@assets/copilot_image_1764413074633_1764413131660.jpeg";
-import { apiRequest, queryClient } from "@/lib/queryClient";
+import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import {
   aiFunctions,
   ExerciseRecommendationsResponse,
 } from "@/lib/ai-functions";
+import { Responsive, WidthProvider } from "react-grid-layout/legacy";
+
+const GridLayout = WidthProvider(Responsive);
 
 function isValidUrl(url: string): boolean {
   try {
@@ -72,6 +73,15 @@ export default function ClientDashboard() {
   const [loveLanguages, setLoveLanguages] = useState<LoveLanguage[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const [layout, setLayout] = useState<any[]>([]);
+  const [widgets, setWidgets] = useState({
+    "date-night": true,
+    "checkin-history": true,
+    "therapist-thoughts": true,
+    "daily-suggestion": true,
+    "ai-suggestions": true,
+    "love-languages": true,
+  });
 
   // AI Exercise Recommendations query - uses Supabase Edge Function
   const recommendationsQuery = useQuery<ExerciseRecommendationsResponse>({
@@ -227,8 +237,6 @@ export default function ClientDashboard() {
       description: "Private reflection on your week together",
       icon: ClipboardList,
       path: "/weekly-checkin",
-      color: "text-primary",
-      bgColor: "bg-primary/10",
     },
     {
       widgetId: "gratitude",
@@ -236,8 +244,6 @@ export default function ClientDashboard() {
       description: "Share moments of appreciation",
       icon: Sparkles,
       path: "/gratitude",
-      color: "text-accent-foreground",
-      bgColor: "bg-accent/30",
     },
     {
       widgetId: "shared-goals",
@@ -245,8 +251,6 @@ export default function ClientDashboard() {
       description: "Track your journey together",
       icon: Target,
       path: "/goals",
-      color: "text-secondary-foreground",
-      bgColor: "bg-secondary/30",
     },
     {
       widgetId: "rituals",
@@ -254,8 +258,6 @@ export default function ClientDashboard() {
       description: "Build daily moments together",
       icon: Coffee,
       path: "/rituals",
-      color: "text-primary",
-      bgColor: "bg-primary/10",
     },
     {
       widgetId: "conversations",
@@ -263,8 +265,6 @@ export default function ClientDashboard() {
       description: "Deepen emotional connection",
       icon: MessageCircle,
       path: "/conversation",
-      color: "text-destructive",
-      bgColor: "bg-destructive/10",
     },
     {
       widgetId: "voice-memos",
@@ -272,8 +272,6 @@ export default function ClientDashboard() {
       description: "Send voice messages to your partner",
       icon: Mic,
       path: "/voice-memos",
-      color: "text-primary",
-      bgColor: "bg-primary/10",
     },
     {
       widgetId: "four-horsemen",
@@ -281,8 +279,6 @@ export default function ClientDashboard() {
       description: "Identify and transform conflict patterns",
       icon: AlertTriangle,
       path: "/four-horsemen",
-      color: "text-destructive",
-      bgColor: "bg-destructive/10",
     },
     {
       widgetId: "demon-dialogues",
@@ -290,8 +286,6 @@ export default function ClientDashboard() {
       description: "Recognize and break negative cycles (EFT)",
       icon: MessageCircle,
       path: "/demon-dialogues",
-      color: "text-purple-600 dark:text-purple-400",
-      bgColor: "bg-purple-100 dark:bg-purple-900/20",
     },
     {
       widgetId: "meditation",
@@ -299,8 +293,6 @@ export default function ClientDashboard() {
       description: "Guided meditations for connection",
       icon: BookOpen,
       path: "/meditation-library",
-      color: "text-green-600 dark:text-green-400",
-      bgColor: "bg-green-100 dark:bg-green-900/20",
     },
     {
       widgetId: "intimacy",
@@ -308,8 +300,6 @@ export default function ClientDashboard() {
       description: "Track five dimensions of intimacy",
       icon: Activity,
       path: "/intimacy-mapping",
-      color: "text-pink-600 dark:text-pink-400",
-      bgColor: "bg-pink-100 dark:bg-pink-900/20",
     },
     {
       widgetId: "values",
@@ -317,8 +307,6 @@ export default function ClientDashboard() {
       description: "Share dreams and create your future",
       icon: Compass,
       path: "/values-vision",
-      color: "text-blue-600 dark:text-blue-400",
-      bgColor: "bg-blue-100 dark:bg-blue-900/20",
     },
     {
       widgetId: "parenting",
@@ -326,8 +314,6 @@ export default function ClientDashboard() {
       description: "Align on parenting and protect couple time",
       icon: Baby,
       path: "/parenting-partners",
-      color: "text-amber-600 dark:text-amber-400",
-      bgColor: "bg-amber-100 dark:bg-amber-900/20",
     },
     {
       widgetId: "love-languages",
@@ -335,8 +321,6 @@ export default function ClientDashboard() {
       description: "Discover how you give and receive love",
       icon: Heart,
       path: "/love-language-quiz",
-      color: "text-primary",
-      bgColor: "bg-primary/10",
     },
     {
       widgetId: "love-map",
@@ -344,8 +328,6 @@ export default function ClientDashboard() {
       description: "Explore your partner's inner world",
       icon: Heart,
       path: "/love-map",
-      color: "text-primary",
-      bgColor: "bg-primary/10",
     },
     {
       widgetId: "calendar",
@@ -353,8 +335,6 @@ export default function ClientDashboard() {
       description: "Keep track of important dates together",
       icon: Calendar,
       path: "/calendar",
-      color: "text-primary",
-      bgColor: "bg-primary/10",
     },
   ];
 
@@ -365,7 +345,7 @@ export default function ClientDashboard() {
       return allActivities; // Show all if no customization
     }
 
-    const { widget_order, enabled_widgets, widget_sizes = {} } = customization;
+    const { widget_order, enabled_widgets } = customization;
 
     // Filter to only enabled widgets
     const enabledActivities = allActivities.filter((activity) => {
@@ -384,16 +364,20 @@ export default function ClientDashboard() {
     });
   })();
 
-  // Get widget size utility function
-  const getWidgetClass = (widgetId: string) => {
-    const customization = customizationQuery.data;
-    const size = customization?.widget_sizes?.[widgetId] || "medium";
-    const sizeClasses = {
-      small: "md:col-span-1",
-      medium: "md:col-span-2",
-      large: "md:col-span-3",
-    };
-    return sizeClasses[size as keyof typeof sizeClasses] || sizeClasses.medium;
+  useEffect(() => {
+    const columns = window.innerWidth < 768 ? 1 : 3;
+    const initialLayout = activities.map((activity, i) => ({
+      i: activity.widgetId,
+      x: (i % columns) * 4,
+      y: Math.floor(i / columns) * 2,
+      w: 4,
+      h: 2,
+    }));
+    setLayout(initialLayout);
+  }, [activities]);
+
+  const onLayoutChange = (newLayout: any) => {
+    setLayout(newLayout);
   };
 
   // Check if a widget is enabled (default true if not specified)
@@ -404,73 +388,78 @@ export default function ClientDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="relative h-80 overflow-hidden">
-        <img
-          src={clientHeroImage}
-          alt="Couples connecting"
-          className="absolute inset-0 w-full h-full object-cover"
-        />
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/40 to-accent/30"></div>
-        <div className="relative h-full flex items-center justify-center text-center px-4">
-          <div className="space-y-4">
-            <div className="flex items-center justify-center gap-3">
-              <Heart className="h-12 w-12 text-white" />
-              <h1 className="text-5xl font-bold text-white">Welcome Back</h1>
-            </div>
-            <p className="text-xl text-white/90">
-              Continue your journey of connection and growth
-            </p>
+    <div className="min-h-screen bg-background text-foreground">
+      <div className="max-w-7xl mx-auto px-4 pb-12 space-y-12">
+        <div className="text-center pt-16">
+          <h1 className="text-5xl font-bold">Welcome Back</h1>
+          <p className="text-xl text-muted-foreground mt-2">
+            Continue your journey of connection and growth
+          </p>
+        </div>
+
+        <div className="p-4 rounded-lg bg-card border">
+          <h3 className="text-lg font-semibold mb-2">Customize Dashboard</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {Object.keys(widgets).map((widget) => (
+              <div key={widget} className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id={widget}
+                  checked={widgets[widget as keyof typeof widgets]}
+                  onChange={() =>
+                    setWidgets((prev) => ({
+                      ...prev,
+                      [widget]: !prev[widget as keyof typeof widgets],
+                    }))
+                  }
+                />
+                <label htmlFor={widget} className="text-sm capitalize">
+                  {widget.replace(/-/g, " ")}
+                </label>
+              </div>
+            ))}
           </div>
         </div>
-      </div>
 
-      <div className="max-w-7xl mx-auto px-4 -mt-16 pb-12 space-y-12">
-        {isWidgetEnabled("date-night") && (
+        {widgets["date-night"] && (
           <Link href="/date-night">
-            <Card
-              className="shadow-lg hover-elevate active-elevate-2 cursor-pointer border-primary/20 bg-gradient-to-br from-primary/5 to-accent/10"
-              data-testid="card-date-night-featured"
-            >
-              <CardHeader>
+            <GlassCard data-testid="card-date-night-featured">
+              <GlassCardHeader>
                 <div className="flex items-center justify-between gap-2">
                   <div>
-                    <CardTitle className="flex items-center gap-2 text-2xl">
+                    <GlassCardTitle className="flex items-center gap-2 text-2xl">
                       <Sparkles className="h-6 w-6 text-primary" />
                       Date Night Generator
-                    </CardTitle>
-                    <CardDescription className="text-base mt-2">
+                    </GlassCardTitle>
+                    <GlassCardDescription className="text-base mt-2">
                       Plan a meaningful date with AI-powered suggestions tailored
                       to your preferences
-                    </CardDescription>
+                    </GlassCardDescription>
                   </div>
                   <div className="flex items-center gap-2 text-primary">
                     <span className="font-medium">Start Planning</span>
                     <ArrowRight className="h-5 w-5" />
                   </div>
                 </div>
-              </CardHeader>
-            </Card>
+              </GlassCardHeader>
+            </GlassCard>
           </Link>
         )}
 
-        {isWidgetEnabled("checkin-history") && (
+        {widgets["checkin-history"] && (
           <Link href="/checkin-history">
-            <Card
-              className="shadow-lg hover-elevate active-elevate-2 cursor-pointer border-primary/20"
-              data-testid="card-checkin-history"
-            >
-              <CardHeader>
+            <GlassCard data-testid="card-checkin-history">
+              <GlassCardHeader>
                 <div className="flex items-center justify-between gap-2">
                   <div>
-                    <CardTitle className="flex items-center gap-2">
+                    <GlassCardTitle className="flex items-center gap-2">
                       <Calendar className="h-5 w-5 text-primary" />
                       Check-In History
-                    </CardTitle>
-                    <CardDescription>
+                    </GlassCardTitle>
+                    <GlassCardDescription>
                       Review your weekly reflections and track your progress over
                       time
-                    </CardDescription>
+                    </GlassCardDescription>
                   </div>
                   <div className="flex items-center gap-2 text-primary">
                     <TrendingUp className="h-5 w-5" />
@@ -478,12 +467,12 @@ export default function ClientDashboard() {
                     <ArrowRight className="h-4 w-4" />
                   </div>
                 </div>
-              </CardHeader>
-            </Card>
+              </GlassCardHeader>
+            </GlassCard>
           </Link>
         )}
 
-        {therapistThoughtsQuery.isSuccess &&
+        {widgets["therapist-thoughts"] && therapistThoughtsQuery.isSuccess &&
           therapistThoughtsQuery.data &&
           (() => {
             // Filter thoughts based on visibility settings
@@ -497,20 +486,17 @@ export default function ClientDashboard() {
             if (filteredThoughts.length === 0) return null;
             
             return (
-              <Card
-                className="shadow-lg border-primary/20 bg-gradient-to-br from-blue-50/50 to-indigo-50/50 dark:from-blue-950/20 dark:to-indigo-950/20"
-                data-testid="card-therapist-thoughts"
-              >
-                <CardHeader>
+              <GlassCard data-testid="card-therapist-thoughts">
+                <GlassCardHeader>
                   <div className="flex items-center justify-between gap-2">
                     <div>
-                      <CardTitle className="flex items-center gap-2">
-                        <MessageCircle className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                      <GlassCardTitle className="flex items-center gap-2">
+                        <MessageCircle className="h-5 w-5 text-primary" />
                         {therapistCardTitle}
-                      </CardTitle>
-                      <CardDescription>
+                      </GlassCardTitle>
+                      <GlassCardDescription>
                         {therapistCardDescription}
-                      </CardDescription>
+                      </GlassCardDescription>
                     </div>
                     <Link href="/therapist-thoughts">
                       <Button
@@ -524,8 +510,8 @@ export default function ClientDashboard() {
                       </Button>
                     </Link>
                   </div>
-                </CardHeader>
-                <CardContent className="space-y-3">
+                </GlassCardHeader>
+                <GlassCardContent className="space-y-3">
                   {filteredThoughts.slice(0, 4).map((thought) => (
                     <div
                       key={thought.id}
@@ -592,23 +578,20 @@ export default function ClientDashboard() {
                       </div>
                     </div>
                   ))}
-                </CardContent>
-              </Card>
+                </GlassCardContent>
+              </GlassCard>
             );
           })()}
 
-        {dailySuggestionQuery.isSuccess && dailySuggestionQuery.data?.suggestion && (
+        {widgets["daily-suggestion"] && dailySuggestionQuery.isSuccess && dailySuggestionQuery.data?.suggestion && (
           <Link href="/daily-suggestion">
-            <Card
-              className="border-teal-500/20 bg-gradient-to-br from-teal-50/30 to-emerald-50/30 dark:from-teal-950/10 dark:to-emerald-950/10 hover-elevate cursor-pointer"
-              data-testid="card-daily-suggestion"
-            >
-              <CardHeader className="pb-3">
+            <GlassCard data-testid="card-daily-suggestion">
+              <GlassCardHeader className="pb-3">
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-base flex items-center gap-2">
-                    <Sparkles className="h-4 w-4 text-teal-600 dark:text-teal-400" />
+                  <GlassCardTitle className="text-base flex items-center gap-2">
+                    <Sparkles className="h-4 w-4 text-primary" />
                     Today's Suggestion
-                  </CardTitle>
+                  </GlassCardTitle>
                   <Badge
                     variant={dailySuggestionQuery.data.completed ? "default" : "secondary"}
                     className="text-xs"
@@ -616,8 +599,8 @@ export default function ClientDashboard() {
                     {dailySuggestionQuery.data.completed ? "Completed" : dailySuggestionQuery.data.suggestion.category}
                   </Badge>
                 </div>
-              </CardHeader>
-              <CardContent>
+              </GlassCardHeader>
+              <GlassCardContent>
                 <p className="font-medium text-sm mb-1">
                   {dailySuggestionQuery.data.suggestion.title}
                 </p>
@@ -625,35 +608,32 @@ export default function ClientDashboard() {
                   {dailySuggestionQuery.data.suggestion.description}
                 </p>
                 {dailySuggestionQuery.data.suggestion.action_prompt && (
-                  <p className="text-xs text-teal-600 dark:text-teal-400 flex items-center gap-1.5">
+                  <p className="text-xs text-primary flex items-center gap-1.5">
                     <Lightbulb className="h-3 w-3" />
                     {dailySuggestionQuery.data.suggestion.action_prompt}
                   </p>
                 )}
-              </CardContent>
-            </Card>
+              </GlassCardContent>
+            </GlassCard>
           </Link>
         )}
 
-        {isWidgetEnabled("ai-suggestions") && (
+        {widgets["ai-suggestions"] && (
           <>
             {recommendationsQuery.isSuccess && recommendationsQuery.data && (
-              <Card
-                className="border-amber-500/20 bg-gradient-to-br from-amber-50/30 to-yellow-50/30 dark:from-amber-950/10 dark:to-yellow-950/10"
-                data-testid="card-ai-recommendations"
-              >
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-base flex items-center gap-2">
+              <GlassCard data-testid="card-ai-recommendations">
+                <GlassCardHeader className="pb-3">
+                  <GlassCardTitle className="text-base flex items-center gap-2">
                     <Sparkles className="h-4 w-4 text-amber-600 dark:text-amber-400" />
                     Suggested For You
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
+                  </GlassCardTitle>
+                </GlassCardHeader>
+                <GlassCardContent className="space-y-3">
                   {recommendationsQuery.data.recommendations.map(
                     (rec: any, idx: number) => (
                       <div
                         key={idx}
-                        className="p-3 rounded-lg bg-background/50 border border-amber-200/30 dark:border-amber-800/30"
+                        className="p-3 rounded-lg bg-background/50 border border-border/30"
                         data-testid={`recommendation-${idx}`}
                       >
                         <p className="font-medium text-sm mb-1">{rec.tool_name}</p>
@@ -667,22 +647,19 @@ export default function ClientDashboard() {
                       </div>
                     ),
                   )}
-                </CardContent>
-              </Card>
+                </GlassCardContent>
+              </GlassCard>
             )}
 
             {recommendationsQuery.isLoading && (
-              <Card
-                className="shadow-lg"
-                data-testid="card-recommendations-loading"
-              >
-                <CardContent className="py-12 flex items-center justify-center">
+              <GlassCard data-testid="card-recommendations-loading">
+                <GlassCardContent className="py-12 flex items-center justify-center">
                   <div className="flex items-center gap-3 text-muted-foreground">
                     <Loader2 className="h-5 w-5 animate-spin" />
                     <span>Getting personalized recommendations...</span>
                   </div>
-                </CardContent>
-              </Card>
+                </GlassCardContent>
+              </GlassCard>
             )}
 
             {recommendationsQuery.isError && (
@@ -698,18 +675,18 @@ export default function ClientDashboard() {
           </>
         )}
 
-        {!loading && loveLanguages.length > 0 && (
-          <Card className="shadow-lg">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+        {widgets["love-languages"] && !loading && loveLanguages.length > 0 && (
+          <GlassCard>
+            <GlassCardHeader>
+              <GlassCardTitle className="flex items-center gap-2">
                 <Heart className="h-5 w-5 text-primary" />
                 Your Love Languages
-              </CardTitle>
-              <CardDescription>
+              </GlassCardTitle>
+              <GlassCardDescription>
                 Understanding how you both give and receive love
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
+              </GlassCardDescription>
+            </GlassCardHeader>
+            <GlassCardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {loveLanguages.map((lang) => (
                   <div key={lang.id} className="space-y-3">
@@ -786,40 +763,48 @@ export default function ClientDashboard() {
                   </div>
                 ))}
               </div>
-            </CardContent>
-          </Card>
+            </GlassCardContent>
+          </GlassCard>
         )}
 
         <div>
           <h2 className="text-3xl font-bold mb-6">Your Activities</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <GridLayout
+            className="layout"
+            layout={layout}
+            cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }}
+            rowHeight={100}
+            onLayoutChange={onLayoutChange}
+          >
             {activities.map((activity) => {
               const Icon = activity.icon;
               return (
-                <Link key={activity.path} href={activity.path}>
-                  <Card className="hover-elevate active-elevate-2 cursor-pointer h-full transition-all">
-                    <CardHeader>
-                      <div
-                        className={`w-12 h-12 rounded-lg ${activity.bgColor} flex items-center justify-center mb-4`}
-                      >
-                        <Icon className={`h-6 w-6 ${activity.color}`} />
-                      </div>
-                      <CardTitle className="text-xl">
-                        {activity.title}
-                      </CardTitle>
-                      <CardDescription>{activity.description}</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="flex items-center text-sm text-primary font-medium">
-                        Get started
-                        <ArrowRight className="ml-2 h-4 w-4" />
-                      </div>
-                    </CardContent>
-                  </Card>
-                </Link>
+                <div key={activity.widgetId}>
+                  <Link to={activity.path}>
+                    <GlassCard className="h-full">
+                      <GlassCardHeader>
+                        <div
+                          className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4"
+                        >
+                          <Icon className="h-6 w-6 text-primary" />
+                        </div>
+                        <GlassCardTitle className="text-xl">
+                          {activity.title}
+                        </GlassCardTitle>
+                        <GlassCardDescription>{activity.description}</GlassCardDescription>
+                      </GlassCardHeader>
+                      <GlassCardContent>
+                        <div className="flex items-center text-sm text-primary font-medium">
+                          Get started
+                          <ArrowRight className="ml-2 h-4 w-4" />
+                        </div>
+                      </GlassCardContent>
+                    </GlassCard>
+                  </Link>
+                </div>
               );
             })}
-          </div>
+          </GridLayout>
         </div>
       </div>
     </div>
