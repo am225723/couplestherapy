@@ -167,6 +167,8 @@ export default function AdminDashboard() {
     "growth-plan",
     "progress-timeline",
     "mood",
+    "notes",
+    "reminders",
   ];
   const currentSection = validSections.includes(params?.section || "")
     ? params?.section || "overview"
