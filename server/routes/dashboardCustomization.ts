@@ -47,17 +47,7 @@ dashboardCustomizationRouter.get(
             calendar: true,
             rituals: true,
           },
-          widget_sizes: {
-            "weekly-checkin": "medium",
-            "love-languages": "medium",
-            gratitude: "medium",
-            "shared-goals": "medium",
-            conversations: "medium",
-            "love-map": "medium",
-            "voice-memos": "medium",
-            calendar: "medium",
-            rituals: "medium",
-          },
+          widget_sizes: {},
           widget_content_overrides: {},
         });
       }

@@ -19,34 +19,39 @@ interface LuxuryWidgetProps {
 
 const variantColors = {
   default: {
-    iconBg: "bg-slate-100 dark:bg-slate-800/60",
+    iconBg: "bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-800",
     iconColor: "text-slate-600 dark:text-slate-300",
-    gradient: "from-slate-500/12 to-slate-600/8 dark:from-slate-400/18 dark:to-slate-500/14",
-    ring: "ring-1 ring-slate-200/50 dark:ring-slate-700/50",
+    gradient: "from-slate-400/20 via-slate-500/15 to-slate-600/10 dark:from-slate-500/30 dark:via-slate-600/25 dark:to-slate-700/20",
+    ring: "ring-1 ring-slate-300/60 dark:ring-slate-600/60",
+    glow: "",
   },
   primary: {
-    iconBg: "bg-blue-100 dark:bg-blue-900/50",
-    iconColor: "text-blue-600 dark:text-blue-400",
-    gradient: "from-blue-500/18 to-indigo-500/12 dark:from-blue-400/25 dark:to-indigo-400/18",
-    ring: "ring-1 ring-blue-200/60 dark:ring-blue-800/60",
+    iconBg: "bg-gradient-to-br from-blue-400 to-indigo-500 dark:from-blue-500 dark:to-indigo-600",
+    iconColor: "text-white",
+    gradient: "from-blue-500/25 via-indigo-500/20 to-cyan-500/15 dark:from-blue-400/35 dark:via-indigo-400/30 dark:to-cyan-400/25",
+    ring: "ring-1 ring-blue-300/70 dark:ring-blue-700/70",
+    glow: "shadow-blue-500/10",
   },
   accent: {
-    iconBg: "bg-purple-100 dark:bg-purple-900/50",
-    iconColor: "text-purple-600 dark:text-purple-400",
-    gradient: "from-purple-500/18 to-pink-500/12 dark:from-purple-400/25 dark:to-pink-400/18",
-    ring: "ring-1 ring-purple-200/60 dark:ring-purple-800/60",
+    iconBg: "bg-gradient-to-br from-purple-400 to-pink-500 dark:from-purple-500 dark:to-pink-600",
+    iconColor: "text-white",
+    gradient: "from-purple-500/25 via-pink-500/20 to-fuchsia-500/15 dark:from-purple-400/35 dark:via-pink-400/30 dark:to-fuchsia-400/25",
+    ring: "ring-1 ring-purple-300/70 dark:ring-purple-700/70",
+    glow: "shadow-purple-500/10",
   },
   success: {
-    iconBg: "bg-emerald-100 dark:bg-emerald-900/50",
-    iconColor: "text-emerald-600 dark:text-emerald-400",
-    gradient: "from-emerald-500/18 to-teal-500/12 dark:from-emerald-400/25 dark:to-teal-400/18",
-    ring: "ring-1 ring-emerald-200/60 dark:ring-emerald-800/60",
+    iconBg: "bg-gradient-to-br from-emerald-400 to-teal-500 dark:from-emerald-500 dark:to-teal-600",
+    iconColor: "text-white",
+    gradient: "from-emerald-500/25 via-teal-500/20 to-green-500/15 dark:from-emerald-400/35 dark:via-teal-400/30 dark:to-green-400/25",
+    ring: "ring-1 ring-emerald-300/70 dark:ring-emerald-700/70",
+    glow: "shadow-emerald-500/10",
   },
   warning: {
-    iconBg: "bg-amber-100 dark:bg-amber-900/50",
-    iconColor: "text-amber-600 dark:text-amber-400",
-    gradient: "from-amber-500/18 to-orange-500/12 dark:from-amber-400/25 dark:to-orange-400/18",
-    ring: "ring-1 ring-amber-200/60 dark:ring-amber-800/60",
+    iconBg: "bg-gradient-to-br from-amber-400 to-orange-500 dark:from-amber-500 dark:to-orange-600",
+    iconColor: "text-white",
+    gradient: "from-amber-500/25 via-orange-500/20 to-yellow-500/15 dark:from-amber-400/35 dark:via-orange-400/30 dark:to-yellow-400/25",
+    ring: "ring-1 ring-amber-300/70 dark:ring-amber-700/70",
+    glow: "shadow-amber-500/10",
   },
 };
 
@@ -78,8 +83,10 @@ export function LuxuryWidget({
       className={cn(
         "luxury-widget rounded-2xl p-touch relative cursor-pointer h-full",
         "min-h-[140px] flex flex-col justify-between",
+        "shadow-lg hover:shadow-xl transition-shadow duration-300",
         sizeClasses[size],
         colors.ring,
+        colors.glow,
         isDragging && "opacity-50 scale-105",
         className
       )}

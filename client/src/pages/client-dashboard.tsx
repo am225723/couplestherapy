@@ -16,15 +16,6 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -87,6 +78,8 @@ import {
   Home,
   LogOut,
   ChevronDown,
+  Maximize2,
+  Minimize2,
 } from "lucide-react";
 import { LoveLanguage } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -154,12 +147,29 @@ export default function ClientDashboard() {
   const customizationQuery = useQuery<{
     widget_order: string[];
     enabled_widgets: Record<string, boolean>;
-    widget_sizes?: Record<string, "small" | "medium" | "large">;
+    widget_sizes?: Record<string, { cols: 1 | 2; rows: 1 | 2 }>;
     widget_content_overrides?: Record<string, any>;
   }>({
     queryKey: [`/api/dashboard-customization/couple/${profile?.couple_id}`],
     enabled: !!profile?.couple_id,
   });
+
+  const getWidgetSize = (widgetId: string) => {
+    return customizationQuery.data?.widget_sizes?.[widgetId] || { cols: 1, rows: 1 };
+  };
+
+  const updateWidgetSize = async (widgetId: string, cols: 1 | 2, rows: 1 | 2) => {
+    try {
+      const currentSizes = customizationQuery.data?.widget_sizes || {};
+      await apiRequest("PATCH", `/api/dashboard-customization/couple/${profile?.couple_id}`, {
+        widget_sizes: { ...currentSizes, [widgetId]: { cols, rows } },
+      });
+      queryClient.invalidateQueries({ queryKey: [`/api/dashboard-customization/couple/${profile?.couple_id}`] });
+      toast({ title: "Widget resized", description: "Your layout has been saved" });
+    } catch (error) {
+      toast({ title: "Error", description: "Failed to resize widget", variant: "destructive" });
+    }
+  };
 
   const therapistCardOverrides = customizationQuery.data?.widget_content_overrides?.["therapist-thoughts"] || {};
   const therapistCardTitle = therapistCardOverrides.title || "From Your Therapist";
@@ -331,8 +341,6 @@ export default function ClientDashboard() {
     });
   })();
 
-  const [customizeOpen, setCustomizeOpen] = useState(false);
-  
   const handleLogout = async () => {
     await supabase.auth.signOut();
     window.location.href = "/";
@@ -353,30 +361,42 @@ export default function ClientDashboard() {
                 <Home className="h-5 w-5" />
               </Button>
             </Link>
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
-              <Heart className="h-5 w-5 text-primary" />
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg">
+              <Heart className="h-5 w-5 text-white" />
             </div>
             <div>
-              <h1 className="text-lg font-semibold tracking-tight">Welcome back</h1>
-              <p className="text-xs text-muted-foreground">{profile?.full_name || "Your Journey"}</p>
+              <h1 className="text-lg font-semibold tracking-tight">
+                Welcome back, {profile?.full_name?.split(" ")[0] || "there"}
+              </h1>
+              <p className="text-xs text-muted-foreground">Your relationship dashboard</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
             <Button
+              variant={isEditMode ? "default" : "outline"}
+              size="sm"
+              onClick={() => setIsEditMode(!isEditMode)}
+              className="rounded-xl gap-2 h-9"
+              data-testid="button-edit-mode"
+            >
+              <Settings2 className="h-4 w-4" />
+              <span className="hidden sm:inline">{isEditMode ? "Done" : "Edit"}</span>
+            </Button>
+            <Button
               variant="ghost"
               size="icon"
               onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-              className="rounded-xl h-11 w-11"
+              className="rounded-xl h-9 w-9"
               data-testid="button-theme-toggle"
             >
-              {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+              {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             </Button>
             
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-11 w-11 rounded-xl p-0" data-testid="button-avatar-menu">
-                  <Avatar className="h-9 w-9">
-                    <AvatarFallback className="bg-gradient-to-br from-primary to-accent text-primary-foreground text-sm">
+                <Button variant="ghost" className="relative h-9 w-9 rounded-xl p-0" data-testid="button-avatar-menu">
+                  <Avatar className="h-8 w-8">
+                    <AvatarFallback className="bg-gradient-to-br from-primary to-accent text-primary-foreground text-xs">
                       {getInitials(profile?.full_name ?? undefined)}
                     </AvatarFallback>
                   </Avatar>
@@ -396,9 +416,11 @@ export default function ClientDashboard() {
                     Profile
                   </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setCustomizeOpen(true)} data-testid="menu-item-customize">
-                  <Settings2 className="mr-2 h-4 w-4" />
-                  Customize Dashboard
+                <DropdownMenuItem asChild>
+                  <Link href="/settings" className="cursor-pointer">
+                    <Settings2 className="mr-2 h-4 w-4" />
+                    Settings
+                  </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleLogout} className="text-destructive" data-testid="button-logout">
@@ -410,73 +432,27 @@ export default function ClientDashboard() {
           </div>
         </div>
       </header>
-      
-      <Sheet open={customizeOpen} onOpenChange={setCustomizeOpen}>
-        <SheetContent className="w-full sm:max-w-md">
-          <SheetHeader>
-            <SheetTitle>Customize Dashboard</SheetTitle>
-            <SheetDescription>Show, hide, or rearrange your widgets</SheetDescription>
-          </SheetHeader>
-          <div className="mt-6 space-y-6">
-            <div className="flex items-center justify-between p-4 rounded-xl bg-muted/50">
-              <div>
-                <p className="text-sm font-medium">Edit Mode</p>
-                <p className="text-xs text-muted-foreground">Drag to rearrange</p>
-              </div>
-              <Switch checked={isEditMode} onCheckedChange={setIsEditMode} data-testid="switch-edit-mode" />
-            </div>
-            <ScrollArea className="h-[calc(100vh-280px)]">
-              <div className="space-y-2 pr-4">
-                {allWidgets.map((widget) => (
-                  <div
-                    key={widget.widgetId}
-                    className={cn(
-                      "flex items-center justify-between p-3 rounded-xl border",
-                      "transition-luxury",
-                      !isWidgetEnabled(widget.widgetId) && "opacity-50",
-                      widget.size === "lg" && "bg-primary/5"
-                    )}
-                  >
-                    <div className="flex items-center gap-3">
-                      <GripVertical className="h-4 w-4 text-muted-foreground" />
-                      <widget.icon className="h-4 w-4 text-muted-foreground" />
-                      <div className="flex flex-col">
-                        <span className="text-sm">{widget.title}</span>
-                        {widget.size === "lg" && (
-                          <span className="text-xs text-muted-foreground">Featured</span>
-                        )}
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => toggleWidget(widget.widgetId)}
-                      className="p-2 rounded-lg hover:bg-muted transition-colors touch-target"
-                      data-testid={`toggle-${widget.widgetId}`}
-                    >
-                      {isWidgetEnabled(widget.widgetId) ? (
-                        <Eye className="h-4 w-4 text-primary" />
-                      ) : (
-                        <EyeOff className="h-4 w-4 text-muted-foreground" />
-                      )}
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </ScrollArea>
-          </div>
-        </SheetContent>
-      </Sheet>
 
       <main className="max-w-7xl mx-auto px-4 py-6 space-y-8">
         <section>
-          <div className="flex items-center justify-between mb-6 flex-wrap gap-2">
-            <h2 className="text-2xl font-bold tracking-tight">Your Dashboard</h2>
-            {isEditMode && (
-              <Badge variant="secondary" className="gap-1">
-                <GripVertical className="h-3 w-3" />
-                Drag to reorder
-              </Badge>
-            )}
-          </div>
+          {isEditMode && (
+            <div className="flex items-center justify-between mb-4 p-3 rounded-xl bg-primary/10 border border-primary/20 flex-wrap gap-2">
+              <div className="flex items-center gap-2 text-primary">
+                <Settings2 className="h-4 w-4" />
+                <span className="text-sm font-medium">Edit Mode Active</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Badge variant="secondary" className="gap-1">
+                  <GripVertical className="h-3 w-3" />
+                  Drag to reorder
+                </Badge>
+                <Badge variant="outline" className="gap-1">
+                  <Maximize2 className="h-3 w-3" />
+                  Click to resize
+                </Badge>
+              </div>
+            </div>
+          )}
 
           <DragDropContext onDragEnd={handleDragEnd}>
             <Droppable droppableId="widgets" direction="vertical">
@@ -484,7 +460,7 @@ export default function ClientDashboard() {
                 <div
                   ref={provided.innerRef}
                   {...provided.droppableProps}
-                  className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
+                  className="grid grid-cols-1 sm:grid-cols-2 gap-4"
                 >
                   {orderedWidgets.map((widget, index) => {
                     const Icon = widget.icon;
@@ -649,6 +625,9 @@ export default function ClientDashboard() {
                     };
 
                     const specialContent = widget.type ? renderSpecialWidget() : null;
+                    const widgetSize = getWidgetSize(widget.widgetId);
+                    const colSpanClass = widgetSize.cols === 2 ? "sm:col-span-2" : "";
+                    const rowSpanClass = widgetSize.rows === 2 ? "row-span-2" : "";
 
                     if (isEditMode) {
                       return (
@@ -657,12 +636,46 @@ export default function ClientDashboard() {
                             <div
                               ref={provided.innerRef}
                               {...provided.draggableProps}
-                              {...provided.dragHandleProps}
                               className={cn(
-                                widgetSizeClass,
+                                colSpanClass,
+                                rowSpanClass,
+                                "relative group",
                                 snapshot.isDragging && "z-50"
                               )}
                             >
+                              <div
+                                {...provided.dragHandleProps}
+                                className="absolute top-2 left-2 z-20 p-1.5 rounded-lg bg-background/80 backdrop-blur-sm border shadow-sm opacity-0 group-hover:opacity-100 transition-opacity cursor-grab"
+                              >
+                                <GripVertical className="h-4 w-4 text-muted-foreground" />
+                              </div>
+                              <div className="absolute top-2 right-2 z-20 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <Button
+                                  size="icon"
+                                  variant="secondary"
+                                  className="h-7 w-7 rounded-lg shadow-sm"
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    const newCols = widgetSize.cols === 2 ? 1 : 2;
+                                    updateWidgetSize(widget.widgetId, newCols as 1 | 2, widgetSize.rows);
+                                  }}
+                                  data-testid={`resize-width-${widget.widgetId}`}
+                                >
+                                  {widgetSize.cols === 2 ? <Minimize2 className="h-3 w-3" /> : <Maximize2 className="h-3 w-3" />}
+                                </Button>
+                                <button
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    toggleWidget(widget.widgetId);
+                                  }}
+                                  className="h-7 w-7 rounded-lg bg-destructive/10 text-destructive flex items-center justify-center hover:bg-destructive/20 transition-colors"
+                                  data-testid={`hide-${widget.widgetId}`}
+                                >
+                                  <EyeOff className="h-3 w-3" />
+                                </button>
+                              </div>
                               {widget.type ? specialContent : (
                                 <LuxuryWidget
                                   title={widget.title}
@@ -682,7 +695,7 @@ export default function ClientDashboard() {
                     }
 
                     return (
-                      <div key={widget.widgetId} className={widgetSizeClass}>
+                      <div key={widget.widgetId} className={cn(colSpanClass, rowSpanClass)}>
                         {widget.type ? specialContent : (
                           <LuxuryWidget
                             title={widget.title}
