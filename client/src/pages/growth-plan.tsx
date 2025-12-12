@@ -301,7 +301,7 @@ export default function GrowthPlanPage() {
           <CardContent>
             <div className="flex flex-wrap gap-2">
               <span className="text-sm text-muted-foreground mr-2">Focus areas:</span>
-              {plan.focus_areas.map((area, idx) => (
+              {(plan.focus_areas || []).map((area, idx) => (
                 <Badge key={idx} variant="secondary">
                   {area}
                 </Badge>
@@ -340,17 +340,17 @@ export default function GrowthPlanPage() {
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="exercises" data-testid="tab-exercises">
               <Clock className="w-4 h-4 mr-2" />
-              Exercises ({plan.exercises.length})
+              Exercises ({(plan.exercises || []).length})
             </TabsTrigger>
             <TabsTrigger value="goals" data-testid="tab-goals">
               <Target className="w-4 h-4 mr-2" />
-              Goals ({plan.goals.length})
+              Goals ({(plan.goals || []).length})
             </TabsTrigger>
           </TabsList>
 
           <TabsContent value="exercises" className="mt-6">
             <div className="space-y-4">
-              {plan.exercises.length === 0 ? (
+              {(plan.exercises || []).length === 0 ? (
                 <Alert>
                   <AlertCircle className="h-4 w-4" />
                   <AlertDescription>
@@ -358,7 +358,7 @@ export default function GrowthPlanPage() {
                   </AlertDescription>
                 </Alert>
               ) : (
-                plan.exercises.map((exercise) => (
+                (plan.exercises || []).map((exercise) => (
                   <ExerciseCard key={exercise.id} exercise={exercise} />
                 ))
               )}
@@ -367,7 +367,7 @@ export default function GrowthPlanPage() {
 
           <TabsContent value="goals" className="mt-6">
             <div className="space-y-4">
-              {plan.goals.length === 0 ? (
+              {(plan.goals || []).length === 0 ? (
                 <Alert>
                   <AlertCircle className="h-4 w-4" />
                   <AlertDescription>
@@ -375,7 +375,7 @@ export default function GrowthPlanPage() {
                   </AlertDescription>
                 </Alert>
               ) : (
-                plan.goals.map((goal) => (
+                (plan.goals || []).map((goal) => (
                   <GoalCard key={goal.id} goal={goal} />
                 ))
               )}
