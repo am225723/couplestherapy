@@ -126,21 +126,22 @@ export default function TherapistDashboard() {
   );
 
   return (
-    <div className="w-full h-full flex flex-col md:flex-row">
+    <div className="w-full h-full flex flex-col md:flex-row bg-gradient-to-br from-background via-background to-primary/5">
       {/* Mobile/Tablet: Drawer Panel */}
       {panelOpen && (
         <div className="fixed inset-0 z-40 md:hidden">
           <div
-            className="absolute inset-0 bg-black/50"
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
             onClick={() => setPanelOpen(false)}
           />
-          <div className="absolute left-0 top-0 bottom-0 w-80 bg-background shadow-lg flex flex-col">
-            <div className="flex items-center justify-between p-4 border-b">
-              <h2 className="text-lg font-semibold">My Couples</h2>
+          <div className="absolute left-0 top-0 bottom-0 w-80 bg-background/95 backdrop-blur-xl shadow-2xl flex flex-col border-r border-border/50">
+            <div className="flex items-center justify-between p-4 border-b border-border/50">
+              <h2 className="text-lg font-semibold tracking-tight">My Couples</h2>
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={() => setPanelOpen(false)}
+                className="rounded-xl"
                 data-testid="button-close-panel"
               >
                 <X className="w-4 h-4" />
@@ -159,9 +160,9 @@ export default function TherapistDashboard() {
       )}
 
       {/* Desktop: Sidebar Panel (always visible) */}
-      <div className="hidden md:flex md:w-80 md:flex-col md:border-r md:bg-muted/30">
-        <div className="flex items-center justify-between p-4 border-b">
-          <h2 className="text-lg font-semibold">My Couples</h2>
+      <div className="hidden md:flex md:w-80 md:flex-col md:border-r md:border-border/50 md:bg-muted/20">
+        <div className="flex items-center justify-between p-4 border-b border-border/50">
+          <h2 className="text-lg font-semibold tracking-tight">My Couples</h2>
         </div>
         <CouplesList
           loading={loading}
@@ -175,12 +176,13 @@ export default function TherapistDashboard() {
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Mobile Toggle Button */}
-        <div className="md:hidden flex items-center justify-between p-4 border-b">
-          <h1 className="text-xl font-bold">Therapist Dashboard</h1>
+        <div className="md:hidden flex items-center justify-between p-4 border-b border-border/50">
+          <h1 className="text-xl font-semibold tracking-tight">Dashboard</h1>
           <Button
             variant="ghost"
             size="icon"
             onClick={() => setPanelOpen(true)}
+            className="rounded-xl"
             data-testid="button-open-panel"
           >
             <Menu className="w-4 h-4" />
@@ -189,18 +191,21 @@ export default function TherapistDashboard() {
 
         {/* Main Content */}
         <div className="flex-1 overflow-y-auto">
-          <div className="p-4 md:p-6 space-y-4">
+          <div className="max-w-5xl mx-auto p-4 md:p-6 space-y-6">
             {selectedCouple ? (
               <CoupleDetails couple={selectedCouple} />
             ) : (
-              <Card className="h-64 flex items-center justify-center">
-                <CardContent className="text-center">
-                  <Users className="w-8 h-8 mx-auto mb-3 text-muted-foreground" />
-                  <p className="text-muted-foreground">
-                    Select a couple to view details
+              <div className="min-h-[300px] flex items-center justify-center">
+                <div className="text-center space-y-3 p-8 rounded-2xl bg-muted/30 border border-border/50">
+                  <div className="w-16 h-16 mx-auto rounded-full bg-primary/10 flex items-center justify-center">
+                    <Users className="w-8 h-8 text-primary" />
+                  </div>
+                  <h3 className="text-lg font-medium">Select a Couple</h3>
+                  <p className="text-sm text-muted-foreground max-w-xs">
+                    Choose a couple from the sidebar to view their details and manage their progress
                   </p>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             )}
           </div>
         </div>
@@ -226,51 +231,57 @@ function CouplesList({
 }) {
   return (
     <div className="flex flex-col h-full">
-      <div className="p-4 border-b space-y-2">
+      <div className="p-4 border-b border-border/50 space-y-2">
         <Input
-          placeholder="Search..."
+          placeholder="Search couples..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="text-sm"
+          className="text-sm rounded-xl bg-background/60"
           data-testid="input-search-couples"
         />
         <p className="text-xs text-muted-foreground">
-          {filteredCouples.length} couples
+          {filteredCouples.length} couple{filteredCouples.length !== 1 ? "s" : ""}
         </p>
       </div>
 
       <ScrollArea className="flex-1">
-        <div className="p-2 space-y-1">
+        <div className="p-3 space-y-2">
           {loading ? (
             <div className="flex justify-center py-8">
-              <Loader2 className="w-4 h-4 animate-spin" />
+              <Loader2 className="w-5 h-5 animate-spin text-primary" />
             </div>
           ) : filteredCouples.length === 0 ? (
-            <Alert className="m-2">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription className="text-xs">
-                {searchTerm ? "No matches" : "No couples"}
-              </AlertDescription>
-            </Alert>
+            <div className="p-4 text-center">
+              <Users className="w-8 h-8 mx-auto mb-2 text-muted-foreground/50" />
+              <p className="text-xs text-muted-foreground">
+                {searchTerm ? "No matches found" : "No couples assigned"}
+              </p>
+            </div>
           ) : (
             filteredCouples.map((couple) => (
               <Link key={couple.id} href={`/admin/couple/${couple.id}`}>
                 <div
-                  className={`p-3 rounded-lg cursor-pointer transition-all hover-elevate ${
+                  className={`p-3 rounded-xl cursor-pointer transition-all ${
                     selectedCouple?.id === couple.id
-                      ? "bg-primary/10 ring-1 ring-primary"
-                      : "hover:bg-muted"
+                      ? "bg-primary/10 ring-1 ring-primary/50 shadow-sm"
+                      : "hover:bg-muted/50 hover-elevate"
                   }`}
                   onClick={onSelectCouple}
                   data-testid={`card-couple-${couple.id}`}
                 >
-                  <p className="font-semibold text-sm truncate">
-                    {couple.partner1?.full_name}
-                  </p>
-                  <p className="text-xs text-muted-foreground">&</p>
-                  <p className="font-semibold text-sm truncate">
-                    {couple.partner2?.full_name}
-                  </p>
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center flex-shrink-0">
+                      <Users className="w-4 h-4 text-primary" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium text-sm truncate">
+                        {couple.partner1?.full_name}
+                      </p>
+                      <p className="text-xs text-muted-foreground truncate">
+                        & {couple.partner2?.full_name}
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </Link>
             ))
@@ -298,16 +309,14 @@ function CoupleDetails({ couple }: { couple: CoupleData }) {
   );
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {/* Couple Header */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg md:text-xl">
-            {couple.partner1?.full_name} & {couple.partner2?.full_name}
-          </CardTitle>
-          <CardDescription className="text-xs">ID: {couple.id}</CardDescription>
-        </CardHeader>
-      </Card>
+      <div className="space-y-1">
+        <h1 className="text-2xl font-semibold tracking-tight">
+          {couple.partner1?.full_name} & {couple.partner2?.full_name}
+        </h1>
+        <p className="text-sm text-muted-foreground">Manage their progress and activities</p>
+      </div>
 
       {/* Tabs */}
       <Tabs defaultValue="overview" className="w-full">
@@ -335,61 +344,68 @@ function CoupleDetails({ couple }: { couple: CoupleData }) {
         </TabsList>
 
         {/* Overview Tab */}
-        <TabsContent value="overview" className="space-y-3 mt-4">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm">Quick Links</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <Link href={`/admin/couple/${couple.id}/checkins`}>
-                <Button
-                  variant="outline"
-                  className="w-full justify-start text-xs md:text-sm h-8 md:h-9"
-                  data-testid="button-view-checkins"
-                >
-                  Weekly Check-ins
-                </Button>
-              </Link>
-              <Link href={`/admin/couple/${couple.id}/languages`}>
-                <Button
-                  variant="outline"
-                  className="w-full justify-start text-xs md:text-sm h-8 md:h-9"
-                  data-testid="button-view-languages"
-                >
-                  Love Languages
-                </Button>
-              </Link>
-              <Link href={`/admin/couple/${couple.id}/analytics`}>
-                <Button
-                  variant="outline"
-                  className="w-full justify-start text-xs md:text-sm h-8 md:h-9"
-                  data-testid="button-view-analytics"
-                >
-                  Analytics
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
+        <TabsContent value="overview" className="mt-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Session Info Card */}
+            <Card className="glass-card border-none overflow-hidden">
+              <div className="gradient-animate bg-gradient-to-br from-primary/10 to-primary/5" />
+              <CardHeader className="relative z-10 pb-2">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <Users className="h-4 w-4 text-primary" />
+                  Session Info
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="relative z-10 space-y-3">
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="p-3 rounded-xl bg-background/60 backdrop-blur-sm border border-border/30">
+                    <p className="text-xs text-muted-foreground mb-1">Partner 1</p>
+                    <p className="font-semibold text-sm">{couple.partner1?.full_name}</p>
+                  </div>
+                  <div className="p-3 rounded-xl bg-background/60 backdrop-blur-sm border border-border/30">
+                    <p className="text-xs text-muted-foreground mb-1">Partner 2</p>
+                    <p className="font-semibold text-sm">{couple.partner2?.full_name}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm">Session Info</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3 text-sm">
-              <div>
-                <p className="text-xs text-muted-foreground">Partner 1</p>
-                <p className="font-semibold text-sm">
-                  {couple.partner1?.full_name}
-                </p>
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Partner 2</p>
-                <p className="font-semibold text-sm">
-                  {couple.partner2?.full_name}
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+            {/* Quick Links Card */}
+            <Card className="glass-card border-none overflow-hidden">
+              <div className="gradient-animate bg-gradient-to-br from-blue-500/10 to-indigo-500/5" />
+              <CardHeader className="relative z-10 pb-2">
+                <CardTitle className="text-sm">Quick Links</CardTitle>
+              </CardHeader>
+              <CardContent className="relative z-10 space-y-2">
+                <Link href={`/admin/couple/${couple.id}/checkins`}>
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start text-xs md:text-sm rounded-xl"
+                    data-testid="button-view-checkins"
+                  >
+                    Weekly Check-ins
+                  </Button>
+                </Link>
+                <Link href={`/admin/couple/${couple.id}/languages`}>
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start text-xs md:text-sm rounded-xl"
+                    data-testid="button-view-languages"
+                  >
+                    Love Languages
+                  </Button>
+                </Link>
+                <Link href={`/admin/couple/${couple.id}/analytics`}>
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start text-xs md:text-sm rounded-xl"
+                    data-testid="button-view-analytics"
+                  >
+                    Analytics
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
 
         {/* Thoughts Tab */}
@@ -398,16 +414,20 @@ function CoupleDetails({ couple }: { couple: CoupleData }) {
         </TabsContent>
 
         {/* Tools Tab */}
-        <TabsContent value="tools" className="space-y-3 mt-4">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm">Communication Tools</CardTitle>
+        <TabsContent value="tools" className="mt-6">
+          <Card className="glass-card border-none overflow-hidden">
+            <div className="gradient-animate bg-gradient-to-br from-purple-500/10 to-pink-500/5" />
+            <CardHeader className="relative z-10 pb-2">
+              <CardTitle className="text-sm flex items-center gap-2">
+                <MessageSquare className="h-4 w-4 text-purple-500" />
+                Communication Tools
+              </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-2">
+            <CardContent className="relative z-10 space-y-2">
               <Link href={`/admin/couple/${couple.id}/echo`}>
                 <Button
                   variant="outline"
-                  className="w-full justify-start text-xs md:text-sm h-8 md:h-9"
+                  className="w-full justify-start text-xs md:text-sm rounded-xl"
                 >
                   Echo & Empathy
                 </Button>
@@ -415,7 +435,7 @@ function CoupleDetails({ couple }: { couple: CoupleData }) {
               <Link href={`/admin/couple/${couple.id}/conversations`}>
                 <Button
                   variant="outline"
-                  className="w-full justify-start text-xs md:text-sm h-8 md:h-9"
+                  className="w-full justify-start text-xs md:text-sm rounded-xl"
                 >
                   Hold Me Tight
                 </Button>
@@ -423,7 +443,7 @@ function CoupleDetails({ couple }: { couple: CoupleData }) {
               <Link href={`/admin/couple/${couple.id}/calendar`}>
                 <Button
                   variant="outline"
-                  className="w-full justify-start text-xs md:text-sm h-8 md:h-9"
+                  className="w-full justify-start text-xs md:text-sm rounded-xl"
                 >
                   Calendar
                 </Button>

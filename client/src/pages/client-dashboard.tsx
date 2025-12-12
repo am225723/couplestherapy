@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import { Link } from "wouter";
+import { Link, useLocation, useSearch } from "wouter";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -132,10 +132,15 @@ export default function ClientDashboard() {
   const { theme, setTheme } = useTheme();
   const [loveLanguages, setLoveLanguages] = useState<LoveLanguage[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isEditMode, setIsEditMode] = useState(() => {
-    const params = new URLSearchParams(window.location.search);
-    return params.get("edit") === "true";
-  });
+  const searchString = useSearch();
+  const [, navigate] = useLocation();
+  
+  const isEditMode = new URLSearchParams(searchString).get("edit") === "true";
+  
+  const exitEditMode = useCallback(() => {
+    navigate("/dashboard");
+  }, [navigate]);
+  
   const [localWidgetOrder, setLocalWidgetOrder] = useState<string[]>([]);
   const { toast } = useToast();
 
@@ -267,15 +272,15 @@ export default function ClientDashboard() {
     { widgetId: "ai-suggestions", title: "Suggested For You", description: "AI-powered recommendations", icon: Sparkles, path: "#", size: "md", type: "ai" },
     { widgetId: "date-night", title: "Date Night", description: "Plan meaningful dates with AI", icon: Sparkles, path: "/date-night", size: "lg" },
     { widgetId: "checkin-history", title: "Check-In History", description: "Review your weekly progress", icon: TrendingUp, path: "/checkin-history", size: "lg" },
-    { widgetId: "love-results", title: "Your Love Languages", description: "How you give and receive love", icon: Heart, path: "/love-languages", size: "lg", type: "love-results" },
+    { widgetId: "love-results", title: "Your Love Languages", description: "How you give and receive love", icon: Heart, path: "/quiz", size: "lg", type: "love-results" },
     { widgetId: "weekly-checkin", title: "Weekly Check-In", description: "Reflect on your week together", icon: ClipboardList, path: "/weekly-checkin", size: "sm" },
-    { widgetId: "love-languages", title: "Love Languages", description: "Discover how you give and receive love", icon: Heart, path: "/love-languages", size: "sm" },
+    { widgetId: "love-languages", title: "Love Languages", description: "Discover how you give and receive love", icon: Heart, path: "/quiz", size: "sm" },
     { widgetId: "gratitude", title: "Gratitude Log", description: "Share appreciation for each other", icon: Coffee, path: "/gratitude", size: "sm" },
-    { widgetId: "shared-goals", title: "Shared Goals", description: "Set and track goals together", icon: Target, path: "/shared-goals", size: "sm" },
+    { widgetId: "shared-goals", title: "Shared Goals", description: "Set and track goals together", icon: Target, path: "/goals", size: "sm" },
     { widgetId: "voice-memos", title: "Voice Memos", description: "Send loving voice messages", icon: Mic, path: "/voice-memos", size: "sm" },
-    { widgetId: "calendar", title: "Shared Calendar", description: "Stay in sync", icon: Calendar, path: "/shared-calendar", size: "sm" },
+    { widgetId: "calendar", title: "Shared Calendar", description: "Stay in sync", icon: Calendar, path: "/calendar", size: "sm" },
     { widgetId: "rituals", title: "Rituals", description: "Build meaningful traditions", icon: BookOpen, path: "/rituals", size: "sm" },
-    { widgetId: "conversations", title: "Hold Me Tight", description: "Deepen emotional bonds", icon: Activity, path: "/hold-me-tight", size: "sm" },
+    { widgetId: "conversations", title: "Hold Me Tight", description: "Deepen emotional bonds", icon: Activity, path: "/conversation", size: "sm" },
     { widgetId: "love-map", title: "Love Map Quiz", description: "Know each other deeply", icon: Compass, path: "/love-map", size: "sm" },
     { widgetId: "therapist-thoughts", title: "Therapist Notes", description: "Messages from your therapist", icon: MessageSquare, path: "/therapist-thoughts", size: "sm" },
     { widgetId: "compatibility", title: "Compatibility", description: "View compatibility insights", icon: Heart, path: "/couple-compatibility", size: "sm" },
@@ -370,15 +375,28 @@ export default function ClientDashboard() {
               <Settings2 className="h-4 w-4" />
               <span className="text-sm font-medium">Edit Mode Active</span>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <Badge variant="secondary" className="gap-1">
                 <GripVertical className="h-3 w-3" />
                 Drag to reorder
               </Badge>
-              <Badge variant="outline" className="gap-1">
+              <Badge variant="secondary" className="gap-1">
                 <Maximize2 className="h-3 w-3" />
-                Click to resize
+                Resize
               </Badge>
+              <Badge variant="secondary" className="gap-1">
+                <EyeOff className="h-3 w-3" />
+                Hide
+              </Badge>
+              <Button 
+                size="sm" 
+                variant="default" 
+                onClick={exitEditMode}
+                className="h-7"
+                data-testid="button-exit-edit-mode"
+              >
+                Done
+              </Button>
             </div>
           </div>
         )}
@@ -646,6 +664,36 @@ export default function ClientDashboard() {
               )}
             </Droppable>
           </DragDropContext>
+
+          {isEditMode && (() => {
+            const hiddenWidgets = allWidgets.filter((w) => !isWidgetEnabled(w.widgetId));
+            if (hiddenWidgets.length === 0) return null;
+            return (
+              <div className="mt-6 p-4 rounded-xl bg-muted/50 border border-border/50">
+                <h3 className="text-sm font-medium mb-3 flex items-center gap-2">
+                  <EyeOff className="h-4 w-4 text-muted-foreground" />
+                  Hidden Widgets
+                </h3>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+                  {hiddenWidgets.map((widget) => {
+                    const Icon = widget.icon;
+                    return (
+                      <button
+                        key={widget.widgetId}
+                        onClick={() => toggleWidget(widget.widgetId)}
+                        className="flex items-center gap-2 p-2 rounded-lg bg-background hover-elevate active-elevate-2 border border-border/50 text-left"
+                        data-testid={`show-${widget.widgetId}`}
+                      >
+                        <Icon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                        <span className="text-xs truncate">{widget.title}</span>
+                        <Eye className="h-3 w-3 text-primary ml-auto flex-shrink-0" />
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })()}
         </section>
       </main>
     </div>

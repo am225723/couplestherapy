@@ -60,7 +60,7 @@ dashboardCustomizationRouter.get(
   },
 );
 
-// POST/PATCH - Update dashboard customization
+// POST - Create/update dashboard customization (full replace)
 dashboardCustomizationRouter.post(
   "/couple/:coupleId",
   async (req: Request, res: Response) => {
@@ -98,6 +98,64 @@ dashboardCustomizationRouter.post(
       res.json(data);
     } catch (error) {
       console.error("Error updating dashboard customization:", error);
+      res.status(500).json({ error: "Failed to update customization" });
+    }
+  },
+);
+
+// PATCH - Partial update dashboard customization (merge fields)
+dashboardCustomizationRouter.patch(
+  "/couple/:coupleId",
+  async (req: Request, res: Response) => {
+    try {
+      const { coupleId } = req.params;
+      const updates = req.body;
+
+      // First get existing data
+      const { data: existing } = await supabaseAdmin
+        .from("Couples_dashboard_customization")
+        .select("*")
+        .eq("couple_id", coupleId)
+        .single();
+
+      // Merge updates with existing data
+      const merged = {
+        couple_id: coupleId,
+        therapist_id: updates.therapist_id ?? existing?.therapist_id,
+        widget_order: updates.widget_order ?? existing?.widget_order ?? [
+          "weekly-checkin",
+          "love-languages",
+          "gratitude",
+          "shared-goals",
+          "conversations",
+          "love-map",
+          "voice-memos",
+          "calendar",
+          "rituals",
+        ],
+        enabled_widgets: updates.enabled_widgets !== undefined 
+          ? { ...(existing?.enabled_widgets || {}), ...updates.enabled_widgets }
+          : existing?.enabled_widgets || {},
+        widget_sizes: updates.widget_sizes !== undefined
+          ? { ...(existing?.widget_sizes || {}), ...updates.widget_sizes }
+          : existing?.widget_sizes || {},
+        widget_content_overrides: updates.widget_content_overrides !== undefined
+          ? { ...(existing?.widget_content_overrides || {}), ...updates.widget_content_overrides }
+          : existing?.widget_content_overrides || {},
+        updated_at: new Date().toISOString(),
+      };
+
+      const { data, error } = await supabaseAdmin
+        .from("Couples_dashboard_customization")
+        .upsert(merged)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      res.json(data);
+    } catch (error) {
+      console.error("Error patching dashboard customization:", error);
       res.status(500).json({ error: "Failed to update customization" });
     }
   },
