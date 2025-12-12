@@ -353,17 +353,52 @@ export default function ClientDashboard() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
-      <header className="sticky top-0 z-50 glass-card border-b border-border/50">
-        <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
+      <main className="max-w-7xl mx-auto px-4 py-6 space-y-6">
+        <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <Link href="/">
-              <Button variant="ghost" size="icon" className="rounded-xl h-11 w-11" data-testid="button-home">
-                <Home className="h-5 w-5" />
-              </Button>
-            </Link>
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg">
-              <Heart className="h-5 w-5 text-white" />
-            </div>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="relative h-11 w-11 rounded-xl p-0" data-testid="button-avatar-menu">
+                  <Avatar className="h-10 w-10">
+                    <AvatarFallback className="bg-gradient-to-br from-primary to-accent text-primary-foreground text-sm font-medium">
+                      {getInitials(profile?.full_name ?? undefined)}
+                    </AvatarFallback>
+                  </Avatar>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56" align="start" forceMount>
+                <DropdownMenuLabel className="font-normal">
+                  <div className="flex flex-col space-y-1">
+                    <p className="text-sm font-medium">{profile?.full_name || "User"}</p>
+                    <p className="text-xs text-muted-foreground">{user?.email}</p>
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link href="/" className="cursor-pointer">
+                    <Home className="mr-2 h-4 w-4" />
+                    Home
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/profile" className="cursor-pointer">
+                    <User className="mr-2 h-4 w-4" />
+                    Profile
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/settings" className="cursor-pointer">
+                    <Settings2 className="mr-2 h-4 w-4" />
+                    Settings
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleLogout} className="text-destructive" data-testid="button-logout">
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Log out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
             <div>
               <h1 className="text-lg font-semibold tracking-tight">
                 Welcome back, {profile?.full_name?.split(" ")[0] || "there"}
@@ -391,68 +426,29 @@ export default function ClientDashboard() {
             >
               {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             </Button>
-            
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-9 w-9 rounded-xl p-0" data-testid="button-avatar-menu">
-                  <Avatar className="h-8 w-8">
-                    <AvatarFallback className="bg-gradient-to-br from-primary to-accent text-primary-foreground text-xs">
-                      {getInitials(profile?.full_name ?? undefined)}
-                    </AvatarFallback>
-                  </Avatar>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56" align="end" forceMount>
-                <DropdownMenuLabel className="font-normal">
-                  <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium">{profile?.full_name || "User"}</p>
-                    <p className="text-xs text-muted-foreground">{user?.email}</p>
-                  </div>
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link href="/profile" className="cursor-pointer">
-                    <User className="mr-2 h-4 w-4" />
-                    Profile
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/settings" className="cursor-pointer">
-                    <Settings2 className="mr-2 h-4 w-4" />
-                    Settings
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleLogout} className="text-destructive" data-testid="button-logout">
-                  <LogOut className="mr-2 h-4 w-4" />
-                  Log out
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
           </div>
         </div>
-      </header>
 
-      <main className="max-w-7xl mx-auto px-4 py-6 space-y-8">
-        <section>
-          {isEditMode && (
-            <div className="flex items-center justify-between mb-4 p-3 rounded-xl bg-primary/10 border border-primary/20 flex-wrap gap-2">
-              <div className="flex items-center gap-2 text-primary">
-                <Settings2 className="h-4 w-4" />
-                <span className="text-sm font-medium">Edit Mode Active</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Badge variant="secondary" className="gap-1">
-                  <GripVertical className="h-3 w-3" />
-                  Drag to reorder
-                </Badge>
-                <Badge variant="outline" className="gap-1">
-                  <Maximize2 className="h-3 w-3" />
-                  Click to resize
-                </Badge>
-              </div>
+        {isEditMode && (
+          <div className="flex items-center justify-between p-3 rounded-xl bg-primary/10 border border-primary/20 flex-wrap gap-2">
+            <div className="flex items-center gap-2 text-primary">
+              <Settings2 className="h-4 w-4" />
+              <span className="text-sm font-medium">Edit Mode Active</span>
             </div>
-          )}
+            <div className="flex items-center gap-2">
+              <Badge variant="secondary" className="gap-1">
+                <GripVertical className="h-3 w-3" />
+                Drag to reorder
+              </Badge>
+              <Badge variant="outline" className="gap-1">
+                <Maximize2 className="h-3 w-3" />
+                Click to resize
+              </Badge>
+            </div>
+          </div>
+        )}
+
+        <section>
 
           <DragDropContext onDragEnd={handleDragEnd}>
             <Droppable droppableId="widgets" direction="vertical">
