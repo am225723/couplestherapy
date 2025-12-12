@@ -45,7 +45,12 @@ import {
   AlertCircle,
   Menu,
   X,
+  FileText,
+  BarChart3,
+  Calendar,
+  Heart,
 } from "lucide-react";
+import { SessionNotesPanel } from "@/components/session-notes-panel";
 
 interface CoupleData {
   id: string;
@@ -193,7 +198,7 @@ export default function TherapistDashboard() {
         <div className="flex-1 overflow-y-auto">
           <div className="max-w-5xl mx-auto p-4 md:p-6 space-y-6">
             {selectedCouple ? (
-              <CoupleDetails couple={selectedCouple} />
+              <CoupleDetails couple={selectedCouple} therapistId={profile?.id || ""} />
             ) : (
               <div className="min-h-[300px] flex items-center justify-center">
                 <div className="text-center space-y-3 p-8 rounded-2xl bg-muted/30 border border-border/50">
@@ -292,7 +297,7 @@ function CouplesList({
   );
 }
 
-function CoupleDetails({ couple }: { couple: CoupleData }) {
+function CoupleDetails({ couple, therapistId }: { couple: CoupleData; therapistId: string }) {
   const { toast } = useToast();
 
   // Fetch therapist thoughts
@@ -320,16 +325,22 @@ function CoupleDetails({ couple }: { couple: CoupleData }) {
 
       {/* Tabs */}
       <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 md:grid-cols-3 h-9">
-          <TabsTrigger value="overview" className="text-xs md:text-sm">
+        <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 h-10 p-1 rounded-xl bg-muted/50">
+          <TabsTrigger value="overview" className="text-xs md:text-sm rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm">
+            <BarChart3 className="h-3.5 w-3.5 mr-1.5 hidden sm:inline" />
             Overview
           </TabsTrigger>
-          <TabsTrigger value="thoughts" className="text-xs md:text-sm relative">
+          <TabsTrigger value="notes" className="text-xs md:text-sm rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm">
+            <FileText className="h-3.5 w-3.5 mr-1.5 hidden sm:inline" />
+            Notes
+          </TabsTrigger>
+          <TabsTrigger value="thoughts" className="text-xs md:text-sm relative rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm">
+            <MessageSquare className="h-3.5 w-3.5 mr-1.5 hidden sm:inline" />
             Thoughts
             {incompleteTodos.length > 0 && (
               <Badge
                 variant="destructive"
-                className="ml-1 h-5 w-5 p-0 flex items-center justify-center text-xs flex-shrink-0"
+                className="ml-1 h-4 w-4 p-0 flex items-center justify-center text-[10px] flex-shrink-0"
               >
                 {incompleteTodos.length}
               </Badge>
@@ -337,8 +348,9 @@ function CoupleDetails({ couple }: { couple: CoupleData }) {
           </TabsTrigger>
           <TabsTrigger
             value="tools"
-            className="hidden md:inline-flex text-xs md:text-sm"
+            className="text-xs md:text-sm rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm"
           >
+            <Heart className="h-3.5 w-3.5 mr-1.5 hidden sm:inline" />
             Tools
           </TabsTrigger>
         </TabsList>
@@ -408,9 +420,24 @@ function CoupleDetails({ couple }: { couple: CoupleData }) {
           </div>
         </TabsContent>
 
+        {/* Notes Tab */}
+        <TabsContent value="notes" className="mt-6">
+          <Card className="glass-card border-none overflow-hidden">
+            <div className="gradient-animate bg-gradient-to-br from-emerald-500/10 to-teal-500/5" />
+            <CardContent className="relative z-10 p-6">
+              <SessionNotesPanel coupleId={couple.id} therapistId={therapistId} />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
         {/* Thoughts Tab */}
-        <TabsContent value="thoughts" className="mt-4">
-          <TherapistThoughtsPanel coupleId={couple.id} />
+        <TabsContent value="thoughts" className="mt-6">
+          <Card className="glass-card border-none overflow-hidden">
+            <div className="gradient-animate bg-gradient-to-br from-amber-500/10 to-orange-500/5" />
+            <CardContent className="relative z-10 p-6">
+              <TherapistThoughtsPanel coupleId={couple.id} />
+            </CardContent>
+          </Card>
         </TabsContent>
 
         {/* Tools Tab */}

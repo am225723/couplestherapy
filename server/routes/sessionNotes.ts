@@ -1,29 +1,45 @@
 import { Router } from "express";
 import type { Request, Response } from "express";
 import { supabaseAdmin } from "../supabase.js";
+import { verifyTherapistSession } from "../helpers.js";
+import { z } from "zod";
 
 const sessionNotesRouter = Router();
 
-interface SessionNote {
-  id: string;
-  couple_id: string;
-  therapist_id: string;
-  session_date: string;
-  title: string;
-  summary?: string;
-  key_themes?: string[];
-  interventions_used?: string[];
-  homework_assigned?: string;
-  progress_notes?: string;
-  next_session_goals?: string;
-  is_private?: boolean;
-  created_at?: string;
-  updated_at?: string;
-}
+const sessionNoteSchema = z.object({
+  session_date: z.string().optional(),
+  title: z.string().min(1, "Title is required"),
+  summary: z.string().optional(),
+  key_themes: z.array(z.string()).optional(),
+  interventions_used: z.array(z.string()).optional(),
+  homework_assigned: z.string().optional(),
+  progress_notes: z.string().optional(),
+  next_session_goals: z.string().optional(),
+  is_private: z.boolean().optional(),
+});
 
 sessionNotesRouter.get("/couple/:coupleId", async (req: Request, res: Response) => {
   try {
+    const authResult = await verifyTherapistSession(req);
+    if (!authResult.success) {
+      return res.status(authResult.status).json({ error: authResult.error });
+    }
+
     const { coupleId } = req.params;
+
+    const { data: couple } = await supabaseAdmin
+      .from("Couples_couples")
+      .select("id, therapist_id")
+      .eq("id", coupleId)
+      .single();
+
+    if (!couple) {
+      return res.status(404).json({ error: "Couple not found" });
+    }
+
+    if (couple.therapist_id !== authResult.therapistId) {
+      return res.status(403).json({ error: "You do not have access to this couple" });
+    }
 
     const { data, error } = await supabaseAdmin
       .from("Couples_session_notes")
@@ -42,17 +58,32 @@ sessionNotesRouter.get("/couple/:coupleId", async (req: Request, res: Response) 
 
 sessionNotesRouter.get("/:id", async (req: Request, res: Response) => {
   try {
+    const authResult = await verifyTherapistSession(req);
+    if (!authResult.success) {
+      return res.status(authResult.status).json({ error: authResult.error });
+    }
+
     const { id } = req.params;
 
     const { data, error } = await supabaseAdmin
       .from("Couples_session_notes")
-      .select("*")
+      .select("*, couple:Couples_couples!couple_id(therapist_id)")
       .eq("id", id)
       .single();
 
     if (error) throw error;
 
-    res.json(data);
+    if (!data) {
+      return res.status(404).json({ error: "Session note not found" });
+    }
+
+    const coupleTherapistId = (data.couple as any)?.therapist_id;
+    if (coupleTherapistId !== authResult.therapistId) {
+      return res.status(403).json({ error: "You do not have access to this session note" });
+    }
+
+    const { couple, ...noteData } = data;
+    res.json(noteData);
   } catch (error) {
     console.error("Error fetching session note:", error);
     res.status(500).json({ error: "Failed to fetch session note" });
@@ -61,38 +92,52 @@ sessionNotesRouter.get("/:id", async (req: Request, res: Response) => {
 
 sessionNotesRouter.post("/", async (req: Request, res: Response) => {
   try {
-    const {
-      couple_id,
-      therapist_id,
-      session_date,
-      title,
-      summary,
-      key_themes,
-      interventions_used,
-      homework_assigned,
-      progress_notes,
-      next_session_goals,
-      is_private,
-    } = req.body;
-
-    if (!couple_id || !therapist_id || !title) {
-      return res.status(400).json({ error: "couple_id, therapist_id, and title are required" });
+    const authResult = await verifyTherapistSession(req);
+    if (!authResult.success) {
+      return res.status(authResult.status).json({ error: authResult.error });
     }
+
+    const { couple_id } = req.body;
+
+    if (!couple_id) {
+      return res.status(400).json({ error: "couple_id is required" });
+    }
+
+    const { data: couple } = await supabaseAdmin
+      .from("Couples_couples")
+      .select("id, therapist_id")
+      .eq("id", couple_id)
+      .single();
+
+    if (!couple) {
+      return res.status(404).json({ error: "Couple not found" });
+    }
+
+    if (couple.therapist_id !== authResult.therapistId) {
+      return res.status(403).json({ error: "You do not have access to this couple" });
+    }
+
+    const validationResult = sessionNoteSchema.safeParse(req.body);
+    if (!validationResult.success) {
+      return res.status(400).json({ error: validationResult.error.errors[0]?.message || "Validation failed" });
+    }
+
+    const noteData = validationResult.data;
 
     const { data, error } = await supabaseAdmin
       .from("Couples_session_notes")
       .insert({
         couple_id,
-        therapist_id,
-        session_date: session_date || new Date().toISOString().split("T")[0],
-        title,
-        summary,
-        key_themes: key_themes || [],
-        interventions_used: interventions_used || [],
-        homework_assigned,
-        progress_notes,
-        next_session_goals,
-        is_private: is_private || false,
+        therapist_id: authResult.therapistId,
+        session_date: noteData.session_date || new Date().toISOString().split("T")[0],
+        title: noteData.title,
+        summary: noteData.summary,
+        key_themes: noteData.key_themes || [],
+        interventions_used: noteData.interventions_used || [],
+        homework_assigned: noteData.homework_assigned,
+        progress_notes: noteData.progress_notes,
+        next_session_goals: noteData.next_session_goals,
+        is_private: noteData.is_private || false,
       })
       .select()
       .single();
@@ -108,8 +153,28 @@ sessionNotesRouter.post("/", async (req: Request, res: Response) => {
 
 sessionNotesRouter.patch("/:id", async (req: Request, res: Response) => {
   try {
+    const authResult = await verifyTherapistSession(req);
+    if (!authResult.success) {
+      return res.status(authResult.status).json({ error: authResult.error });
+    }
+
     const { id } = req.params;
-    const updates = req.body;
+
+    const { data: existingNote } = await supabaseAdmin
+      .from("Couples_session_notes")
+      .select("therapist_id")
+      .eq("id", id)
+      .single();
+
+    if (!existingNote) {
+      return res.status(404).json({ error: "Session note not found" });
+    }
+
+    if (existingNote.therapist_id !== authResult.therapistId) {
+      return res.status(403).json({ error: "You can only edit your own session notes" });
+    }
+
+    const { therapist_id, couple_id, id: _, ...updates } = req.body;
 
     const { data, error } = await supabaseAdmin
       .from("Couples_session_notes")
@@ -132,7 +197,26 @@ sessionNotesRouter.patch("/:id", async (req: Request, res: Response) => {
 
 sessionNotesRouter.delete("/:id", async (req: Request, res: Response) => {
   try {
+    const authResult = await verifyTherapistSession(req);
+    if (!authResult.success) {
+      return res.status(authResult.status).json({ error: authResult.error });
+    }
+
     const { id } = req.params;
+
+    const { data: existingNote } = await supabaseAdmin
+      .from("Couples_session_notes")
+      .select("therapist_id")
+      .eq("id", id)
+      .single();
+
+    if (!existingNote) {
+      return res.status(404).json({ error: "Session note not found" });
+    }
+
+    if (existingNote.therapist_id !== authResult.therapistId) {
+      return res.status(403).json({ error: "You can only delete your own session notes" });
+    }
 
     const { error } = await supabaseAdmin
       .from("Couples_session_notes")

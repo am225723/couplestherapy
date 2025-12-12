@@ -102,7 +102,6 @@ export function SessionNotesPanel({ coupleId, therapistId }: SessionNotesPanelPr
       return apiRequest("POST", "/api/session-notes", {
         ...data,
         couple_id: coupleId,
-        therapist_id: therapistId,
         key_themes: themesInput.split(",").map((t) => t.trim()).filter(Boolean),
         interventions_used: interventionsInput.split(",").map((i) => i.trim()).filter(Boolean),
       });
