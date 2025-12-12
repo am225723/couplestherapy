@@ -25,6 +25,15 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/lib/supabase";
 import { useQuery, useMutation } from "@tanstack/react-query";
@@ -34,6 +43,7 @@ import {
   Draggable,
   DropResult,
 } from "react-beautiful-dnd";
+import type { LucideIcon } from "lucide-react";
 import {
   Heart,
   MessageCircle,
@@ -74,6 +84,9 @@ import {
   GripVertical,
   Moon,
   Sun,
+  Home,
+  LogOut,
+  ChevronDown,
 } from "lucide-react";
 import { LoveLanguage } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -122,7 +135,7 @@ const widgetVariants: Record<string, "default" | "primary" | "accent" | "success
 };
 
 export default function ClientDashboard() {
-  const { profile } = useAuth();
+  const { user, profile } = useAuth();
   const { theme, setTheme } = useTheme();
   const [loveLanguages, setLoveLanguages] = useState<LoveLanguage[]>([]);
   const [loading, setLoading] = useState(true);
@@ -318,12 +331,29 @@ export default function ClientDashboard() {
     });
   })();
 
+  const [customizeOpen, setCustomizeOpen] = useState(false);
+  
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    window.location.href = "/";
+  };
+
+  const getInitials = (name: string | undefined) => {
+    if (!name) return "U";
+    return name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2);
+  };
+
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
       <header className="sticky top-0 z-50 glass-card border-b border-border/50">
-        <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+            <Link href="/">
+              <Button variant="ghost" size="icon" className="rounded-xl h-11 w-11" data-testid="button-home">
+                <Home className="h-5 w-5" />
+              </Button>
+            </Link>
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
               <Heart className="h-5 w-5 text-primary" />
             </div>
             <div>
@@ -341,69 +371,100 @@ export default function ClientDashboard() {
             >
               {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
             </Button>
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button variant="outline" size="sm" className="gap-2 rounded-xl" data-testid="button-customize">
-                  <Settings2 className="h-4 w-4" />
-                  <span className="hidden sm:inline">Customize</span>
+            
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="relative h-11 w-11 rounded-xl p-0" data-testid="button-avatar-menu">
+                  <Avatar className="h-9 w-9">
+                    <AvatarFallback className="bg-gradient-to-br from-primary to-accent text-primary-foreground text-sm">
+                      {getInitials(profile?.full_name ?? undefined)}
+                    </AvatarFallback>
+                  </Avatar>
                 </Button>
-              </SheetTrigger>
-              <SheetContent className="w-full sm:max-w-md">
-                <SheetHeader>
-                  <SheetTitle>Customize Dashboard</SheetTitle>
-                  <SheetDescription>Show, hide, or rearrange your widgets</SheetDescription>
-                </SheetHeader>
-                <div className="mt-6 space-y-6">
-                  <div className="flex items-center justify-between p-4 rounded-xl bg-muted/50">
-                    <div>
-                      <p className="text-sm font-medium">Edit Mode</p>
-                      <p className="text-xs text-muted-foreground">Drag to rearrange</p>
-                    </div>
-                    <Switch checked={isEditMode} onCheckedChange={setIsEditMode} data-testid="switch-edit-mode" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56" align="end" forceMount>
+                <DropdownMenuLabel className="font-normal">
+                  <div className="flex flex-col space-y-1">
+                    <p className="text-sm font-medium">{profile?.full_name || "User"}</p>
+                    <p className="text-xs text-muted-foreground">{user?.email}</p>
                   </div>
-                  <ScrollArea className="h-[calc(100vh-280px)]">
-                    <div className="space-y-2 pr-4">
-                      {allWidgets.map((widget) => (
-                        <div
-                          key={widget.widgetId}
-                          className={cn(
-                            "flex items-center justify-between p-3 rounded-xl border",
-                            "transition-luxury",
-                            !isWidgetEnabled(widget.widgetId) && "opacity-50",
-                            widget.size === "lg" && "bg-primary/5"
-                          )}
-                        >
-                          <div className="flex items-center gap-3">
-                            <GripVertical className="h-4 w-4 text-muted-foreground" />
-                            <widget.icon className="h-4 w-4 text-muted-foreground" />
-                            <div className="flex flex-col">
-                              <span className="text-sm">{widget.title}</span>
-                              {widget.size === "lg" && (
-                                <span className="text-xs text-muted-foreground">Featured</span>
-                              )}
-                            </div>
-                          </div>
-                          <button
-                            onClick={() => toggleWidget(widget.widgetId)}
-                            className="p-2 rounded-lg hover:bg-muted transition-colors touch-target"
-                            data-testid={`toggle-${widget.widgetId}`}
-                          >
-                            {isWidgetEnabled(widget.widgetId) ? (
-                              <Eye className="h-4 w-4 text-primary" />
-                            ) : (
-                              <EyeOff className="h-4 w-4 text-muted-foreground" />
-                            )}
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  </ScrollArea>
-                </div>
-              </SheetContent>
-            </Sheet>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link href="/profile" className="cursor-pointer">
+                    <User className="mr-2 h-4 w-4" />
+                    Profile
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setCustomizeOpen(true)} data-testid="menu-item-customize">
+                  <Settings2 className="mr-2 h-4 w-4" />
+                  Customize Dashboard
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleLogout} className="text-destructive" data-testid="button-logout">
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Log out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </header>
+      
+      <Sheet open={customizeOpen} onOpenChange={setCustomizeOpen}>
+        <SheetContent className="w-full sm:max-w-md">
+          <SheetHeader>
+            <SheetTitle>Customize Dashboard</SheetTitle>
+            <SheetDescription>Show, hide, or rearrange your widgets</SheetDescription>
+          </SheetHeader>
+          <div className="mt-6 space-y-6">
+            <div className="flex items-center justify-between p-4 rounded-xl bg-muted/50">
+              <div>
+                <p className="text-sm font-medium">Edit Mode</p>
+                <p className="text-xs text-muted-foreground">Drag to rearrange</p>
+              </div>
+              <Switch checked={isEditMode} onCheckedChange={setIsEditMode} data-testid="switch-edit-mode" />
+            </div>
+            <ScrollArea className="h-[calc(100vh-280px)]">
+              <div className="space-y-2 pr-4">
+                {allWidgets.map((widget) => (
+                  <div
+                    key={widget.widgetId}
+                    className={cn(
+                      "flex items-center justify-between p-3 rounded-xl border",
+                      "transition-luxury",
+                      !isWidgetEnabled(widget.widgetId) && "opacity-50",
+                      widget.size === "lg" && "bg-primary/5"
+                    )}
+                  >
+                    <div className="flex items-center gap-3">
+                      <GripVertical className="h-4 w-4 text-muted-foreground" />
+                      <widget.icon className="h-4 w-4 text-muted-foreground" />
+                      <div className="flex flex-col">
+                        <span className="text-sm">{widget.title}</span>
+                        {widget.size === "lg" && (
+                          <span className="text-xs text-muted-foreground">Featured</span>
+                        )}
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => toggleWidget(widget.widgetId)}
+                      className="p-2 rounded-lg hover:bg-muted transition-colors touch-target"
+                      data-testid={`toggle-${widget.widgetId}`}
+                    >
+                      {isWidgetEnabled(widget.widgetId) ? (
+                        <Eye className="h-4 w-4 text-primary" />
+                      ) : (
+                        <EyeOff className="h-4 w-4 text-muted-foreground" />
+                      )}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </ScrollArea>
+          </div>
+        </SheetContent>
+      </Sheet>
 
       <main className="max-w-7xl mx-auto px-4 py-6 space-y-8">
         <section>
@@ -418,12 +479,12 @@ export default function ClientDashboard() {
           </div>
 
           <DragDropContext onDragEnd={handleDragEnd}>
-            <Droppable droppableId="widgets" direction="horizontal">
+            <Droppable droppableId="widgets" direction="vertical">
               {(provided) => (
                 <div
                   ref={provided.innerRef}
                   {...provided.droppableProps}
-                  className="bento-grid"
+                  className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
                 >
                   {orderedWidgets.map((widget, index) => {
                     const Icon = widget.icon;
