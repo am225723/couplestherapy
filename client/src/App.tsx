@@ -42,6 +42,8 @@ import {
   ChevronDown,
   User,
   Settings,
+  Home,
+  Settings2,
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import {
@@ -556,11 +558,18 @@ function AuthenticatedApp() {
           <header className="flex items-center justify-between p-4 border-b bg-background">
             <div className="flex items-center gap-2">
               <SidebarTrigger data-testid="button-sidebar-toggle" />
-              <span className="text-sm font-medium text-muted-foreground">
-                Menu
-              </span>
+              <Link href="/dashboard">
+                <Button variant="ghost" size="icon" className="rounded-xl" data-testid="button-home">
+                  <Home className="h-5 w-5" />
+                </Button>
+              </Link>
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <Link href="/dashboard?edit=true">
+                <Button variant="ghost" size="icon" className="rounded-xl" data-testid="button-edit-dashboard">
+                  <Settings2 className="h-5 w-5" />
+                </Button>
+              </Link>
               <ThemeToggle />
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>

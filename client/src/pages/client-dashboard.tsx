@@ -132,7 +132,10 @@ export default function ClientDashboard() {
   const { theme, setTheme } = useTheme();
   const [loveLanguages, setLoveLanguages] = useState<LoveLanguage[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isEditMode, setIsEditMode] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(() => {
+    const params = new URLSearchParams(window.location.search);
+    return params.get("edit") === "true";
+  });
   const [localWidgetOrder, setLocalWidgetOrder] = useState<string[]>([]);
   const { toast } = useToast();
 
