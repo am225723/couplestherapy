@@ -111,12 +111,13 @@ dashboardCustomizationRouter.patch(
       const { coupleId } = req.params;
       const updates = req.body;
 
-      // First get existing data
-      const { data: existing } = await supabaseAdmin
+      // First get existing data (don't use .single() as it throws if no row exists)
+      const { data: existingArray, error: fetchError } = await supabaseAdmin
         .from("Couples_dashboard_customization")
         .select("*")
-        .eq("couple_id", coupleId)
-        .single();
+        .eq("couple_id", coupleId);
+
+      const existing = Array.isArray(existingArray) && existingArray.length > 0 ? existingArray[0] : null;
 
       // Merge updates with existing data
       const merged = {
@@ -147,7 +148,7 @@ dashboardCustomizationRouter.patch(
 
       const { data, error } = await supabaseAdmin
         .from("Couples_dashboard_customization")
-        .upsert(merged)
+        .upsert(merged, { onConflict: "couple_id" })
         .select()
         .single();
 
