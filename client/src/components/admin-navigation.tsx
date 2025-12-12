@@ -20,6 +20,7 @@ import {
   Sparkles,
   Activity,
   Wrench,
+  FileText,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -78,6 +79,7 @@ const INSIGHT_SECTIONS = [
 ];
 
 const TOOL_SECTIONS = [
+  { id: "notes", label: "Session Notes", icon: FileText },
   { id: "messages", label: "Messages", icon: MessageSquare },
   { id: "echo", label: "Echo & Empathy", icon: Users },
   { id: "conversations", label: "Hold Me Tight", icon: Heart },

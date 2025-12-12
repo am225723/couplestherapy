@@ -97,6 +97,7 @@ import {
 import { DashboardCustomizer } from "@/components/dashboard-customizer";
 import { ScheduleNotificationDialog } from "@/components/schedule-notification-dialog";
 import { CheckinReminders } from "@/components/checkin-reminders";
+import { SessionNotesPanel } from "@/components/session-notes-panel";
 import {
   formatDistanceToNow,
   format,
@@ -983,6 +984,9 @@ export default function AdminDashboard() {
                     <TabsTrigger value="reminders">
                       Reminders
                     </TabsTrigger>
+                    <TabsTrigger value="notes">
+                      Session Notes
+                    </TabsTrigger>
                   </TabsList>
                 </div>
 
@@ -1580,6 +1584,23 @@ export default function AdminDashboard() {
                       </CardContent>
                     </Card>
                   ))}
+                </TabsContent>
+
+                <TabsContent value="notes" className="space-y-4">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Session Notes</CardTitle>
+                      <CardDescription>
+                        Document your therapy sessions with this couple
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <SessionNotesPanel
+                        coupleId={selectedCouple.id}
+                        therapistId={profile?.id || ""}
+                      />
+                    </CardContent>
+                  </Card>
                 </TabsContent>
 
                 <TabsContent value="messages" className="space-y-4">
