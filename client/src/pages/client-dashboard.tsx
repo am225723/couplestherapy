@@ -354,19 +354,42 @@ export default function ClientDashboard() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
       <main className="max-w-7xl mx-auto px-4 py-6 space-y-6">
-        <div className="flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
+        <div className="flex items-center justify-between p-2 rounded-2xl bg-card/80 backdrop-blur-sm border border-border/50">
+          <Link href="/">
+            <Button variant="ghost" size="icon" className="rounded-xl h-10 w-10" data-testid="button-home">
+              <Home className="h-5 w-5" />
+            </Button>
+          </Link>
+          <div className="flex items-center gap-1">
+            <Button
+              variant={isEditMode ? "default" : "ghost"}
+              size="icon"
+              onClick={() => setIsEditMode(!isEditMode)}
+              className="rounded-xl h-10 w-10"
+              data-testid="button-edit-mode"
+            >
+              <Settings2 className="h-5 w-5" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+              className="rounded-xl h-10 w-10"
+              data-testid="button-theme-toggle"
+            >
+              {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+            </Button>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-11 w-11 rounded-xl p-0" data-testid="button-avatar-menu">
-                  <Avatar className="h-10 w-10">
+                <Button variant="ghost" className="relative h-10 w-10 rounded-xl p-0" data-testid="button-avatar-menu">
+                  <Avatar className="h-9 w-9">
                     <AvatarFallback className="bg-gradient-to-br from-primary to-accent text-primary-foreground text-sm font-medium">
                       {getInitials(profile?.full_name ?? undefined)}
                     </AvatarFallback>
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56" align="start" forceMount>
+              <DropdownMenuContent className="w-56" align="end" forceMount>
                 <DropdownMenuLabel className="font-normal">
                   <div className="flex flex-col space-y-1">
                     <p className="text-sm font-medium">{profile?.full_name || "User"}</p>
@@ -374,12 +397,6 @@ export default function ClientDashboard() {
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link href="/" className="cursor-pointer">
-                    <Home className="mr-2 h-4 w-4" />
-                    Home
-                  </Link>
-                </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <Link href="/profile" className="cursor-pointer">
                     <User className="mr-2 h-4 w-4" />
@@ -399,34 +416,14 @@ export default function ClientDashboard() {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-            <div>
-              <h1 className="text-lg font-semibold tracking-tight">
-                Welcome back, {profile?.full_name?.split(" ")[0] || "there"}
-              </h1>
-              <p className="text-xs text-muted-foreground">Your relationship dashboard</p>
-            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <Button
-              variant={isEditMode ? "default" : "outline"}
-              size="sm"
-              onClick={() => setIsEditMode(!isEditMode)}
-              className="rounded-xl gap-2 h-9"
-              data-testid="button-edit-mode"
-            >
-              <Settings2 className="h-4 w-4" />
-              <span className="hidden sm:inline">{isEditMode ? "Done" : "Edit"}</span>
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-              className="rounded-xl h-9 w-9"
-              data-testid="button-theme-toggle"
-            >
-              {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-            </Button>
-          </div>
+        </div>
+
+        <div>
+          <h1 className="text-xl font-semibold tracking-tight">
+            Welcome back, {profile?.full_name?.split(" ")[0] || "there"}
+          </h1>
+          <p className="text-sm text-muted-foreground">Your relationship dashboard</p>
         </div>
 
         {isEditMode && (
