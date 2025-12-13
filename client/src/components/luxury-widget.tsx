@@ -15,6 +15,7 @@ interface LuxuryWidgetProps {
   "data-testid"?: string;
   isDragging?: boolean;
   dragHandleProps?: any;
+  disableNavigation?: boolean;
 }
 
 const variantColors = {
@@ -75,6 +76,7 @@ export function LuxuryWidget({
   "data-testid": testId,
   isDragging,
   dragHandleProps,
+  disableNavigation = false,
 }: LuxuryWidgetProps) {
   const colors = variantColors[variant];
   
@@ -122,6 +124,10 @@ export function LuxuryWidget({
       </div>
     </div>
   );
+
+  if (disableNavigation) {
+    return <div className="block">{content}</div>;
+  }
 
   return (
     <Link href={path} className="block">

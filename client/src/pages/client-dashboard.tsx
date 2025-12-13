@@ -88,6 +88,7 @@ import { aiFunctions, ExerciseRecommendationsResponse } from "@/lib/ai-functions
 import { LuxuryWidget, FeatureCard, StatWidget } from "@/components/luxury-widget";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/components/theme-provider";
+import heroBackground from "@assets/download_1765665015150.jpg";
 
 function isValidUrl(url: string): boolean {
   try {
@@ -395,11 +396,26 @@ export default function ClientDashboard() {
                 className="h-7"
                 data-testid="button-exit-edit-mode"
               >
-                Done
+                Save & Exit
               </Button>
             </div>
           </div>
         )}
+
+        <div 
+          className="relative rounded-2xl overflow-hidden h-40 sm:h-48 mb-2"
+          data-testid="hero-background"
+        >
+          <img 
+            src={heroBackground} 
+            alt="Relationship connection art" 
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/40 to-transparent" />
+          <div className="absolute bottom-4 left-4 right-4 z-10">
+            <p className="text-sm text-foreground/90 font-medium">Growing together, one connection at a time</p>
+          </div>
+        </div>
 
         <section>
 
@@ -465,41 +481,43 @@ export default function ClientDashboard() {
 
                       if (widget.type === "suggestion") {
                         const hasData = dailySuggestionQuery.isSuccess && dailySuggestionQuery.data?.suggestion;
-                        return (
-                          <Link href="/daily-suggestion" className="block h-full">
-                            <Card className="glass-card border-none overflow-hidden cursor-pointer h-full luxury-widget" data-testid="card-suggestion">
-                              <div className="gradient-animate bg-gradient-to-br from-emerald-500/10 to-teal-500/8" />
-                              <CardHeader className="relative z-10 pb-2">
-                                <div className="flex items-center justify-between flex-wrap gap-2">
-                                  <CardTitle className="text-sm flex items-center gap-2">
-                                    <Sparkles className="h-4 w-4 text-emerald-500" />
-                                    Today's Suggestion
-                                  </CardTitle>
-                                  {hasData && (
-                                    <Badge variant={dailySuggestionQuery.data.completed ? "default" : "secondary"} className="text-xs">
-                                      {dailySuggestionQuery.data.completed ? "Done" : dailySuggestionQuery.data.suggestion.category}
-                                    </Badge>
-                                  )}
-                                </div>
-                              </CardHeader>
-                              <CardContent className="relative z-10">
-                                {dailySuggestionQuery.isLoading ? (
-                                  <div className="animate-pulse space-y-2">
-                                    <div className="h-4 bg-muted rounded w-3/4" />
-                                    <div className="h-3 bg-muted rounded w-1/2" />
-                                  </div>
-                                ) : hasData ? (
-                                  <>
-                                    <p className="font-semibold text-sm">{dailySuggestionQuery.data.suggestion.title}</p>
-                                    <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{dailySuggestionQuery.data.suggestion.description}</p>
-                                  </>
-                                ) : (
-                                  <p className="text-xs text-muted-foreground text-center py-2">Check back tomorrow</p>
+                        const suggestionCard = (
+                          <Card className="glass-card border-none overflow-hidden cursor-pointer h-full luxury-widget" data-testid="card-suggestion">
+                            <div className="gradient-animate bg-gradient-to-br from-emerald-500/10 to-teal-500/8" />
+                            <CardHeader className="relative z-10 pb-2">
+                              <div className="flex items-center justify-between flex-wrap gap-2">
+                                <CardTitle className="text-sm flex items-center gap-2">
+                                  <Sparkles className="h-4 w-4 text-emerald-500" />
+                                  Today's Suggestion
+                                </CardTitle>
+                                {hasData && (
+                                  <Badge variant={dailySuggestionQuery.data.completed ? "default" : "secondary"} className="text-xs">
+                                    {dailySuggestionQuery.data.completed ? "Done" : dailySuggestionQuery.data.suggestion.category}
+                                  </Badge>
                                 )}
-                              </CardContent>
-                            </Card>
-                          </Link>
+                              </div>
+                            </CardHeader>
+                            <CardContent className="relative z-10">
+                              {dailySuggestionQuery.isLoading ? (
+                                <div className="animate-pulse space-y-2">
+                                  <div className="h-4 bg-muted rounded w-3/4" />
+                                  <div className="h-3 bg-muted rounded w-1/2" />
+                                </div>
+                              ) : hasData ? (
+                                <>
+                                  <p className="font-semibold text-sm">{dailySuggestionQuery.data.suggestion.title}</p>
+                                  <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{dailySuggestionQuery.data.suggestion.description}</p>
+                                </>
+                              ) : (
+                                <p className="text-xs text-muted-foreground text-center py-2">Check back tomorrow</p>
+                              )}
+                            </CardContent>
+                          </Card>
                         );
+                        if (isEditMode) {
+                          return <div className="block h-full">{suggestionCard}</div>;
+                        }
+                        return <Link href="/daily-suggestion" className="block h-full">{suggestionCard}</Link>;
                       }
 
                       if (widget.type === "ai") {
@@ -536,38 +554,40 @@ export default function ClientDashboard() {
 
                       if (widget.type === "love-results") {
                         const hasData = !loading && loveLanguages.length > 0;
-                        return (
-                          <Link href="/love-languages" className="block h-full">
-                            <Card className="glass-card border-none overflow-hidden h-full cursor-pointer luxury-widget">
-                              <div className="gradient-animate bg-gradient-to-br from-rose-500/8 to-pink-500/6" />
-                              <CardHeader className="relative z-10 pb-2">
-                                <CardTitle className="flex items-center gap-2 text-sm">
-                                  <Heart className="h-4 w-4 text-rose-500" />
-                                  Your Love Languages
-                                </CardTitle>
-                              </CardHeader>
-                              <CardContent className="relative z-10">
-                                {loading ? (
-                                  <div className="animate-pulse grid grid-cols-2 gap-2">
-                                    <div className="h-12 bg-muted rounded" />
-                                    <div className="h-12 bg-muted rounded" />
-                                  </div>
-                                ) : hasData ? (
-                                  <div className="grid grid-cols-2 gap-2">
-                                    {loveLanguages.slice(0, 2).map((lang) => (
-                                      <div key={lang.id} className="p-2 rounded-lg bg-background/60 backdrop-blur-sm border border-border/30">
-                                        <p className="text-xs font-medium">{lang.user_id === profile?.id ? "You" : "Partner"}</p>
-                                        <p className="text-xs text-muted-foreground">{lang.primary_language}</p>
-                                      </div>
-                                    ))}
-                                  </div>
-                                ) : (
-                                  <p className="text-xs text-muted-foreground text-center py-2">Take the quiz to discover your love languages</p>
-                                )}
-                              </CardContent>
-                            </Card>
-                          </Link>
+                        const loveCard = (
+                          <Card className="glass-card border-none overflow-hidden h-full cursor-pointer luxury-widget">
+                            <div className="gradient-animate bg-gradient-to-br from-rose-500/8 to-pink-500/6" />
+                            <CardHeader className="relative z-10 pb-2">
+                              <CardTitle className="flex items-center gap-2 text-sm">
+                                <Heart className="h-4 w-4 text-rose-500" />
+                                Your Love Languages
+                              </CardTitle>
+                            </CardHeader>
+                            <CardContent className="relative z-10">
+                              {loading ? (
+                                <div className="animate-pulse grid grid-cols-2 gap-2">
+                                  <div className="h-12 bg-muted rounded" />
+                                  <div className="h-12 bg-muted rounded" />
+                                </div>
+                              ) : hasData ? (
+                                <div className="grid grid-cols-2 gap-2">
+                                  {loveLanguages.slice(0, 2).map((lang) => (
+                                    <div key={lang.id} className="p-2 rounded-lg bg-background/60 backdrop-blur-sm border border-border/30">
+                                      <p className="text-xs font-medium">{lang.user_id === profile?.id ? "You" : "Partner"}</p>
+                                      <p className="text-xs text-muted-foreground">{lang.primary_language}</p>
+                                    </div>
+                                  ))}
+                                </div>
+                              ) : (
+                                <p className="text-xs text-muted-foreground text-center py-2">Take the quiz to discover your love languages</p>
+                              )}
+                            </CardContent>
+                          </Card>
                         );
+                        if (isEditMode) {
+                          return <div className="block h-full">{loveCard}</div>;
+                        }
+                        return <Link href="/love-languages" className="block h-full">{loveCard}</Link>;
                       }
 
                       return null;
@@ -634,6 +654,7 @@ export default function ClientDashboard() {
                                   variant={variant}
                                   size={widget.size}
                                   isDragging={snapshot.isDragging}
+                                  disableNavigation={true}
                                   data-testid={`widget-${widget.widgetId}`}
                                 />
                               )}
