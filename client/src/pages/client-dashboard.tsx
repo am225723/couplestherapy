@@ -444,11 +444,17 @@ export default function ClientDashboard() {
                                   <MessageCircle className="h-4 w-4 text-primary" />
                                   {therapistCardTitle}
                                 </CardTitle>
-                                <Link href="/therapist-thoughts">
-                                  <Button variant="ghost" size="sm" className="text-xs h-7" data-testid="button-view-all">
+                                {isEditMode ? (
+                                  <Button variant="ghost" size="sm" className="text-xs h-7" data-testid="button-view-all" disabled>
                                     View <ArrowRight className="ml-1 h-3 w-3" />
                                   </Button>
-                                </Link>
+                                ) : (
+                                  <Link href="/therapist-thoughts">
+                                    <Button variant="ghost" size="sm" className="text-xs h-7" data-testid="button-view-all">
+                                      View <ArrowRight className="ml-1 h-3 w-3" />
+                                    </Button>
+                                  </Link>
+                                )}
                               </div>
                             </CardHeader>
                             <CardContent className="relative z-10 space-y-2">
