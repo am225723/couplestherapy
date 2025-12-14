@@ -1,15 +1,13 @@
-import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAuth } from "@/lib/auth-context";
-import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { aiFunctions, PersonalizedTipResponse } from "@/lib/ai-functions";
-import { format, subDays } from "date-fns";
+import { format } from "date-fns";
 import {
   Heart,
   MessageCircle,
@@ -93,116 +91,13 @@ export default function DailySuggestion() {
   const { toast } = useToast();
   const coupleId = profile?.couple_id;
 
-  const today = format(new Date(), "yyyy-MM-dd");
-
   const { data: todaySuggestion, isLoading: suggestionLoading, refetch } = useQuery<SuggestionHistory | null>({
-    queryKey: ["/api/suggestion/today", coupleId],
-    queryFn: async () => {
-      if (!coupleId) return null;
-
-      const { data: existing, error: existingError } = await supabase
-        .from("Couples_suggestion_history")
-        .select("*, suggestion:Couples_daily_suggestions(*)")
-        .eq("couple_id", coupleId)
-        .eq("shown_date", today)
-        .single();
-
-      if (existing && !existingError) {
-        return {
-          ...existing,
-          suggestion: existing.suggestion as DailySuggestion,
-        };
-      }
-
-      const sevenDaysAgo = format(subDays(new Date(), 7), "yyyy-MM-dd");
-      const { data: recentShown } = await supabase
-        .from("Couples_suggestion_history")
-        .select("suggestion_id")
-        .eq("couple_id", coupleId)
-        .gte("shown_date", sevenDaysAgo);
-
-      const recentIds = new Set(recentShown?.map((r) => r.suggestion_id) || []);
-
-      const { data: allSuggestions, error: suggestionsError } = await supabase
-        .from("Couples_daily_suggestions")
-        .select("*")
-        .eq("is_active", true);
-
-      if (suggestionsError) throw suggestionsError;
-
-      const suggestions = (allSuggestions || []).filter(
-        (s) => !recentIds.has(s.id)
-      );
-
-      if (!suggestions || suggestions.length === 0) {
-        const { data: anySuggestion } = await supabase
-          .from("Couples_daily_suggestions")
-          .select("*")
-          .eq("is_active", true)
-          .limit(1)
-          .single();
-
-        if (!anySuggestion) return null;
-
-        const { data: newHistory, error: insertError } = await supabase
-          .from("Couples_suggestion_history")
-          .insert({
-            id: crypto.randomUUID(),
-            couple_id: coupleId,
-            suggestion_id: anySuggestion.id,
-            shown_date: today,
-            completed: false,
-          })
-          .select("*, suggestion:Couples_daily_suggestions(*)")
-          .single();
-
-        if (insertError) throw insertError;
-        return {
-          ...newHistory,
-          suggestion: newHistory.suggestion as DailySuggestion,
-        };
-      }
-
-      const randomIndex = Math.floor(Math.random() * suggestions.length);
-      const selectedSuggestion = suggestions[randomIndex];
-
-      const { data: newHistory, error: insertError } = await supabase
-        .from("Couples_suggestion_history")
-        .insert({
-          id: crypto.randomUUID(),
-          couple_id: coupleId,
-          suggestion_id: selectedSuggestion.id,
-          shown_date: today,
-          completed: false,
-        })
-        .select("*, suggestion:Couples_daily_suggestions(*)")
-        .single();
-
-      if (insertError) throw insertError;
-      return {
-        ...newHistory,
-        suggestion: newHistory.suggestion as DailySuggestion,
-      };
-    },
+    queryKey: [`/api/daily-suggestion/today/${coupleId}`],
     enabled: !!coupleId,
   });
 
   const { data: history, isLoading: historyLoading } = useQuery<SuggestionHistory[]>({
-    queryKey: ["/api/suggestion/history", coupleId],
-    queryFn: async () => {
-      if (!coupleId) return [];
-      const { data, error } = await supabase
-        .from("Couples_suggestion_history")
-        .select("*, suggestion:Couples_daily_suggestions(*)")
-        .eq("couple_id", coupleId)
-        .order("shown_date", { ascending: false })
-        .limit(14);
-      if (error) throw error;
-      return (data || []).map((h) => ({
-        ...h,
-        suggestion: h.suggestion as DailySuggestion,
-      }));
-    },
+    queryKey: [`/api/daily-suggestion/history/${coupleId}`],
     enabled: !!coupleId,
   });
 
@@ -217,16 +112,11 @@ export default function DailySuggestion() {
   const completeMutation = useMutation({
     mutationFn: async () => {
       if (!todaySuggestion) throw new Error("No suggestion to complete");
-      const { error } = await supabase
-        .from("Couples_suggestion_history")
-        .update({ completed: true })
-        .eq("id", todaySuggestion.id);
-      if (error) throw error;
+      return apiRequest("PATCH", `/api/daily-suggestion/complete/${todaySuggestion.id}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/suggestion/today"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/suggestion/history"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/daily-suggestion"] });
+      queryClient.invalidateQueries({ queryKey: [`/api/daily-suggestion/today/${coupleId}`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/daily-suggestion/history/${coupleId}`] });
       toast({
         title: "Great job!",
         description: "You completed today's relationship suggestion.",

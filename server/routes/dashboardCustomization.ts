@@ -114,37 +114,49 @@ dashboardCustomizationRouter.patch(
       // First get existing data (don't use .single() as it throws if no row exists)
       const { data: existingArray, error: fetchError } = await supabaseAdmin
         .from("Couples_dashboard_customization")
-        .select("*")
+        .select("couple_id, therapist_id, widget_order, enabled_widgets, widget_sizes, widget_content_overrides")
         .eq("couple_id", coupleId);
 
       const existing = Array.isArray(existingArray) && existingArray.length > 0 ? existingArray[0] : null;
 
-      // Merge updates with existing data
-      const merged = {
+      // Build merged object with all fields
+      const merged: Record<string, any> = {
         couple_id: coupleId,
-        therapist_id: updates.therapist_id ?? existing?.therapist_id,
-        widget_order: updates.widget_order ?? existing?.widget_order ?? [
-          "weekly-checkin",
-          "love-languages",
-          "gratitude",
-          "shared-goals",
-          "conversations",
-          "love-map",
-          "voice-memos",
-          "calendar",
-          "rituals",
-        ],
-        enabled_widgets: updates.enabled_widgets !== undefined 
-          ? { ...(existing?.enabled_widgets || {}), ...updates.enabled_widgets }
-          : existing?.enabled_widgets || {},
-        widget_sizes: updates.widget_sizes !== undefined
-          ? { ...(existing?.widget_sizes || {}), ...updates.widget_sizes }
-          : existing?.widget_sizes || {},
-        widget_content_overrides: updates.widget_content_overrides !== undefined
-          ? { ...(existing?.widget_content_overrides || {}), ...updates.widget_content_overrides }
-          : existing?.widget_content_overrides || {},
         updated_at: new Date().toISOString(),
       };
+
+      // Only include therapist_id if provided or exists
+      if (updates.therapist_id !== undefined || existing?.therapist_id) {
+        merged.therapist_id = updates.therapist_id ?? existing?.therapist_id;
+      }
+
+      // Handle widget_order
+      merged.widget_order = updates.widget_order ?? existing?.widget_order ?? [
+        "weekly-checkin",
+        "love-languages",
+        "gratitude",
+        "shared-goals",
+        "conversations",
+        "love-map",
+        "voice-memos",
+        "calendar",
+        "rituals",
+      ];
+
+      // Handle enabled_widgets
+      merged.enabled_widgets = updates.enabled_widgets !== undefined 
+        ? { ...(existing?.enabled_widgets || {}), ...updates.enabled_widgets }
+        : existing?.enabled_widgets || {};
+
+      // Handle widget_sizes
+      merged.widget_sizes = updates.widget_sizes !== undefined
+        ? { ...(existing?.widget_sizes || {}), ...updates.widget_sizes }
+        : existing?.widget_sizes || {};
+
+      // Handle widget_content_overrides
+      merged.widget_content_overrides = updates.widget_content_overrides !== undefined
+        ? { ...(existing?.widget_content_overrides || {}), ...updates.widget_content_overrides }
+        : existing?.widget_content_overrides || {};
 
       const { data, error } = await supabaseAdmin
         .from("Couples_dashboard_customization")

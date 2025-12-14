@@ -279,22 +279,8 @@ export default function ClientDashboard() {
     staleTime: 1000 * 60 * 5,
   });
 
-  const today = new Date().toISOString().split("T")[0];
   const dailySuggestionQuery = useQuery<any>({
-    queryKey: ["/api/daily-suggestion", profile?.couple_id],
-    queryFn: async () => {
-      if (!profile?.couple_id) return null;
-      const { data, error } = await supabase
-        .from("Couples_suggestion_history")
-        .select("id, completed, suggestion:Couples_daily_suggestions(id, category, title, description, action_prompt)")
-        .eq("couple_id", profile.couple_id)
-        .eq("shown_date", today)
-        .single();
-      if (error && error.code !== "PGRST116") throw error;
-      if (!data) return null;
-      const suggestionData = Array.isArray(data.suggestion) ? data.suggestion[0] : data.suggestion;
-      return { id: data.id, completed: data.completed, suggestion: suggestionData };
-    },
+    queryKey: [`/api/daily-suggestion/today/${profile?.couple_id}`],
     enabled: !!profile?.couple_id,
     staleTime: 1000 * 60 * 60,
   });
