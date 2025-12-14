@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { Link, useLocation, useSearch } from "wouter";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -143,6 +143,9 @@ export default function ClientDashboard() {
   }, [navigate]);
   
   const [localWidgetOrder, setLocalWidgetOrder] = useState<string[]>([]);
+  const [resizingWidget, setResizingWidget] = useState<string | null>(null);
+  const [previewSize, setPreviewSize] = useState<{ widgetId: string; cols: 1 | 2 } | null>(null);
+  const resizeStartRef = useRef<{ x: number; cols: 1 | 2 } | null>(null);
   const { toast } = useToast();
 
   const recommendationsQuery = useQuery<ExerciseRecommendationsResponse>({
@@ -164,21 +167,107 @@ export default function ClientDashboard() {
   });
 
   const getWidgetSize = (widgetId: string) => {
-    return customizationQuery.data?.widget_sizes?.[widgetId] || { cols: 1, rows: 1 };
+    const baseSize = customizationQuery.data?.widget_sizes?.[widgetId] || { cols: 1, rows: 1 };
+    if (previewSize && previewSize.widgetId === widgetId) {
+      return { cols: previewSize.cols, rows: baseSize.rows };
+    }
+    return baseSize;
   };
 
   const updateWidgetSize = async (widgetId: string, cols: 1 | 2, rows: 1 | 2) => {
+    const queryKey = [`/api/dashboard-customization/couple/${profile?.couple_id}`];
+    const previousData = queryClient.getQueryData<{
+      widget_order: string[];
+      enabled_widgets: Record<string, boolean>;
+      widget_sizes?: Record<string, { cols: 1 | 2; rows: 1 | 2 }>;
+      widget_content_overrides?: Record<string, any>;
+    }>(queryKey);
+    
+    const currentSizes = previousData?.widget_sizes || {};
+    const newSizes = { ...currentSizes, [widgetId]: { cols, rows } };
+    
+    queryClient.setQueryData(queryKey, {
+      ...previousData,
+      widget_sizes: newSizes,
+    });
+    
     try {
-      const currentSizes = customizationQuery.data?.widget_sizes || {};
       await apiRequest("PATCH", `/api/dashboard-customization/couple/${profile?.couple_id}`, {
-        widget_sizes: { ...currentSizes, [widgetId]: { cols, rows } },
+        widget_sizes: newSizes,
       });
-      queryClient.invalidateQueries({ queryKey: [`/api/dashboard-customization/couple/${profile?.couple_id}`] });
+      queryClient.invalidateQueries({ queryKey });
       toast({ title: "Widget resized", description: "Your layout has been saved" });
     } catch (error) {
+      queryClient.setQueryData(queryKey, previousData);
       toast({ title: "Error", description: "Failed to resize widget", variant: "destructive" });
     }
   };
+
+  const handleResizeStart = useCallback((e: React.PointerEvent, widgetId: string, currentCols: 1 | 2) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setResizingWidget(widgetId);
+    setPreviewSize({ widgetId, cols: currentCols });
+    resizeStartRef.current = { x: e.clientX, cols: currentCols };
+    (e.target as HTMLElement).setPointerCapture(e.pointerId);
+  }, []);
+
+  const handleResizeMove = useCallback((e: React.PointerEvent, widgetId: string) => {
+    if (!resizingWidget || !resizeStartRef.current || resizingWidget !== widgetId) return;
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const deltaX = e.clientX - resizeStartRef.current.x;
+    const threshold = 60;
+    const startCols = resizeStartRef.current.cols;
+    
+    let newCols: 1 | 2 = startCols;
+    if (startCols === 1 && deltaX > threshold) {
+      newCols = 2;
+    } else if (startCols === 2 && deltaX < -threshold) {
+      newCols = 1;
+    }
+    
+    if (previewSize?.cols !== newCols) {
+      setPreviewSize({ widgetId, cols: newCols });
+    }
+  }, [resizingWidget, previewSize]);
+
+  const handleResizeEnd = useCallback((e: React.PointerEvent, widgetId: string, currentRows: 1 | 2) => {
+    if (!resizingWidget || !resizeStartRef.current) return;
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const startCols = resizeStartRef.current.cols;
+    const newCols = previewSize?.cols || startCols;
+    
+    (e.target as HTMLElement).releasePointerCapture(e.pointerId);
+    setResizingWidget(null);
+    resizeStartRef.current = null;
+    
+    if (newCols !== startCols) {
+      const queryKey = [`/api/dashboard-customization/couple/${profile?.couple_id}`];
+      const previousData = queryClient.getQueryData<any>(queryKey);
+      const currentSizes = previousData?.widget_sizes || {};
+      
+      apiRequest("PATCH", `/api/dashboard-customization/couple/${profile?.couple_id}`, {
+        widget_sizes: { ...currentSizes, [widgetId]: { cols: newCols, rows: currentRows } },
+      }).then(() => {
+        queryClient.setQueryData(queryKey, {
+          ...previousData,
+          widget_sizes: { ...currentSizes, [widgetId]: { cols: newCols, rows: currentRows } },
+        });
+        setPreviewSize(null);
+        queryClient.invalidateQueries({ queryKey });
+        toast({ title: "Widget resized", description: "Your layout has been saved" });
+      }).catch(() => {
+        setPreviewSize(null);
+        toast({ title: "Error", description: "Failed to resize widget", variant: "destructive" });
+      });
+    } else {
+      setPreviewSize(null);
+    }
+  }, [resizingWidget, previewSize, profile?.couple_id, toast]);
 
   const therapistCardOverrides = customizationQuery.data?.widget_content_overrides?.["therapist-thoughts"] || {};
   const therapistCardTitle = therapistCardOverrides.title || "From Your Therapist";
@@ -606,7 +695,7 @@ export default function ClientDashboard() {
 
                     if (isEditMode) {
                       return (
-                        <Draggable key={widget.widgetId} draggableId={widget.widgetId} index={index}>
+                        <Draggable key={widget.widgetId} draggableId={widget.widgetId} index={index} isDragDisabled={resizingWidget !== null}>
                           {(provided, snapshot) => (
                             <div
                               ref={provided.innerRef}
@@ -650,6 +739,25 @@ export default function ClientDashboard() {
                                 >
                                   <EyeOff className="h-3 w-3" />
                                 </button>
+                              </div>
+                              <div
+                                className={cn(
+                                  "absolute bottom-2 right-2 z-20 p-1.5 rounded-lg bg-background/80 backdrop-blur-sm border shadow-sm cursor-ew-resize touch-none select-none transition-all",
+                                  resizingWidget === widget.widgetId 
+                                    ? "opacity-100 ring-2 ring-primary" 
+                                    : "opacity-0 group-hover:opacity-100"
+                                )}
+                                onPointerDown={(e) => handleResizeStart(e, widget.widgetId, widgetSize.cols)}
+                                onPointerMove={(e) => handleResizeMove(e, widget.widgetId)}
+                                onPointerUp={(e) => handleResizeEnd(e, widget.widgetId, widgetSize.rows)}
+                                onPointerCancel={() => {
+                                  setResizingWidget(null);
+                                  resizeStartRef.current = null;
+                                  setPreviewSize(null);
+                                }}
+                                data-testid={`resize-handle-${widget.widgetId}`}
+                              >
+                                <Maximize2 className="h-4 w-4 text-muted-foreground" />
                               </div>
                               {widget.type ? specialContent : (
                                 <LuxuryWidget
