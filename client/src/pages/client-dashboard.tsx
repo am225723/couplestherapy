@@ -33,7 +33,7 @@ import {
   Droppable,
   Draggable,
   DropResult,
-} from "react-beautiful-dnd";
+} from "@hello-pangea/dnd";
 import type { LucideIcon } from "lucide-react";
 import {
   Heart,
