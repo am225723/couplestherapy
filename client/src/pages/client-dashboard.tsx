@@ -499,7 +499,7 @@ export default function ClientDashboard() {
                 <div
                   ref={provided.innerRef}
                   {...provided.droppableProps}
-                  className="grid grid-cols-1 sm:grid-cols-2 gap-4"
+                  className="grid grid-cols-2 gap-3"
                 >
                   {orderedWidgets.map((widget, index) => {
                     const Icon = widget.icon;
@@ -672,7 +672,7 @@ export default function ClientDashboard() {
 
                     const specialContent = widget.type ? renderSpecialWidget() : null;
                     const widgetSize = getWidgetSize(widget.widgetId);
-                    const colSpanClass = widgetSize.cols === 2 ? "sm:col-span-2" : "";
+                    const colSpanClass = widgetSize.cols === 2 ? "col-span-2" : "";
                     const rowSpanClass = widgetSize.rows === 2 ? "row-span-2" : "";
 
                     if (isEditMode) {
