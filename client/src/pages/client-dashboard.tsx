@@ -562,7 +562,7 @@ export default function ClientDashboard() {
                       }
 
                       if (widget.type === "suggestion") {
-                        const hasData = dailySuggestionQuery.isSuccess && dailySuggestionQuery.data?.suggestion;
+                        const hasData = dailySuggestionQuery.isSuccess && dailySuggestionQuery.data?.tip_text;
                         const suggestionCard = (
                           <Card className="glass-card border-none overflow-hidden cursor-pointer h-full luxury-widget" data-testid="card-suggestion">
                             <div className="gradient-animate bg-gradient-to-br from-emerald-500/10 to-teal-500/8" />
@@ -570,11 +570,11 @@ export default function ClientDashboard() {
                               <div className="flex items-center justify-between flex-wrap gap-2">
                                 <CardTitle className="text-sm flex items-center gap-2">
                                   <Sparkles className="h-4 w-4 text-emerald-500" />
-                                  Today's Suggestion
+                                  Today's Tip
                                 </CardTitle>
-                                {hasData && (
-                                  <Badge variant={dailySuggestionQuery.data.completed ? "default" : "secondary"} className="text-xs">
-                                    {dailySuggestionQuery.data.completed ? "Done" : dailySuggestionQuery.data.suggestion.category}
+                                {hasData && dailySuggestionQuery.data.category && (
+                                  <Badge variant="secondary" className="text-xs capitalize">
+                                    {dailySuggestionQuery.data.category}
                                   </Badge>
                                 )}
                               </div>
@@ -586,10 +586,7 @@ export default function ClientDashboard() {
                                   <div className="h-3 bg-muted rounded w-1/2" />
                                 </div>
                               ) : hasData ? (
-                                <>
-                                  <p className="font-semibold text-sm">{dailySuggestionQuery.data.suggestion.title}</p>
-                                  <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{dailySuggestionQuery.data.suggestion.description}</p>
-                                </>
+                                <p className="text-sm line-clamp-3">{dailySuggestionQuery.data.tip_text}</p>
                               ) : (
                                 <p className="text-xs text-muted-foreground text-center py-2">Check back tomorrow</p>
                               )}
