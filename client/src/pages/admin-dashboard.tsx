@@ -112,6 +112,7 @@ import "react-big-calendar/lib/css/react-big-calendar.css";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { aiFunctions } from "@/lib/ai-functions";
+import { invokeDashboardCustomization, type DashboardCustomization as DashboardCustomizationType } from "@/lib/dashboard-api";
 import adminHeroImage from "@assets/generated_images/Admin_app_hero_image_7f3581f4.png";
 
 const locales = {
@@ -212,8 +213,12 @@ export default function AdminDashboard() {
   const { toast } = useToast();
 
   // Fetch dashboard customization
-  const dashboardCustomizationQuery = useQuery({
+  const dashboardCustomizationQuery = useQuery<DashboardCustomizationType>({
     queryKey: [`/api/dashboard-customization/couple/${selectedCouple?.id}`],
+    queryFn: () => {
+      if (!selectedCouple?.id) throw new Error("No couple ID");
+      return invokeDashboardCustomization(selectedCouple.id, "GET");
+    },
     enabled: !!selectedCouple?.id,
   });
 

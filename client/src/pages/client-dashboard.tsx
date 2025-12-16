@@ -89,6 +89,7 @@ import {
 import { LoveLanguage } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { invokeDashboardCustomization, type DashboardCustomization } from "@/lib/dashboard-api";
 import { aiFunctions, ExerciseRecommendationsResponse } from "@/lib/ai-functions";
 import { LuxuryWidget, FeatureCard, StatWidget } from "@/components/luxury-widget";
 import { cn } from "@/lib/utils";
@@ -161,13 +162,12 @@ export default function ClientDashboard() {
     retry: 1,
   });
 
-  const customizationQuery = useQuery<{
-    widget_order: string[];
-    enabled_widgets: Record<string, boolean>;
-    widget_sizes?: Record<string, { cols: 1 | 2 | 3; rows: 1 | 2 }>;
-    widget_content_overrides?: Record<string, any>;
-  }>({
+  const customizationQuery = useQuery<DashboardCustomization>({
     queryKey: [`/api/dashboard-customization/couple/${profile?.couple_id}`],
+    queryFn: () => {
+      if (!profile?.couple_id) throw new Error("No couple ID");
+      return invokeDashboardCustomization(profile.couple_id, "GET");
+    },
     enabled: !!profile?.couple_id,
   });
 
@@ -206,13 +206,10 @@ export default function ClientDashboard() {
   };
 
   const updateWidgetSize = async (widgetId: string, cols: 1 | 2 | 3, rows: 1 | 2) => {
-    const queryKey = [`/api/dashboard-customization/couple/${profile?.couple_id}`];
-    const previousData = queryClient.getQueryData<{
-      widget_order: string[];
-      enabled_widgets: Record<string, boolean>;
-      widget_sizes?: Record<string, { cols: 1 | 2 | 3; rows: 1 | 2 }>;
-      widget_content_overrides?: Record<string, any>;
-    }>(queryKey);
+    if (!profile?.couple_id) return;
+    
+    const queryKey = [`/api/dashboard-customization/couple/${profile.couple_id}`];
+    const previousData = queryClient.getQueryData<DashboardCustomization>(queryKey);
     
     const currentSizes = previousData?.widget_sizes || {};
     const newSizes = { ...currentSizes, [widgetId]: { cols, rows } };
@@ -223,14 +220,15 @@ export default function ClientDashboard() {
     });
     
     try {
-      await apiRequest("PATCH", `/api/dashboard-customization/couple/${profile?.couple_id}`, {
+      await invokeDashboardCustomization(profile.couple_id, "PATCH", {
         widget_sizes: newSizes,
       });
       queryClient.invalidateQueries({ queryKey });
       toast({ title: "Widget resized", description: "Your layout has been saved" });
-    } catch (error) {
+    } catch (error: any) {
+      console.error("[Client Dashboard] Failed to resize widget:", error.message);
       queryClient.setQueryData(queryKey, previousData);
-      toast({ title: "Error", description: "Failed to resize widget", variant: "destructive" });
+      toast({ title: "Error", description: error.message || "Failed to resize widget", variant: "destructive" });
     }
   };
 
@@ -397,15 +395,18 @@ export default function ClientDashboard() {
   };
 
   const toggleWidget = useCallback(async (widgetId: string) => {
+    if (!profile?.couple_id) return;
+    
     const currentEnabled = isWidgetEnabled(widgetId);
     const newEnabled = { ...customizationQuery.data?.enabled_widgets, [widgetId]: !currentEnabled };
     try {
-      await apiRequest("PATCH", `/api/dashboard-customization/couple/${profile?.couple_id}`, {
+      await invokeDashboardCustomization(profile.couple_id, "PATCH", {
         enabled_widgets: newEnabled,
       });
-      queryClient.invalidateQueries({ queryKey: [`/api/dashboard-customization/couple/${profile?.couple_id}`] });
-    } catch (error) {
-      toast({ title: "Error", description: "Failed to update widget visibility", variant: "destructive" });
+      queryClient.invalidateQueries({ queryKey: [`/api/dashboard-customization/couple/${profile.couple_id}`] });
+    } catch (error: any) {
+      console.error("[Client Dashboard] Failed to toggle widget:", error.message);
+      toast({ title: "Error", description: error.message || "Failed to update widget visibility", variant: "destructive" });
     }
   }, [customizationQuery.data, profile?.couple_id, toast]);
 
@@ -415,13 +416,17 @@ export default function ClientDashboard() {
     const [reorderedItem] = items.splice(result.source.index, 1);
     items.splice(result.destination.index, 0, reorderedItem);
     setLocalWidgetOrder(items);
+    
+    if (!profile?.couple_id) return;
+    
     try {
-      await apiRequest("PATCH", `/api/dashboard-customization/couple/${profile?.couple_id}`, {
+      await invokeDashboardCustomization(profile.couple_id, "PATCH", {
         widget_order: items,
       });
-      queryClient.invalidateQueries({ queryKey: [`/api/dashboard-customization/couple/${profile?.couple_id}`] });
-    } catch (error) {
-      toast({ title: "Error", description: "Failed to save order", variant: "destructive" });
+      queryClient.invalidateQueries({ queryKey: [`/api/dashboard-customization/couple/${profile.couple_id}`] });
+    } catch (error: any) {
+      console.error("[Client Dashboard] Failed to save order:", error.message);
+      toast({ title: "Error", description: error.message || "Failed to save order", variant: "destructive" });
     }
   }, [localWidgetOrder, allWidgets, profile?.couple_id, toast]);
 

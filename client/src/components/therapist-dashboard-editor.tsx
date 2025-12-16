@@ -46,11 +46,12 @@ import {
   Settings2,
   CheckCircle2,
 } from "lucide-react";
-import { queryClient, apiRequest } from "@/lib/queryClient";
+import { queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { LuxuryWidget } from "@/components/luxury-widget";
 import { supabase } from "@/lib/supabase";
+import { invokeDashboardCustomization } from "@/lib/dashboard-api";
 import {
   Popover,
   PopoverContent,
@@ -120,6 +121,7 @@ export function TherapistDashboardEditor({ coupleId, coupleName }: TherapistDash
     widget_sizes?: Record<string, WidgetSize>;
   }>({
     queryKey: [`/api/dashboard-customization/couple/${coupleId}`],
+    queryFn: () => invokeDashboardCustomization(coupleId, "GET"),
     enabled: !!coupleId,
   });
 
@@ -240,7 +242,7 @@ export function TherapistDashboardEditor({ coupleId, coupleName }: TherapistDash
     
     setIsSaving(true);
     try {
-      await apiRequest("PATCH", `/api/dashboard-customization/couple/${coupleId}`, {
+      await invokeDashboardCustomization(coupleId, "PATCH", {
         enabled_widgets: newEnabled,
       });
       queryClient.invalidateQueries({ queryKey: [`/api/dashboard-customization/couple/${coupleId}`] });
@@ -261,7 +263,7 @@ export function TherapistDashboardEditor({ coupleId, coupleName }: TherapistDash
 
     setIsSaving(true);
     try {
-      await apiRequest("PATCH", `/api/dashboard-customization/couple/${coupleId}`, {
+      await invokeDashboardCustomization(coupleId, "PATCH", {
         widget_sizes: newSizes,
       });
       queryClient.invalidateQueries({ queryKey: [`/api/dashboard-customization/couple/${coupleId}`] });
@@ -282,7 +284,7 @@ export function TherapistDashboardEditor({ coupleId, coupleName }: TherapistDash
 
     setIsSaving(true);
     try {
-      await apiRequest("PATCH", `/api/dashboard-customization/couple/${coupleId}`, {
+      await invokeDashboardCustomization(coupleId, "PATCH", {
         widget_order: items,
       });
       queryClient.invalidateQueries({ queryKey: [`/api/dashboard-customization/couple/${coupleId}`] });
