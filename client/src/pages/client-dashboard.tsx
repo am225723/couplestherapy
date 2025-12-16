@@ -700,7 +700,7 @@ export default function ClientDashboard() {
                               className={cn(
                                 colSpanClass,
                                 rowSpanClass,
-                                "relative group",
+                                "relative group h-full",
                                 snapshot.isDragging && "z-50"
                               )}
                             >
@@ -771,7 +771,7 @@ export default function ClientDashboard() {
                     }
 
                     return (
-                      <div key={widget.widgetId} className={cn(colSpanClass, rowSpanClass)}>
+                      <div key={widget.widgetId} className={cn(colSpanClass, rowSpanClass, "h-full")}>
                         {widget.type ? specialContent : (
                           <LuxuryWidget
                             title={widget.title}
