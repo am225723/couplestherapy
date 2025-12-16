@@ -171,9 +171,7 @@ export default function ClientDashboard() {
 
   const normalizeWidgetSize = (raw: unknown): WidgetSize => {
     if (typeof raw === "string") {
-      const s = raw as LegacySize;
-      if (s === "small") return { cols: 1, rows: 1 };
-      return { cols: 2, rows: 1 };
+      return { cols: 1, rows: 1 };
     }
     if (raw && typeof raw === "object") {
       const r = raw as any;
