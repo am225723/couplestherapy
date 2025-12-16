@@ -520,6 +520,8 @@ export default function ClientDashboard() {
                     const Icon = widget.icon;
                     const variant = widgetVariants[widget.widgetId] || "default";
                     const widgetSizeClass = widget.size === "lg" ? "widget-lg" : widget.size === "md" ? "widget-md" : "widget-sm";
+                    const widgetSize = getWidgetSize(widget.widgetId);
+                    const isLargeHeight = widgetSize.rows === 2;
 
                     const renderSpecialWidget = () => {
                       if (widget.type === "therapist") {
@@ -599,7 +601,7 @@ export default function ClientDashboard() {
                                   <div className="h-3 bg-muted rounded w-1/2" />
                                 </div>
                               ) : hasData ? (
-                                <p className="text-sm line-clamp-3">{dailySuggestionQuery.data.tip_text}</p>
+                                <p className={cn("text-sm", isLargeHeight ? "line-clamp-none" : "line-clamp-3")}>{dailySuggestionQuery.data.tip_text}</p>
                               ) : (
                                 <p className="text-xs text-muted-foreground text-center py-2">Check back tomorrow</p>
                               )}
@@ -686,7 +688,6 @@ export default function ClientDashboard() {
                     };
 
                     const specialContent = widget.type ? renderSpecialWidget() : null;
-                    const widgetSize = getWidgetSize(widget.widgetId);
                     const colSpanClass = widgetSize.cols === 3 ? "col-span-3" : widgetSize.cols === 2 ? "col-span-2" : "";
                     const rowSpanClass = widgetSize.rows === 2 ? "row-span-2" : "";
 
