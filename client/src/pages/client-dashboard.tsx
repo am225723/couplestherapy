@@ -564,7 +564,7 @@ export default function ClientDashboard() {
                                           <MessageCircle className="h-3 w-3 text-primary" />
                                         )}
                                       </div>
-                                      <p className="text-xs line-clamp-1">{thought.title || thought.content}</p>
+                                      <p className={cn("text-xs", isLargeHeight ? "line-clamp-none" : "line-clamp-1")}>{thought.title || thought.content}</p>
                                     </div>
                                   </div>
                                 ))
@@ -635,7 +635,7 @@ export default function ClientDashboard() {
                                 recommendationsQuery.data.recommendations.slice(0, 2).map((rec: any, idx: number) => (
                                   <div key={idx} className="p-2 rounded-lg bg-background/60 backdrop-blur-sm border border-border/30">
                                     <p className="font-medium text-xs">{rec.tool_name}</p>
-                                    <p className="text-xs text-muted-foreground line-clamp-1">{rec.rationale}</p>
+                                    <p className={cn("text-xs text-muted-foreground", isLargeHeight ? "line-clamp-none" : "line-clamp-1")}>{rec.rationale}</p>
                                   </div>
                                 ))
                               ) : (
@@ -762,6 +762,7 @@ export default function ClientDashboard() {
                                   size={widget.size}
                                   isDragging={snapshot.isDragging}
                                   disableNavigation={true}
+                                  isLargeHeight={isLargeHeight}
                                   data-testid={`widget-${widget.widgetId}`}
                                 />
                               )}
@@ -781,6 +782,7 @@ export default function ClientDashboard() {
                             path={widget.path}
                             variant={variant}
                             size={widget.size}
+                            isLargeHeight={isLargeHeight}
                             data-testid={`widget-${widget.widgetId}`}
                           />
                         )}

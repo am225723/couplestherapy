@@ -16,6 +16,7 @@ interface LuxuryWidgetProps {
   isDragging?: boolean;
   dragHandleProps?: any;
   disableNavigation?: boolean;
+  isLargeHeight?: boolean;
 }
 
 const variantColors = {
@@ -77,6 +78,7 @@ export function LuxuryWidget({
   isDragging,
   dragHandleProps,
   disableNavigation = false,
+  isLargeHeight = false,
 }: LuxuryWidgetProps) {
   const colors = variantColors[variant];
   
@@ -115,7 +117,7 @@ export function LuxuryWidget({
             {title}
           </h3>
           {description && (
-            <p className="text-xs text-muted-foreground mt-1 line-clamp-2 leading-relaxed">
+            <p className={cn("text-xs text-muted-foreground mt-1 leading-relaxed", isLargeHeight ? "line-clamp-none" : "line-clamp-2")}>
               {description}
             </p>
           )}
