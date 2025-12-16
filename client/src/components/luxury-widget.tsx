@@ -125,11 +125,11 @@ export function LuxuryWidget({
   );
 
   if (disableNavigation) {
-    return <div className="block">{content}</div>;
+    return <div className="block h-full">{content}</div>;
   }
 
   return (
-    <Link href={path} className="block">
+    <Link href={path} className="block h-full">
       {content}
     </Link>
   );
