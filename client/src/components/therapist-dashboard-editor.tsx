@@ -46,7 +46,7 @@ import {
   Settings2,
   CheckCircle2,
 } from "lucide-react";
-import { queryClient } from "@/lib/queryClient";
+import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { LuxuryWidget } from "@/components/luxury-widget";
@@ -56,30 +56,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-
-const invokeDashboardCustomization = async (coupleId: string, method: string, body?: any) => {
-  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-  const session = await supabase.auth.getSession();
-  const token = session.data.session?.access_token;
-  
-  const url = `${supabaseUrl}/functions/v1/dashboard-customization?couple_id=${coupleId}`;
-  
-  const response = await fetch(url, {
-    method,
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${token}`,
-    },
-    body: body ? JSON.stringify(body) : undefined,
-  });
-  
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.error || "Failed to update dashboard");
-  }
-  
-  return response.json();
-};
 
 interface TherapistDashboardEditorProps {
   coupleId: string;
@@ -144,7 +120,6 @@ export function TherapistDashboardEditor({ coupleId, coupleName }: TherapistDash
     widget_sizes?: Record<string, WidgetSize>;
   }>({
     queryKey: [`/api/dashboard-customization/couple/${coupleId}`],
-    queryFn: async () => invokeDashboardCustomization(coupleId, "GET"),
     enabled: !!coupleId,
   });
 
@@ -265,7 +240,7 @@ export function TherapistDashboardEditor({ coupleId, coupleName }: TherapistDash
     
     setIsSaving(true);
     try {
-      await invokeDashboardCustomization(coupleId, "PATCH", {
+      await apiRequest("PATCH", `/api/dashboard-customization/couple/${coupleId}`, {
         enabled_widgets: newEnabled,
       });
       queryClient.invalidateQueries({ queryKey: [`/api/dashboard-customization/couple/${coupleId}`] });
@@ -286,7 +261,7 @@ export function TherapistDashboardEditor({ coupleId, coupleName }: TherapistDash
 
     setIsSaving(true);
     try {
-      await invokeDashboardCustomization(coupleId, "PATCH", {
+      await apiRequest("PATCH", `/api/dashboard-customization/couple/${coupleId}`, {
         widget_sizes: newSizes,
       });
       queryClient.invalidateQueries({ queryKey: [`/api/dashboard-customization/couple/${coupleId}`] });
@@ -307,7 +282,7 @@ export function TherapistDashboardEditor({ coupleId, coupleName }: TherapistDash
 
     setIsSaving(true);
     try {
-      await invokeDashboardCustomization(coupleId, "PATCH", {
+      await apiRequest("PATCH", `/api/dashboard-customization/couple/${coupleId}`, {
         widget_order: items,
       });
       queryClient.invalidateQueries({ queryKey: [`/api/dashboard-customization/couple/${coupleId}`] });
