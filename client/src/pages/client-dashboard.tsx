@@ -281,7 +281,7 @@ export default function ClientDashboard() {
   });
 
   const dailySuggestionQuery = useQuery<any>({
-    queryKey: [`/api/daily-suggestion/today/${profile?.couple_id}`],
+    queryKey: [`/api/daily-tips/couple/${profile?.couple_id}/today`],
     enabled: !!profile?.couple_id,
     staleTime: 1000 * 60 * 60,
   });
