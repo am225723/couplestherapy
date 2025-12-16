@@ -11,9 +11,10 @@ dashboardCustomizationRouter.get(
     try {
       const { coupleId } = req.params;
 
+      // Note: widget_content_overrides temporarily excluded due to Supabase schema cache issue
       const { data, error } = await supabaseAdmin
         .from("Couples_dashboard_customization")
-        .select("*")
+        .select("couple_id, therapist_id, widget_order, enabled_widgets, widget_sizes")
         .eq("couple_id", coupleId)
         .single();
 
@@ -66,9 +67,10 @@ dashboardCustomizationRouter.post(
   async (req: Request, res: Response) => {
     try {
       const { coupleId } = req.params;
-      const { therapist_id, widget_order, enabled_widgets, widget_sizes, widget_content_overrides } =
+      const { therapist_id, widget_order, enabled_widgets, widget_sizes } =
         req.body;
 
+      // Note: widget_content_overrides temporarily excluded due to Supabase schema cache issue
       const { data, error } = await supabaseAdmin
         .from("Couples_dashboard_customization")
         .upsert({
@@ -87,10 +89,9 @@ dashboardCustomizationRouter.post(
           ],
           enabled_widgets: enabled_widgets || {},
           widget_sizes: widget_sizes || {},
-          widget_content_overrides: widget_content_overrides || {},
           updated_at: new Date().toISOString(),
         })
-        .select()
+        .select("couple_id, therapist_id, widget_order, enabled_widgets, widget_sizes")
         .single();
 
       if (error) throw error;
@@ -112,9 +113,10 @@ dashboardCustomizationRouter.patch(
       const updates = req.body;
 
       // First get existing data (don't use .single() as it throws if no row exists)
+      // Note: widget_content_overrides temporarily excluded due to Supabase schema cache issue
       const { data: existingArray, error: fetchError } = await supabaseAdmin
         .from("Couples_dashboard_customization")
-        .select("couple_id, therapist_id, widget_order, enabled_widgets, widget_sizes, widget_content_overrides")
+        .select("couple_id, therapist_id, widget_order, enabled_widgets, widget_sizes")
         .eq("couple_id", coupleId);
 
       const existing = Array.isArray(existingArray) && existingArray.length > 0 ? existingArray[0] : null;
@@ -153,15 +155,10 @@ dashboardCustomizationRouter.patch(
         ? { ...(existing?.widget_sizes || {}), ...updates.widget_sizes }
         : existing?.widget_sizes || {};
 
-      // Handle widget_content_overrides
-      merged.widget_content_overrides = updates.widget_content_overrides !== undefined
-        ? { ...(existing?.widget_content_overrides || {}), ...updates.widget_content_overrides }
-        : existing?.widget_content_overrides || {};
-
       const { data, error } = await supabaseAdmin
         .from("Couples_dashboard_customization")
         .upsert(merged, { onConflict: "couple_id" })
-        .select()
+        .select("couple_id, therapist_id, widget_order, enabled_widgets, widget_sizes")
         .single();
 
       if (error) throw error;
