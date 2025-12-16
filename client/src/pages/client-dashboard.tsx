@@ -695,7 +695,7 @@ export default function ClientDashboard() {
                               >
                                 <GripVertical className="h-4 w-4 text-muted-foreground" />
                               </div>
-                              <div className="absolute top-2 right-2 z-20 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <div className="absolute top-2 right-2 z-20 flex gap-1">
                                 <Button
                                   size="icon"
                                   variant="secondary"
@@ -721,25 +721,6 @@ export default function ClientDashboard() {
                                 >
                                   <EyeOff className="h-3 w-3" />
                                 </button>
-                              </div>
-                              <div
-                                className={cn(
-                                  "absolute bottom-2 right-2 z-20 p-1.5 rounded-lg bg-background/80 backdrop-blur-sm border shadow-sm cursor-ew-resize touch-none select-none transition-all",
-                                  resizingWidget === widget.widgetId 
-                                    ? "opacity-100 ring-2 ring-primary" 
-                                    : "opacity-0 group-hover:opacity-100"
-                                )}
-                                onPointerDown={(e) => handleResizeStart(e, widget.widgetId, widgetSize.cols)}
-                                onPointerMove={(e) => handleResizeMove(e, widget.widgetId)}
-                                onPointerUp={(e) => handleResizeEnd(e, widget.widgetId, widgetSize.rows)}
-                                onPointerCancel={() => {
-                                  setResizingWidget(null);
-                                  resizeStartRef.current = null;
-                                  setPreviewSize(null);
-                                }}
-                                data-testid={`resize-handle-${widget.widgetId}`}
-                              >
-                                <Maximize2 className="h-4 w-4 text-muted-foreground" />
                               </div>
                               {widget.type ? specialContent : (
                                 <LuxuryWidget
