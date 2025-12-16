@@ -166,8 +166,27 @@ export default function ClientDashboard() {
     enabled: !!profile?.couple_id,
   });
 
-  const getWidgetSize = (widgetId: string) => {
-    const baseSize = customizationQuery.data?.widget_sizes?.[widgetId] || { cols: 1, rows: 1 };
+  type WidgetSize = { cols: 1 | 2; rows: 1 | 2 };
+  type LegacySize = "small" | "medium" | "large";
+
+  const normalizeWidgetSize = (raw: unknown): WidgetSize => {
+    if (typeof raw === "string") {
+      const s = raw as LegacySize;
+      if (s === "small") return { cols: 1, rows: 1 };
+      return { cols: 2, rows: 1 };
+    }
+    if (raw && typeof raw === "object") {
+      const r = raw as any;
+      const cols = r.cols === 2 ? 2 : 1;
+      const rows = r.rows === 2 ? 2 : 1;
+      return { cols, rows };
+    }
+    return { cols: 1, rows: 1 };
+  };
+
+  const getWidgetSize = (widgetId: string): WidgetSize => {
+    const raw = customizationQuery.data?.widget_sizes?.[widgetId];
+    const baseSize = normalizeWidgetSize(raw);
     if (previewSize && previewSize.widgetId === widgetId) {
       return { cols: previewSize.cols, rows: baseSize.rows };
     }
@@ -244,30 +263,12 @@ export default function ClientDashboard() {
     (e.target as HTMLElement).releasePointerCapture(e.pointerId);
     setResizingWidget(null);
     resizeStartRef.current = null;
+    setPreviewSize(null);
     
     if (newCols !== startCols) {
-      const queryKey = [`/api/dashboard-customization/couple/${profile?.couple_id}`];
-      const previousData = queryClient.getQueryData<any>(queryKey);
-      const currentSizes = previousData?.widget_sizes || {};
-      
-      apiRequest("PATCH", `/api/dashboard-customization/couple/${profile?.couple_id}`, {
-        widget_sizes: { ...currentSizes, [widgetId]: { cols: newCols, rows: currentRows } },
-      }).then(() => {
-        queryClient.setQueryData(queryKey, {
-          ...previousData,
-          widget_sizes: { ...currentSizes, [widgetId]: { cols: newCols, rows: currentRows } },
-        });
-        setPreviewSize(null);
-        queryClient.invalidateQueries({ queryKey });
-        toast({ title: "Widget resized", description: "Your layout has been saved" });
-      }).catch(() => {
-        setPreviewSize(null);
-        toast({ title: "Error", description: "Failed to resize widget", variant: "destructive" });
-      });
-    } else {
-      setPreviewSize(null);
+      updateWidgetSize(widgetId, newCols, currentRows);
     }
-  }, [resizingWidget, previewSize, profile?.couple_id, toast]);
+  }, [resizingWidget, previewSize]);
 
   const therapistCardOverrides = customizationQuery.data?.widget_content_overrides?.["therapist-thoughts"] || {};
   const therapistCardTitle = therapistCardOverrides.title || "From Your Therapist";
