@@ -514,6 +514,7 @@ export default function ClientDashboard() {
                   ref={provided.innerRef}
                   {...provided.droppableProps}
                   className="grid grid-cols-3 gap-3"
+                  style={{ gridAutoRows: "minmax(140px, auto)" }}
                 >
                   {orderedWidgets.map((widget, index) => {
                     const Icon = widget.icon;

@@ -84,9 +84,8 @@ export function LuxuryWidget({
     <div
       className={cn(
         "luxury-widget rounded-2xl p-touch relative cursor-pointer h-full",
-        "min-h-[140px] flex flex-col justify-between",
+        "min-h-[140px] flex flex-col",
         "shadow-lg hover:shadow-xl transition-shadow duration-300",
-        sizeClasses[size],
         colors.ring,
         colors.glow,
         isDragging && "opacity-50 scale-105",
@@ -97,15 +96,15 @@ export function LuxuryWidget({
     >
       <div className={cn("gradient-animate rounded-2xl bg-gradient-to-br", colors.gradient)} />
       
-      <div className="relative z-10 flex flex-col h-full">
-        <div className="flex items-start justify-between mb-auto">
+      <div className="relative z-10 flex flex-col h-full flex-1">
+        <div className="flex items-start justify-between">
           <div className={cn("p-2.5 rounded-xl", colors.iconBg)}>
             <Icon className={cn("h-5 w-5", colors.iconColor)} />
           </div>
         </div>
         
         {stat !== undefined && (
-          <div className="mt-3 mb-1">
+          <div className="mt-3 flex-1 flex flex-col justify-center">
             <div className="stat-value">{stat}</div>
             {statLabel && <div className="stat-label mt-1">{statLabel}</div>}
           </div>
