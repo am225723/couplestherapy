@@ -25,6 +25,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/lib/supabase";
 import { useQuery, useMutation } from "@tanstack/react-query";
@@ -144,7 +149,7 @@ export default function ClientDashboard() {
   
   const [localWidgetOrder, setLocalWidgetOrder] = useState<string[]>([]);
   const [resizingWidget, setResizingWidget] = useState<string | null>(null);
-  const [previewSize, setPreviewSize] = useState<{ widgetId: string; cols: 1 | 2 } | null>(null);
+  const [previewSize, setPreviewSize] = useState<{ widgetId: string; cols: 1 | 2 | 3 } | null>(null);
   const resizeStartRef = useRef<{ x: number; cols: 1 | 2 } | null>(null);
   const { toast } = useToast();
 
@@ -159,14 +164,23 @@ export default function ClientDashboard() {
   const customizationQuery = useQuery<{
     widget_order: string[];
     enabled_widgets: Record<string, boolean>;
-    widget_sizes?: Record<string, { cols: 1 | 2; rows: 1 | 2 }>;
+    widget_sizes?: Record<string, { cols: 1 | 2 | 3; rows: 1 | 2 }>;
     widget_content_overrides?: Record<string, any>;
   }>({
     queryKey: [`/api/dashboard-customization/couple/${profile?.couple_id}`],
     enabled: !!profile?.couple_id,
   });
 
-  type WidgetSize = { cols: 1 | 2; rows: 1 | 2 };
+  type WidgetSize = { cols: 1 | 2 | 3; rows: 1 | 2 };
+
+  const SIZE_OPTIONS: Array<{ cols: 1 | 2 | 3; rows: 1 | 2; label: string }> = [
+    { cols: 1, rows: 1, label: "1×1" },
+    { cols: 1, rows: 2, label: "1×2" },
+    { cols: 2, rows: 1, label: "2×1" },
+    { cols: 2, rows: 2, label: "2×2" },
+    { cols: 3, rows: 1, label: "3×1" },
+    { cols: 3, rows: 2, label: "3×2" },
+  ];
   type LegacySize = "small" | "medium" | "large";
 
   const normalizeWidgetSize = (raw: unknown): WidgetSize => {
@@ -175,7 +189,7 @@ export default function ClientDashboard() {
     }
     if (raw && typeof raw === "object") {
       const r = raw as any;
-      const cols = r.cols === 2 ? 2 : 1;
+      const cols = r.cols === 3 ? 3 : r.cols === 2 ? 2 : 1;
       const rows = r.rows === 2 ? 2 : 1;
       return { cols, rows };
     }
@@ -191,12 +205,12 @@ export default function ClientDashboard() {
     return baseSize;
   };
 
-  const updateWidgetSize = async (widgetId: string, cols: 1 | 2, rows: 1 | 2) => {
+  const updateWidgetSize = async (widgetId: string, cols: 1 | 2 | 3, rows: 1 | 2) => {
     const queryKey = [`/api/dashboard-customization/couple/${profile?.couple_id}`];
     const previousData = queryClient.getQueryData<{
       widget_order: string[];
       enabled_widgets: Record<string, boolean>;
-      widget_sizes?: Record<string, { cols: 1 | 2; rows: 1 | 2 }>;
+      widget_sizes?: Record<string, { cols: 1 | 2 | 3; rows: 1 | 2 }>;
       widget_content_overrides?: Record<string, any>;
     }>(queryKey);
     
@@ -499,7 +513,7 @@ export default function ClientDashboard() {
                 <div
                   ref={provided.innerRef}
                   {...provided.droppableProps}
-                  className="grid grid-cols-2 gap-3"
+                  className="grid grid-cols-3 gap-3"
                 >
                   {orderedWidgets.map((widget, index) => {
                     const Icon = widget.icon;
@@ -672,7 +686,7 @@ export default function ClientDashboard() {
 
                     const specialContent = widget.type ? renderSpecialWidget() : null;
                     const widgetSize = getWidgetSize(widget.widgetId);
-                    const colSpanClass = widgetSize.cols === 2 ? "col-span-2" : "";
+                    const colSpanClass = widgetSize.cols === 3 ? "col-span-3" : widgetSize.cols === 2 ? "col-span-2" : "";
                     const rowSpanClass = widgetSize.rows === 2 ? "row-span-2" : "";
 
                     if (isEditMode) {
@@ -696,20 +710,34 @@ export default function ClientDashboard() {
                                 <GripVertical className="h-4 w-4 text-muted-foreground" />
                               </div>
                               <div className="absolute top-2 right-2 z-20 flex gap-1">
-                                <Button
-                                  size="icon"
-                                  variant="secondary"
-                                  className="h-7 w-7 rounded-lg shadow-sm"
-                                  onClick={(e) => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    const newCols = widgetSize.cols === 2 ? 1 : 2;
-                                    updateWidgetSize(widget.widgetId, newCols as 1 | 2, widgetSize.rows);
-                                  }}
-                                  data-testid={`resize-width-${widget.widgetId}`}
-                                >
-                                  {widgetSize.cols === 2 ? <Minimize2 className="h-3 w-3" /> : <Maximize2 className="h-3 w-3" />}
-                                </Button>
+                                <Popover>
+                                  <PopoverTrigger asChild>
+                                    <Button
+                                      size="sm"
+                                      variant="secondary"
+                                      className="h-7 px-2 rounded-lg shadow-sm text-xs"
+                                      data-testid={`resize-${widget.widgetId}`}
+                                    >
+                                      {widgetSize.cols}×{widgetSize.rows}
+                                    </Button>
+                                  </PopoverTrigger>
+                                  <PopoverContent className="w-auto p-2" align="end">
+                                    <div className="grid grid-cols-3 gap-1">
+                                      {SIZE_OPTIONS.map((opt) => (
+                                        <Button
+                                          key={opt.label}
+                                          size="sm"
+                                          variant={widgetSize.cols === opt.cols && widgetSize.rows === opt.rows ? "default" : "ghost"}
+                                          className="h-8 text-xs"
+                                          onClick={() => updateWidgetSize(widget.widgetId, opt.cols, opt.rows)}
+                                          data-testid={`size-${widget.widgetId}-${opt.label}`}
+                                        >
+                                          {opt.label}
+                                        </Button>
+                                      ))}
+                                    </div>
+                                  </PopoverContent>
+                                </Popover>
                                 <button
                                   onClick={(e) => {
                                     e.preventDefault();

@@ -51,6 +51,11 @@ import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { LuxuryWidget } from "@/components/luxury-widget";
 import { supabase } from "@/lib/supabase";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 interface TherapistDashboardEditorProps {
   coupleId: string;
@@ -92,8 +97,17 @@ const widgetVariants: Record<string, "default" | "primary" | "accent" | "success
   "love-results": "accent",
 };
 
-type WidgetSize = { cols: 1 | 2; rows: 1 | 2 };
+type WidgetSize = { cols: 1 | 2 | 3; rows: 1 | 2 };
 type WidgetType = "standard" | "therapist" | "suggestion" | "ai" | "love-results";
+
+const SIZE_OPTIONS: Array<{ cols: 1 | 2 | 3; rows: 1 | 2; label: string }> = [
+  { cols: 1, rows: 1, label: "1×1" },
+  { cols: 1, rows: 2, label: "1×2" },
+  { cols: 2, rows: 1, label: "2×1" },
+  { cols: 2, rows: 2, label: "2×2" },
+  { cols: 3, rows: 1, label: "3×1" },
+  { cols: 3, rows: 2, label: "3×2" },
+];
 
 export function TherapistDashboardEditor({ coupleId, coupleName }: TherapistDashboardEditorProps) {
   const { toast } = useToast();
@@ -202,7 +216,7 @@ export function TherapistDashboardEditor({ coupleId, coupleName }: TherapistDash
     }
     if (raw && typeof raw === "object") {
       const r = raw as any;
-      const cols = r.cols === 2 ? 2 : 1;
+      const cols = r.cols === 3 ? 3 : r.cols === 2 ? 2 : 1;
       const rows = r.rows === 2 ? 2 : 1;
       return { cols, rows };
     }
@@ -241,7 +255,7 @@ export function TherapistDashboardEditor({ coupleId, coupleName }: TherapistDash
     }
   }, [customizationQuery.data, coupleId, toast]);
 
-  const updateWidgetSize = async (widgetId: string, cols: 1 | 2, rows: 1 | 2) => {
+  const updateWidgetSize = async (widgetId: string, cols: 1 | 2 | 3, rows: 1 | 2) => {
     const currentSizes = customizationQuery.data?.widget_sizes || {};
     const newSizes = { ...currentSizes, [widgetId]: { cols, rows } };
 
@@ -475,13 +489,13 @@ export function TherapistDashboardEditor({ coupleId, coupleName }: TherapistDash
               <div
                 ref={provided.innerRef}
                 {...provided.droppableProps}
-                className="grid grid-cols-2 gap-3"
+                className="grid grid-cols-3 gap-3"
               >
                 {orderedWidgets.map((widget, index) => {
                   const Icon = widget.icon;
                   const variant = widgetVariants[widget.widgetId] || "default";
                   const widgetSize = getWidgetSize(widget.widgetId);
-                  const colSpanClass = widgetSize.cols === 2 ? "col-span-2" : "";
+                  const colSpanClass = widgetSize.cols === 3 ? "col-span-3" : widgetSize.cols === 2 ? "col-span-2" : "";
                   const rowSpanClass = widgetSize.rows === 2 ? "row-span-2" : "";
 
                   const specialContent = widget.type ? renderSpecialWidget(widget) : null;
@@ -510,21 +524,34 @@ export function TherapistDashboardEditor({ coupleId, coupleName }: TherapistDash
                             <GripVertical className="h-4 w-4 text-muted-foreground" />
                           </div>
                           <div className="absolute top-2 right-2 z-20 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <Button
-                              size="icon"
-                              variant="secondary"
-                              className="h-7 w-7 rounded-lg shadow-sm"
-                              onClick={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                const currentSize = getWidgetSize(widget.widgetId);
-                                const newCols = currentSize.cols === 2 ? 1 : 2;
-                                updateWidgetSize(widget.widgetId, newCols as 1 | 2, currentSize.rows);
-                              }}
-                              data-testid={`resize-width-${widget.widgetId}`}
-                            >
-                              {widgetSize.cols === 2 ? <Minimize2 className="h-3 w-3" /> : <Maximize2 className="h-3 w-3" />}
-                            </Button>
+                            <Popover>
+                              <PopoverTrigger asChild>
+                                <Button
+                                  size="sm"
+                                  variant="secondary"
+                                  className="h-7 px-2 rounded-lg shadow-sm text-xs"
+                                  data-testid={`resize-${widget.widgetId}`}
+                                >
+                                  {widgetSize.cols}×{widgetSize.rows}
+                                </Button>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-auto p-2" align="end">
+                                <div className="grid grid-cols-3 gap-1">
+                                  {SIZE_OPTIONS.map((opt) => (
+                                    <Button
+                                      key={opt.label}
+                                      size="sm"
+                                      variant={widgetSize.cols === opt.cols && widgetSize.rows === opt.rows ? "default" : "ghost"}
+                                      className="h-8 text-xs"
+                                      onClick={() => updateWidgetSize(widget.widgetId, opt.cols, opt.rows)}
+                                      data-testid={`size-${widget.widgetId}-${opt.label}`}
+                                    >
+                                      {opt.label}
+                                    </Button>
+                                  ))}
+                                </div>
+                              </PopoverContent>
+                            </Popover>
                             <button
                               onClick={(e) => {
                                 e.preventDefault();
