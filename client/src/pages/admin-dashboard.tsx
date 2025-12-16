@@ -95,6 +95,7 @@ import {
   TherapistPrompt,
 } from "@shared/schema";
 import { DashboardCustomizer } from "@/components/dashboard-customizer";
+import { TherapistDashboardEditor } from "@/components/therapist-dashboard-editor";
 import { ScheduleNotificationDialog } from "@/components/schedule-notification-dialog";
 import { CheckinReminders } from "@/components/checkin-reminders";
 import { SessionNotesPanel } from "@/components/session-notes-panel";
@@ -1753,56 +1754,9 @@ export default function AdminDashboard() {
                   value="dashboard-customization"
                   className="space-y-4"
                 >
-                  <DashboardCustomizer
+                  <TherapistDashboardEditor
                     coupleId={selectedCouple.id}
-                    therapistId={profile?.id || ""}
-                    initialOrder={
-                      dashboardCustomizationQuery.data?.widget_order || [
-                        "date-night",
-                        "checkin-history",
-                        "ai-suggestions",
-                        "weekly-checkin",
-                        "love-languages",
-                        "gratitude",
-                        "shared-goals",
-                        "conversations",
-                        "love-map",
-                        "voice-memos",
-                        "calendar",
-                        "rituals",
-                        "four-horsemen",
-                        "demon-dialogues",
-                        "meditation",
-                        "intimacy",
-                        "values",
-                        "parenting",
-                      ]
-                    }
-                    initialEnabled={
-                      dashboardCustomizationQuery.data?.enabled_widgets || {
-                        "date-night": true,
-                        "checkin-history": true,
-                        "ai-suggestions": true,
-                        "weekly-checkin": true,
-                        "love-languages": true,
-                        gratitude: true,
-                        "shared-goals": true,
-                        conversations: true,
-                        "love-map": true,
-                        "voice-memos": true,
-                        calendar: true,
-                        rituals: true,
-                        "four-horsemen": true,
-                        "demon-dialogues": true,
-                        meditation: true,
-                        intimacy: true,
-                        values: true,
-                        parenting: true,
-                      }
-                    }
-                    initialContentOverrides={
-                      dashboardCustomizationQuery.data?.widget_content_overrides || {}
-                    }
+                    coupleName={`${selectedCouple.partner1?.full_name?.split(" ")[0] || "Partner 1"} & ${selectedCouple.partner2?.full_name?.split(" ")[0] || "Partner 2"}`}
                   />
                 </TabsContent>
 
