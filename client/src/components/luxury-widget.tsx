@@ -26,6 +26,7 @@ const variantColors = {
     gradient: "from-slate-400/20 via-slate-500/15 to-slate-600/10 dark:from-slate-500/30 dark:via-slate-600/25 dark:to-slate-700/20",
     ring: "ring-1 ring-slate-300/60 dark:ring-slate-600/60",
     glow: "",
+    border: "border-l-4 border-l-slate-500",
   },
   primary: {
     iconBg: "bg-gradient-to-br from-blue-400 to-indigo-500 dark:from-blue-500 dark:to-indigo-600",
@@ -33,6 +34,7 @@ const variantColors = {
     gradient: "from-blue-500/25 via-indigo-500/20 to-cyan-500/15 dark:from-blue-400/35 dark:via-indigo-400/30 dark:to-cyan-400/25",
     ring: "ring-1 ring-blue-300/70 dark:ring-blue-700/70",
     glow: "shadow-blue-500/10",
+    border: "border-l-4 border-l-blue-500",
   },
   accent: {
     iconBg: "bg-gradient-to-br from-purple-400 to-pink-500 dark:from-purple-500 dark:to-pink-600",
@@ -40,6 +42,7 @@ const variantColors = {
     gradient: "from-purple-500/25 via-pink-500/20 to-fuchsia-500/15 dark:from-purple-400/35 dark:via-pink-400/30 dark:to-fuchsia-400/25",
     ring: "ring-1 ring-purple-300/70 dark:ring-purple-700/70",
     glow: "shadow-purple-500/10",
+    border: "border-l-4 border-l-purple-500",
   },
   success: {
     iconBg: "bg-gradient-to-br from-emerald-400 to-teal-500 dark:from-emerald-500 dark:to-teal-600",
@@ -47,6 +50,7 @@ const variantColors = {
     gradient: "from-emerald-500/25 via-teal-500/20 to-green-500/15 dark:from-emerald-400/35 dark:via-teal-400/30 dark:to-green-400/25",
     ring: "ring-1 ring-emerald-300/70 dark:ring-emerald-700/70",
     glow: "shadow-emerald-500/10",
+    border: "border-l-4 border-l-emerald-500",
   },
   warning: {
     iconBg: "bg-gradient-to-br from-amber-400 to-orange-500 dark:from-amber-500 dark:to-orange-600",
@@ -54,6 +58,7 @@ const variantColors = {
     gradient: "from-amber-500/25 via-orange-500/20 to-yellow-500/15 dark:from-amber-400/35 dark:via-orange-400/30 dark:to-yellow-400/25",
     ring: "ring-1 ring-amber-300/70 dark:ring-amber-700/70",
     glow: "shadow-amber-500/10",
+    border: "border-l-4 border-l-amber-500",
   },
 };
 
@@ -90,6 +95,7 @@ export function LuxuryWidget({
         "shadow-lg hover:shadow-xl transition-shadow duration-300",
         colors.ring,
         colors.glow,
+        colors.border,
         isDragging && "opacity-50 scale-105",
         className
       )}
