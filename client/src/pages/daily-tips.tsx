@@ -37,6 +37,7 @@ import {
   RefreshCw,
   Settings,
 } from "lucide-react";
+import { formatAIText } from "@/lib/utils";
 
 interface DailyTip {
   id: string;
@@ -211,7 +212,7 @@ export default function DailyTips() {
           </CardHeader>
           <CardContent>
             <p className="text-lg leading-relaxed text-foreground">
-              {todayTip.tip_text}
+              {formatAIText(todayTip.tip_text)}
             </p>
             <p className="text-xs text-muted-foreground mt-4">
               Generated on{" "}
@@ -393,7 +394,7 @@ export default function DailyTips() {
                     })}
                   </span>
                 </div>
-                <p className="text-sm leading-relaxed">{tip.tip_text}</p>
+                <p className="text-sm leading-relaxed">{formatAIText(tip.tip_text)}</p>
               </div>
             ))}
           </CardContent>

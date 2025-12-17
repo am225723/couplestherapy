@@ -85,6 +85,8 @@ import {
   ChevronDown,
   Maximize2,
   Minimize2,
+  Plus,
+  Send,
 } from "lucide-react";
 import { LoveLanguage } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -92,7 +94,9 @@ import { useToast } from "@/hooks/use-toast";
 import { invokeDashboardCustomization, type DashboardCustomization } from "@/lib/dashboard-api";
 import { aiFunctions, ExerciseRecommendationsResponse } from "@/lib/ai-functions";
 import { LuxuryWidget, FeatureCard, StatWidget } from "@/components/luxury-widget";
-import { cn } from "@/lib/utils";
+import { cn, formatAIText } from "@/lib/utils";
+import { Input } from "@/components/ui/input";
+import { Slider } from "@/components/ui/slider";
 import { useTheme } from "@/components/theme-provider";
 import heroBackground from "@assets/download_1765665015150.jpg";
 
@@ -153,6 +157,63 @@ export default function ClientDashboard() {
   const [previewSize, setPreviewSize] = useState<{ widgetId: string; cols: 1 | 2 | 3 } | null>(null);
   const resizeStartRef = useRef<{ x: number; cols: 1 | 2 } | null>(null);
   const { toast } = useToast();
+
+  const [newTodoTitle, setNewTodoTitle] = useState("");
+  const [newChoreTitle, setNewChoreTitle] = useState("");
+  const [quickMoodLevel, setQuickMoodLevel] = useState([5]);
+  const [conflictText, setConflictText] = useState("");
+
+  const addTodoMutation = useMutation({
+    mutationFn: async (title: string) => {
+      if (!profile?.couple_id) throw new Error("No couple ID");
+      return apiRequest("POST", `/api/shared-todos/${profile.couple_id}`, { title, priority: "medium" });
+    },
+    onSuccess: () => {
+      setNewTodoTitle("");
+      queryClient.invalidateQueries({ queryKey: ["/api/shared-todos", profile?.couple_id] });
+      toast({ title: "Added", description: "New task added to your list" });
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Failed to add task", variant: "destructive" });
+    },
+  });
+
+  const addChoreMutation = useMutation({
+    mutationFn: async (title: string) => {
+      if (!profile?.couple_id) throw new Error("No couple ID");
+      return apiRequest("POST", `/api/chores/${profile.couple_id}`, { title, recurrence: "weekly" });
+    },
+    onSuccess: () => {
+      setNewChoreTitle("");
+      queryClient.invalidateQueries({ queryKey: ["/api/chores", profile?.couple_id] });
+      toast({ title: "Added", description: "New chore added to your chart" });
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Failed to add chore", variant: "destructive" });
+    },
+  });
+
+  const saveMoodMutation = useMutation({
+    mutationFn: async (level: number) => {
+      if (!profile?.couple_id || !user?.id) throw new Error("Not authenticated");
+      const { data, error } = await supabase
+        .from("Couples_mood_entries")
+        .insert({
+          couple_id: profile.couple_id,
+          user_id: user.id,
+          mood_level: level,
+          emotion: level >= 7 ? "Happy" : level >= 4 ? "Neutral" : "Stressed",
+        });
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      toast({ title: "Mood logged", description: "Your mood has been recorded" });
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Failed to save mood", variant: "destructive" });
+    },
+  });
 
   const recommendationsQuery = useQuery<ExerciseRecommendationsResponse>({
     queryKey: ["ai-exercise-recommendations", profile?.couple_id],
@@ -444,10 +505,10 @@ export default function ClientDashboard() {
     { widgetId: "session-notes", title: "Session Notes", description: "Summaries from your sessions", icon: FileText, path: "/session-notes", size: "md", type: "session-notes" },
     { widgetId: "messages", title: "Messages", description: "Secure messaging", icon: MessageCircle, path: "/messages", size: "sm" },
     { widgetId: "echo-empathy", title: "Echo & Empathy", description: "Practice listening", icon: Users, path: "/echo-empathy", size: "sm" },
-    { widgetId: "conflict", title: "Conflict Tools", description: "Resolve with I-Statements", icon: Scale, path: "/conflict-resolution", size: "sm" },
+    { widgetId: "conflict", title: "Conflict Tools", description: "Resolve with I-Statements", icon: Scale, path: "/conflict-resolution", size: "sm", type: "conflict" },
     { widgetId: "pause", title: "Pause", description: "Take a mindful break", icon: Pause, path: "/pause", size: "sm" },
     { widgetId: "journal", title: "Journal", description: "Write together", icon: BookMarked, path: "/couple-journal", size: "sm" },
-    { widgetId: "mood", title: "Mood", description: "Track wellbeing", icon: Smile, path: "/mood-tracker", size: "sm" },
+    { widgetId: "mood", title: "Mood", description: "Track wellbeing", icon: Smile, path: "/mood-tracker", size: "sm", type: "mood" },
     { widgetId: "ifs", title: "IFS", description: "Internal Family Systems", icon: Brain, path: "/ifs-intro", size: "sm" },
     { widgetId: "chores", title: "Chore Chart", description: "Track household tasks", icon: CheckSquare, path: "/chores", size: "md", type: "chores" },
     { widgetId: "todos", title: "To-Do List", description: "Shared tasks", icon: ListTodo, path: "/shared-todos", size: "md", type: "todos" },
@@ -676,7 +737,7 @@ export default function ClientDashboard() {
                                   <div className="h-3 bg-muted rounded w-1/2" />
                                 </div>
                               ) : hasData ? (
-                                <p className={cn("text-sm", isLargeHeight ? "line-clamp-none" : "line-clamp-3")}>{dailySuggestionQuery.data.tip_text}</p>
+                                <p className={cn("text-sm", isLargeHeight ? "line-clamp-none" : "line-clamp-3")}>{formatAIText(dailySuggestionQuery.data.tip_text)}</p>
                               ) : (
                                 <p className="text-xs text-muted-foreground text-center py-2">Check back tomorrow</p>
                               )}
@@ -840,8 +901,8 @@ export default function ClientDashboard() {
                       if (widget.type === "todos") {
                         const hasData = sharedTodosQuery.isSuccess && sharedTodosQuery.data && sharedTodosQuery.data.length > 0;
                         const incompleteTodos = sharedTodosQuery.data?.filter((t: any) => !t.is_completed) || [];
-                        const todosCard = (
-                          <Card className="glass-card border-none overflow-hidden h-full cursor-pointer luxury-widget">
+                        return (
+                          <Card className="glass-card border-none overflow-hidden h-full luxury-widget">
                             <div className="gradient-animate bg-gradient-to-br from-slate-500/8 to-gray-500/6" />
                             <CardHeader className="relative z-10 pb-2">
                               <div className="flex items-center justify-between flex-wrap gap-2">
@@ -855,33 +916,69 @@ export default function ClientDashboard() {
                               </div>
                             </CardHeader>
                             <CardContent className="relative z-10 space-y-1">
+                              <form 
+                                onSubmit={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  if (newTodoTitle.trim()) {
+                                    addTodoMutation.mutate(newTodoTitle.trim());
+                                  }
+                                }}
+                                className="flex gap-1 mb-2"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <Input
+                                  placeholder="Add task..."
+                                  value={newTodoTitle}
+                                  onChange={(e) => setNewTodoTitle(e.target.value)}
+                                  className="h-7 text-xs"
+                                  data-testid="input-add-todo"
+                                  onClick={(e) => e.stopPropagation()}
+                                />
+                                <Button 
+                                  type="submit" 
+                                  size="icon" 
+                                  variant="ghost" 
+                                  className="h-7 w-7 flex-shrink-0"
+                                  disabled={addTodoMutation.isPending || !newTodoTitle.trim()}
+                                  data-testid="button-add-todo"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  <Plus className="h-3 w-3" />
+                                </Button>
+                              </form>
                               {sharedTodosQuery.isLoading ? (
                                 <div className="animate-pulse space-y-2">
                                   <div className="h-4 bg-muted rounded w-3/4" />
                                   <div className="h-4 bg-muted rounded w-1/2" />
                                 </div>
                               ) : incompleteTodos.length > 0 ? (
-                                incompleteTodos.slice(0, isLargeHeight ? 5 : 3).map((todo: any) => (
-                                  <div key={todo.id} className="flex items-center gap-2 p-1.5 rounded bg-background/60">
-                                    <CheckSquare className="h-3 w-3 text-muted-foreground flex-shrink-0" />
-                                    <span className="text-xs truncate">{todo.title}</span>
-                                  </div>
-                                ))
+                                <>
+                                  {incompleteTodos.slice(0, isLargeHeight ? 4 : 2).map((todo: any) => (
+                                    <div key={todo.id} className="flex items-center gap-2 p-1.5 rounded bg-background/60">
+                                      <CheckSquare className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+                                      <span className="text-xs truncate">{todo.title}</span>
+                                    </div>
+                                  ))}
+                                  {!isEditMode && (
+                                    <Link href="/shared-todos" className="block">
+                                      <p className="text-xs text-primary text-center mt-1 hover:underline">View all tasks</p>
+                                    </Link>
+                                  )}
+                                </>
                               ) : (
                                 <p className="text-xs text-muted-foreground text-center py-2">No tasks pending</p>
                               )}
                             </CardContent>
                           </Card>
                         );
-                        if (isEditMode) return <div className="block h-full">{todosCard}</div>;
-                        return <Link href="/shared-todos" className="block h-full">{todosCard}</Link>;
                       }
 
                       if (widget.type === "chores") {
                         const hasData = choresQuery.isSuccess && choresQuery.data && choresQuery.data.length > 0;
                         const incompleteChores = choresQuery.data?.filter((c: any) => !c.is_completed) || [];
-                        const choresCard = (
-                          <Card className="glass-card border-none overflow-hidden h-full cursor-pointer luxury-widget">
+                        return (
+                          <Card className="glass-card border-none overflow-hidden h-full luxury-widget">
                             <div className="gradient-animate bg-gradient-to-br from-green-500/8 to-emerald-500/6" />
                             <CardHeader className="relative z-10 pb-2">
                               <div className="flex items-center justify-between flex-wrap gap-2">
@@ -895,26 +992,62 @@ export default function ClientDashboard() {
                               </div>
                             </CardHeader>
                             <CardContent className="relative z-10 space-y-1">
+                              <form 
+                                onSubmit={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  if (newChoreTitle.trim()) {
+                                    addChoreMutation.mutate(newChoreTitle.trim());
+                                  }
+                                }}
+                                className="flex gap-1 mb-2"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <Input
+                                  placeholder="Add chore..."
+                                  value={newChoreTitle}
+                                  onChange={(e) => setNewChoreTitle(e.target.value)}
+                                  className="h-7 text-xs"
+                                  data-testid="input-add-chore"
+                                  onClick={(e) => e.stopPropagation()}
+                                />
+                                <Button 
+                                  type="submit" 
+                                  size="icon" 
+                                  variant="ghost" 
+                                  className="h-7 w-7 flex-shrink-0"
+                                  disabled={addChoreMutation.isPending || !newChoreTitle.trim()}
+                                  data-testid="button-add-chore"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  <Plus className="h-3 w-3" />
+                                </Button>
+                              </form>
                               {choresQuery.isLoading ? (
                                 <div className="animate-pulse space-y-2">
                                   <div className="h-4 bg-muted rounded w-3/4" />
                                   <div className="h-4 bg-muted rounded w-1/2" />
                                 </div>
                               ) : incompleteChores.length > 0 ? (
-                                incompleteChores.slice(0, isLargeHeight ? 5 : 3).map((chore: any) => (
-                                  <div key={chore.id} className="flex items-center justify-between gap-2 p-1.5 rounded bg-background/60">
-                                    <span className="text-xs truncate">{chore.title}</span>
-                                    <Badge variant="outline" className="text-xs capitalize">{chore.recurrence}</Badge>
-                                  </div>
-                                ))
+                                <>
+                                  {incompleteChores.slice(0, isLargeHeight ? 4 : 2).map((chore: any) => (
+                                    <div key={chore.id} className="flex items-center justify-between gap-2 p-1.5 rounded bg-background/60">
+                                      <span className="text-xs truncate">{chore.title}</span>
+                                      <Badge variant="outline" className="text-xs capitalize">{chore.recurrence}</Badge>
+                                    </div>
+                                  ))}
+                                  {!isEditMode && (
+                                    <Link href="/chores" className="block">
+                                      <p className="text-xs text-primary text-center mt-1 hover:underline">View all chores</p>
+                                    </Link>
+                                  )}
+                                </>
                               ) : (
                                 <p className="text-xs text-muted-foreground text-center py-2">All chores done</p>
                               )}
                             </CardContent>
                           </Card>
                         );
-                        if (isEditMode) return <div className="block h-full">{choresCard}</div>;
-                        return <Link href="/chores" className="block h-full">{choresCard}</Link>;
                       }
 
                       if (widget.type === "checkin-history") {
@@ -988,6 +1121,112 @@ export default function ClientDashboard() {
                         );
                         if (isEditMode) return <div className="block h-full">{sessionCard}</div>;
                         return <Link href="/session-notes" className="block h-full">{sessionCard}</Link>;
+                      }
+
+                      if (widget.type === "mood") {
+                        const getMoodEmoji = (level: number) => {
+                          if (level >= 8) return "Great";
+                          if (level >= 6) return "Good";
+                          if (level >= 4) return "Okay";
+                          if (level >= 2) return "Low";
+                          return "Struggling";
+                        };
+                        const getMoodColor = (level: number) => {
+                          if (level >= 8) return "text-green-500";
+                          if (level >= 6) return "text-emerald-500";
+                          if (level >= 4) return "text-yellow-500";
+                          if (level >= 2) return "text-orange-500";
+                          return "text-red-500";
+                        };
+                        return (
+                          <Card className="glass-card border-none overflow-hidden h-full luxury-widget">
+                            <div className="gradient-animate bg-gradient-to-br from-amber-500/8 to-yellow-500/6" />
+                            <CardHeader className="relative z-10 pb-2">
+                              <div className="flex items-center justify-between flex-wrap gap-2">
+                                <CardTitle className="flex items-center gap-2 text-sm">
+                                  <Smile className="h-4 w-4 text-amber-500" />
+                                  Mood Check
+                                </CardTitle>
+                                <span className={cn("text-xs font-medium", getMoodColor(quickMoodLevel[0]))}>
+                                  {getMoodEmoji(quickMoodLevel[0])}
+                                </span>
+                              </div>
+                            </CardHeader>
+                            <CardContent className="relative z-10 space-y-3" onClick={(e) => e.stopPropagation()}>
+                              <div className="space-y-2">
+                                <Slider
+                                  value={quickMoodLevel}
+                                  onValueChange={setQuickMoodLevel}
+                                  min={1}
+                                  max={10}
+                                  step={1}
+                                  className="w-full"
+                                  data-testid="slider-mood"
+                                />
+                                <div className="flex justify-between text-xs text-muted-foreground">
+                                  <span>1</span>
+                                  <span className="font-medium">{quickMoodLevel[0]}/10</span>
+                                  <span>10</span>
+                                </div>
+                              </div>
+                              <Button
+                                size="sm"
+                                className="w-full h-7 text-xs"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  saveMoodMutation.mutate(quickMoodLevel[0]);
+                                }}
+                                disabled={saveMoodMutation.isPending}
+                                data-testid="button-save-mood"
+                              >
+                                {saveMoodMutation.isPending ? "Saving..." : "Log Mood"}
+                              </Button>
+                              {!isEditMode && (
+                                <Link href="/mood-tracker" className="block">
+                                  <p className="text-xs text-primary text-center hover:underline">View history</p>
+                                </Link>
+                              )}
+                            </CardContent>
+                          </Card>
+                        );
+                      }
+
+                      if (widget.type === "conflict") {
+                        return (
+                          <Card className="glass-card border-none overflow-hidden h-full luxury-widget">
+                            <div className="gradient-animate bg-gradient-to-br from-rose-500/8 to-pink-500/6" />
+                            <CardHeader className="relative z-10 pb-2">
+                              <CardTitle className="flex items-center gap-2 text-sm">
+                                <Scale className="h-4 w-4 text-rose-500" />
+                                Quick I-Statement
+                              </CardTitle>
+                            </CardHeader>
+                            <CardContent className="relative z-10 space-y-2" onClick={(e) => e.stopPropagation()}>
+                              <p className="text-xs text-muted-foreground">Express how you feel:</p>
+                              <div className="p-2 rounded-lg bg-background/60 border border-border/30">
+                                <p className="text-xs">
+                                  <span className="font-medium text-primary">I feel</span>{" "}
+                                  <Input
+                                    placeholder="upset"
+                                    value={conflictText}
+                                    onChange={(e) => setConflictText(e.target.value)}
+                                    className="inline-block w-20 h-5 text-xs px-1 py-0 mx-0.5"
+                                    onClick={(e) => e.stopPropagation()}
+                                    data-testid="input-conflict-feeling"
+                                  />{" "}
+                                  <span className="font-medium text-primary">when...</span>
+                                </p>
+                              </div>
+                              {!isEditMode && (
+                                <Link href="/conflict-resolution" className="block">
+                                  <Button variant="outline" size="sm" className="w-full h-7 text-xs" data-testid="button-continue-conflict">
+                                    Continue exercise
+                                  </Button>
+                                </Link>
+                              )}
+                            </CardContent>
+                          </Card>
+                        );
                       }
 
                       return null;
