@@ -32,6 +32,7 @@ import {
 } from "@/components/ui/popover";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/lib/supabase";
+import { authenticatedFetchJson } from "@/lib/authenticated-fetch";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import {
   DragDropContext,
@@ -96,6 +97,7 @@ import { aiFunctions, ExerciseRecommendationsResponse } from "@/lib/ai-functions
 import { LuxuryWidget, FeatureCard, StatWidget } from "@/components/luxury-widget";
 import { cn, formatAIText } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Slider } from "@/components/ui/slider";
 import { useTheme } from "@/components/theme-provider";
 import heroBackground from "@assets/download_1765665015150.jpg";
@@ -166,7 +168,11 @@ export default function ClientDashboard() {
   const addTodoMutation = useMutation({
     mutationFn: async (title: string) => {
       if (!profile?.couple_id) throw new Error("No couple ID");
-      return apiRequest("POST", `/api/shared-todos/${profile.couple_id}`, { title, priority: "medium" });
+      return apiRequest("POST", `/api/shared-todos`, { 
+        couple_id: profile.couple_id,
+        title, 
+        priority: "medium" 
+      });
     },
     onSuccess: () => {
       setNewTodoTitle("");
@@ -180,8 +186,12 @@ export default function ClientDashboard() {
 
   const addChoreMutation = useMutation({
     mutationFn: async (title: string) => {
-      if (!profile?.couple_id) throw new Error("No couple ID");
-      return apiRequest("POST", `/api/chores/${profile.couple_id}`, { title, recurrence: "weekly" });
+      if (!profile?.couple_id || !user?.id) throw new Error("No couple ID");
+      return apiRequest("POST", `/api/chores/couple/${profile.couple_id}`, { 
+        title, 
+        recurrence: "weekly",
+        assigned_to: user.id
+      });
     },
     onSuccess: () => {
       setNewChoreTitle("");
@@ -193,6 +203,18 @@ export default function ClientDashboard() {
     },
   });
 
+  const getMoodEmotion = (level: number): string => {
+    if (level >= 9) return "Ecstatic";
+    if (level >= 8) return "Joyful";
+    if (level >= 7) return "Happy";
+    if (level >= 6) return "Content";
+    if (level >= 5) return "Neutral";
+    if (level >= 4) return "Uneasy";
+    if (level >= 3) return "Stressed";
+    if (level >= 2) return "Frustrated";
+    return "Overwhelmed";
+  };
+
   const saveMoodMutation = useMutation({
     mutationFn: async (level: number) => {
       if (!profile?.couple_id || !user?.id) throw new Error("Not authenticated");
@@ -202,15 +224,18 @@ export default function ClientDashboard() {
           couple_id: profile.couple_id,
           user_id: user.id,
           mood_level: level,
-          emotion: level >= 7 ? "Happy" : level >= 4 ? "Neutral" : "Stressed",
-        });
+          emotion: getMoodEmotion(level),
+        })
+        .select()
+        .single();
       if (error) throw error;
       return data;
     },
     onSuccess: () => {
       toast({ title: "Mood logged", description: "Your mood has been recorded" });
     },
-    onError: () => {
+    onError: (error: any) => {
+      console.error("Mood save error:", error);
       toast({ title: "Error", description: "Failed to save mood", variant: "destructive" });
     },
   });
@@ -401,12 +426,20 @@ export default function ClientDashboard() {
 
   const sharedTodosQuery = useQuery<any[]>({
     queryKey: ["/api/shared-todos", profile?.couple_id],
+    queryFn: async () => {
+      if (!profile?.couple_id) return [];
+      return authenticatedFetchJson(`/api/shared-todos/couple/${profile.couple_id}`);
+    },
     enabled: !!profile?.couple_id,
     staleTime: 1000 * 60 * 5,
   });
 
   const choresQuery = useQuery<any[]>({
     queryKey: ["/api/chores", profile?.couple_id],
+    queryFn: async () => {
+      if (!profile?.couple_id) return [];
+      return authenticatedFetchJson(`/api/chores/couple/${profile.couple_id}`);
+    },
     enabled: !!profile?.couple_id,
     staleTime: 1000 * 60 * 5,
   });
@@ -470,7 +503,7 @@ export default function ClientDashboard() {
     }
   };
 
-  type WidgetType = "standard" | "therapist" | "suggestion" | "ai" | "love-results" | "attachment" | "enneagram" | "todos" | "chores" | "checkin-history" | "session-notes";
+  type WidgetType = "standard" | "therapist" | "suggestion" | "ai" | "love-results" | "attachment" | "enneagram" | "todos" | "chores" | "checkin-history" | "session-notes" | "mood" | "conflict";
   
   const allWidgets: Array<{
     widgetId: string;
@@ -482,7 +515,7 @@ export default function ClientDashboard() {
     type?: WidgetType;
   }> = [
     { widgetId: "therapist-card", title: "From Your Therapist", description: "Messages and tasks from your therapist", icon: MessageCircle, path: "/therapist-thoughts", size: "lg", type: "therapist" },
-    { widgetId: "daily-suggestion", title: "Today's Suggestion", description: "Your daily activity", icon: Sparkles, path: "/daily-suggestion", size: "md", type: "suggestion" },
+    { widgetId: "daily-suggestion", title: "Partner Tip", description: "Ways to connect with your partner", icon: Heart, path: "/daily-suggestion", size: "md", type: "suggestion" },
     { widgetId: "ai-suggestions", title: "Suggested For You", description: "AI-powered recommendations", icon: Sparkles, path: "#", size: "md", type: "ai" },
     { widgetId: "date-night", title: "Date Night", description: "Plan meaningful dates with AI", icon: Sparkles, path: "/date-night", size: "lg" },
     { widgetId: "checkin-history", title: "Check-In History", description: "Review your weekly progress", icon: TrendingUp, path: "/checkin-history", size: "lg", type: "checkin-history" },
@@ -505,7 +538,7 @@ export default function ClientDashboard() {
     { widgetId: "session-notes", title: "Session Notes", description: "Summaries from your sessions", icon: FileText, path: "/session-notes", size: "md", type: "session-notes" },
     { widgetId: "messages", title: "Messages", description: "Secure messaging", icon: MessageCircle, path: "/messages", size: "sm" },
     { widgetId: "echo-empathy", title: "Echo & Empathy", description: "Practice listening", icon: Users, path: "/echo-empathy", size: "sm" },
-    { widgetId: "conflict", title: "Conflict Tools", description: "Resolve with I-Statements", icon: Scale, path: "/conflict-resolution", size: "sm", type: "conflict" },
+    { widgetId: "conflict", title: "Reword Feelings", description: "Express yourself kindly", icon: MessageCircle, path: "/conflict-resolution", size: "sm", type: "conflict" },
     { widgetId: "pause", title: "Pause", description: "Take a mindful break", icon: Pause, path: "/pause", size: "sm" },
     { widgetId: "journal", title: "Journal", description: "Write together", icon: BookMarked, path: "/couple-journal", size: "sm" },
     { widgetId: "mood", title: "Mood", description: "Track wellbeing", icon: Smile, path: "/mood-tracker", size: "sm", type: "mood" },
@@ -660,7 +693,7 @@ export default function ClientDashboard() {
                       if (widget.type === "therapist") {
                         const hasData = therapistThoughtsQuery.isSuccess && therapistThoughtsQuery.data?.length > 0;
                         return (
-                          <Card className="glass-card border-none overflow-hidden h-full" data-testid="card-therapist">
+                          <Card className="glass-card border-l-4 border-l-primary overflow-hidden h-full" data-testid="card-therapist">
                             <div className="gradient-animate" />
                             <CardHeader className="relative z-10 pb-2">
                               <div className="flex items-center justify-between flex-wrap gap-2">
@@ -715,13 +748,13 @@ export default function ClientDashboard() {
                       if (widget.type === "suggestion") {
                         const hasData = dailySuggestionQuery.isSuccess && dailySuggestionQuery.data?.tip_text;
                         const suggestionCard = (
-                          <Card className="glass-card border-none overflow-hidden cursor-pointer h-full luxury-widget" data-testid="card-suggestion">
+                          <Card className="glass-card border-l-4 border-l-emerald-500 overflow-hidden cursor-pointer h-full luxury-widget" data-testid="card-suggestion">
                             <div className="gradient-animate bg-gradient-to-br from-emerald-500/10 to-teal-500/8" />
                             <CardHeader className="relative z-10 pb-2">
                               <div className="flex items-center justify-between flex-wrap gap-2">
                                 <CardTitle className="text-sm flex items-center gap-2">
-                                  <Sparkles className="h-4 w-4 text-emerald-500" />
-                                  Today's Tip
+                                  <Heart className="h-4 w-4 text-emerald-500" />
+                                  Partner Tip
                                 </CardTitle>
                                 {hasData && dailySuggestionQuery.data.category && (
                                   <Badge variant="secondary" className="text-xs capitalize">
@@ -753,7 +786,7 @@ export default function ClientDashboard() {
                       if (widget.type === "ai") {
                         const hasData = recommendationsQuery.isSuccess && recommendationsQuery.data?.recommendations?.length > 0;
                         return (
-                          <Card className="glass-card border-none overflow-hidden h-full" data-testid="card-ai">
+                          <Card className="glass-card border-l-4 border-l-amber-500 overflow-hidden h-full" data-testid="card-ai">
                             <div className="gradient-animate bg-gradient-to-br from-amber-500/10 to-orange-500/8" />
                             <CardHeader className="relative z-10 pb-2">
                               <CardTitle className="text-sm flex items-center gap-2">
@@ -785,7 +818,7 @@ export default function ClientDashboard() {
                       if (widget.type === "love-results") {
                         const hasData = !loading && loveLanguages.length > 0;
                         const loveCard = (
-                          <Card className="glass-card border-none overflow-hidden h-full cursor-pointer luxury-widget">
+                          <Card className="glass-card border-l-4 border-l-rose-500 overflow-hidden h-full cursor-pointer luxury-widget">
                             <div className="gradient-animate bg-gradient-to-br from-rose-500/8 to-pink-500/6" />
                             <CardHeader className="relative z-10 pb-2">
                               <CardTitle className="flex items-center gap-2 text-sm">
@@ -823,7 +856,7 @@ export default function ClientDashboard() {
                       if (widget.type === "attachment") {
                         const hasData = attachmentQuery.isSuccess && attachmentQuery.data && attachmentQuery.data.length > 0;
                         const attachmentCard = (
-                          <Card className="glass-card border-none overflow-hidden h-full cursor-pointer luxury-widget">
+                          <Card className="glass-card border-l-4 border-l-blue-500 overflow-hidden h-full cursor-pointer luxury-widget">
                             <div className="gradient-animate bg-gradient-to-br from-blue-500/8 to-indigo-500/6" />
                             <CardHeader className="relative z-10 pb-2">
                               <CardTitle className="flex items-center gap-2 text-sm">
@@ -862,7 +895,7 @@ export default function ClientDashboard() {
                       if (widget.type === "enneagram") {
                         const hasData = enneagramQuery.isSuccess && enneagramQuery.data && enneagramQuery.data.length > 0;
                         const enneagramCard = (
-                          <Card className="glass-card border-none overflow-hidden h-full cursor-pointer luxury-widget">
+                          <Card className="glass-card border-l-4 border-l-purple-500 overflow-hidden h-full cursor-pointer luxury-widget">
                             <div className="gradient-animate bg-gradient-to-br from-purple-500/8 to-violet-500/6" />
                             <CardHeader className="relative z-10 pb-2">
                               <CardTitle className="flex items-center gap-2 text-sm">
@@ -902,7 +935,7 @@ export default function ClientDashboard() {
                         const hasData = sharedTodosQuery.isSuccess && sharedTodosQuery.data && sharedTodosQuery.data.length > 0;
                         const incompleteTodos = sharedTodosQuery.data?.filter((t: any) => !t.is_completed) || [];
                         return (
-                          <Card className="glass-card border-none overflow-hidden h-full luxury-widget">
+                          <Card className="glass-card border-l-4 border-l-slate-500 overflow-hidden h-full luxury-widget">
                             <div className="gradient-animate bg-gradient-to-br from-slate-500/8 to-gray-500/6" />
                             <CardHeader className="relative z-10 pb-2">
                               <div className="flex items-center justify-between flex-wrap gap-2">
@@ -978,7 +1011,7 @@ export default function ClientDashboard() {
                         const hasData = choresQuery.isSuccess && choresQuery.data && choresQuery.data.length > 0;
                         const incompleteChores = choresQuery.data?.filter((c: any) => !c.is_completed) || [];
                         return (
-                          <Card className="glass-card border-none overflow-hidden h-full luxury-widget">
+                          <Card className="glass-card border-l-4 border-l-green-500 overflow-hidden h-full luxury-widget">
                             <div className="gradient-animate bg-gradient-to-br from-green-500/8 to-emerald-500/6" />
                             <CardHeader className="relative z-10 pb-2">
                               <div className="flex items-center justify-between flex-wrap gap-2">
@@ -1053,7 +1086,7 @@ export default function ClientDashboard() {
                       if (widget.type === "checkin-history") {
                         const hasData = weeklyCheckinsQuery.isSuccess && weeklyCheckinsQuery.data && weeklyCheckinsQuery.data.length > 0;
                         const checkinCard = (
-                          <Card className="glass-card border-none overflow-hidden h-full cursor-pointer luxury-widget">
+                          <Card className="glass-card border-l-4 border-l-cyan-500 overflow-hidden h-full cursor-pointer luxury-widget">
                             <div className="gradient-animate bg-gradient-to-br from-cyan-500/8 to-teal-500/6" />
                             <CardHeader className="relative z-10 pb-2">
                               <CardTitle className="flex items-center gap-2 text-sm">
@@ -1092,7 +1125,7 @@ export default function ClientDashboard() {
                       if (widget.type === "session-notes") {
                         const hasData = sessionNotesQuery.isSuccess && sessionNotesQuery.data && sessionNotesQuery.data.length > 0;
                         const sessionCard = (
-                          <Card className="glass-card border-none overflow-hidden h-full cursor-pointer luxury-widget">
+                          <Card className="glass-card border-l-4 border-l-orange-500 overflow-hidden h-full cursor-pointer luxury-widget">
                             <div className="gradient-animate bg-gradient-to-br from-orange-500/8 to-amber-500/6" />
                             <CardHeader className="relative z-10 pb-2">
                               <CardTitle className="flex items-center gap-2 text-sm">
@@ -1124,22 +1157,30 @@ export default function ClientDashboard() {
                       }
 
                       if (widget.type === "mood") {
-                        const getMoodEmoji = (level: number) => {
-                          if (level >= 8) return "Great";
-                          if (level >= 6) return "Good";
-                          if (level >= 4) return "Okay";
-                          if (level >= 2) return "Low";
-                          return "Struggling";
+                        const getMoodLabel = (level: number) => {
+                          if (level >= 9) return "Ecstatic";
+                          if (level >= 8) return "Joyful";
+                          if (level >= 7) return "Happy";
+                          if (level >= 6) return "Content";
+                          if (level >= 5) return "Neutral";
+                          if (level >= 4) return "Uneasy";
+                          if (level >= 3) return "Stressed";
+                          if (level >= 2) return "Frustrated";
+                          return "Overwhelmed";
                         };
                         const getMoodColor = (level: number) => {
+                          if (level >= 9) return "text-emerald-400";
                           if (level >= 8) return "text-green-500";
-                          if (level >= 6) return "text-emerald-500";
-                          if (level >= 4) return "text-yellow-500";
-                          if (level >= 2) return "text-orange-500";
+                          if (level >= 7) return "text-green-400";
+                          if (level >= 6) return "text-lime-500";
+                          if (level >= 5) return "text-yellow-500";
+                          if (level >= 4) return "text-amber-500";
+                          if (level >= 3) return "text-orange-500";
+                          if (level >= 2) return "text-red-400";
                           return "text-red-500";
                         };
                         return (
-                          <Card className="glass-card border-none overflow-hidden h-full luxury-widget">
+                          <Card className="glass-card border-l-4 border-l-amber-500 overflow-hidden h-full luxury-widget">
                             <div className="gradient-animate bg-gradient-to-br from-amber-500/8 to-yellow-500/6" />
                             <CardHeader className="relative z-10 pb-2">
                               <div className="flex items-center justify-between flex-wrap gap-2">
@@ -1148,7 +1189,7 @@ export default function ClientDashboard() {
                                   Mood Check
                                 </CardTitle>
                                 <span className={cn("text-xs font-medium", getMoodColor(quickMoodLevel[0]))}>
-                                  {getMoodEmoji(quickMoodLevel[0])}
+                                  {getMoodLabel(quickMoodLevel[0])}
                                 </span>
                               </div>
                             </CardHeader>
@@ -1193,34 +1234,28 @@ export default function ClientDashboard() {
 
                       if (widget.type === "conflict") {
                         return (
-                          <Card className="glass-card border-none overflow-hidden h-full luxury-widget">
+                          <Card className="glass-card border-l-4 border-l-rose-500 overflow-hidden h-full luxury-widget">
                             <div className="gradient-animate bg-gradient-to-br from-rose-500/8 to-pink-500/6" />
                             <CardHeader className="relative z-10 pb-2">
                               <CardTitle className="flex items-center gap-2 text-sm">
-                                <Scale className="h-4 w-4 text-rose-500" />
-                                Quick I-Statement
+                                <MessageCircle className="h-4 w-4 text-rose-500" />
+                                Reword My Feelings
                               </CardTitle>
                             </CardHeader>
                             <CardContent className="relative z-10 space-y-2" onClick={(e) => e.stopPropagation()}>
-                              <p className="text-xs text-muted-foreground">Express how you feel:</p>
-                              <div className="p-2 rounded-lg bg-background/60 border border-border/30">
-                                <p className="text-xs">
-                                  <span className="font-medium text-primary">I feel</span>{" "}
-                                  <Input
-                                    placeholder="upset"
-                                    value={conflictText}
-                                    onChange={(e) => setConflictText(e.target.value)}
-                                    className="inline-block w-20 h-5 text-xs px-1 py-0 mx-0.5"
-                                    onClick={(e) => e.stopPropagation()}
-                                    data-testid="input-conflict-feeling"
-                                  />{" "}
-                                  <span className="font-medium text-primary">when...</span>
-                                </p>
-                              </div>
+                              <p className="text-xs text-muted-foreground">Type how you feel freely:</p>
+                              <Textarea
+                                placeholder="I'm frustrated because..."
+                                value={conflictText}
+                                onChange={(e) => setConflictText(e.target.value)}
+                                className="h-16 text-xs resize-none"
+                                onClick={(e) => e.stopPropagation()}
+                                data-testid="input-reword-feelings"
+                              />
                               {!isEditMode && (
                                 <Link href="/conflict-resolution" className="block">
-                                  <Button variant="outline" size="sm" className="w-full h-7 text-xs" data-testid="button-continue-conflict">
-                                    Continue exercise
+                                  <Button variant="outline" size="sm" className="w-full h-7 text-xs" data-testid="button-reword-feelings">
+                                    Get kinder wording
                                   </Button>
                                 </Link>
                               )}
