@@ -407,7 +407,7 @@ export default function ChoreChart() {
                   <CardContent className="p-4">
                     <div className="flex items-center gap-3">
                       <Checkbox
-                        checked={chore.is_completed}
+                        checked={!!chore.is_completed}
                         onCheckedChange={(checked) => {
                           if (checked) {
                             completeMutation.mutate({
@@ -470,7 +470,7 @@ export default function ChoreChart() {
                     <CardContent className="p-4">
                       <div className="flex items-center gap-3">
                         <Checkbox
-                          checked={chore.is_completed}
+                          checked={!!chore.is_completed}
                           onCheckedChange={(checked) => {
                             if (checked) {
                               completeMutation.mutate({
@@ -525,7 +525,7 @@ export default function ChoreChart() {
                     <CardContent className="p-4">
                       <div className="flex items-center gap-3">
                         <Checkbox
-                          checked={chore.is_completed}
+                          checked={!!chore.is_completed}
                           onCheckedChange={(checked) => {
                             if (checked) {
                               completeMutation.mutate({
@@ -576,7 +576,7 @@ export default function ChoreChart() {
                     <CardContent className="p-4">
                       <div className="flex items-center gap-3">
                         <Checkbox
-                          checked={chore.is_completed}
+                          checked={!!chore.is_completed}
                           onCheckedChange={(checked) => {
                             if (checked) {
                               completeMutation.mutate({
