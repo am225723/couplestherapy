@@ -1,86 +1,70 @@
 import { Router } from "express";
 import type { Request, Response } from "express";
 import { supabaseAdmin } from "../supabase.js";
-import { format, subDays } from "date-fns";
-import { randomUUID } from "node:crypto";
+import { format, subDays, startOfDay } from "date-fns";
 
 const dailySuggestionRouter = Router();
 
 dailySuggestionRouter.get("/today/:coupleId", async (req: Request, res: Response) => {
   try {
     const { coupleId } = req.params;
-    const today = format(new Date(), "yyyy-MM-dd");
+    const today = startOfDay(new Date()).toISOString();
 
-    const { data: existing, error: existingError } = await supabaseAdmin
-      .from("Couples_suggestion_history")
-      .select("*, suggestion:Couples_daily_suggestions(*)")
+    const { data: todayTip, error } = await supabaseAdmin
+      .from("Couples_daily_tips")
+      .select("*")
       .eq("couple_id", coupleId)
-      .eq("shown_date", today)
-      .single();
+      .gte("created_at", today)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
 
-    if (existing && !existingError) {
+    if (error) {
+      console.error("Error fetching daily suggestion:", error);
+      return res.status(500).json({ error: "Failed to fetch daily suggestion" });
+    }
+
+    if (todayTip) {
       return res.json({
-        ...existing,
-        suggestion: existing.suggestion,
+        id: todayTip.id,
+        suggestion: {
+          id: todayTip.id,
+          title: getCategoryTitle(todayTip.category),
+          description: todayTip.tip_text,
+          category: todayTip.category,
+          duration_minutes: 5,
+          difficulty: "easy",
+        },
+        shown_date: format(new Date(todayTip.created_at), "yyyy-MM-dd"),
+        completed: false,
       });
     }
 
-    const sevenDaysAgo = format(subDays(new Date(), 7), "yyyy-MM-dd");
-    const { data: recentShown } = await supabaseAdmin
-      .from("Couples_suggestion_history")
-      .select("suggestion_id")
-      .eq("couple_id", coupleId)
-      .gte("shown_date", sevenDaysAgo);
-
-    const recentIds = new Set(recentShown?.map((r) => r.suggestion_id) || []);
-
-    const { data: allSuggestions, error: suggestionsError } = await supabaseAdmin
-      .from("Couples_daily_suggestions")
+    const { data: latestTip } = await supabaseAdmin
+      .from("Couples_daily_tips")
       .select("*")
-      .eq("is_active", true);
+      .eq("couple_id", coupleId)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
 
-    if (suggestionsError) throw suggestionsError;
-
-    const suggestions = (allSuggestions || []).filter(
-      (s) => !recentIds.has(s.id)
-    );
-
-    let selectedSuggestion;
-    if (!suggestions || suggestions.length === 0) {
-      const { data: anySuggestion } = await supabaseAdmin
-        .from("Couples_daily_suggestions")
-        .select("*")
-        .eq("is_active", true)
-        .limit(1)
-        .single();
-
-      if (!anySuggestion) {
-        return res.json(null);
-      }
-      selectedSuggestion = anySuggestion;
-    } else {
-      const randomIndex = Math.floor(Math.random() * suggestions.length);
-      selectedSuggestion = suggestions[randomIndex];
+    if (latestTip) {
+      return res.json({
+        id: latestTip.id,
+        suggestion: {
+          id: latestTip.id,
+          title: getCategoryTitle(latestTip.category),
+          description: latestTip.tip_text,
+          category: latestTip.category,
+          duration_minutes: 5,
+          difficulty: "easy",
+        },
+        shown_date: format(new Date(latestTip.created_at), "yyyy-MM-dd"),
+        completed: false,
+      });
     }
 
-    const { data: newHistory, error: insertError } = await supabaseAdmin
-      .from("Couples_suggestion_history")
-      .insert({
-        id: randomUUID(),
-        couple_id: coupleId,
-        suggestion_id: selectedSuggestion.id,
-        shown_date: today,
-        completed: false,
-      })
-      .select("*, suggestion:Couples_daily_suggestions(*)")
-      .single();
-
-    if (insertError) throw insertError;
-
-    res.json({
-      ...newHistory,
-      suggestion: newHistory.suggestion,
-    });
+    res.json(null);
   } catch (error) {
     console.error("Error fetching daily suggestion:", error);
     res.status(500).json({ error: "Failed to fetch daily suggestion" });
@@ -90,16 +74,33 @@ dailySuggestionRouter.get("/today/:coupleId", async (req: Request, res: Response
 dailySuggestionRouter.get("/history/:coupleId", async (req: Request, res: Response) => {
   try {
     const { coupleId } = req.params;
-    const { data, error } = await supabaseAdmin
-      .from("Couples_suggestion_history")
-      .select("*, suggestion:Couples_daily_suggestions(*)")
+    const { data: tips, error } = await supabaseAdmin
+      .from("Couples_daily_tips")
+      .select("*")
       .eq("couple_id", coupleId)
-      .order("shown_date", { ascending: false })
+      .order("created_at", { ascending: false })
       .limit(14);
 
-    if (error) throw error;
+    if (error) {
+      console.error("Error fetching suggestion history:", error);
+      return res.status(500).json({ error: "Failed to fetch suggestion history" });
+    }
 
-    res.json(data || []);
+    const history = (tips || []).map((tip) => ({
+      id: tip.id,
+      suggestion: {
+        id: tip.id,
+        title: getCategoryTitle(tip.category),
+        description: tip.tip_text,
+        category: tip.category,
+        duration_minutes: 5,
+        difficulty: "easy",
+      },
+      shown_date: format(new Date(tip.created_at), "yyyy-MM-dd"),
+      completed: false,
+    }));
+
+    res.json(history);
   } catch (error) {
     console.error("Error fetching suggestion history:", error);
     res.status(500).json({ error: "Failed to fetch suggestion history" });
@@ -108,19 +109,23 @@ dailySuggestionRouter.get("/history/:coupleId", async (req: Request, res: Respon
 
 dailySuggestionRouter.patch("/complete/:historyId", async (req: Request, res: Response) => {
   try {
-    const { historyId } = req.params;
-    const { error } = await supabaseAdmin
-      .from("Couples_suggestion_history")
-      .update({ completed: true })
-      .eq("id", historyId);
-
-    if (error) throw error;
-
     res.json({ success: true });
   } catch (error) {
     console.error("Error completing suggestion:", error);
     res.status(500).json({ error: "Failed to complete suggestion" });
   }
 });
+
+function getCategoryTitle(category: string): string {
+  const titles: Record<string, string> = {
+    communication: "Improve Communication",
+    intimacy: "Deepen Intimacy",
+    conflict: "Navigate Conflict",
+    gratitude: "Express Gratitude",
+    connection: "Strengthen Connection",
+    growth: "Foster Growth",
+  };
+  return titles[category] || "Daily Relationship Tip";
+}
 
 export default dailySuggestionRouter;
