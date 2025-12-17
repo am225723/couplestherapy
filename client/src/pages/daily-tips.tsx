@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Card,
   CardContent,
@@ -98,16 +98,18 @@ export default function DailyTips() {
   });
 
   // Update preferences when data loads
-  if (prefsQuery.data && prefsQuery.isSuccess) {
-    const data = prefsQuery.data as NotificationPreferences;
-    setPreferences({
-      tips_enabled: data.tips_enabled,
-      tips_frequency: data.tips_frequency,
-      tips_time: data.tips_time?.substring(0, 5) || "08:00",
-      push_notifications_enabled: data.push_notifications_enabled,
-      email_notifications_enabled: data.email_notifications_enabled,
-    });
-  }
+  useEffect(() => {
+    if (prefsQuery.data && prefsQuery.isSuccess) {
+      const data = prefsQuery.data as NotificationPreferences;
+      setPreferences({
+        tips_enabled: data.tips_enabled,
+        tips_frequency: data.tips_frequency,
+        tips_time: data.tips_time?.substring(0, 5) || "08:00",
+        push_notifications_enabled: data.push_notifications_enabled,
+        email_notifications_enabled: data.email_notifications_enabled,
+      });
+    }
+  }, [prefsQuery.data, prefsQuery.isSuccess]);
 
   const generateMutation = useMutation({
     mutationFn: async (category: string) => {
