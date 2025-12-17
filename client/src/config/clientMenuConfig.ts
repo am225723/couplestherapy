@@ -84,6 +84,12 @@ export const clientMenuConfig: MenuCategory[] = [
         icon: Zap,
         testId: "nav-growth-plan",
       },
+      {
+        title: "Session Notes",
+        url: "/session-notes",
+        icon: BookOpen,
+        testId: "nav-session-notes",
+      },
     ],
   },
   {
@@ -97,6 +103,12 @@ export const clientMenuConfig: MenuCategory[] = [
         url: "/weekly-checkin",
         icon: ClipboardList,
         testId: "nav-checkin",
+      },
+      {
+        title: "Check-In History",
+        url: "/checkin-history",
+        icon: Calendar,
+        testId: "nav-checkin-history",
       },
       {
         title: "Love Language Quiz",

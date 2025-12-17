@@ -73,6 +73,7 @@ import EnneagramResults from "./pages/enneagram-results";
 import LoveMapQuiz from "./pages/love-map";
 import WeeklyCheckin from "./pages/weekly-checkin";
 import CheckinHistory from "./pages/checkin-history";
+import SessionNotes from "./pages/session-notes";
 import GratitudeLogPage from "./pages/gratitude-log";
 import SharedGoalsPage from "./pages/shared-goals";
 import RitualsPage from "./pages/rituals";
@@ -629,6 +630,7 @@ function AuthenticatedApp() {
               <Route path="/love-map" component={LoveMapQuiz} />
               <Route path="/weekly-checkin" component={WeeklyCheckin} />
               <Route path="/checkin-history" component={CheckinHistory} />
+              <Route path="/session-notes" component={SessionNotes} />
               <Route path="/gratitude" component={GratitudeLogPage} />
               <Route path="/goals" component={SharedGoalsPage} />
               <Route path="/rituals" component={RitualsPage} />

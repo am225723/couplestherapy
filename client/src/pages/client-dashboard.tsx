@@ -296,6 +296,72 @@ export default function ClientDashboard() {
     staleTime: 1000 * 60 * 60,
   });
 
+  const attachmentQuery = useQuery<any[]>({
+    queryKey: ["/api/attachment/couple/assessments", profile?.couple_id],
+    queryFn: async () => {
+      if (!profile?.couple_id) return [];
+      const { data: coupleData } = await supabase
+        .from("Couples_couples")
+        .select("partner1_id, partner2_id")
+        .eq("id", profile.couple_id)
+        .single();
+      if (!coupleData) return [];
+      const { data } = await supabase
+        .from("Couples_attachment_assessments")
+        .select("*")
+        .in("user_id", [coupleData.partner1_id, coupleData.partner2_id])
+        .order("created_at", { ascending: false });
+      return data || [];
+    },
+    enabled: !!profile?.couple_id,
+    staleTime: 1000 * 60 * 30,
+  });
+
+  const enneagramQuery = useQuery<any[]>({
+    queryKey: ["/api/enneagram/couple/assessments", profile?.couple_id],
+    queryFn: async () => {
+      if (!profile?.couple_id) return [];
+      const { data: coupleData } = await supabase
+        .from("Couples_couples")
+        .select("partner1_id, partner2_id")
+        .eq("id", profile.couple_id)
+        .single();
+      if (!coupleData) return [];
+      const { data } = await supabase
+        .from("Couples_enneagram_assessments")
+        .select("*")
+        .in("user_id", [coupleData.partner1_id, coupleData.partner2_id])
+        .order("created_at", { ascending: false });
+      return data || [];
+    },
+    enabled: !!profile?.couple_id,
+    staleTime: 1000 * 60 * 30,
+  });
+
+  const sharedTodosQuery = useQuery<any[]>({
+    queryKey: ["/api/shared-todos", profile?.couple_id],
+    enabled: !!profile?.couple_id,
+    staleTime: 1000 * 60 * 5,
+  });
+
+  const choresQuery = useQuery<any[]>({
+    queryKey: ["/api/chores", profile?.couple_id],
+    enabled: !!profile?.couple_id,
+    staleTime: 1000 * 60 * 5,
+  });
+
+  const weeklyCheckinsQuery = useQuery<any[]>({
+    queryKey: ["/api/weekly-checkin/history", profile?.couple_id],
+    enabled: !!profile?.couple_id,
+    staleTime: 1000 * 60 * 15,
+  });
+
+  const sessionNotesQuery = useQuery<any[]>({
+    queryKey: ["/api/session-notes/couple", profile?.couple_id],
+    enabled: !!profile?.couple_id,
+    staleTime: 1000 * 60 * 10,
+  });
+
   const deleteLoveLanguageMutation = useMutation({
     mutationFn: async (id: string) => {
       return await apiRequest("DELETE", `/api/love-languages/user/${id}`);
@@ -343,7 +409,7 @@ export default function ClientDashboard() {
     }
   };
 
-  type WidgetType = "standard" | "therapist" | "suggestion" | "ai" | "love-results";
+  type WidgetType = "standard" | "therapist" | "suggestion" | "ai" | "love-results" | "attachment" | "enneagram" | "todos" | "chores" | "checkin-history" | "session-notes";
   
   const allWidgets: Array<{
     widgetId: string;
@@ -358,7 +424,7 @@ export default function ClientDashboard() {
     { widgetId: "daily-suggestion", title: "Today's Suggestion", description: "Your daily activity", icon: Sparkles, path: "/daily-suggestion", size: "md", type: "suggestion" },
     { widgetId: "ai-suggestions", title: "Suggested For You", description: "AI-powered recommendations", icon: Sparkles, path: "#", size: "md", type: "ai" },
     { widgetId: "date-night", title: "Date Night", description: "Plan meaningful dates with AI", icon: Sparkles, path: "/date-night", size: "lg" },
-    { widgetId: "checkin-history", title: "Check-In History", description: "Review your weekly progress", icon: TrendingUp, path: "/checkin-history", size: "lg" },
+    { widgetId: "checkin-history", title: "Check-In History", description: "Review your weekly progress", icon: TrendingUp, path: "/checkin-history", size: "lg", type: "checkin-history" },
     { widgetId: "love-results", title: "Your Love Languages", description: "How you give and receive love", icon: Heart, path: "/quiz", size: "lg", type: "love-results" },
     { widgetId: "weekly-checkin", title: "Weekly Check-In", description: "Reflect on your week together", icon: ClipboardList, path: "/weekly-checkin", size: "sm" },
     { widgetId: "love-languages", title: "Love Languages", description: "Discover how you give and receive love", icon: Heart, path: "/quiz", size: "sm" },
@@ -373,8 +439,9 @@ export default function ClientDashboard() {
     { widgetId: "compatibility", title: "Compatibility", description: "View compatibility insights", icon: Heart, path: "/couple-compatibility", size: "sm" },
     { widgetId: "progress-timeline", title: "Progress", description: "Your relationship journey", icon: Clock, path: "/progress-timeline", size: "sm" },
     { widgetId: "growth-plan", title: "Growth Plan", description: "AI-powered exercises", icon: Zap, path: "/growth-plan", size: "sm" },
-    { widgetId: "attachment", title: "Attachment", description: "Understand your patterns", icon: Link2, path: "/attachment-assessment", size: "sm" },
-    { widgetId: "enneagram", title: "Enneagram", description: "Personality insights", icon: Compass, path: "/enneagram-assessment", size: "sm" },
+    { widgetId: "attachment", title: "Attachment Styles", description: "Your attachment patterns", icon: Link2, path: "/attachment-assessment", size: "md", type: "attachment" },
+    { widgetId: "enneagram", title: "Enneagram Types", description: "Your personality insights", icon: Compass, path: "/enneagram-assessment", size: "md", type: "enneagram" },
+    { widgetId: "session-notes", title: "Session Notes", description: "Summaries from your sessions", icon: FileText, path: "/session-notes", size: "md", type: "session-notes" },
     { widgetId: "messages", title: "Messages", description: "Secure messaging", icon: MessageCircle, path: "/messages", size: "sm" },
     { widgetId: "echo-empathy", title: "Echo & Empathy", description: "Practice listening", icon: Users, path: "/echo-empathy", size: "sm" },
     { widgetId: "conflict", title: "Conflict Tools", description: "Resolve with I-Statements", icon: Scale, path: "/conflict-resolution", size: "sm" },
@@ -382,8 +449,8 @@ export default function ClientDashboard() {
     { widgetId: "journal", title: "Journal", description: "Write together", icon: BookMarked, path: "/couple-journal", size: "sm" },
     { widgetId: "mood", title: "Mood", description: "Track wellbeing", icon: Smile, path: "/mood-tracker", size: "sm" },
     { widgetId: "ifs", title: "IFS", description: "Internal Family Systems", icon: Brain, path: "/ifs-intro", size: "sm" },
-    { widgetId: "chores", title: "Chores", description: "Task management", icon: CheckSquare, path: "/chores", size: "sm" },
-    { widgetId: "todos", title: "To-Dos", description: "Shared tasks", icon: ListTodo, path: "/shared-todos", size: "sm" },
+    { widgetId: "chores", title: "Chore Chart", description: "Track household tasks", icon: CheckSquare, path: "/chores", size: "md", type: "chores" },
+    { widgetId: "todos", title: "To-Do List", description: "Shared tasks", icon: ListTodo, path: "/shared-todos", size: "md", type: "todos" },
     { widgetId: "financial", title: "Financial", description: "Money tools", icon: DollarSign, path: "/financial-toolkit", size: "sm" },
     { widgetId: "daily-tips", title: "Daily Tips", description: "Relationship tips", icon: Lightbulb, path: "/daily-tips", size: "sm" },
   ];
@@ -559,17 +626,20 @@ export default function ClientDashboard() {
                                   <div className="h-4 bg-muted rounded w-3/4" />
                                 </div>
                               ) : hasData ? (
-                                therapistThoughtsQuery.data.slice(0, 2).map((thought: any) => (
+                                therapistThoughtsQuery.data.slice(0, isLargeHeight ? 3 : 2).map((thought: any) => (
                                   <div key={thought.id} className="p-2 rounded-lg bg-background/60 backdrop-blur-sm border border-border/30">
                                     <div className="flex items-start gap-2">
-                                      <div className="mt-0.5">
+                                      <div className="mt-0.5 flex-shrink-0">
                                         {thought.thought_type === "todo" ? (
                                           <CheckCircle2 className="h-3 w-3 text-emerald-500" />
                                         ) : (
                                           <MessageCircle className="h-3 w-3 text-primary" />
                                         )}
                                       </div>
-                                      <p className={cn("text-xs", isLargeHeight ? "line-clamp-none" : "line-clamp-1")}>{thought.title || thought.content}</p>
+                                      <div className="min-w-0 flex-1">
+                                        {thought.title && <p className="text-xs font-medium">{thought.title}</p>}
+                                        <p className={cn("text-xs text-muted-foreground", isLargeHeight ? "line-clamp-3" : "line-clamp-1")}>{thought.content || thought.body || thought.message}</p>
+                                      </div>
                                     </div>
                                   </div>
                                 ))
@@ -687,6 +757,237 @@ export default function ClientDashboard() {
                           return <div className="block h-full">{loveCard}</div>;
                         }
                         return <Link href="/love-languages" className="block h-full">{loveCard}</Link>;
+                      }
+
+                      if (widget.type === "attachment") {
+                        const hasData = attachmentQuery.isSuccess && attachmentQuery.data && attachmentQuery.data.length > 0;
+                        const attachmentCard = (
+                          <Card className="glass-card border-none overflow-hidden h-full cursor-pointer luxury-widget">
+                            <div className="gradient-animate bg-gradient-to-br from-blue-500/8 to-indigo-500/6" />
+                            <CardHeader className="relative z-10 pb-2">
+                              <CardTitle className="flex items-center gap-2 text-sm">
+                                <Link2 className="h-4 w-4 text-blue-500" />
+                                Attachment Styles
+                              </CardTitle>
+                            </CardHeader>
+                            <CardContent className="relative z-10">
+                              {attachmentQuery.isLoading ? (
+                                <div className="animate-pulse grid grid-cols-2 gap-2">
+                                  <div className="h-12 bg-muted rounded" />
+                                  <div className="h-12 bg-muted rounded" />
+                                </div>
+                              ) : hasData ? (
+                                <div className="grid grid-cols-2 gap-2">
+                                  {attachmentQuery.data.slice(0, 2).map((assessment: any) => (
+                                    <div key={assessment.id} className="p-2 rounded-lg bg-background/60 backdrop-blur-sm border border-border/30">
+                                      <p className="text-xs font-medium capitalize">{assessment.user_id === profile?.id ? "You" : "Partner"}</p>
+                                      <p className="text-xs text-muted-foreground capitalize">{assessment.attachment_style}</p>
+                                      {isLargeHeight && assessment.dynamics_with_partner && (
+                                        <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{assessment.dynamics_with_partner}</p>
+                                      )}
+                                    </div>
+                                  ))}
+                                </div>
+                              ) : (
+                                <p className="text-xs text-muted-foreground text-center py-2">Take the assessment to discover your styles</p>
+                              )}
+                            </CardContent>
+                          </Card>
+                        );
+                        if (isEditMode) return <div className="block h-full">{attachmentCard}</div>;
+                        return <Link href="/attachment-assessment" className="block h-full">{attachmentCard}</Link>;
+                      }
+
+                      if (widget.type === "enneagram") {
+                        const hasData = enneagramQuery.isSuccess && enneagramQuery.data && enneagramQuery.data.length > 0;
+                        const enneagramCard = (
+                          <Card className="glass-card border-none overflow-hidden h-full cursor-pointer luxury-widget">
+                            <div className="gradient-animate bg-gradient-to-br from-purple-500/8 to-violet-500/6" />
+                            <CardHeader className="relative z-10 pb-2">
+                              <CardTitle className="flex items-center gap-2 text-sm">
+                                <Compass className="h-4 w-4 text-purple-500" />
+                                Enneagram Types
+                              </CardTitle>
+                            </CardHeader>
+                            <CardContent className="relative z-10">
+                              {enneagramQuery.isLoading ? (
+                                <div className="animate-pulse grid grid-cols-2 gap-2">
+                                  <div className="h-12 bg-muted rounded" />
+                                  <div className="h-12 bg-muted rounded" />
+                                </div>
+                              ) : hasData ? (
+                                <div className="grid grid-cols-2 gap-2">
+                                  {enneagramQuery.data.slice(0, 2).map((assessment: any) => (
+                                    <div key={assessment.id} className="p-2 rounded-lg bg-background/60 backdrop-blur-sm border border-border/30">
+                                      <p className="text-xs font-medium">{assessment.user_id === profile?.id ? "You" : "Partner"}</p>
+                                      <p className="text-xs text-muted-foreground">Type {assessment.primary_type}{assessment.secondary_type ? ` w${assessment.secondary_type}` : ""}</p>
+                                      {isLargeHeight && assessment.couple_dynamics && (
+                                        <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{assessment.couple_dynamics}</p>
+                                      )}
+                                    </div>
+                                  ))}
+                                </div>
+                              ) : (
+                                <p className="text-xs text-muted-foreground text-center py-2">Take the assessment to discover your types</p>
+                              )}
+                            </CardContent>
+                          </Card>
+                        );
+                        if (isEditMode) return <div className="block h-full">{enneagramCard}</div>;
+                        return <Link href="/enneagram-assessment" className="block h-full">{enneagramCard}</Link>;
+                      }
+
+                      if (widget.type === "todos") {
+                        const hasData = sharedTodosQuery.isSuccess && sharedTodosQuery.data && sharedTodosQuery.data.length > 0;
+                        const incompleteTodos = sharedTodosQuery.data?.filter((t: any) => !t.is_completed) || [];
+                        const todosCard = (
+                          <Card className="glass-card border-none overflow-hidden h-full cursor-pointer luxury-widget">
+                            <div className="gradient-animate bg-gradient-to-br from-slate-500/8 to-gray-500/6" />
+                            <CardHeader className="relative z-10 pb-2">
+                              <div className="flex items-center justify-between flex-wrap gap-2">
+                                <CardTitle className="flex items-center gap-2 text-sm">
+                                  <ListTodo className="h-4 w-4 text-slate-500" />
+                                  To-Do List
+                                </CardTitle>
+                                {incompleteTodos.length > 0 && (
+                                  <Badge variant="secondary" className="text-xs">{incompleteTodos.length} pending</Badge>
+                                )}
+                              </div>
+                            </CardHeader>
+                            <CardContent className="relative z-10 space-y-1">
+                              {sharedTodosQuery.isLoading ? (
+                                <div className="animate-pulse space-y-2">
+                                  <div className="h-4 bg-muted rounded w-3/4" />
+                                  <div className="h-4 bg-muted rounded w-1/2" />
+                                </div>
+                              ) : incompleteTodos.length > 0 ? (
+                                incompleteTodos.slice(0, isLargeHeight ? 5 : 3).map((todo: any) => (
+                                  <div key={todo.id} className="flex items-center gap-2 p-1.5 rounded bg-background/60">
+                                    <CheckSquare className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+                                    <span className="text-xs truncate">{todo.title}</span>
+                                  </div>
+                                ))
+                              ) : (
+                                <p className="text-xs text-muted-foreground text-center py-2">No tasks pending</p>
+                              )}
+                            </CardContent>
+                          </Card>
+                        );
+                        if (isEditMode) return <div className="block h-full">{todosCard}</div>;
+                        return <Link href="/shared-todos" className="block h-full">{todosCard}</Link>;
+                      }
+
+                      if (widget.type === "chores") {
+                        const hasData = choresQuery.isSuccess && choresQuery.data && choresQuery.data.length > 0;
+                        const incompleteChores = choresQuery.data?.filter((c: any) => !c.is_completed) || [];
+                        const choresCard = (
+                          <Card className="glass-card border-none overflow-hidden h-full cursor-pointer luxury-widget">
+                            <div className="gradient-animate bg-gradient-to-br from-green-500/8 to-emerald-500/6" />
+                            <CardHeader className="relative z-10 pb-2">
+                              <div className="flex items-center justify-between flex-wrap gap-2">
+                                <CardTitle className="flex items-center gap-2 text-sm">
+                                  <CheckSquare className="h-4 w-4 text-green-500" />
+                                  Chore Chart
+                                </CardTitle>
+                                {incompleteChores.length > 0 && (
+                                  <Badge variant="secondary" className="text-xs">{incompleteChores.length} due</Badge>
+                                )}
+                              </div>
+                            </CardHeader>
+                            <CardContent className="relative z-10 space-y-1">
+                              {choresQuery.isLoading ? (
+                                <div className="animate-pulse space-y-2">
+                                  <div className="h-4 bg-muted rounded w-3/4" />
+                                  <div className="h-4 bg-muted rounded w-1/2" />
+                                </div>
+                              ) : incompleteChores.length > 0 ? (
+                                incompleteChores.slice(0, isLargeHeight ? 5 : 3).map((chore: any) => (
+                                  <div key={chore.id} className="flex items-center justify-between gap-2 p-1.5 rounded bg-background/60">
+                                    <span className="text-xs truncate">{chore.title}</span>
+                                    <Badge variant="outline" className="text-xs capitalize">{chore.recurrence}</Badge>
+                                  </div>
+                                ))
+                              ) : (
+                                <p className="text-xs text-muted-foreground text-center py-2">All chores done</p>
+                              )}
+                            </CardContent>
+                          </Card>
+                        );
+                        if (isEditMode) return <div className="block h-full">{choresCard}</div>;
+                        return <Link href="/chores" className="block h-full">{choresCard}</Link>;
+                      }
+
+                      if (widget.type === "checkin-history") {
+                        const hasData = weeklyCheckinsQuery.isSuccess && weeklyCheckinsQuery.data && weeklyCheckinsQuery.data.length > 0;
+                        const checkinCard = (
+                          <Card className="glass-card border-none overflow-hidden h-full cursor-pointer luxury-widget">
+                            <div className="gradient-animate bg-gradient-to-br from-cyan-500/8 to-teal-500/6" />
+                            <CardHeader className="relative z-10 pb-2">
+                              <CardTitle className="flex items-center gap-2 text-sm">
+                                <TrendingUp className="h-4 w-4 text-cyan-500" />
+                                Check-In History
+                              </CardTitle>
+                            </CardHeader>
+                            <CardContent className="relative z-10 space-y-1">
+                              {weeklyCheckinsQuery.isLoading ? (
+                                <div className="animate-pulse space-y-2">
+                                  <div className="h-4 bg-muted rounded w-3/4" />
+                                  <div className="h-4 bg-muted rounded w-1/2" />
+                                </div>
+                              ) : hasData ? (
+                                weeklyCheckinsQuery.data.slice(0, isLargeHeight ? 4 : 2).map((checkin: any, idx: number) => (
+                                  <div key={checkin.id || idx} className="p-1.5 rounded bg-background/60">
+                                    <div className="flex items-center justify-between">
+                                      <span className="text-xs font-medium">Week {checkin.week_number}, {checkin.year}</span>
+                                      <span className="text-xs text-muted-foreground">{checkin.q_connectedness}/10</span>
+                                    </div>
+                                    {isLargeHeight && checkin.q_appreciation && (
+                                      <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{checkin.q_appreciation}</p>
+                                    )}
+                                  </div>
+                                ))
+                              ) : (
+                                <p className="text-xs text-muted-foreground text-center py-2">Complete your first check-in</p>
+                              )}
+                            </CardContent>
+                          </Card>
+                        );
+                        if (isEditMode) return <div className="block h-full">{checkinCard}</div>;
+                        return <Link href="/checkin-history" className="block h-full">{checkinCard}</Link>;
+                      }
+
+                      if (widget.type === "session-notes") {
+                        const hasData = sessionNotesQuery.isSuccess && sessionNotesQuery.data && sessionNotesQuery.data.length > 0;
+                        const sessionCard = (
+                          <Card className="glass-card border-none overflow-hidden h-full cursor-pointer luxury-widget">
+                            <div className="gradient-animate bg-gradient-to-br from-orange-500/8 to-amber-500/6" />
+                            <CardHeader className="relative z-10 pb-2">
+                              <CardTitle className="flex items-center gap-2 text-sm">
+                                <FileText className="h-4 w-4 text-orange-500" />
+                                Session Notes
+                              </CardTitle>
+                            </CardHeader>
+                            <CardContent className="relative z-10 space-y-1">
+                              {sessionNotesQuery.isLoading ? (
+                                <div className="animate-pulse space-y-2">
+                                  <div className="h-4 bg-muted rounded w-3/4" />
+                                  <div className="h-4 bg-muted rounded w-1/2" />
+                                </div>
+                              ) : hasData ? (
+                                sessionNotesQuery.data.slice(0, isLargeHeight ? 3 : 2).map((note: any, idx: number) => (
+                                  <div key={note.id || idx} className="p-1.5 rounded bg-background/60">
+                                    <p className="text-xs font-medium">{note.title || `Session ${idx + 1}`}</p>
+                                    <p className="text-xs text-muted-foreground line-clamp-1">{note.summary || note.notes}</p>
+                                  </div>
+                                ))
+                              ) : (
+                                <p className="text-xs text-muted-foreground text-center py-2">No session notes yet</p>
+                              )}
+                            </CardContent>
+                          </Card>
+                        );
+                        if (isEditMode) return <div className="block h-full">{sessionCard}</div>;
+                        return <Link href="/session-notes" className="block h-full">{sessionCard}</Link>;
                       }
 
                       return null;
