@@ -674,13 +674,12 @@ export default function ClientDashboard() {
         <section>
 
           <DragDropContext onDragEnd={handleDragEnd}>
-            <Droppable droppableId="widgets" direction="vertical">
+            <Droppable droppableId="widgets" direction="horizontal">
               {(provided) => (
                 <div
                   ref={provided.innerRef}
                   {...provided.droppableProps}
-                  className="grid grid-cols-3 gap-3"
-                  style={{ gridAutoRows: "minmax(140px, auto)" }}
+                  className="flex flex-wrap gap-3"
                 >
                   {orderedWidgets.map((widget, index) => {
                     const Icon = widget.icon;
@@ -1268,8 +1267,15 @@ export default function ClientDashboard() {
                     };
 
                     const specialContent = widget.type ? renderSpecialWidget() : null;
-                    const colSpanClass = widgetSize.cols === 3 ? "col-span-3" : widgetSize.cols === 2 ? "col-span-2" : "";
-                    const rowSpanClass = widgetSize.rows === 2 ? "row-span-2" : "";
+                    // For flexbox: calculate width based on columns (3-column layout with 12px gap)
+                    const widthStyle = {
+                      width: widgetSize.cols === 3 
+                        ? "100%" 
+                        : widgetSize.cols === 2 
+                          ? "calc(66.666% - 4px)" 
+                          : "calc(33.333% - 8px)",
+                      minHeight: widgetSize.rows === 2 ? "296px" : "140px",
+                    };
 
                     if (isEditMode) {
                       return (
@@ -1278,11 +1284,10 @@ export default function ClientDashboard() {
                             <div
                               ref={provided.innerRef}
                               {...provided.draggableProps}
+                              style={{ ...widthStyle, ...provided.draggableProps.style }}
                               className={cn(
-                                colSpanClass,
-                                rowSpanClass,
-                                "relative group h-full",
-                                snapshot.isDragging && "z-50"
+                                "relative group",
+                                snapshot.isDragging && "z-50 opacity-90"
                               )}
                             >
                               <div
@@ -1353,7 +1358,7 @@ export default function ClientDashboard() {
                     }
 
                     return (
-                      <div key={widget.widgetId} className={cn(colSpanClass, rowSpanClass, "h-full")}>
+                      <div key={widget.widgetId} style={widthStyle} className="h-full">
                         {widget.type ? specialContent : (
                           <LuxuryWidget
                             title={widget.title}
