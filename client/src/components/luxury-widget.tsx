@@ -107,7 +107,7 @@ export function LuxuryWidget({
       <div className="relative z-10 flex flex-col h-full">
         <div className="flex-shrink-0 flex items-start justify-between mb-3">
           <div className={cn("p-2.5 rounded-xl flex-shrink-0", colors.iconBg)}>
-            <Icon className={cn("h-5 w-5", colors.iconColor)} />
+            <Icon className={cn("h-6 w-6", colors.iconColor)} />
           </div>
         </div>
         
@@ -119,11 +119,11 @@ export function LuxuryWidget({
         )}
         
         <div className="flex-1 flex flex-col">
-          <h3 className="font-bold text-sm text-foreground leading-tight tracking-tight mb-2">
+          <h3 className="font-bold text-base text-foreground leading-tight tracking-tight mb-2">
             {title}
           </h3>
           {description && (
-            <p className={cn("text-xs text-muted-foreground leading-relaxed flex-1", isLargeHeight ? "" : "line-clamp-3")}>
+            <p className={cn("text-sm text-muted-foreground leading-relaxed flex-1", isLargeHeight ? "" : "line-clamp-3")}>
               {description}
             </p>
           )}
