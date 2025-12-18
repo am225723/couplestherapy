@@ -1413,7 +1413,8 @@ export default function ClientDashboard() {
                       }
 
                       if (widget.type === "date-night") {
-                        const upcomingDate = dateNightQuery.data?.[0];
+                        const upcomingDates = dateNightQuery.data?.filter((d: any) => new Date(d.date) >= new Date()) || [];
+                        const nextDate = upcomingDates.sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime())[0];
                         return (
                           <Link href="/date-night" className="block h-full">
                             <div className="rounded-2xl p-4 relative cursor-pointer h-full flex flex-col border-l-4 border-l-pink-500 shadow-lg glass-card overflow-hidden">
@@ -1428,13 +1429,13 @@ export default function ClientDashboard() {
                                 <div className="flex-1 text-sm text-muted-foreground">
                                   {dateNightQuery.isLoading ? (
                                     <p>Loading...</p>
-                                  ) : upcomingDate ? (
+                                  ) : nextDate ? (
                                     <div className="space-y-1">
-                                      <p className="font-medium text-foreground">{upcomingDate.title || "Upcoming date"}</p>
-                                      <p>{new Date(upcomingDate.date).toLocaleDateString()}</p>
+                                      <p className="font-medium text-foreground">{nextDate.title || "Your next date"}</p>
+                                      <p className="text-xs">{new Date(nextDate.date).toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' })}</p>
                                     </div>
                                   ) : (
-                                    <p>Plan a meaningful date with AI suggestions</p>
+                                    <p className="text-primary font-medium">Plan your first date</p>
                                   )}
                                 </div>
                               </div>
@@ -1444,8 +1445,10 @@ export default function ClientDashboard() {
                       }
 
                       if (widget.type === "weekly-checkin") {
-                        const lastCheckin = weeklyCheckinsQuery.data?.[0];
+                        const checkins = weeklyCheckinsQuery.data || [];
+                        const lastCheckin = checkins[0];
                         const daysSince = lastCheckin ? Math.floor((Date.now() - new Date(lastCheckin.created_at).getTime()) / (1000 * 60 * 60 * 24)) : null;
+                        const totalCheckins = checkins.length;
                         return (
                           <Link href="/weekly-checkin" className="block h-full">
                             <div className="rounded-2xl p-4 relative cursor-pointer h-full flex flex-col border-l-4 border-l-blue-500 shadow-lg glass-card overflow-hidden">
@@ -1455,13 +1458,22 @@ export default function ClientDashboard() {
                                   <div className="p-2.5 rounded-xl bg-blue-500/15 flex-shrink-0">
                                     <ClipboardList className="h-6 w-6 text-blue-500" />
                                   </div>
+                                  {totalCheckins > 0 && (
+                                    <Badge variant="secondary" className="text-xs">{totalCheckins} total</Badge>
+                                  )}
                                 </div>
                                 <h3 className="font-bold text-base text-foreground leading-tight mb-2">Weekly Check-In</h3>
-                                <p className="flex-1 text-sm text-muted-foreground">
+                                <div className="flex-1 text-sm text-muted-foreground">
                                   {daysSince !== null ? (
-                                    daysSince === 0 ? "Completed today" : daysSince === 1 ? "1 day ago" : `${daysSince} days ago`
-                                  ) : "Start your first check-in"}
-                                </p>
+                                    <div className="space-y-1">
+                                      <p>{daysSince === 0 ? "Completed today" : daysSince === 1 ? "1 day ago" : `${daysSince} days ago`}</p>
+                                      {daysSince <= 7 && <p className="text-xs text-emerald-500">On track this week</p>}
+                                      {daysSince > 7 && <p className="text-xs text-amber-500">Time for a new check-in</p>}
+                                    </div>
+                                  ) : (
+                                    <p className="text-primary font-medium">Start your first check-in</p>
+                                  )}
+                                </div>
                               </div>
                             </div>
                           </Link>
@@ -1469,7 +1481,9 @@ export default function ClientDashboard() {
                       }
 
                       if (widget.type === "gratitude") {
-                        const recentCount = gratitudeQuery.data?.length || 0;
+                        const entries = gratitudeQuery.data || [];
+                        const recentCount = entries.length;
+                        const latestEntry = entries[0];
                         return (
                           <Link href="/gratitude" className="block h-full">
                             <div className="rounded-2xl p-4 relative cursor-pointer h-full flex flex-col border-l-4 border-l-emerald-500 shadow-lg glass-card overflow-hidden">
@@ -1480,13 +1494,17 @@ export default function ClientDashboard() {
                                     <Coffee className="h-6 w-6 text-emerald-500" />
                                   </div>
                                   {recentCount > 0 && (
-                                    <Badge variant="secondary" className="text-xs">{recentCount}</Badge>
+                                    <Badge variant="secondary" className="text-xs">{recentCount} entries</Badge>
                                   )}
                                 </div>
                                 <h3 className="font-bold text-base text-foreground leading-tight mb-2">Gratitude Log</h3>
-                                <p className="flex-1 text-sm text-muted-foreground">
-                                  {recentCount > 0 ? `${recentCount} recent entries` : "Share appreciation for each other"}
-                                </p>
+                                <div className="flex-1 text-sm text-muted-foreground overflow-hidden">
+                                  {latestEntry ? (
+                                    <p className="line-clamp-2">"{latestEntry.gratitude_text || latestEntry.content}"</p>
+                                  ) : (
+                                    <p className="text-primary font-medium">Share your first gratitude</p>
+                                  )}
+                                </div>
                               </div>
                             </div>
                           </Link>
@@ -1494,8 +1512,9 @@ export default function ClientDashboard() {
                       }
 
                       if (widget.type === "goals") {
-                        const activeGoals = goalsQuery.data?.filter((g: any) => g.status !== "completed")?.length || 0;
-                        const completedGoals = goalsQuery.data?.filter((g: any) => g.status === "completed")?.length || 0;
+                        const allGoals = goalsQuery.data || [];
+                        const activeGoals = allGoals.filter((g: any) => g.status !== "completed");
+                        const completedCount = allGoals.filter((g: any) => g.status === "completed")?.length || 0;
                         return (
                           <Link href="/goals" className="block h-full">
                             <div className="rounded-2xl p-4 relative cursor-pointer h-full flex flex-col border-l-4 border-l-blue-500 shadow-lg glass-card overflow-hidden">
@@ -1505,14 +1524,30 @@ export default function ClientDashboard() {
                                   <div className="p-2.5 rounded-xl bg-blue-500/15 flex-shrink-0">
                                     <Target className="h-6 w-6 text-blue-500" />
                                   </div>
-                                  {activeGoals > 0 && (
-                                    <Badge variant="secondary" className="text-xs">{activeGoals} active</Badge>
+                                  {activeGoals.length > 0 && (
+                                    <Badge variant="secondary" className="text-xs">{activeGoals.length} active</Badge>
                                   )}
                                 </div>
                                 <h3 className="font-bold text-base text-foreground leading-tight mb-2">Shared Goals</h3>
-                                <p className="flex-1 text-sm text-muted-foreground">
-                                  {completedGoals > 0 ? `${completedGoals} completed` : "Set and track goals together"}
-                                </p>
+                                <div className="flex-1 text-sm text-muted-foreground overflow-hidden">
+                                  {activeGoals.length > 0 ? (
+                                    <div className="space-y-1.5">
+                                      {activeGoals.slice(0, 2).map((goal: any) => (
+                                        <div key={goal.id} className="flex items-center gap-2">
+                                          <div className="w-1.5 h-1.5 rounded-full bg-blue-500 flex-shrink-0" />
+                                          <span className="truncate text-foreground/80">{goal.title || goal.goal_text}</span>
+                                        </div>
+                                      ))}
+                                      {activeGoals.length > 2 && (
+                                        <p className="text-xs text-muted-foreground">+{activeGoals.length - 2} more</p>
+                                      )}
+                                    </div>
+                                  ) : completedCount > 0 ? (
+                                    <p>{completedCount} goals completed</p>
+                                  ) : (
+                                    <p>Set your first goal together</p>
+                                  )}
+                                </div>
                               </div>
                             </div>
                           </Link>
@@ -1545,7 +1580,18 @@ export default function ClientDashboard() {
                       }
 
                       if (widget.type === "calendar") {
-                        const upcomingEvents = calendarQuery.data?.filter((e: any) => new Date(e.start_at) > new Date())?.slice(0, 2) || [];
+                        const now = new Date();
+                        const upcomingEvents = calendarQuery.data?.filter((e: any) => new Date(e.start_at) > now)?.sort((a: any, b: any) => new Date(a.start_at).getTime() - new Date(b.start_at).getTime()) || [];
+                        const nextEvent = upcomingEvents[0];
+                        const formatEventDate = (dateStr: string) => {
+                          const date = new Date(dateStr);
+                          const today = new Date();
+                          const tomorrow = new Date(today);
+                          tomorrow.setDate(tomorrow.getDate() + 1);
+                          if (date.toDateString() === today.toDateString()) return "Today";
+                          if (date.toDateString() === tomorrow.toDateString()) return "Tomorrow";
+                          return date.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+                        };
                         return (
                           <Link href="/calendar" className="block h-full">
                             <div className="rounded-2xl p-4 relative cursor-pointer h-full flex flex-col border-l-4 border-l-blue-500 shadow-lg glass-card overflow-hidden">
@@ -1555,13 +1601,19 @@ export default function ClientDashboard() {
                                   <div className="p-2.5 rounded-xl bg-blue-500/15 flex-shrink-0">
                                     <Calendar className="h-6 w-6 text-blue-500" />
                                   </div>
+                                  {upcomingEvents.length > 0 && (
+                                    <Badge variant="secondary" className="text-xs">{upcomingEvents.length} upcoming</Badge>
+                                  )}
                                 </div>
                                 <h3 className="font-bold text-base text-foreground leading-tight mb-2">Shared Calendar</h3>
-                                <div className="flex-1 text-sm text-muted-foreground">
-                                  {upcomingEvents.length > 0 ? (
-                                    <p>{upcomingEvents[0].title} - {new Date(upcomingEvents[0].start_at).toLocaleDateString()}</p>
+                                <div className="flex-1 text-sm text-muted-foreground overflow-hidden">
+                                  {nextEvent ? (
+                                    <div className="space-y-1">
+                                      <p className="font-medium text-foreground">{nextEvent.title}</p>
+                                      <p className="text-xs">{formatEventDate(nextEvent.start_at)}</p>
+                                    </div>
                                   ) : (
-                                    <p>Stay in sync with each other</p>
+                                    <p>Add your first shared event</p>
                                   )}
                                 </div>
                               </div>
@@ -1571,7 +1623,9 @@ export default function ClientDashboard() {
                       }
 
                       if (widget.type === "rituals") {
-                        const ritualCount = ritualsQuery.data?.length || 0;
+                        const rituals = ritualsQuery.data || [];
+                        const ritualCount = rituals.length;
+                        const latestRitual = rituals[0];
                         return (
                           <Link href="/rituals" className="block h-full">
                             <div className="rounded-2xl p-4 relative cursor-pointer h-full flex flex-col border-l-4 border-l-purple-500 shadow-lg glass-card overflow-hidden">
@@ -1582,13 +1636,17 @@ export default function ClientDashboard() {
                                     <BookOpen className="h-6 w-6 text-purple-500" />
                                   </div>
                                   {ritualCount > 0 && (
-                                    <Badge variant="secondary" className="text-xs">{ritualCount}</Badge>
+                                    <Badge variant="secondary" className="text-xs">{ritualCount} active</Badge>
                                   )}
                                 </div>
                                 <h3 className="font-bold text-base text-foreground leading-tight mb-2">Rituals</h3>
-                                <p className="flex-1 text-sm text-muted-foreground">
-                                  {ritualCount > 0 ? `${ritualCount} active rituals` : "Build meaningful traditions"}
-                                </p>
+                                <div className="flex-1 text-sm text-muted-foreground overflow-hidden">
+                                  {latestRitual ? (
+                                    <p className="line-clamp-2">{latestRitual.title || latestRitual.ritual_name}</p>
+                                  ) : (
+                                    <p className="text-primary font-medium">Create your first ritual</p>
+                                  )}
+                                </div>
                               </div>
                             </div>
                           </Link>
@@ -1596,7 +1654,9 @@ export default function ClientDashboard() {
                       }
 
                       if (widget.type === "conversations") {
-                        const conversationCount = conversationsQuery.data?.length || 0;
+                        const conversations = conversationsQuery.data || [];
+                        const completedCount = conversations.filter((c: any) => c.status === "completed").length;
+                        const inProgressCount = conversations.filter((c: any) => c.status === "in_progress").length;
                         return (
                           <Link href="/conversation" className="block h-full">
                             <div className="rounded-2xl p-4 relative cursor-pointer h-full flex flex-col border-l-4 border-l-emerald-500 shadow-lg glass-card overflow-hidden">
@@ -1606,11 +1666,20 @@ export default function ClientDashboard() {
                                   <div className="p-2.5 rounded-xl bg-emerald-500/15 flex-shrink-0">
                                     <Activity className="h-6 w-6 text-emerald-500" />
                                   </div>
+                                  {completedCount > 0 && (
+                                    <Badge variant="secondary" className="text-xs">{completedCount} done</Badge>
+                                  )}
                                 </div>
                                 <h3 className="font-bold text-base text-foreground leading-tight mb-2">Hold Me Tight</h3>
-                                <p className="flex-1 text-sm text-muted-foreground">
-                                  {conversationCount > 0 ? `${conversationCount} conversations completed` : "Deepen emotional bonds"}
-                                </p>
+                                <div className="flex-1 text-sm text-muted-foreground">
+                                  {inProgressCount > 0 ? (
+                                    <p className="text-amber-500">{inProgressCount} in progress</p>
+                                  ) : completedCount > 0 ? (
+                                    <p>{completedCount} conversations completed</p>
+                                  ) : (
+                                    <p className="text-primary font-medium">Start your first conversation</p>
+                                  )}
+                                </div>
                               </div>
                             </div>
                           </Link>
@@ -1618,7 +1687,10 @@ export default function ClientDashboard() {
                       }
 
                       if (widget.type === "love-map") {
-                        const responseCount = loveMapQuery.data?.length || 0;
+                        const responses = loveMapQuery.data || [];
+                        const responseCount = responses.length;
+                        const totalQuestions = 20;
+                        const completionPercent = Math.min(100, Math.round((responseCount / totalQuestions) * 100));
                         return (
                           <Link href="/love-map" className="block h-full">
                             <div className="rounded-2xl p-4 relative cursor-pointer h-full flex flex-col border-l-4 border-l-amber-500 shadow-lg glass-card overflow-hidden">
@@ -1628,11 +1700,22 @@ export default function ClientDashboard() {
                                   <div className="p-2.5 rounded-xl bg-amber-500/15 flex-shrink-0">
                                     <Compass className="h-6 w-6 text-amber-500" />
                                   </div>
+                                  {responseCount > 0 && (
+                                    <Badge variant="secondary" className="text-xs">{completionPercent}%</Badge>
+                                  )}
                                 </div>
                                 <h3 className="font-bold text-base text-foreground leading-tight mb-2">Love Map Quiz</h3>
-                                <p className="flex-1 text-sm text-muted-foreground">
-                                  {responseCount > 0 ? `${responseCount} questions answered` : "Know each other deeply"}
-                                </p>
+                                <div className="flex-1 text-sm text-muted-foreground">
+                                  {responseCount > 0 ? (
+                                    <div className="space-y-1">
+                                      <p>{responseCount} questions answered</p>
+                                      {completionPercent < 100 && <p className="text-xs text-amber-500">Keep exploring</p>}
+                                      {completionPercent >= 100 && <p className="text-xs text-emerald-500">Quiz complete</p>}
+                                    </div>
+                                  ) : (
+                                    <p className="text-primary font-medium">Start the quiz</p>
+                                  )}
+                                </div>
                               </div>
                             </div>
                           </Link>
