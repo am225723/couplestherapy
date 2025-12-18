@@ -90,8 +90,8 @@ export function LuxuryWidget({
   const content = (
     <div
       className={cn(
-        "luxury-widget rounded-2xl p-touch relative cursor-pointer h-full",
-        "min-h-[140px] flex flex-col",
+        "luxury-widget rounded-2xl p-4 relative cursor-pointer h-full",
+        "flex flex-col",
         "shadow-lg hover:shadow-xl transition-shadow duration-300",
         colors.ring,
         colors.glow,
@@ -104,26 +104,26 @@ export function LuxuryWidget({
     >
       <div className={cn("gradient-animate rounded-2xl bg-gradient-to-br", colors.gradient)} />
       
-      <div className="relative z-10 flex flex-col h-full flex-1">
-        <div className="flex items-start justify-between">
-          <div className={cn("p-2.5 rounded-xl", colors.iconBg)}>
+      <div className="relative z-10 flex flex-col h-full">
+        <div className="flex-shrink-0 flex items-start justify-between mb-3">
+          <div className={cn("p-2.5 rounded-xl flex-shrink-0", colors.iconBg)}>
             <Icon className={cn("h-5 w-5", colors.iconColor)} />
           </div>
         </div>
         
         {stat !== undefined && (
-          <div className="mt-3 flex-1 flex flex-col justify-center">
+          <div className="flex-1 flex flex-col justify-center mb-3">
             <div className="stat-value">{stat}</div>
             {statLabel && <div className="stat-label mt-1">{statLabel}</div>}
           </div>
         )}
         
-        <div className="mt-auto pt-3">
-          <h3 className="font-semibold text-sm text-foreground leading-tight tracking-tight">
+        <div className="flex-1 flex flex-col">
+          <h3 className="font-bold text-sm text-foreground leading-tight tracking-tight mb-2">
             {title}
           </h3>
           {description && (
-            <p className={cn("text-xs text-muted-foreground mt-1 leading-relaxed", isLargeHeight ? "line-clamp-none" : "line-clamp-2")}>
+            <p className={cn("text-xs text-muted-foreground leading-relaxed flex-1", isLargeHeight ? "" : "line-clamp-3")}>
               {description}
             </p>
           )}
