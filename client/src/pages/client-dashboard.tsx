@@ -935,6 +935,17 @@ export default function ClientDashboard() {
 
                       if (widget.type === "love-results") {
                         const hasData = !loading && loveLanguages.length > 0;
+                        const partnerLang = loveLanguages.find((l) => l.user_id !== profile?.id);
+                        const getLoveLanguageTip = (language: string) => {
+                          const tips: Record<string, string> = {
+                            "Words of Affirmation": "Express appreciation and encouragement",
+                            "Acts of Service": "Help with tasks they find meaningful",
+                            "Receiving Gifts": "Give thoughtful, personalized presents",
+                            "Quality Time": "Give undivided attention and presence",
+                            "Physical Touch": "Show affection through hugs and closeness",
+                          };
+                          return tips[language] || "Connect in meaningful ways";
+                        };
                         const loveCard = (
                           <div className="rounded-2xl p-4 relative cursor-pointer h-full flex flex-col border-l-4 border-l-rose-500 shadow-lg glass-card overflow-hidden">
                             <div className="gradient-animate rounded-2xl bg-gradient-to-br from-rose-500/8 to-pink-500/6" />
@@ -947,23 +958,30 @@ export default function ClientDashboard() {
                               <h3 className="font-bold text-base text-foreground leading-tight mb-2">
                                 Your Love Languages
                               </h3>
-                              <div className="flex-1 flex flex-col">
+                              <div className="flex-1 flex flex-col overflow-hidden">
                                 {loading ? (
-                                  <div className="animate-pulse grid grid-cols-2 gap-2">
-                                    <div className="h-12 bg-muted rounded" />
-                                    <div className="h-12 bg-muted rounded" />
+                                  <div className="animate-pulse space-y-2">
+                                    <div className="h-4 bg-muted rounded w-3/4" />
+                                    <div className="h-4 bg-muted rounded w-1/2" />
+                                  </div>
+                                ) : hasData && partnerLang ? (
+                                  <div className="space-y-2">
+                                    <div className="p-2 rounded-lg bg-background/60 backdrop-blur-sm border border-border/30">
+                                      <p className="text-xs font-medium text-muted-foreground">Partner needs:</p>
+                                      <p className="text-sm font-medium text-foreground">{partnerLang.primary_language}</p>
+                                    </div>
+                                    <p className="text-xs text-primary">{getLoveLanguageTip(partnerLang.primary_language)}</p>
                                   </div>
                                 ) : hasData ? (
-                                  <div className="grid grid-cols-2 gap-2">
-                                    {loveLanguages.slice(0, 2).map((lang) => (
-                                      <div key={lang.id} className="p-2 rounded-lg bg-background/60 backdrop-blur-sm border border-border/30">
-                                        <p className="text-sm font-medium">{lang.user_id === profile?.id ? "You" : "Partner"}</p>
-                                        <p className="text-sm text-muted-foreground">{lang.primary_language}</p>
-                                      </div>
-                                    ))}
+                                  <div className="space-y-2">
+                                    <p className="text-sm text-muted-foreground">Your results are in!</p>
+                                    <p className="text-xs text-primary">Invite your partner to take the quiz</p>
                                   </div>
                                 ) : (
-                                  <p className="text-sm text-muted-foreground text-center py-2">Take the quiz to discover your love languages</p>
+                                  <div className="space-y-2">
+                                    <p className="text-sm text-muted-foreground">Discover how you connect</p>
+                                    <p className="text-xs text-primary font-medium">Take the quiz</p>
+                                  </div>
                                 )}
                               </div>
                             </div>
