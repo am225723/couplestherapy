@@ -1355,7 +1355,8 @@ export default function ClientDashboard() {
                               </div>
                               <Button
                                 size="sm"
-                                className="w-full h-7 text-xs"
+                                variant="outline"
+                                className="w-full h-6 text-xs py-0"
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   saveMoodMutation.mutate(quickMoodLevel[0]);
@@ -1363,7 +1364,7 @@ export default function ClientDashboard() {
                                 disabled={saveMoodMutation.isPending}
                                 data-testid="button-save-mood"
                               >
-                                {saveMoodMutation.isPending ? "Saving..." : "Log Mood"}
+                                {saveMoodMutation.isPending ? "..." : "Log"}
                               </Button>
                               {!isEditMode && (
                                 <Link href="/mood-tracker" className="block">
@@ -1557,25 +1558,31 @@ export default function ClientDashboard() {
                       if (widget.type === "voice-memos") {
                         const unlistenedCount = voiceMemosQuery.data?.filter((m: any) => !m.listened_at && m.sender_id !== user?.id)?.length || 0;
                         return (
-                          <Link href="/voice-memos" className="block h-full">
-                            <div className="rounded-2xl p-4 relative cursor-pointer h-full flex flex-col border-l-4 border-l-slate-500 shadow-lg glass-card overflow-hidden">
-                              <div className="gradient-animate rounded-2xl bg-gradient-to-br from-slate-500/8 to-gray-500/6" />
-                              <div className="relative z-10 flex flex-col h-full">
-                                <div className="flex-shrink-0 flex items-start justify-between mb-3">
-                                  <div className="p-2.5 rounded-xl bg-slate-500/15 flex-shrink-0">
-                                    <Mic className="h-6 w-6 text-slate-500" />
-                                  </div>
-                                  {unlistenedCount > 0 && (
-                                    <Badge variant="destructive" className="text-xs">{unlistenedCount} new</Badge>
-                                  )}
+                          <div className="rounded-2xl p-4 relative cursor-pointer h-full flex flex-col border-l-4 border-l-slate-500 shadow-lg glass-card overflow-hidden">
+                            <div className="gradient-animate rounded-2xl bg-gradient-to-br from-slate-500/8 to-gray-500/6" />
+                            <div className="relative z-10 flex flex-col h-full">
+                              <div className="flex-shrink-0 flex items-start justify-between mb-3">
+                                <div className="p-2.5 rounded-xl bg-slate-500/15 flex-shrink-0">
+                                  <Mic className="h-6 w-6 text-slate-500" />
                                 </div>
-                                <h3 className="font-bold text-base text-foreground leading-tight mb-2">Voice Memos</h3>
-                                <p className="flex-1 text-sm text-muted-foreground">
-                                  {unlistenedCount > 0 ? `${unlistenedCount} unplayed messages` : "Send loving voice messages"}
+                                {unlistenedCount > 0 && (
+                                  <Badge variant="destructive" className="text-xs">{unlistenedCount} new</Badge>
+                                )}
+                              </div>
+                              <h3 className="font-bold text-base text-foreground leading-tight mb-2">Voice Memos</h3>
+                              <div className="flex-1 flex flex-col space-y-2">
+                                <p className="text-sm text-muted-foreground">
+                                  {unlistenedCount > 0 ? `${unlistenedCount} unplayed messages` : "Send a loving message"}
                                 </p>
+                                <Link href="/voice-memos" onClick={(e) => e.stopPropagation()}>
+                                  <Button size="sm" className="w-full" data-testid="button-record-memo">
+                                    <Mic className="h-3 w-3 mr-1" />
+                                    Record
+                                  </Button>
+                                </Link>
                               </div>
                             </div>
-                          </Link>
+                          </div>
                         );
                       }
 
@@ -1761,6 +1768,11 @@ export default function ClientDashboard() {
                       }
 
                       if (widget.type === "growth") {
+                        const sampleExercises = [
+                          "Practice active listening",
+                          "Share daily appreciations",
+                          "Plan quality time together",
+                        ];
                         return (
                           <Link href="/growth-plan" className="block h-full">
                             <div className="rounded-2xl p-4 relative cursor-pointer h-full flex flex-col border-l-4 border-l-amber-500 shadow-lg glass-card overflow-hidden">
@@ -1772,7 +1784,17 @@ export default function ClientDashboard() {
                                   </div>
                                 </div>
                                 <h3 className="font-bold text-base text-foreground leading-tight mb-2">Growth Plan</h3>
-                                <p className="flex-1 text-sm text-muted-foreground">AI-powered exercises for you</p>
+                                <div className="flex-1 text-sm text-muted-foreground overflow-hidden">
+                                  <div className="space-y-1">
+                                    {sampleExercises.slice(0, 2).map((exercise, idx) => (
+                                      <div key={idx} className="flex items-center gap-2">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-amber-500 flex-shrink-0" />
+                                        <span className="truncate text-xs">{exercise}</span>
+                                      </div>
+                                    ))}
+                                    <p className="text-xs text-primary mt-1">View personalized plan</p>
+                                  </div>
+                                </div>
                               </div>
                             </div>
                           </Link>
@@ -1819,39 +1841,59 @@ export default function ClientDashboard() {
 
                       if (widget.type === "pause") {
                         return (
-                          <Link href="/pause" className="block h-full">
-                            <div className="rounded-2xl p-4 relative cursor-pointer h-full flex flex-col border-l-4 border-l-slate-500 shadow-lg glass-card overflow-hidden">
-                              <div className="gradient-animate rounded-2xl bg-gradient-to-br from-slate-500/8 to-gray-500/6" />
-                              <div className="relative z-10 flex flex-col h-full">
-                                <div className="flex-shrink-0 flex items-start justify-between mb-3">
-                                  <div className="p-2.5 rounded-xl bg-slate-500/15 flex-shrink-0">
-                                    <Pause className="h-6 w-6 text-slate-500" />
-                                  </div>
+                          <div className="rounded-2xl p-4 relative cursor-pointer h-full flex flex-col border-l-4 border-l-slate-500 shadow-lg glass-card overflow-hidden">
+                            <div className="gradient-animate rounded-2xl bg-gradient-to-br from-slate-500/8 to-gray-500/6" />
+                            <div className="relative z-10 flex flex-col h-full">
+                              <div className="flex-shrink-0 flex items-start justify-between mb-3">
+                                <div className="p-2.5 rounded-xl bg-slate-500/15 flex-shrink-0">
+                                  <Pause className="h-6 w-6 text-slate-500" />
                                 </div>
-                                <h3 className="font-bold text-base text-foreground leading-tight mb-2">Pause</h3>
-                                <p className="flex-1 text-sm text-muted-foreground">Take a mindful break together</p>
+                              </div>
+                              <h3 className="font-bold text-base text-foreground leading-tight mb-2">Pause</h3>
+                              <div className="flex-1 flex flex-col space-y-2">
+                                <p className="text-sm text-muted-foreground">Need a mindful break?</p>
+                                <Link href="/pause" onClick={(e) => e.stopPropagation()}>
+                                  <Button size="sm" variant="outline" className="w-full" data-testid="button-pause">
+                                    <Pause className="h-3 w-3 mr-1" />
+                                    Take a Pause
+                                  </Button>
+                                </Link>
                               </div>
                             </div>
-                          </Link>
+                          </div>
                         );
                       }
 
                       if (widget.type === "journal") {
+                        const journalPrompts = [
+                          "What made you smile today?",
+                          "What are you grateful for in your relationship?",
+                          "Share a favorite memory together",
+                          "What do you appreciate about your partner?",
+                          "What dreams do you share?",
+                        ];
+                        const todayPrompt = journalPrompts[new Date().getDay() % journalPrompts.length];
                         return (
-                          <Link href="/couple-journal" className="block h-full">
-                            <div className="rounded-2xl p-4 relative cursor-pointer h-full flex flex-col border-l-4 border-l-emerald-500 shadow-lg glass-card overflow-hidden">
-                              <div className="gradient-animate rounded-2xl bg-gradient-to-br from-emerald-500/8 to-teal-500/6" />
-                              <div className="relative z-10 flex flex-col h-full">
-                                <div className="flex-shrink-0 flex items-start justify-between mb-3">
-                                  <div className="p-2.5 rounded-xl bg-emerald-500/15 flex-shrink-0">
-                                    <BookMarked className="h-6 w-6 text-emerald-500" />
-                                  </div>
+                          <div className="rounded-2xl p-4 relative cursor-pointer h-full flex flex-col border-l-4 border-l-emerald-500 shadow-lg glass-card overflow-hidden">
+                            <div className="gradient-animate rounded-2xl bg-gradient-to-br from-emerald-500/8 to-teal-500/6" />
+                            <div className="relative z-10 flex flex-col h-full">
+                              <div className="flex-shrink-0 flex items-start justify-between mb-3">
+                                <div className="p-2.5 rounded-xl bg-emerald-500/15 flex-shrink-0">
+                                  <BookMarked className="h-6 w-6 text-emerald-500" />
                                 </div>
-                                <h3 className="font-bold text-base text-foreground leading-tight mb-2">Journal</h3>
-                                <p className="flex-1 text-sm text-muted-foreground">Write and reflect together</p>
+                              </div>
+                              <h3 className="font-bold text-base text-foreground leading-tight mb-2">Journal</h3>
+                              <div className="flex-1 flex flex-col space-y-2">
+                                <p className="text-sm text-muted-foreground italic">"{todayPrompt}"</p>
+                                <Link href="/couple-journal" onClick={(e) => e.stopPropagation()}>
+                                  <Button size="sm" variant="outline" className="w-full" data-testid="button-write-journal">
+                                    <BookMarked className="h-3 w-3 mr-1" />
+                                    Write Entry
+                                  </Button>
+                                </Link>
                               </div>
                             </div>
-                          </Link>
+                          </div>
                         );
                       }
 
@@ -1895,6 +1937,7 @@ export default function ClientDashboard() {
 
                       if (widget.type === "tips") {
                         const todayTip = dailySuggestionQuery.data;
+                        const cleanTipText = todayTip?.tip_text?.replace(/\*\*/g, '') || '';
                         return (
                           <Link href="/daily-tips" className="block h-full">
                             <div className="rounded-2xl p-4 relative cursor-pointer h-full flex flex-col border-l-4 border-l-amber-500 shadow-lg glass-card overflow-hidden">
@@ -1907,7 +1950,7 @@ export default function ClientDashboard() {
                                 </div>
                                 <h3 className="font-bold text-base text-foreground leading-tight mb-2">Daily Tips</h3>
                                 <p className="flex-1 text-sm text-muted-foreground line-clamp-2">
-                                  {todayTip?.tip_text ? todayTip.tip_text.substring(0, 60) + "..." : "Relationship tips for today"}
+                                  {cleanTipText ? cleanTipText.substring(0, 60) + "..." : "Relationship tips for today"}
                                 </p>
                               </div>
                             </div>
