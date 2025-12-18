@@ -1253,7 +1253,6 @@ export default function ClientDashboard() {
                                   <p className="text-sm text-primary text-center hover:underline">View history</p>
                                 </Link>
                               )}
-                                </div>
                               </div>
                             </div>
                           </div>
