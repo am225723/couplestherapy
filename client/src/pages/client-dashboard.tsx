@@ -970,7 +970,7 @@ export default function ClientDashboard() {
                                       <p className="text-xs font-medium text-muted-foreground">Partner needs:</p>
                                       <p className="text-sm font-medium text-foreground">{partnerLang.primary_language}</p>
                                     </div>
-                                    <p className="text-xs text-primary">{getLoveLanguageTip(partnerLang.primary_language)}</p>
+                                    <p className="text-xs text-primary">{getLoveLanguageTip(partnerLang.primary_language || '')}</p>
                                   </div>
                                 ) : hasData ? (
                                   <div className="space-y-2">
