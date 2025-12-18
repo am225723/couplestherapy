@@ -456,6 +456,123 @@ export default function ClientDashboard() {
     staleTime: 1000 * 60 * 10,
   });
 
+  const calendarQuery = useQuery<any[]>({
+    queryKey: ["/api/calendar", profile?.couple_id],
+    queryFn: async () => {
+      if (!profile?.couple_id) return [];
+      return authenticatedFetchJson(`/api/calendar/${profile.couple_id}`);
+    },
+    enabled: !!profile?.couple_id,
+    staleTime: 1000 * 60 * 5,
+  });
+
+  const voiceMemosQuery = useQuery<any[]>({
+    queryKey: ["/api/voice-memos", profile?.couple_id],
+    queryFn: async () => {
+      if (!profile?.couple_id) return [];
+      return authenticatedFetchJson(`/api/voice-memos?couple_id=${profile.couple_id}`);
+    },
+    enabled: !!profile?.couple_id,
+    staleTime: 1000 * 60 * 5,
+  });
+
+  const gratitudeQuery = useQuery<any[]>({
+    queryKey: ["/api/gratitude", profile?.couple_id],
+    queryFn: async () => {
+      if (!profile?.couple_id) return [];
+      const { data } = await supabase
+        .from("Couples_gratitude_logs")
+        .select("*")
+        .eq("couple_id", profile.couple_id)
+        .order("created_at", { ascending: false })
+        .limit(5);
+      return data || [];
+    },
+    enabled: !!profile?.couple_id,
+    staleTime: 1000 * 60 * 5,
+  });
+
+  const goalsQuery = useQuery<any[]>({
+    queryKey: ["/api/goals", profile?.couple_id],
+    queryFn: async () => {
+      if (!profile?.couple_id) return [];
+      const { data } = await supabase
+        .from("Couples_shared_goals")
+        .select("*")
+        .eq("couple_id", profile.couple_id)
+        .order("created_at", { ascending: false });
+      return data || [];
+    },
+    enabled: !!profile?.couple_id,
+    staleTime: 1000 * 60 * 5,
+  });
+
+  const ritualsQuery = useQuery<any[]>({
+    queryKey: ["/api/rituals", profile?.couple_id],
+    queryFn: async () => {
+      if (!profile?.couple_id) return [];
+      const { data } = await supabase
+        .from("Couples_rituals_of_connection")
+        .select("*")
+        .eq("couple_id", profile.couple_id)
+        .order("created_at", { ascending: false });
+      return data || [];
+    },
+    enabled: !!profile?.couple_id,
+    staleTime: 1000 * 60 * 5,
+  });
+
+  const conversationsQuery = useQuery<any[]>({
+    queryKey: ["/api/conversations", profile?.couple_id],
+    queryFn: async () => {
+      if (!profile?.couple_id) return [];
+      const { data } = await supabase
+        .from("Couples_hold_me_tight_conversations")
+        .select("*")
+        .eq("couple_id", profile.couple_id)
+        .order("created_at", { ascending: false });
+      return data || [];
+    },
+    enabled: !!profile?.couple_id,
+    staleTime: 1000 * 60 * 5,
+  });
+
+  const loveMapQuery = useQuery<any[]>({
+    queryKey: ["/api/love-map", profile?.couple_id],
+    queryFn: async () => {
+      if (!profile?.couple_id) return [];
+      const { data: coupleData } = await supabase
+        .from("Couples_couples")
+        .select("partner1_id, partner2_id")
+        .eq("id", profile.couple_id)
+        .single();
+      if (!coupleData) return [];
+      const { data } = await supabase
+        .from("Couples_love_map_responses")
+        .select("*")
+        .in("user_id", [coupleData.partner1_id, coupleData.partner2_id]);
+      return data || [];
+    },
+    enabled: !!profile?.couple_id,
+    staleTime: 1000 * 60 * 15,
+  });
+
+  const dateNightQuery = useQuery<any[]>({
+    queryKey: ["/api/date-night", profile?.couple_id],
+    queryFn: async () => {
+      if (!profile?.couple_id) return [];
+      const { data } = await supabase
+        .from("Couples_date_nights")
+        .select("*")
+        .eq("couple_id", profile.couple_id)
+        .order("date", { ascending: true })
+        .gte("date", new Date().toISOString().split("T")[0]);
+      return data || [];
+    },
+    enabled: !!profile?.couple_id,
+    staleTime: 1000 * 60 * 10,
+  });
+
   const deleteLoveLanguageMutation = useMutation({
     mutationFn: async (id: string) => {
       return await apiRequest("DELETE", `/api/love-languages/user/${id}`);
@@ -503,7 +620,7 @@ export default function ClientDashboard() {
     }
   };
 
-  type WidgetType = "standard" | "therapist" | "suggestion" | "ai" | "love-results" | "attachment" | "enneagram" | "todos" | "chores" | "checkin-history" | "session-notes" | "mood" | "conflict";
+  type WidgetType = "standard" | "therapist" | "suggestion" | "ai" | "love-results" | "attachment" | "enneagram" | "todos" | "chores" | "checkin-history" | "session-notes" | "mood" | "conflict" | "date-night" | "weekly-checkin" | "gratitude" | "goals" | "voice-memos" | "calendar" | "rituals" | "conversations" | "love-map" | "compatibility" | "progress" | "growth" | "messages" | "echo" | "pause" | "journal" | "ifs" | "financial" | "tips";
   
   const allWidgets: Array<{
     widgetId: string;
@@ -517,36 +634,36 @@ export default function ClientDashboard() {
     { widgetId: "therapist-card", title: "From Your Therapist", description: "Messages and tasks from your therapist", icon: MessageCircle, path: "/therapist-thoughts", size: "lg", type: "therapist" },
     { widgetId: "daily-suggestion", title: "Partner Tip", description: "Ways to connect with your partner", icon: Heart, path: "/daily-suggestion", size: "md", type: "suggestion" },
     { widgetId: "ai-suggestions", title: "Suggested For You", description: "AI-powered recommendations", icon: Sparkles, path: "#", size: "md", type: "ai" },
-    { widgetId: "date-night", title: "Date Night", description: "Plan meaningful dates with AI", icon: Sparkles, path: "/date-night", size: "lg" },
+    { widgetId: "date-night", title: "Date Night", description: "Plan meaningful dates with AI", icon: Sparkles, path: "/date-night", size: "lg", type: "date-night" },
     { widgetId: "checkin-history", title: "Check-In History", description: "Review your weekly progress", icon: TrendingUp, path: "/checkin-history", size: "lg", type: "checkin-history" },
     { widgetId: "love-results", title: "Your Love Languages", description: "How you give and receive love", icon: Heart, path: "/quiz", size: "lg", type: "love-results" },
-    { widgetId: "weekly-checkin", title: "Weekly Check-In", description: "Reflect on your week together", icon: ClipboardList, path: "/weekly-checkin", size: "sm" },
-    { widgetId: "love-languages", title: "Love Languages", description: "Discover how you give and receive love", icon: Heart, path: "/quiz", size: "sm" },
-    { widgetId: "gratitude", title: "Gratitude Log", description: "Share appreciation for each other", icon: Coffee, path: "/gratitude", size: "sm" },
-    { widgetId: "shared-goals", title: "Shared Goals", description: "Set and track goals together", icon: Target, path: "/goals", size: "sm" },
-    { widgetId: "voice-memos", title: "Voice Memos", description: "Send loving voice messages", icon: Mic, path: "/voice-memos", size: "sm" },
-    { widgetId: "calendar", title: "Shared Calendar", description: "Stay in sync", icon: Calendar, path: "/calendar", size: "sm" },
-    { widgetId: "rituals", title: "Rituals", description: "Build meaningful traditions", icon: BookOpen, path: "/rituals", size: "sm" },
-    { widgetId: "conversations", title: "Hold Me Tight", description: "Deepen emotional bonds", icon: Activity, path: "/conversation", size: "sm" },
-    { widgetId: "love-map", title: "Love Map Quiz", description: "Know each other deeply", icon: Compass, path: "/love-map", size: "sm" },
-    { widgetId: "therapist-thoughts", title: "Therapist Notes", description: "Messages from your therapist", icon: MessageSquare, path: "/therapist-thoughts", size: "sm" },
-    { widgetId: "compatibility", title: "Compatibility", description: "View compatibility insights", icon: Heart, path: "/couple-compatibility", size: "sm" },
-    { widgetId: "progress-timeline", title: "Progress", description: "Your relationship journey", icon: Clock, path: "/progress-timeline", size: "sm" },
-    { widgetId: "growth-plan", title: "Growth Plan", description: "AI-powered exercises", icon: Zap, path: "/growth-plan", size: "sm" },
+    { widgetId: "weekly-checkin", title: "Weekly Check-In", description: "Reflect on your week together", icon: ClipboardList, path: "/weekly-checkin", size: "sm", type: "weekly-checkin" },
+    { widgetId: "love-languages", title: "Love Languages", description: "Discover how you give and receive love", icon: Heart, path: "/quiz", size: "sm", type: "love-results" },
+    { widgetId: "gratitude", title: "Gratitude Log", description: "Share appreciation for each other", icon: Coffee, path: "/gratitude", size: "sm", type: "gratitude" },
+    { widgetId: "shared-goals", title: "Shared Goals", description: "Set and track goals together", icon: Target, path: "/goals", size: "sm", type: "goals" },
+    { widgetId: "voice-memos", title: "Voice Memos", description: "Send loving voice messages", icon: Mic, path: "/voice-memos", size: "sm", type: "voice-memos" },
+    { widgetId: "calendar", title: "Shared Calendar", description: "Stay in sync", icon: Calendar, path: "/calendar", size: "sm", type: "calendar" },
+    { widgetId: "rituals", title: "Rituals", description: "Build meaningful traditions", icon: BookOpen, path: "/rituals", size: "sm", type: "rituals" },
+    { widgetId: "conversations", title: "Hold Me Tight", description: "Deepen emotional bonds", icon: Activity, path: "/conversation", size: "sm", type: "conversations" },
+    { widgetId: "love-map", title: "Love Map Quiz", description: "Know each other deeply", icon: Compass, path: "/love-map", size: "sm", type: "love-map" },
+    { widgetId: "therapist-thoughts", title: "Therapist Notes", description: "Messages from your therapist", icon: MessageSquare, path: "/therapist-thoughts", size: "sm", type: "therapist" },
+    { widgetId: "compatibility", title: "Compatibility", description: "View compatibility insights", icon: Heart, path: "/couple-compatibility", size: "sm", type: "compatibility" },
+    { widgetId: "progress-timeline", title: "Progress", description: "Your relationship journey", icon: Clock, path: "/progress-timeline", size: "sm", type: "progress" },
+    { widgetId: "growth-plan", title: "Growth Plan", description: "AI-powered exercises", icon: Zap, path: "/growth-plan", size: "sm", type: "growth" },
     { widgetId: "attachment", title: "Attachment Styles", description: "Your attachment patterns", icon: Link2, path: "/attachment-assessment", size: "md", type: "attachment" },
     { widgetId: "enneagram", title: "Enneagram Types", description: "Your personality insights", icon: Compass, path: "/enneagram-assessment", size: "md", type: "enneagram" },
     { widgetId: "session-notes", title: "Session Notes", description: "Summaries from your sessions", icon: FileText, path: "/session-notes", size: "md", type: "session-notes" },
-    { widgetId: "messages", title: "Messages", description: "Secure messaging", icon: MessageCircle, path: "/messages", size: "sm" },
-    { widgetId: "echo-empathy", title: "Echo & Empathy", description: "Practice listening", icon: Users, path: "/echo-empathy", size: "sm" },
+    { widgetId: "messages", title: "Messages", description: "Secure messaging", icon: MessageCircle, path: "/messages", size: "sm", type: "messages" },
+    { widgetId: "echo-empathy", title: "Echo & Empathy", description: "Practice listening", icon: Users, path: "/echo-empathy", size: "sm", type: "echo" },
     { widgetId: "conflict", title: "Reword Feelings", description: "Express yourself kindly", icon: MessageCircle, path: "/conflict-resolution", size: "sm", type: "conflict" },
-    { widgetId: "pause", title: "Pause", description: "Take a mindful break", icon: Pause, path: "/pause", size: "sm" },
-    { widgetId: "journal", title: "Journal", description: "Write together", icon: BookMarked, path: "/couple-journal", size: "sm" },
+    { widgetId: "pause", title: "Pause", description: "Take a mindful break", icon: Pause, path: "/pause", size: "sm", type: "pause" },
+    { widgetId: "journal", title: "Journal", description: "Write together", icon: BookMarked, path: "/couple-journal", size: "sm", type: "journal" },
     { widgetId: "mood", title: "Mood", description: "Track wellbeing", icon: Smile, path: "/mood-tracker", size: "sm", type: "mood" },
-    { widgetId: "ifs", title: "IFS", description: "Internal Family Systems", icon: Brain, path: "/ifs-intro", size: "sm" },
+    { widgetId: "ifs", title: "IFS", description: "Internal Family Systems", icon: Brain, path: "/ifs-intro", size: "sm", type: "ifs" },
     { widgetId: "chores", title: "Chore Chart", description: "Track household tasks", icon: CheckSquare, path: "/chores", size: "md", type: "chores" },
     { widgetId: "todos", title: "To-Do List", description: "Shared tasks", icon: ListTodo, path: "/shared-todos", size: "md", type: "todos" },
-    { widgetId: "financial", title: "Financial", description: "Money tools", icon: DollarSign, path: "/financial-toolkit", size: "sm" },
-    { widgetId: "daily-tips", title: "Daily Tips", description: "Relationship tips", icon: Lightbulb, path: "/daily-tips", size: "sm" },
+    { widgetId: "financial", title: "Financial", description: "Money tools", icon: DollarSign, path: "/financial-toolkit", size: "sm", type: "financial" },
+    { widgetId: "daily-tips", title: "Daily Tips", description: "Relationship tips", icon: Lightbulb, path: "/daily-tips", size: "sm", type: "tips" },
   ];
 
   const isWidgetEnabled = (widgetId: string): boolean => {
@@ -1292,6 +1409,426 @@ export default function ClientDashboard() {
                               </div>
                             </div>
                           </div>
+                        );
+                      }
+
+                      if (widget.type === "date-night") {
+                        const upcomingDate = dateNightQuery.data?.[0];
+                        return (
+                          <Link href="/date-night" className="block h-full">
+                            <div className="rounded-2xl p-4 relative cursor-pointer h-full flex flex-col border-l-4 border-l-pink-500 shadow-lg glass-card overflow-hidden">
+                              <div className="gradient-animate rounded-2xl bg-gradient-to-br from-pink-500/8 to-rose-500/6" />
+                              <div className="relative z-10 flex flex-col h-full">
+                                <div className="flex-shrink-0 flex items-start justify-between mb-3">
+                                  <div className="p-2.5 rounded-xl bg-pink-500/15 flex-shrink-0">
+                                    <Sparkles className="h-6 w-6 text-pink-500" />
+                                  </div>
+                                </div>
+                                <h3 className="font-bold text-base text-foreground leading-tight mb-2">Date Night</h3>
+                                <div className="flex-1 text-sm text-muted-foreground">
+                                  {dateNightQuery.isLoading ? (
+                                    <p>Loading...</p>
+                                  ) : upcomingDate ? (
+                                    <div className="space-y-1">
+                                      <p className="font-medium text-foreground">{upcomingDate.title || "Upcoming date"}</p>
+                                      <p>{new Date(upcomingDate.date).toLocaleDateString()}</p>
+                                    </div>
+                                  ) : (
+                                    <p>Plan a meaningful date with AI suggestions</p>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          </Link>
+                        );
+                      }
+
+                      if (widget.type === "weekly-checkin") {
+                        const lastCheckin = weeklyCheckinsQuery.data?.[0];
+                        const daysSince = lastCheckin ? Math.floor((Date.now() - new Date(lastCheckin.created_at).getTime()) / (1000 * 60 * 60 * 24)) : null;
+                        return (
+                          <Link href="/weekly-checkin" className="block h-full">
+                            <div className="rounded-2xl p-4 relative cursor-pointer h-full flex flex-col border-l-4 border-l-blue-500 shadow-lg glass-card overflow-hidden">
+                              <div className="gradient-animate rounded-2xl bg-gradient-to-br from-blue-500/8 to-indigo-500/6" />
+                              <div className="relative z-10 flex flex-col h-full">
+                                <div className="flex-shrink-0 flex items-start justify-between mb-3">
+                                  <div className="p-2.5 rounded-xl bg-blue-500/15 flex-shrink-0">
+                                    <ClipboardList className="h-6 w-6 text-blue-500" />
+                                  </div>
+                                </div>
+                                <h3 className="font-bold text-base text-foreground leading-tight mb-2">Weekly Check-In</h3>
+                                <p className="flex-1 text-sm text-muted-foreground">
+                                  {daysSince !== null ? (
+                                    daysSince === 0 ? "Completed today" : daysSince === 1 ? "1 day ago" : `${daysSince} days ago`
+                                  ) : "Start your first check-in"}
+                                </p>
+                              </div>
+                            </div>
+                          </Link>
+                        );
+                      }
+
+                      if (widget.type === "gratitude") {
+                        const recentCount = gratitudeQuery.data?.length || 0;
+                        return (
+                          <Link href="/gratitude" className="block h-full">
+                            <div className="rounded-2xl p-4 relative cursor-pointer h-full flex flex-col border-l-4 border-l-emerald-500 shadow-lg glass-card overflow-hidden">
+                              <div className="gradient-animate rounded-2xl bg-gradient-to-br from-emerald-500/8 to-teal-500/6" />
+                              <div className="relative z-10 flex flex-col h-full">
+                                <div className="flex-shrink-0 flex items-start justify-between mb-3">
+                                  <div className="p-2.5 rounded-xl bg-emerald-500/15 flex-shrink-0">
+                                    <Coffee className="h-6 w-6 text-emerald-500" />
+                                  </div>
+                                  {recentCount > 0 && (
+                                    <Badge variant="secondary" className="text-xs">{recentCount}</Badge>
+                                  )}
+                                </div>
+                                <h3 className="font-bold text-base text-foreground leading-tight mb-2">Gratitude Log</h3>
+                                <p className="flex-1 text-sm text-muted-foreground">
+                                  {recentCount > 0 ? `${recentCount} recent entries` : "Share appreciation for each other"}
+                                </p>
+                              </div>
+                            </div>
+                          </Link>
+                        );
+                      }
+
+                      if (widget.type === "goals") {
+                        const activeGoals = goalsQuery.data?.filter((g: any) => g.status !== "completed")?.length || 0;
+                        const completedGoals = goalsQuery.data?.filter((g: any) => g.status === "completed")?.length || 0;
+                        return (
+                          <Link href="/goals" className="block h-full">
+                            <div className="rounded-2xl p-4 relative cursor-pointer h-full flex flex-col border-l-4 border-l-blue-500 shadow-lg glass-card overflow-hidden">
+                              <div className="gradient-animate rounded-2xl bg-gradient-to-br from-blue-500/8 to-indigo-500/6" />
+                              <div className="relative z-10 flex flex-col h-full">
+                                <div className="flex-shrink-0 flex items-start justify-between mb-3">
+                                  <div className="p-2.5 rounded-xl bg-blue-500/15 flex-shrink-0">
+                                    <Target className="h-6 w-6 text-blue-500" />
+                                  </div>
+                                  {activeGoals > 0 && (
+                                    <Badge variant="secondary" className="text-xs">{activeGoals} active</Badge>
+                                  )}
+                                </div>
+                                <h3 className="font-bold text-base text-foreground leading-tight mb-2">Shared Goals</h3>
+                                <p className="flex-1 text-sm text-muted-foreground">
+                                  {completedGoals > 0 ? `${completedGoals} completed` : "Set and track goals together"}
+                                </p>
+                              </div>
+                            </div>
+                          </Link>
+                        );
+                      }
+
+                      if (widget.type === "voice-memos") {
+                        const unlistenedCount = voiceMemosQuery.data?.filter((m: any) => !m.listened_at && m.sender_id !== user?.id)?.length || 0;
+                        return (
+                          <Link href="/voice-memos" className="block h-full">
+                            <div className="rounded-2xl p-4 relative cursor-pointer h-full flex flex-col border-l-4 border-l-slate-500 shadow-lg glass-card overflow-hidden">
+                              <div className="gradient-animate rounded-2xl bg-gradient-to-br from-slate-500/8 to-gray-500/6" />
+                              <div className="relative z-10 flex flex-col h-full">
+                                <div className="flex-shrink-0 flex items-start justify-between mb-3">
+                                  <div className="p-2.5 rounded-xl bg-slate-500/15 flex-shrink-0">
+                                    <Mic className="h-6 w-6 text-slate-500" />
+                                  </div>
+                                  {unlistenedCount > 0 && (
+                                    <Badge variant="destructive" className="text-xs">{unlistenedCount} new</Badge>
+                                  )}
+                                </div>
+                                <h3 className="font-bold text-base text-foreground leading-tight mb-2">Voice Memos</h3>
+                                <p className="flex-1 text-sm text-muted-foreground">
+                                  {unlistenedCount > 0 ? `${unlistenedCount} unplayed messages` : "Send loving voice messages"}
+                                </p>
+                              </div>
+                            </div>
+                          </Link>
+                        );
+                      }
+
+                      if (widget.type === "calendar") {
+                        const upcomingEvents = calendarQuery.data?.filter((e: any) => new Date(e.start_at) > new Date())?.slice(0, 2) || [];
+                        return (
+                          <Link href="/calendar" className="block h-full">
+                            <div className="rounded-2xl p-4 relative cursor-pointer h-full flex flex-col border-l-4 border-l-blue-500 shadow-lg glass-card overflow-hidden">
+                              <div className="gradient-animate rounded-2xl bg-gradient-to-br from-blue-500/8 to-indigo-500/6" />
+                              <div className="relative z-10 flex flex-col h-full">
+                                <div className="flex-shrink-0 flex items-start justify-between mb-3">
+                                  <div className="p-2.5 rounded-xl bg-blue-500/15 flex-shrink-0">
+                                    <Calendar className="h-6 w-6 text-blue-500" />
+                                  </div>
+                                </div>
+                                <h3 className="font-bold text-base text-foreground leading-tight mb-2">Shared Calendar</h3>
+                                <div className="flex-1 text-sm text-muted-foreground">
+                                  {upcomingEvents.length > 0 ? (
+                                    <p>{upcomingEvents[0].title} - {new Date(upcomingEvents[0].start_at).toLocaleDateString()}</p>
+                                  ) : (
+                                    <p>Stay in sync with each other</p>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          </Link>
+                        );
+                      }
+
+                      if (widget.type === "rituals") {
+                        const ritualCount = ritualsQuery.data?.length || 0;
+                        return (
+                          <Link href="/rituals" className="block h-full">
+                            <div className="rounded-2xl p-4 relative cursor-pointer h-full flex flex-col border-l-4 border-l-purple-500 shadow-lg glass-card overflow-hidden">
+                              <div className="gradient-animate rounded-2xl bg-gradient-to-br from-purple-500/8 to-pink-500/6" />
+                              <div className="relative z-10 flex flex-col h-full">
+                                <div className="flex-shrink-0 flex items-start justify-between mb-3">
+                                  <div className="p-2.5 rounded-xl bg-purple-500/15 flex-shrink-0">
+                                    <BookOpen className="h-6 w-6 text-purple-500" />
+                                  </div>
+                                  {ritualCount > 0 && (
+                                    <Badge variant="secondary" className="text-xs">{ritualCount}</Badge>
+                                  )}
+                                </div>
+                                <h3 className="font-bold text-base text-foreground leading-tight mb-2">Rituals</h3>
+                                <p className="flex-1 text-sm text-muted-foreground">
+                                  {ritualCount > 0 ? `${ritualCount} active rituals` : "Build meaningful traditions"}
+                                </p>
+                              </div>
+                            </div>
+                          </Link>
+                        );
+                      }
+
+                      if (widget.type === "conversations") {
+                        const conversationCount = conversationsQuery.data?.length || 0;
+                        return (
+                          <Link href="/conversation" className="block h-full">
+                            <div className="rounded-2xl p-4 relative cursor-pointer h-full flex flex-col border-l-4 border-l-emerald-500 shadow-lg glass-card overflow-hidden">
+                              <div className="gradient-animate rounded-2xl bg-gradient-to-br from-emerald-500/8 to-teal-500/6" />
+                              <div className="relative z-10 flex flex-col h-full">
+                                <div className="flex-shrink-0 flex items-start justify-between mb-3">
+                                  <div className="p-2.5 rounded-xl bg-emerald-500/15 flex-shrink-0">
+                                    <Activity className="h-6 w-6 text-emerald-500" />
+                                  </div>
+                                </div>
+                                <h3 className="font-bold text-base text-foreground leading-tight mb-2">Hold Me Tight</h3>
+                                <p className="flex-1 text-sm text-muted-foreground">
+                                  {conversationCount > 0 ? `${conversationCount} conversations completed` : "Deepen emotional bonds"}
+                                </p>
+                              </div>
+                            </div>
+                          </Link>
+                        );
+                      }
+
+                      if (widget.type === "love-map") {
+                        const responseCount = loveMapQuery.data?.length || 0;
+                        return (
+                          <Link href="/love-map" className="block h-full">
+                            <div className="rounded-2xl p-4 relative cursor-pointer h-full flex flex-col border-l-4 border-l-amber-500 shadow-lg glass-card overflow-hidden">
+                              <div className="gradient-animate rounded-2xl bg-gradient-to-br from-amber-500/8 to-orange-500/6" />
+                              <div className="relative z-10 flex flex-col h-full">
+                                <div className="flex-shrink-0 flex items-start justify-between mb-3">
+                                  <div className="p-2.5 rounded-xl bg-amber-500/15 flex-shrink-0">
+                                    <Compass className="h-6 w-6 text-amber-500" />
+                                  </div>
+                                </div>
+                                <h3 className="font-bold text-base text-foreground leading-tight mb-2">Love Map Quiz</h3>
+                                <p className="flex-1 text-sm text-muted-foreground">
+                                  {responseCount > 0 ? `${responseCount} questions answered` : "Know each other deeply"}
+                                </p>
+                              </div>
+                            </div>
+                          </Link>
+                        );
+                      }
+
+                      if (widget.type === "compatibility") {
+                        return (
+                          <Link href="/couple-compatibility" className="block h-full">
+                            <div className="rounded-2xl p-4 relative cursor-pointer h-full flex flex-col border-l-4 border-l-purple-500 shadow-lg glass-card overflow-hidden">
+                              <div className="gradient-animate rounded-2xl bg-gradient-to-br from-purple-500/8 to-pink-500/6" />
+                              <div className="relative z-10 flex flex-col h-full">
+                                <div className="flex-shrink-0 flex items-start justify-between mb-3">
+                                  <div className="p-2.5 rounded-xl bg-purple-500/15 flex-shrink-0">
+                                    <Heart className="h-6 w-6 text-purple-500" />
+                                  </div>
+                                </div>
+                                <h3 className="font-bold text-base text-foreground leading-tight mb-2">Compatibility</h3>
+                                <p className="flex-1 text-sm text-muted-foreground">View compatibility insights</p>
+                              </div>
+                            </div>
+                          </Link>
+                        );
+                      }
+
+                      if (widget.type === "progress") {
+                        return (
+                          <Link href="/progress-timeline" className="block h-full">
+                            <div className="rounded-2xl p-4 relative cursor-pointer h-full flex flex-col border-l-4 border-l-blue-500 shadow-lg glass-card overflow-hidden">
+                              <div className="gradient-animate rounded-2xl bg-gradient-to-br from-blue-500/8 to-indigo-500/6" />
+                              <div className="relative z-10 flex flex-col h-full">
+                                <div className="flex-shrink-0 flex items-start justify-between mb-3">
+                                  <div className="p-2.5 rounded-xl bg-blue-500/15 flex-shrink-0">
+                                    <Clock className="h-6 w-6 text-blue-500" />
+                                  </div>
+                                </div>
+                                <h3 className="font-bold text-base text-foreground leading-tight mb-2">Progress</h3>
+                                <p className="flex-1 text-sm text-muted-foreground">Your relationship journey</p>
+                              </div>
+                            </div>
+                          </Link>
+                        );
+                      }
+
+                      if (widget.type === "growth") {
+                        return (
+                          <Link href="/growth-plan" className="block h-full">
+                            <div className="rounded-2xl p-4 relative cursor-pointer h-full flex flex-col border-l-4 border-l-amber-500 shadow-lg glass-card overflow-hidden">
+                              <div className="gradient-animate rounded-2xl bg-gradient-to-br from-amber-500/8 to-yellow-500/6" />
+                              <div className="relative z-10 flex flex-col h-full">
+                                <div className="flex-shrink-0 flex items-start justify-between mb-3">
+                                  <div className="p-2.5 rounded-xl bg-amber-500/15 flex-shrink-0">
+                                    <Zap className="h-6 w-6 text-amber-500" />
+                                  </div>
+                                </div>
+                                <h3 className="font-bold text-base text-foreground leading-tight mb-2">Growth Plan</h3>
+                                <p className="flex-1 text-sm text-muted-foreground">AI-powered exercises for you</p>
+                              </div>
+                            </div>
+                          </Link>
+                        );
+                      }
+
+                      if (widget.type === "messages") {
+                        return (
+                          <Link href="/messages" className="block h-full">
+                            <div className="rounded-2xl p-4 relative cursor-pointer h-full flex flex-col border-l-4 border-l-blue-500 shadow-lg glass-card overflow-hidden">
+                              <div className="gradient-animate rounded-2xl bg-gradient-to-br from-blue-500/8 to-indigo-500/6" />
+                              <div className="relative z-10 flex flex-col h-full">
+                                <div className="flex-shrink-0 flex items-start justify-between mb-3">
+                                  <div className="p-2.5 rounded-xl bg-blue-500/15 flex-shrink-0">
+                                    <MessageCircle className="h-6 w-6 text-blue-500" />
+                                  </div>
+                                </div>
+                                <h3 className="font-bold text-base text-foreground leading-tight mb-2">Messages</h3>
+                                <p className="flex-1 text-sm text-muted-foreground">Secure messaging with your partner</p>
+                              </div>
+                            </div>
+                          </Link>
+                        );
+                      }
+
+                      if (widget.type === "echo") {
+                        return (
+                          <Link href="/echo-empathy" className="block h-full">
+                            <div className="rounded-2xl p-4 relative cursor-pointer h-full flex flex-col border-l-4 border-l-emerald-500 shadow-lg glass-card overflow-hidden">
+                              <div className="gradient-animate rounded-2xl bg-gradient-to-br from-emerald-500/8 to-teal-500/6" />
+                              <div className="relative z-10 flex flex-col h-full">
+                                <div className="flex-shrink-0 flex items-start justify-between mb-3">
+                                  <div className="p-2.5 rounded-xl bg-emerald-500/15 flex-shrink-0">
+                                    <Users className="h-6 w-6 text-emerald-500" />
+                                  </div>
+                                </div>
+                                <h3 className="font-bold text-base text-foreground leading-tight mb-2">Echo & Empathy</h3>
+                                <p className="flex-1 text-sm text-muted-foreground">Practice active listening</p>
+                              </div>
+                            </div>
+                          </Link>
+                        );
+                      }
+
+                      if (widget.type === "pause") {
+                        return (
+                          <Link href="/pause" className="block h-full">
+                            <div className="rounded-2xl p-4 relative cursor-pointer h-full flex flex-col border-l-4 border-l-slate-500 shadow-lg glass-card overflow-hidden">
+                              <div className="gradient-animate rounded-2xl bg-gradient-to-br from-slate-500/8 to-gray-500/6" />
+                              <div className="relative z-10 flex flex-col h-full">
+                                <div className="flex-shrink-0 flex items-start justify-between mb-3">
+                                  <div className="p-2.5 rounded-xl bg-slate-500/15 flex-shrink-0">
+                                    <Pause className="h-6 w-6 text-slate-500" />
+                                  </div>
+                                </div>
+                                <h3 className="font-bold text-base text-foreground leading-tight mb-2">Pause</h3>
+                                <p className="flex-1 text-sm text-muted-foreground">Take a mindful break together</p>
+                              </div>
+                            </div>
+                          </Link>
+                        );
+                      }
+
+                      if (widget.type === "journal") {
+                        return (
+                          <Link href="/couple-journal" className="block h-full">
+                            <div className="rounded-2xl p-4 relative cursor-pointer h-full flex flex-col border-l-4 border-l-emerald-500 shadow-lg glass-card overflow-hidden">
+                              <div className="gradient-animate rounded-2xl bg-gradient-to-br from-emerald-500/8 to-teal-500/6" />
+                              <div className="relative z-10 flex flex-col h-full">
+                                <div className="flex-shrink-0 flex items-start justify-between mb-3">
+                                  <div className="p-2.5 rounded-xl bg-emerald-500/15 flex-shrink-0">
+                                    <BookMarked className="h-6 w-6 text-emerald-500" />
+                                  </div>
+                                </div>
+                                <h3 className="font-bold text-base text-foreground leading-tight mb-2">Journal</h3>
+                                <p className="flex-1 text-sm text-muted-foreground">Write and reflect together</p>
+                              </div>
+                            </div>
+                          </Link>
+                        );
+                      }
+
+                      if (widget.type === "ifs") {
+                        return (
+                          <Link href="/ifs-intro" className="block h-full">
+                            <div className="rounded-2xl p-4 relative cursor-pointer h-full flex flex-col border-l-4 border-l-purple-500 shadow-lg glass-card overflow-hidden">
+                              <div className="gradient-animate rounded-2xl bg-gradient-to-br from-purple-500/8 to-pink-500/6" />
+                              <div className="relative z-10 flex flex-col h-full">
+                                <div className="flex-shrink-0 flex items-start justify-between mb-3">
+                                  <div className="p-2.5 rounded-xl bg-purple-500/15 flex-shrink-0">
+                                    <Brain className="h-6 w-6 text-purple-500" />
+                                  </div>
+                                </div>
+                                <h3 className="font-bold text-base text-foreground leading-tight mb-2">IFS</h3>
+                                <p className="flex-1 text-sm text-muted-foreground">Internal Family Systems work</p>
+                              </div>
+                            </div>
+                          </Link>
+                        );
+                      }
+
+                      if (widget.type === "financial") {
+                        return (
+                          <Link href="/financial-toolkit" className="block h-full">
+                            <div className="rounded-2xl p-4 relative cursor-pointer h-full flex flex-col border-l-4 border-l-emerald-500 shadow-lg glass-card overflow-hidden">
+                              <div className="gradient-animate rounded-2xl bg-gradient-to-br from-emerald-500/8 to-teal-500/6" />
+                              <div className="relative z-10 flex flex-col h-full">
+                                <div className="flex-shrink-0 flex items-start justify-between mb-3">
+                                  <div className="p-2.5 rounded-xl bg-emerald-500/15 flex-shrink-0">
+                                    <DollarSign className="h-6 w-6 text-emerald-500" />
+                                  </div>
+                                </div>
+                                <h3 className="font-bold text-base text-foreground leading-tight mb-2">Financial</h3>
+                                <p className="flex-1 text-sm text-muted-foreground">Money management tools</p>
+                              </div>
+                            </div>
+                          </Link>
+                        );
+                      }
+
+                      if (widget.type === "tips") {
+                        const todayTip = dailySuggestionQuery.data;
+                        return (
+                          <Link href="/daily-tips" className="block h-full">
+                            <div className="rounded-2xl p-4 relative cursor-pointer h-full flex flex-col border-l-4 border-l-amber-500 shadow-lg glass-card overflow-hidden">
+                              <div className="gradient-animate rounded-2xl bg-gradient-to-br from-amber-500/8 to-yellow-500/6" />
+                              <div className="relative z-10 flex flex-col h-full">
+                                <div className="flex-shrink-0 flex items-start justify-between mb-3">
+                                  <div className="p-2.5 rounded-xl bg-amber-500/15 flex-shrink-0">
+                                    <Lightbulb className="h-6 w-6 text-amber-500" />
+                                  </div>
+                                </div>
+                                <h3 className="font-bold text-base text-foreground leading-tight mb-2">Daily Tips</h3>
+                                <p className="flex-1 text-sm text-muted-foreground line-clamp-2">
+                                  {todayTip?.tip_text ? todayTip.tip_text.substring(0, 60) + "..." : "Relationship tips for today"}
+                                </p>
+                              </div>
+                            </div>
+                          </Link>
                         );
                       }
 
