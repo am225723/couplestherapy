@@ -697,89 +697,82 @@ export default function ClientDashboard() {
                       if (widget.type === "therapist") {
                         const hasData = therapistThoughtsQuery.isSuccess && therapistThoughtsQuery.data?.length > 0;
                         return (
-                          <Card className="glass-card border-l-4 border-l-primary overflow-hidden h-full" data-testid="card-therapist">
-                            <div className="gradient-animate" />
-                            <CardHeader className="relative z-10 pb-2">
-                              <div className="flex items-center justify-between flex-wrap gap-2">
-                                <CardTitle className="flex items-center gap-2 text-sm">
-                                  <MessageCircle className="h-4 w-4 text-primary" />
-                                  {therapistCardTitle}
-                                </CardTitle>
-                                {isEditMode ? (
-                                  <Button variant="ghost" size="sm" className="text-xs h-7" data-testid="button-view-all" disabled>
-                                    View <ArrowRight className="ml-1 h-3 w-3" />
-                                  </Button>
-                                ) : (
-                                  <Link href="/therapist-thoughts">
-                                    <Button variant="ghost" size="sm" className="text-xs h-7" data-testid="button-view-all">
-                                      View <ArrowRight className="ml-1 h-3 w-3" />
-                                    </Button>
-                                  </Link>
-                                )}
-                              </div>
-                            </CardHeader>
-                            <CardContent className="relative z-10 space-y-2">
-                              {therapistThoughtsQuery.isLoading ? (
-                                <div className="p-2 rounded-lg bg-background/60 backdrop-blur-sm border border-border/30 animate-pulse">
-                                  <div className="h-4 bg-muted rounded w-3/4" />
+                          <div className="rounded-2xl p-4 relative cursor-pointer h-full flex flex-col border-l-4 border-l-primary shadow-lg glass-card overflow-hidden" data-testid="card-therapist">
+                            <div className="gradient-animate rounded-2xl bg-gradient-to-br from-primary/10 to-blue-500/8" />
+                            <div className="relative z-10 flex flex-col h-full">
+                              <div className="flex-shrink-0 flex items-start justify-between mb-3">
+                                <div className="p-2.5 rounded-xl bg-primary/15 flex-shrink-0">
+                                  <MessageCircle className="h-6 w-6 text-primary" />
                                 </div>
-                              ) : hasData ? (
-                                therapistThoughtsQuery.data.slice(0, isLargeHeight ? 3 : 2).map((thought: any) => (
-                                  <div key={thought.id} className="p-2 rounded-lg bg-background/60 backdrop-blur-sm border border-border/30">
-                                    <div className="flex items-start gap-2">
-                                      <div className="mt-0.5 flex-shrink-0">
-                                        {thought.thought_type === "todo" ? (
-                                          <CheckCircle2 className="h-3 w-3 text-emerald-500" />
-                                        ) : (
-                                          <MessageCircle className="h-3 w-3 text-primary" />
-                                        )}
-                                      </div>
-                                      <div className="min-w-0 flex-1">
-                                        {thought.title && <p className="text-xs font-medium">{thought.title}</p>}
-                                        <p className={cn("text-xs text-muted-foreground", isLargeHeight ? "line-clamp-3" : "line-clamp-1")}>{thought.content || thought.body || thought.message}</p>
+                              </div>
+                              <h3 className="font-bold text-base text-foreground leading-tight mb-2">
+                                {therapistCardTitle}
+                              </h3>
+                              <div className="flex-1 flex flex-col space-y-2 overflow-y-auto">
+                                {therapistThoughtsQuery.isLoading ? (
+                                  <div className="p-2 rounded-lg bg-background/60 backdrop-blur-sm border border-border/30 animate-pulse">
+                                    <div className="h-4 bg-muted rounded w-3/4" />
+                                  </div>
+                                ) : hasData ? (
+                                  therapistThoughtsQuery.data.slice(0, isLargeHeight ? 3 : 2).map((thought: any) => (
+                                    <div key={thought.id} className="p-2 rounded-lg bg-background/60 backdrop-blur-sm border border-border/30">
+                                      <div className="flex items-start gap-2">
+                                        <div className="mt-0.5 flex-shrink-0">
+                                          {thought.thought_type === "todo" ? (
+                                            <CheckCircle2 className="h-3 w-3 text-emerald-500" />
+                                          ) : (
+                                            <MessageCircle className="h-3 w-3 text-primary" />
+                                          )}
+                                        </div>
+                                        <div className="min-w-0 flex-1">
+                                          {thought.title && <p className="text-sm font-medium">{thought.title}</p>}
+                                          <p className={cn("text-sm text-muted-foreground", isLargeHeight ? "line-clamp-3" : "line-clamp-1")}>{thought.content || thought.body || thought.message}</p>
+                                        </div>
                                       </div>
                                     </div>
-                                  </div>
-                                ))
-                              ) : (
-                                <p className="text-xs text-muted-foreground text-center py-2">No messages yet</p>
-                              )}
-                            </CardContent>
-                          </Card>
+                                  ))
+                                ) : (
+                                  <p className="text-sm text-muted-foreground text-center py-2">No messages yet</p>
+                                )}
+                              </div>
+                            </div>
+                          </div>
                         );
                       }
 
                       if (widget.type === "suggestion") {
                         const hasData = dailySuggestionQuery.isSuccess && dailySuggestionQuery.data?.tip_text;
                         const suggestionCard = (
-                          <Card className="glass-card border-l-4 border-l-emerald-500 overflow-hidden cursor-pointer h-full luxury-widget" data-testid="card-suggestion">
-                            <div className="gradient-animate bg-gradient-to-br from-emerald-500/10 to-teal-500/8" />
-                            <CardHeader className="relative z-10 pb-2">
-                              <div className="flex items-center justify-between flex-wrap gap-2">
-                                <CardTitle className="text-sm flex items-center gap-2">
-                                  <Heart className="h-4 w-4 text-emerald-500" />
-                                  Partner Tip
-                                </CardTitle>
+                          <div className="rounded-2xl p-4 relative cursor-pointer h-full flex flex-col border-l-4 border-l-emerald-500 shadow-lg glass-card overflow-hidden">
+                            <div className="gradient-animate rounded-2xl bg-gradient-to-br from-emerald-500/10 to-teal-500/8" />
+                            <div className="relative z-10 flex flex-col h-full">
+                              <div className="flex-shrink-0 flex items-start justify-between mb-3">
+                                <div className="p-2.5 rounded-xl bg-emerald-500/15 flex-shrink-0">
+                                  <Heart className="h-6 w-6 text-emerald-500" />
+                                </div>
                                 {hasData && dailySuggestionQuery.data.category && (
                                   <Badge variant="secondary" className="text-xs capitalize">
                                     {dailySuggestionQuery.data.category}
                                   </Badge>
                                 )}
                               </div>
-                            </CardHeader>
-                            <CardContent className="relative z-10">
-                              {dailySuggestionQuery.isLoading ? (
-                                <div className="animate-pulse space-y-2">
-                                  <div className="h-4 bg-muted rounded w-3/4" />
-                                  <div className="h-3 bg-muted rounded w-1/2" />
-                                </div>
-                              ) : hasData ? (
-                                <p className={cn("text-sm", isLargeHeight ? "line-clamp-none" : "line-clamp-3")}>{formatAIText(dailySuggestionQuery.data.tip_text)}</p>
-                              ) : (
-                                <p className="text-xs text-muted-foreground text-center py-2">Check back tomorrow</p>
-                              )}
-                            </CardContent>
-                          </Card>
+                              <h3 className="font-bold text-base text-foreground leading-tight mb-2">
+                                Partner Tip
+                              </h3>
+                              <div className="flex-1 flex flex-col">
+                                {dailySuggestionQuery.isLoading ? (
+                                  <div className="animate-pulse space-y-2">
+                                    <div className="h-4 bg-muted rounded w-3/4" />
+                                    <div className="h-3 bg-muted rounded w-1/2" />
+                                  </div>
+                                ) : hasData ? (
+                                  <p className={cn("text-sm text-muted-foreground leading-relaxed", isLargeHeight ? "" : "line-clamp-3")}>{formatAIText(dailySuggestionQuery.data.tip_text)}</p>
+                                ) : (
+                                  <p className="text-sm text-muted-foreground text-center py-2">Check back tomorrow</p>
+                                )}
+                              </div>
+                            </div>
+                          </div>
                         );
                         if (isEditMode) {
                           return <div className="block h-full">{suggestionCard}</div>;
@@ -790,66 +783,74 @@ export default function ClientDashboard() {
                       if (widget.type === "ai") {
                         const hasData = recommendationsQuery.isSuccess && recommendationsQuery.data?.recommendations?.length > 0;
                         return (
-                          <Card className="glass-card border-l-4 border-l-amber-500 overflow-hidden h-full" data-testid="card-ai">
-                            <div className="gradient-animate bg-gradient-to-br from-amber-500/10 to-orange-500/8" />
-                            <CardHeader className="relative z-10 pb-2">
-                              <CardTitle className="text-sm flex items-center gap-2">
-                                <Sparkles className="h-4 w-4 text-amber-500" />
-                                Suggested For You
-                              </CardTitle>
-                            </CardHeader>
-                            <CardContent className="relative z-10 space-y-2">
-                              {recommendationsQuery.isLoading ? (
-                                <div className="animate-pulse space-y-2">
-                                  <div className="h-4 bg-muted rounded w-full" />
-                                  <div className="h-3 bg-muted rounded w-3/4" />
+                          <div className="rounded-2xl p-4 relative cursor-pointer h-full flex flex-col border-l-4 border-l-amber-500 shadow-lg glass-card overflow-hidden" data-testid="card-ai">
+                            <div className="gradient-animate rounded-2xl bg-gradient-to-br from-amber-500/10 to-orange-500/8" />
+                            <div className="relative z-10 flex flex-col h-full">
+                              <div className="flex-shrink-0 flex items-start justify-between mb-3">
+                                <div className="p-2.5 rounded-xl bg-amber-500/15 flex-shrink-0">
+                                  <Sparkles className="h-6 w-6 text-amber-500" />
                                 </div>
-                              ) : hasData ? (
-                                recommendationsQuery.data.recommendations.slice(0, 2).map((rec: any, idx: number) => (
-                                  <div key={idx} className="p-2 rounded-lg bg-background/60 backdrop-blur-sm border border-border/30">
-                                    <p className="font-medium text-xs">{rec.tool_name}</p>
-                                    <p className={cn("text-xs text-muted-foreground", isLargeHeight ? "line-clamp-none" : "line-clamp-1")}>{rec.rationale}</p>
+                              </div>
+                              <h3 className="font-bold text-base text-foreground leading-tight mb-2">
+                                Suggested For You
+                              </h3>
+                              <div className="flex-1 flex flex-col space-y-2">
+                                {recommendationsQuery.isLoading ? (
+                                  <div className="animate-pulse space-y-2">
+                                    <div className="h-4 bg-muted rounded w-full" />
+                                    <div className="h-3 bg-muted rounded w-3/4" />
                                   </div>
-                                ))
-                              ) : (
-                                <p className="text-xs text-muted-foreground text-center py-2">Complete assessments for suggestions</p>
-                              )}
-                            </CardContent>
-                          </Card>
+                                ) : hasData ? (
+                                  recommendationsQuery.data.recommendations.slice(0, 2).map((rec: any, idx: number) => (
+                                    <div key={idx} className="p-2 rounded-lg bg-background/60 backdrop-blur-sm border border-border/30">
+                                      <p className="font-medium text-sm">{rec.tool_name}</p>
+                                      <p className={cn("text-sm text-muted-foreground", isLargeHeight ? "line-clamp-none" : "line-clamp-1")}>{rec.rationale}</p>
+                                    </div>
+                                  ))
+                                ) : (
+                                  <p className="text-sm text-muted-foreground text-center py-2">Complete assessments for suggestions</p>
+                                )}
+                              </div>
+                            </div>
+                          </div>
                         );
                       }
 
                       if (widget.type === "love-results") {
                         const hasData = !loading && loveLanguages.length > 0;
                         const loveCard = (
-                          <Card className="glass-card border-l-4 border-l-rose-500 overflow-hidden h-full cursor-pointer luxury-widget">
-                            <div className="gradient-animate bg-gradient-to-br from-rose-500/8 to-pink-500/6" />
-                            <CardHeader className="relative z-10 pb-2">
-                              <CardTitle className="flex items-center gap-2 text-sm">
-                                <Heart className="h-4 w-4 text-rose-500" />
+                          <div className="rounded-2xl p-4 relative cursor-pointer h-full flex flex-col border-l-4 border-l-rose-500 shadow-lg glass-card overflow-hidden">
+                            <div className="gradient-animate rounded-2xl bg-gradient-to-br from-rose-500/8 to-pink-500/6" />
+                            <div className="relative z-10 flex flex-col h-full">
+                              <div className="flex-shrink-0 flex items-start justify-between mb-3">
+                                <div className="p-2.5 rounded-xl bg-rose-500/15 flex-shrink-0">
+                                  <Heart className="h-6 w-6 text-rose-500" />
+                                </div>
+                              </div>
+                              <h3 className="font-bold text-base text-foreground leading-tight mb-2">
                                 Your Love Languages
-                              </CardTitle>
-                            </CardHeader>
-                            <CardContent className="relative z-10">
-                              {loading ? (
-                                <div className="animate-pulse grid grid-cols-2 gap-2">
-                                  <div className="h-12 bg-muted rounded" />
-                                  <div className="h-12 bg-muted rounded" />
-                                </div>
-                              ) : hasData ? (
-                                <div className="grid grid-cols-2 gap-2">
-                                  {loveLanguages.slice(0, 2).map((lang) => (
-                                    <div key={lang.id} className="p-2 rounded-lg bg-background/60 backdrop-blur-sm border border-border/30">
-                                      <p className="text-xs font-medium">{lang.user_id === profile?.id ? "You" : "Partner"}</p>
-                                      <p className="text-xs text-muted-foreground">{lang.primary_language}</p>
-                                    </div>
-                                  ))}
-                                </div>
-                              ) : (
-                                <p className="text-xs text-muted-foreground text-center py-2">Take the quiz to discover your love languages</p>
-                              )}
-                            </CardContent>
-                          </Card>
+                              </h3>
+                              <div className="flex-1 flex flex-col">
+                                {loading ? (
+                                  <div className="animate-pulse grid grid-cols-2 gap-2">
+                                    <div className="h-12 bg-muted rounded" />
+                                    <div className="h-12 bg-muted rounded" />
+                                  </div>
+                                ) : hasData ? (
+                                  <div className="grid grid-cols-2 gap-2">
+                                    {loveLanguages.slice(0, 2).map((lang) => (
+                                      <div key={lang.id} className="p-2 rounded-lg bg-background/60 backdrop-blur-sm border border-border/30">
+                                        <p className="text-sm font-medium">{lang.user_id === profile?.id ? "You" : "Partner"}</p>
+                                        <p className="text-sm text-muted-foreground">{lang.primary_language}</p>
+                                      </div>
+                                    ))}
+                                  </div>
+                                ) : (
+                                  <p className="text-sm text-muted-foreground text-center py-2">Take the quiz to discover your love languages</p>
+                                )}
+                              </div>
+                            </div>
+                          </div>
                         );
                         if (isEditMode) {
                           return <div className="block h-full">{loveCard}</div>;
@@ -860,37 +861,41 @@ export default function ClientDashboard() {
                       if (widget.type === "attachment") {
                         const hasData = attachmentQuery.isSuccess && attachmentQuery.data && attachmentQuery.data.length > 0;
                         const attachmentCard = (
-                          <Card className="glass-card border-l-4 border-l-blue-500 overflow-hidden h-full cursor-pointer luxury-widget">
-                            <div className="gradient-animate bg-gradient-to-br from-blue-500/8 to-indigo-500/6" />
-                            <CardHeader className="relative z-10 pb-2">
-                              <CardTitle className="flex items-center gap-2 text-sm">
-                                <Link2 className="h-4 w-4 text-blue-500" />
+                          <div className="rounded-2xl p-4 relative cursor-pointer h-full flex flex-col border-l-4 border-l-blue-500 shadow-lg glass-card overflow-hidden">
+                            <div className="gradient-animate rounded-2xl bg-gradient-to-br from-blue-500/8 to-indigo-500/6" />
+                            <div className="relative z-10 flex flex-col h-full">
+                              <div className="flex-shrink-0 flex items-start justify-between mb-3">
+                                <div className="p-2.5 rounded-xl bg-blue-500/15 flex-shrink-0">
+                                  <Link2 className="h-6 w-6 text-blue-500" />
+                                </div>
+                              </div>
+                              <h3 className="font-bold text-base text-foreground leading-tight mb-2">
                                 Attachment Styles
-                              </CardTitle>
-                            </CardHeader>
-                            <CardContent className="relative z-10">
-                              {attachmentQuery.isLoading ? (
-                                <div className="animate-pulse grid grid-cols-2 gap-2">
-                                  <div className="h-12 bg-muted rounded" />
-                                  <div className="h-12 bg-muted rounded" />
-                                </div>
-                              ) : hasData ? (
-                                <div className="grid grid-cols-2 gap-2">
-                                  {attachmentQuery.data.slice(0, 2).map((assessment: any) => (
-                                    <div key={assessment.id} className="p-2 rounded-lg bg-background/60 backdrop-blur-sm border border-border/30">
-                                      <p className="text-xs font-medium capitalize">{assessment.user_id === profile?.id ? "You" : "Partner"}</p>
-                                      <p className="text-xs text-muted-foreground capitalize">{assessment.attachment_style}</p>
-                                      {isLargeHeight && assessment.dynamics_with_partner && (
-                                        <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{assessment.dynamics_with_partner}</p>
-                                      )}
-                                    </div>
-                                  ))}
-                                </div>
-                              ) : (
-                                <p className="text-xs text-muted-foreground text-center py-2">Take the assessment to discover your styles</p>
-                              )}
-                            </CardContent>
-                          </Card>
+                              </h3>
+                              <div className="flex-1 flex flex-col">
+                                {attachmentQuery.isLoading ? (
+                                  <div className="animate-pulse grid grid-cols-2 gap-2">
+                                    <div className="h-12 bg-muted rounded" />
+                                    <div className="h-12 bg-muted rounded" />
+                                  </div>
+                                ) : hasData ? (
+                                  <div className="grid grid-cols-2 gap-2">
+                                    {attachmentQuery.data.slice(0, 2).map((assessment: any) => (
+                                      <div key={assessment.id} className="p-2 rounded-lg bg-background/60 backdrop-blur-sm border border-border/30">
+                                        <p className="text-sm font-medium capitalize">{assessment.user_id === profile?.id ? "You" : "Partner"}</p>
+                                        <p className="text-sm text-muted-foreground capitalize">{assessment.attachment_style}</p>
+                                        {isLargeHeight && assessment.dynamics_with_partner && (
+                                          <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{assessment.dynamics_with_partner}</p>
+                                        )}
+                                      </div>
+                                    ))}
+                                  </div>
+                                ) : (
+                                  <p className="text-sm text-muted-foreground text-center py-2">Take the assessment to discover your styles</p>
+                                )}
+                              </div>
+                            </div>
+                          </div>
                         );
                         if (isEditMode) return <div className="block h-full">{attachmentCard}</div>;
                         return <Link href="/attachment-assessment" className="block h-full">{attachmentCard}</Link>;
@@ -899,37 +904,41 @@ export default function ClientDashboard() {
                       if (widget.type === "enneagram") {
                         const hasData = enneagramQuery.isSuccess && enneagramQuery.data && enneagramQuery.data.length > 0;
                         const enneagramCard = (
-                          <Card className="glass-card border-l-4 border-l-purple-500 overflow-hidden h-full cursor-pointer luxury-widget">
-                            <div className="gradient-animate bg-gradient-to-br from-purple-500/8 to-violet-500/6" />
-                            <CardHeader className="relative z-10 pb-2">
-                              <CardTitle className="flex items-center gap-2 text-sm">
-                                <Compass className="h-4 w-4 text-purple-500" />
+                          <div className="rounded-2xl p-4 relative cursor-pointer h-full flex flex-col border-l-4 border-l-purple-500 shadow-lg glass-card overflow-hidden">
+                            <div className="gradient-animate rounded-2xl bg-gradient-to-br from-purple-500/8 to-violet-500/6" />
+                            <div className="relative z-10 flex flex-col h-full">
+                              <div className="flex-shrink-0 flex items-start justify-between mb-3">
+                                <div className="p-2.5 rounded-xl bg-purple-500/15 flex-shrink-0">
+                                  <Compass className="h-6 w-6 text-purple-500" />
+                                </div>
+                              </div>
+                              <h3 className="font-bold text-base text-foreground leading-tight mb-2">
                                 Enneagram Types
-                              </CardTitle>
-                            </CardHeader>
-                            <CardContent className="relative z-10">
-                              {enneagramQuery.isLoading ? (
-                                <div className="animate-pulse grid grid-cols-2 gap-2">
-                                  <div className="h-12 bg-muted rounded" />
-                                  <div className="h-12 bg-muted rounded" />
-                                </div>
-                              ) : hasData ? (
-                                <div className="grid grid-cols-2 gap-2">
-                                  {enneagramQuery.data.slice(0, 2).map((assessment: any) => (
-                                    <div key={assessment.id} className="p-2 rounded-lg bg-background/60 backdrop-blur-sm border border-border/30">
-                                      <p className="text-xs font-medium">{assessment.user_id === profile?.id ? "You" : "Partner"}</p>
-                                      <p className="text-xs text-muted-foreground">Type {assessment.primary_type}{assessment.secondary_type ? ` w${assessment.secondary_type}` : ""}</p>
-                                      {isLargeHeight && assessment.couple_dynamics && (
-                                        <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{assessment.couple_dynamics}</p>
-                                      )}
-                                    </div>
-                                  ))}
-                                </div>
-                              ) : (
-                                <p className="text-xs text-muted-foreground text-center py-2">Take the assessment to discover your types</p>
-                              )}
-                            </CardContent>
-                          </Card>
+                              </h3>
+                              <div className="flex-1 flex flex-col">
+                                {enneagramQuery.isLoading ? (
+                                  <div className="animate-pulse grid grid-cols-2 gap-2">
+                                    <div className="h-12 bg-muted rounded" />
+                                    <div className="h-12 bg-muted rounded" />
+                                  </div>
+                                ) : hasData ? (
+                                  <div className="grid grid-cols-2 gap-2">
+                                    {enneagramQuery.data.slice(0, 2).map((assessment: any) => (
+                                      <div key={assessment.id} className="p-2 rounded-lg bg-background/60 backdrop-blur-sm border border-border/30">
+                                        <p className="text-sm font-medium">{assessment.user_id === profile?.id ? "You" : "Partner"}</p>
+                                        <p className="text-sm text-muted-foreground">Type {assessment.primary_type}{assessment.secondary_type ? ` w${assessment.secondary_type}` : ""}</p>
+                                        {isLargeHeight && assessment.couple_dynamics && (
+                                          <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{assessment.couple_dynamics}</p>
+                                        )}
+                                      </div>
+                                    ))}
+                                  </div>
+                                ) : (
+                                  <p className="text-sm text-muted-foreground text-center py-2">Take the assessment to discover your types</p>
+                                )}
+                              </div>
+                            </div>
+                          </div>
                         );
                         if (isEditMode) return <div className="block h-full">{enneagramCard}</div>;
                         return <Link href="/enneagram-assessment" className="block h-full">{enneagramCard}</Link>;
@@ -939,20 +948,21 @@ export default function ClientDashboard() {
                         const hasData = sharedTodosQuery.isSuccess && sharedTodosQuery.data && sharedTodosQuery.data.length > 0;
                         const incompleteTodos = sharedTodosQuery.data?.filter((t: any) => !t.is_completed) || [];
                         return (
-                          <Card className="glass-card border-l-4 border-l-slate-500 overflow-hidden h-full luxury-widget">
-                            <div className="gradient-animate bg-gradient-to-br from-slate-500/8 to-gray-500/6" />
-                            <CardHeader className="relative z-10 pb-2">
-                              <div className="flex items-center justify-between flex-wrap gap-2">
-                                <CardTitle className="flex items-center gap-2 text-sm">
-                                  <ListTodo className="h-4 w-4 text-slate-500" />
-                                  To-Do List
-                                </CardTitle>
+                          <div className="rounded-2xl p-4 relative cursor-pointer h-full flex flex-col border-l-4 border-l-slate-500 shadow-lg glass-card overflow-hidden">
+                            <div className="gradient-animate rounded-2xl bg-gradient-to-br from-slate-500/8 to-gray-500/6" />
+                            <div className="relative z-10 flex flex-col h-full">
+                              <div className="flex-shrink-0 flex items-start justify-between mb-3">
+                                <div className="p-2.5 rounded-xl bg-slate-500/15 flex-shrink-0">
+                                  <ListTodo className="h-6 w-6 text-slate-500" />
+                                </div>
                                 {incompleteTodos.length > 0 && (
                                   <Badge variant="secondary" className="text-xs">{incompleteTodos.length} pending</Badge>
                                 )}
                               </div>
-                            </CardHeader>
-                            <CardContent className="relative z-10 space-y-1">
+                              <h3 className="font-bold text-base text-foreground leading-tight mb-2">
+                                To-Do List
+                              </h3>
+                              <div className="flex-1 flex flex-col space-y-1 overflow-y-auto">
                               <form 
                                 onSubmit={(e) => {
                                   e.preventDefault();
@@ -994,20 +1004,21 @@ export default function ClientDashboard() {
                                   {incompleteTodos.slice(0, isLargeHeight ? 4 : 2).map((todo: any) => (
                                     <div key={todo.id} className="flex items-center gap-2 p-1.5 rounded bg-background/60">
                                       <CheckSquare className="h-3 w-3 text-muted-foreground flex-shrink-0" />
-                                      <span className="text-xs truncate">{todo.title}</span>
+                                      <span className="text-sm truncate">{todo.title}</span>
                                     </div>
                                   ))}
                                   {!isEditMode && (
                                     <Link href="/shared-todos" className="block">
-                                      <p className="text-xs text-primary text-center mt-1 hover:underline">View all tasks</p>
+                                      <p className="text-sm text-primary text-center mt-1 hover:underline">View all tasks</p>
                                     </Link>
                                   )}
                                 </>
                               ) : (
-                                <p className="text-xs text-muted-foreground text-center py-2">No tasks pending</p>
+                                <p className="text-sm text-muted-foreground text-center py-2">No tasks pending</p>
                               )}
-                            </CardContent>
-                          </Card>
+                              </div>
+                            </div>
+                          </div>
                         );
                       }
 
@@ -1015,20 +1026,21 @@ export default function ClientDashboard() {
                         const hasData = choresQuery.isSuccess && choresQuery.data && choresQuery.data.length > 0;
                         const incompleteChores = choresQuery.data?.filter((c: any) => !c.is_completed) || [];
                         return (
-                          <Card className="glass-card border-l-4 border-l-green-500 overflow-hidden h-full luxury-widget">
-                            <div className="gradient-animate bg-gradient-to-br from-green-500/8 to-emerald-500/6" />
-                            <CardHeader className="relative z-10 pb-2">
-                              <div className="flex items-center justify-between flex-wrap gap-2">
-                                <CardTitle className="flex items-center gap-2 text-sm">
-                                  <CheckSquare className="h-4 w-4 text-green-500" />
-                                  Chore Chart
-                                </CardTitle>
+                          <div className="rounded-2xl p-4 relative cursor-pointer h-full flex flex-col border-l-4 border-l-green-500 shadow-lg glass-card overflow-hidden">
+                            <div className="gradient-animate rounded-2xl bg-gradient-to-br from-green-500/8 to-emerald-500/6" />
+                            <div className="relative z-10 flex flex-col h-full">
+                              <div className="flex-shrink-0 flex items-start justify-between mb-3">
+                                <div className="p-2.5 rounded-xl bg-green-500/15 flex-shrink-0">
+                                  <CheckSquare className="h-6 w-6 text-green-500" />
+                                </div>
                                 {incompleteChores.length > 0 && (
                                   <Badge variant="secondary" className="text-xs">{incompleteChores.length} due</Badge>
                                 )}
                               </div>
-                            </CardHeader>
-                            <CardContent className="relative z-10 space-y-1">
+                              <h3 className="font-bold text-base text-foreground leading-tight mb-2">
+                                Chore Chart
+                              </h3>
+                              <div className="flex-1 flex flex-col space-y-1 overflow-y-auto">
                               <form 
                                 onSubmit={(e) => {
                                   e.preventDefault();
@@ -1069,58 +1081,63 @@ export default function ClientDashboard() {
                                 <>
                                   {incompleteChores.slice(0, isLargeHeight ? 4 : 2).map((chore: any) => (
                                     <div key={chore.id} className="flex items-center justify-between gap-2 p-1.5 rounded bg-background/60">
-                                      <span className="text-xs truncate">{chore.title}</span>
+                                      <span className="text-sm truncate">{chore.title}</span>
                                       <Badge variant="outline" className="text-xs capitalize">{chore.recurrence}</Badge>
                                     </div>
                                   ))}
                                   {!isEditMode && (
                                     <Link href="/chores" className="block">
-                                      <p className="text-xs text-primary text-center mt-1 hover:underline">View all chores</p>
+                                      <p className="text-sm text-primary text-center mt-1 hover:underline">View all chores</p>
                                     </Link>
                                   )}
                                 </>
                               ) : (
-                                <p className="text-xs text-muted-foreground text-center py-2">All chores done</p>
+                                <p className="text-sm text-muted-foreground text-center py-2">All chores done</p>
                               )}
-                            </CardContent>
-                          </Card>
+                              </div>
+                            </div>
+                          </div>
                         );
                       }
 
                       if (widget.type === "checkin-history") {
                         const hasData = weeklyCheckinsQuery.isSuccess && weeklyCheckinsQuery.data && weeklyCheckinsQuery.data.length > 0;
                         const checkinCard = (
-                          <Card className="glass-card border-l-4 border-l-cyan-500 overflow-hidden h-full cursor-pointer luxury-widget">
-                            <div className="gradient-animate bg-gradient-to-br from-cyan-500/8 to-teal-500/6" />
-                            <CardHeader className="relative z-10 pb-2">
-                              <CardTitle className="flex items-center gap-2 text-sm">
-                                <TrendingUp className="h-4 w-4 text-cyan-500" />
-                                Check-In History
-                              </CardTitle>
-                            </CardHeader>
-                            <CardContent className="relative z-10 space-y-1">
-                              {weeklyCheckinsQuery.isLoading ? (
-                                <div className="animate-pulse space-y-2">
-                                  <div className="h-4 bg-muted rounded w-3/4" />
-                                  <div className="h-4 bg-muted rounded w-1/2" />
+                          <div className="rounded-2xl p-4 relative cursor-pointer h-full flex flex-col border-l-4 border-l-cyan-500 shadow-lg glass-card overflow-hidden">
+                            <div className="gradient-animate rounded-2xl bg-gradient-to-br from-cyan-500/8 to-teal-500/6" />
+                            <div className="relative z-10 flex flex-col h-full">
+                              <div className="flex-shrink-0 flex items-start justify-between mb-3">
+                                <div className="p-2.5 rounded-xl bg-cyan-500/15 flex-shrink-0">
+                                  <TrendingUp className="h-6 w-6 text-cyan-500" />
                                 </div>
-                              ) : hasData ? (
-                                weeklyCheckinsQuery.data.slice(0, isLargeHeight ? 4 : 2).map((checkin: any, idx: number) => (
-                                  <div key={checkin.id || idx} className="p-1.5 rounded bg-background/60">
-                                    <div className="flex items-center justify-between">
-                                      <span className="text-xs font-medium">Week {checkin.week_number}, {checkin.year}</span>
-                                      <span className="text-xs text-muted-foreground">{checkin.q_connectedness}/10</span>
-                                    </div>
-                                    {isLargeHeight && checkin.q_appreciation && (
-                                      <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{checkin.q_appreciation}</p>
-                                    )}
+                              </div>
+                              <h3 className="font-bold text-base text-foreground leading-tight mb-2">
+                                Check-In History
+                              </h3>
+                              <div className="flex-1 flex flex-col space-y-1 overflow-y-auto">
+                                {weeklyCheckinsQuery.isLoading ? (
+                                  <div className="animate-pulse space-y-2">
+                                    <div className="h-4 bg-muted rounded w-3/4" />
+                                    <div className="h-4 bg-muted rounded w-1/2" />
                                   </div>
-                                ))
-                              ) : (
-                                <p className="text-xs text-muted-foreground text-center py-2">Complete your first check-in</p>
-                              )}
-                            </CardContent>
-                          </Card>
+                                ) : hasData ? (
+                                  weeklyCheckinsQuery.data.slice(0, isLargeHeight ? 4 : 2).map((checkin: any, idx: number) => (
+                                    <div key={checkin.id || idx} className="p-1.5 rounded bg-background/60">
+                                      <div className="flex items-center justify-between">
+                                        <span className="text-sm font-medium">Week {checkin.week_number}, {checkin.year}</span>
+                                        <span className="text-sm text-muted-foreground">{checkin.q_connectedness}/10</span>
+                                      </div>
+                                      {isLargeHeight && checkin.q_appreciation && (
+                                        <p className="text-sm text-muted-foreground mt-0.5 line-clamp-1">{checkin.q_appreciation}</p>
+                                      )}
+                                    </div>
+                                  ))
+                                ) : (
+                                  <p className="text-sm text-muted-foreground text-center py-2">Complete your first check-in</p>
+                                )}
+                              </div>
+                            </div>
+                          </div>
                         );
                         if (isEditMode) return <div className="block h-full">{checkinCard}</div>;
                         return <Link href="/checkin-history" className="block h-full">{checkinCard}</Link>;
@@ -1129,32 +1146,36 @@ export default function ClientDashboard() {
                       if (widget.type === "session-notes") {
                         const hasData = sessionNotesQuery.isSuccess && sessionNotesQuery.data && sessionNotesQuery.data.length > 0;
                         const sessionCard = (
-                          <Card className="glass-card border-l-4 border-l-orange-500 overflow-hidden h-full cursor-pointer luxury-widget">
-                            <div className="gradient-animate bg-gradient-to-br from-orange-500/8 to-amber-500/6" />
-                            <CardHeader className="relative z-10 pb-2">
-                              <CardTitle className="flex items-center gap-2 text-sm">
-                                <FileText className="h-4 w-4 text-orange-500" />
-                                Session Notes
-                              </CardTitle>
-                            </CardHeader>
-                            <CardContent className="relative z-10 space-y-1">
-                              {sessionNotesQuery.isLoading ? (
-                                <div className="animate-pulse space-y-2">
-                                  <div className="h-4 bg-muted rounded w-3/4" />
-                                  <div className="h-4 bg-muted rounded w-1/2" />
+                          <div className="rounded-2xl p-4 relative cursor-pointer h-full flex flex-col border-l-4 border-l-orange-500 shadow-lg glass-card overflow-hidden">
+                            <div className="gradient-animate rounded-2xl bg-gradient-to-br from-orange-500/8 to-amber-500/6" />
+                            <div className="relative z-10 flex flex-col h-full">
+                              <div className="flex-shrink-0 flex items-start justify-between mb-3">
+                                <div className="p-2.5 rounded-xl bg-orange-500/15 flex-shrink-0">
+                                  <FileText className="h-6 w-6 text-orange-500" />
                                 </div>
-                              ) : hasData ? (
-                                sessionNotesQuery.data.slice(0, isLargeHeight ? 3 : 2).map((note: any, idx: number) => (
-                                  <div key={note.id || idx} className="p-1.5 rounded bg-background/60">
-                                    <p className="text-xs font-medium">{note.title || `Session ${idx + 1}`}</p>
-                                    <p className="text-xs text-muted-foreground line-clamp-1">{note.summary || note.notes}</p>
+                              </div>
+                              <h3 className="font-bold text-base text-foreground leading-tight mb-2">
+                                Session Notes
+                              </h3>
+                              <div className="flex-1 flex flex-col space-y-1 overflow-y-auto">
+                                {sessionNotesQuery.isLoading ? (
+                                  <div className="animate-pulse space-y-2">
+                                    <div className="h-4 bg-muted rounded w-3/4" />
+                                    <div className="h-4 bg-muted rounded w-1/2" />
                                   </div>
-                                ))
-                              ) : (
-                                <p className="text-xs text-muted-foreground text-center py-2">No session notes yet</p>
-                              )}
-                            </CardContent>
-                          </Card>
+                                ) : hasData ? (
+                                  sessionNotesQuery.data.slice(0, isLargeHeight ? 3 : 2).map((note: any, idx: number) => (
+                                    <div key={note.id || idx} className="p-1.5 rounded bg-background/60">
+                                      <p className="text-sm font-medium">{note.title || `Session ${idx + 1}`}</p>
+                                      <p className="text-sm text-muted-foreground line-clamp-1">{note.summary || note.notes}</p>
+                                    </div>
+                                  ))
+                                ) : (
+                                  <p className="text-sm text-muted-foreground text-center py-2">No session notes yet</p>
+                                )}
+                              </div>
+                            </div>
+                          </div>
                         );
                         if (isEditMode) return <div className="block h-full">{sessionCard}</div>;
                         return <Link href="/session-notes" className="block h-full">{sessionCard}</Link>;
@@ -1184,21 +1205,22 @@ export default function ClientDashboard() {
                           return "text-red-500";
                         };
                         return (
-                          <Card className="glass-card border-l-4 border-l-amber-500 overflow-hidden h-full luxury-widget">
-                            <div className="gradient-animate bg-gradient-to-br from-amber-500/8 to-yellow-500/6" />
-                            <CardHeader className="relative z-10 pb-2">
-                              <div className="flex items-center justify-between flex-wrap gap-2">
-                                <CardTitle className="flex items-center gap-2 text-sm">
-                                  <Smile className="h-4 w-4 text-amber-500" />
-                                  Mood Check
-                                </CardTitle>
+                          <div className="rounded-2xl p-4 relative cursor-pointer h-full flex flex-col border-l-4 border-l-amber-500 shadow-lg glass-card overflow-hidden">
+                            <div className="gradient-animate rounded-2xl bg-gradient-to-br from-amber-500/8 to-yellow-500/6" />
+                            <div className="relative z-10 flex flex-col h-full">
+                              <div className="flex-shrink-0 flex items-start justify-between mb-3">
+                                <div className="p-2.5 rounded-xl bg-amber-500/15 flex-shrink-0">
+                                  <Smile className="h-6 w-6 text-amber-500" />
+                                </div>
                                 <span className={cn("text-xs font-medium", getMoodColor(quickMoodLevel[0]))}>
                                   {getMoodLabel(quickMoodLevel[0])}
                                 </span>
                               </div>
-                            </CardHeader>
-                            <CardContent className="relative z-10 space-y-3" onClick={(e) => e.stopPropagation()}>
-                              <div className="space-y-2">
+                              <h3 className="font-bold text-base text-foreground leading-tight mb-2">
+                                Mood Check
+                              </h3>
+                              <div className="flex-1 flex flex-col space-y-3 overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+                                <div className="space-y-2">
                                 <Slider
                                   value={quickMoodLevel}
                                   onValueChange={setQuickMoodLevel}
@@ -1228,43 +1250,49 @@ export default function ClientDashboard() {
                               </Button>
                               {!isEditMode && (
                                 <Link href="/mood-tracker" className="block">
-                                  <p className="text-xs text-primary text-center hover:underline">View history</p>
+                                  <p className="text-sm text-primary text-center hover:underline">View history</p>
                                 </Link>
                               )}
-                            </CardContent>
-                          </Card>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
                         );
                       }
 
                       if (widget.type === "conflict") {
                         return (
-                          <Card className="glass-card border-l-4 border-l-rose-500 overflow-hidden h-full luxury-widget">
-                            <div className="gradient-animate bg-gradient-to-br from-rose-500/8 to-pink-500/6" />
-                            <CardHeader className="relative z-10 pb-2">
-                              <CardTitle className="flex items-center gap-2 text-sm">
-                                <MessageCircle className="h-4 w-4 text-rose-500" />
+                          <div className="rounded-2xl p-4 relative cursor-pointer h-full flex flex-col border-l-4 border-l-rose-500 shadow-lg glass-card overflow-hidden">
+                            <div className="gradient-animate rounded-2xl bg-gradient-to-br from-rose-500/8 to-pink-500/6" />
+                            <div className="relative z-10 flex flex-col h-full">
+                              <div className="flex-shrink-0 flex items-start justify-between mb-3">
+                                <div className="p-2.5 rounded-xl bg-rose-500/15 flex-shrink-0">
+                                  <MessageCircle className="h-6 w-6 text-rose-500" />
+                                </div>
+                              </div>
+                              <h3 className="font-bold text-base text-foreground leading-tight mb-2">
                                 Reword My Feelings
-                              </CardTitle>
-                            </CardHeader>
-                            <CardContent className="relative z-10 space-y-2" onClick={(e) => e.stopPropagation()}>
-                              <p className="text-xs text-muted-foreground">Type how you feel freely:</p>
-                              <Textarea
-                                placeholder="I'm frustrated because..."
-                                value={conflictText}
-                                onChange={(e) => setConflictText(e.target.value)}
-                                className="h-16 text-xs resize-none"
-                                onClick={(e) => e.stopPropagation()}
-                                data-testid="input-reword-feelings"
-                              />
-                              {!isEditMode && (
-                                <Link href="/conflict-resolution" className="block">
-                                  <Button variant="outline" size="sm" className="w-full h-7 text-xs" data-testid="button-reword-feelings">
-                                    Get kinder wording
-                                  </Button>
-                                </Link>
-                              )}
-                            </CardContent>
-                          </Card>
+                              </h3>
+                              <div className="flex-1 flex flex-col space-y-2 overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+                                <p className="text-sm text-muted-foreground">Type how you feel freely:</p>
+                                <Textarea
+                                  placeholder="I'm frustrated because..."
+                                  value={conflictText}
+                                  onChange={(e) => setConflictText(e.target.value)}
+                                  className="flex-1 text-sm resize-none"
+                                  onClick={(e) => e.stopPropagation()}
+                                  data-testid="input-reword-feelings"
+                                />
+                                {!isEditMode && (
+                                  <Link href="/conflict-resolution" className="block">
+                                    <Button variant="outline" size="sm" className="w-full h-7 text-sm" data-testid="button-reword-feelings">
+                                      Get kinder wording
+                                    </Button>
+                                  </Link>
+                                )}
+                              </div>
+                            </div>
+                          </div>
                         );
                       }
 
