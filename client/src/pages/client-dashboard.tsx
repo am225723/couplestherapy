@@ -1268,13 +1268,14 @@ export default function ClientDashboard() {
 
                     const specialContent = widget.type ? renderSpecialWidget() : null;
                     // For flexbox: calculate width based on columns (3-column layout with 12px gap)
+                    // All 1x1 cards are 200px, 1x2 cards are 412px (200*2 + 12 gap)
                     const widthStyle = {
                       width: widgetSize.cols === 3 
                         ? "100%" 
                         : widgetSize.cols === 2 
                           ? "calc(66.666% - 4px)" 
                           : "calc(33.333% - 8px)",
-                      minHeight: widgetSize.rows === 2 ? "296px" : "140px",
+                      height: widgetSize.rows === 2 ? "412px" : "200px",
                     };
 
                     if (isEditMode) {
