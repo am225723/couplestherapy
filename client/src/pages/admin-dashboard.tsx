@@ -684,7 +684,7 @@ export default function AdminDashboard() {
             </Button>
           </div>
           {couples.length === 0 ? (
-            <Card className="text-center py-12">
+            <Card className="glass-card border-none text-center py-12">
               <CardContent>
                 <Users className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
                 <p className="text-muted-foreground mb-4">
@@ -699,32 +699,75 @@ export default function AdminDashboard() {
               </CardContent>
             </Card>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {couples.map((couple) => (
-                <Link key={couple.id} href={`/admin/couple/${couple.id}`}>
-                  <Card className="hover-elevate cursor-pointer">
-                    <CardHeader>
+                <Card 
+                  key={couple.id} 
+                  className="glass-card border-none border-l-4 border-l-primary/50 hover-elevate cursor-pointer group"
+                  data-testid={`card-couple-${couple.id}`}
+                >
+                  <CardHeader className="pb-3">
+                    <Link href={`/admin/couple/${couple.id}`}>
                       <CardTitle className="flex items-center gap-3">
                         <div className="flex -space-x-2">
-                          <Avatar className="border-2 border-background">
-                            <AvatarFallback className="bg-primary/10 text-primary">
+                          <Avatar className="border-2 border-background h-10 w-10">
+                            <AvatarFallback className="bg-gradient-to-br from-primary/20 to-accent/20 text-primary font-semibold">
                               {couple.partner1?.full_name?.charAt(0) || "?"}
                             </AvatarFallback>
                           </Avatar>
-                          <Avatar className="border-2 border-background">
-                            <AvatarFallback className="bg-secondary/30 text-secondary-foreground">
+                          <Avatar className="border-2 border-background h-10 w-10">
+                            <AvatarFallback className="bg-gradient-to-br from-secondary/30 to-accent/20 text-secondary-foreground font-semibold">
                               {couple.partner2?.full_name?.charAt(0) || "?"}
                             </AvatarFallback>
                           </Avatar>
                         </div>
-                        <span>
-                          {couple.partner1?.full_name || "Partner 1"} &{" "}
-                          {couple.partner2?.full_name || "Partner 2"}
-                        </span>
+                        <div className="flex-1 min-w-0">
+                          <span className="block truncate">
+                            {couple.partner1?.full_name || "Partner 1"} &{" "}
+                            {couple.partner2?.full_name || "Partner 2"}
+                          </span>
+                        </div>
                       </CardTitle>
-                    </CardHeader>
-                  </Card>
-                </Link>
+                    </Link>
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    <div className="flex items-center gap-2">
+                      <Button 
+                        asChild
+                        variant="ghost" 
+                        size="sm" 
+                        className="flex-1 gap-2 h-9"
+                      >
+                        <Link href={`/admin/couple/${couple.id}/notes`} data-testid={`button-notes-${couple.id}`}>
+                          <FileText className="h-4 w-4" />
+                          Notes
+                        </Link>
+                      </Button>
+                      <Button 
+                        asChild
+                        variant="ghost" 
+                        size="sm" 
+                        className="flex-1 gap-2 h-9"
+                      >
+                        <Link href={`/admin/couple/${couple.id}/messages`} data-testid={`button-messages-${couple.id}`}>
+                          <Send className="h-4 w-4" />
+                          Message
+                        </Link>
+                      </Button>
+                      <Button 
+                        asChild
+                        variant="ghost" 
+                        size="sm" 
+                        className="flex-1 gap-2 h-9"
+                      >
+                        <Link href={`/admin/couple/${couple.id}/dashboard-customization`} data-testid={`button-customize-${couple.id}`}>
+                          <Sliders className="h-4 w-4" />
+                          Customize
+                        </Link>
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
               ))}
             </div>
           )}
@@ -754,17 +797,51 @@ export default function AdminDashboard() {
       />
 
       <div className="flex flex-col flex-1 overflow-y-auto min-h-0">
-        <header className="flex items-center justify-between p-4 border-b gap-4 shrink-0">
-          <div className="flex items-center gap-4">
-            {selectedCouple && (
-              <h1 className="text-xl font-semibold">
-                {selectedCouple.partner1?.full_name} &{" "}
-                {selectedCouple.partner2?.full_name}
-              </h1>
-            )}
-          </div>
+        <header className="border-b shrink-0 bg-gradient-to-r from-background to-muted/30">
+          <div className="flex items-center justify-between p-4 gap-4">
+            <div className="flex items-center gap-4">
+              {selectedCouple && (
+                <div className="flex items-center gap-3">
+                  <div className="flex -space-x-2">
+                    <Avatar className="border-2 border-background h-10 w-10">
+                      <AvatarFallback className="bg-gradient-to-br from-primary/20 to-accent/20 text-primary font-semibold">
+                        {selectedCouple.partner1?.full_name?.charAt(0) || "?"}
+                      </AvatarFallback>
+                    </Avatar>
+                    <Avatar className="border-2 border-background h-10 w-10">
+                      <AvatarFallback className="bg-gradient-to-br from-secondary/30 to-accent/20 text-secondary-foreground font-semibold">
+                        {selectedCouple.partner2?.full_name?.charAt(0) || "?"}
+                      </AvatarFallback>
+                    </Avatar>
+                  </div>
+                  <h1 className="text-xl font-semibold">
+                    {selectedCouple.partner1?.full_name} &{" "}
+                    {selectedCouple.partner2?.full_name}
+                  </h1>
+                </div>
+              )}
+            </div>
 
-          <Dialog>
+            <div className="flex items-center gap-2">
+              <Button asChild variant="outline" size="sm" className="gap-2">
+                <Link href={`/admin/couple/${selectedCouple?.id}/notes`} data-testid="header-button-notes">
+                  <FileText className="h-4 w-4" />
+                  Notes
+                </Link>
+              </Button>
+              <Button asChild variant="outline" size="sm" className="gap-2">
+                <Link href={`/admin/couple/${selectedCouple?.id}/messages`} data-testid="header-button-messages">
+                  <MessageSquare className="h-4 w-4" />
+                  Messages
+                </Link>
+              </Button>
+              <Button asChild variant="outline" size="sm" className="gap-2">
+                <Link href={`/admin/couple/${selectedCouple?.id}/dashboard-customization`} data-testid="header-button-customize">
+                  <Sliders className="h-4 w-4" />
+                  Customize
+                </Link>
+              </Button>
+              <Dialog>
             <DialogTrigger asChild>
               <Button
                 variant="default"
@@ -953,6 +1030,8 @@ export default function AdminDashboard() {
               )}
             </DialogContent>
           </Dialog>
+            </div>
+          </div>
         </header>
 
         <main className="flex-1 min-h-0 overflow-y-auto">
