@@ -827,7 +827,7 @@ export default function ClientDashboard() {
                         const hasData = therapistThoughtsQuery.isSuccess && therapistThoughtsQuery.data?.length > 0;
                         return (
                           <div className="rounded-2xl p-4 relative cursor-pointer h-full flex flex-col border-l-4 border-l-primary shadow-lg glass-card overflow-hidden" data-testid="card-therapist">
-                            <div className="gradient-animate rounded-2xl bg-gradient-to-br from-primary/20 to-blue-500/15" />
+                            <div className="gradient-animate rounded-2xl bg-gradient-to-br from-primary/20 to-blue-500/15 dark:from-primary/35 dark:to-blue-500/25" />
                             <div className="relative z-10 flex flex-col h-full">
                               <div className="flex-shrink-0 flex items-start justify-between mb-3">
                                 <div className="p-2.5 rounded-xl bg-primary/15 flex-shrink-0">
@@ -873,7 +873,7 @@ export default function ClientDashboard() {
                         const hasData = dailySuggestionQuery.isSuccess && dailySuggestionQuery.data?.tip_text;
                         const suggestionCard = (
                           <div className="rounded-2xl p-4 relative cursor-pointer h-full flex flex-col border-l-4 border-l-emerald-500 shadow-lg glass-card overflow-hidden">
-                            <div className="gradient-animate rounded-2xl bg-gradient-to-br from-emerald-500/20 to-teal-500/15" />
+                            <div className="gradient-animate rounded-2xl bg-gradient-to-br from-emerald-500/20 to-teal-500/15 dark:from-emerald-500/35 dark:to-teal-500/25" />
                             <div className="relative z-10 flex flex-col h-full">
                               <div className="flex-shrink-0 flex items-start justify-between mb-3">
                                 <div className="p-2.5 rounded-xl bg-emerald-500/15 flex-shrink-0">
@@ -913,7 +913,7 @@ export default function ClientDashboard() {
                         const hasData = recommendationsQuery.isSuccess && recommendationsQuery.data?.recommendations?.length > 0;
                         return (
                           <div className="rounded-2xl p-4 relative cursor-pointer h-full flex flex-col border-l-4 border-l-amber-500 shadow-lg glass-card overflow-hidden" data-testid="card-ai">
-                            <div className="gradient-animate rounded-2xl bg-gradient-to-br from-amber-500/20 to-orange-500/15" />
+                            <div className="gradient-animate rounded-2xl bg-gradient-to-br from-amber-500/20 to-orange-500/15 dark:from-amber-500/35 dark:to-orange-500/25" />
                             <div className="relative z-10 flex flex-col h-full">
                               <div className="flex-shrink-0 flex items-start justify-between mb-3">
                                 <div className="p-2.5 rounded-xl bg-amber-500/15 flex-shrink-0">
@@ -960,7 +960,7 @@ export default function ClientDashboard() {
                         };
                         const loveCard = (
                           <div className="rounded-2xl p-4 relative cursor-pointer h-full flex flex-col border-l-4 border-l-rose-500 shadow-lg glass-card overflow-hidden">
-                            <div className="gradient-animate rounded-2xl bg-gradient-to-br from-rose-500/15 to-pink-500/12" />
+                            <div className="gradient-animate rounded-2xl bg-gradient-to-br from-rose-500/15 to-pink-500/12 dark:from-rose-500/30 dark:to-pink-500/22" />
                             <div className="relative z-10 flex flex-col h-full">
                               <div className="flex-shrink-0 flex items-start justify-between mb-3">
                                 <div className="p-2.5 rounded-xl bg-rose-500/15 flex-shrink-0">
@@ -1009,7 +1009,7 @@ export default function ClientDashboard() {
                         const hasData = attachmentQuery.isSuccess && attachmentQuery.data && attachmentQuery.data.length > 0;
                         const attachmentCard = (
                           <div className="rounded-2xl p-4 relative cursor-pointer h-full flex flex-col border-l-4 border-l-blue-500 shadow-lg glass-card overflow-hidden">
-                            <div className="gradient-animate rounded-2xl bg-gradient-to-br from-blue-500/15 to-indigo-500/12" />
+                            <div className="gradient-animate rounded-2xl bg-gradient-to-br from-blue-500/15 to-indigo-500/12 dark:from-blue-500/30 dark:to-indigo-500/22" />
                             <div className="relative z-10 flex flex-col h-full">
                               <div className="flex-shrink-0 flex items-start justify-between mb-3">
                                 <div className="p-2.5 rounded-xl bg-blue-500/15 flex-shrink-0">
@@ -1052,7 +1052,7 @@ export default function ClientDashboard() {
                         const hasData = enneagramQuery.isSuccess && enneagramQuery.data && enneagramQuery.data.length > 0;
                         const enneagramCard = (
                           <div className="rounded-2xl p-4 relative cursor-pointer h-full flex flex-col border-l-4 border-l-purple-500 shadow-lg glass-card overflow-hidden">
-                            <div className="gradient-animate rounded-2xl bg-gradient-to-br from-purple-500/15 to-violet-500/12" />
+                            <div className="gradient-animate rounded-2xl bg-gradient-to-br from-purple-500/15 to-violet-500/12 dark:from-purple-500/30 dark:to-violet-500/22" />
                             <div className="relative z-10 flex flex-col h-full">
                               <div className="flex-shrink-0 flex items-start justify-between mb-3">
                                 <div className="p-2.5 rounded-xl bg-purple-500/15 flex-shrink-0">
@@ -1096,7 +1096,7 @@ export default function ClientDashboard() {
                         const incompleteTodos = sharedTodosQuery.data?.filter((t: any) => !t.is_completed) || [];
                         return (
                           <div className="rounded-2xl p-4 relative cursor-pointer h-full flex flex-col border-l-4 border-l-slate-500 shadow-lg glass-card overflow-hidden">
-                            <div className="gradient-animate rounded-2xl bg-gradient-to-br from-slate-500/15 to-gray-500/12" />
+                            <div className="gradient-animate rounded-2xl bg-gradient-to-br from-slate-500/15 to-gray-500/12 dark:from-slate-500/30 dark:to-gray-500/22" />
                             <div className="relative z-10 flex flex-col h-full">
                               <div className="flex-shrink-0 flex items-start justify-between mb-3">
                                 <div className="p-2.5 rounded-xl bg-slate-500/15 flex-shrink-0">
@@ -1174,7 +1174,7 @@ export default function ClientDashboard() {
                         const incompleteChores = choresQuery.data?.filter((c: any) => !c.is_completed) || [];
                         return (
                           <div className="rounded-2xl p-4 relative cursor-pointer h-full flex flex-col border-l-4 border-l-green-500 shadow-lg glass-card overflow-hidden">
-                            <div className="gradient-animate rounded-2xl bg-gradient-to-br from-green-500/15 to-emerald-500/12" />
+                            <div className="gradient-animate rounded-2xl bg-gradient-to-br from-green-500/15 to-emerald-500/12 dark:from-green-500/30 dark:to-emerald-500/22" />
                             <div className="relative z-10 flex flex-col h-full">
                               <div className="flex-shrink-0 flex items-start justify-between mb-3">
                                 <div className="p-2.5 rounded-xl bg-green-500/15 flex-shrink-0">
@@ -1257,7 +1257,7 @@ export default function ClientDashboard() {
                         const avgScore = hasData ? Math.round(checkins.reduce((sum: number, c: any) => sum + (c.q_connectedness || c.connectedness || 0), 0) / checkins.length * 10) / 10 : null;
                         const checkinCard = (
                           <div className="rounded-2xl p-4 relative cursor-pointer h-full flex flex-col border-l-4 border-l-cyan-500 shadow-lg glass-card overflow-hidden">
-                            <div className="gradient-animate rounded-2xl bg-gradient-to-br from-cyan-500/15 to-teal-500/12" />
+                            <div className="gradient-animate rounded-2xl bg-gradient-to-br from-cyan-500/15 to-teal-500/12 dark:from-cyan-500/30 dark:to-teal-500/22" />
                             <div className="relative z-10 flex flex-col h-full">
                               <div className="flex-shrink-0 flex items-start justify-between mb-3">
                                 <div className="p-2.5 rounded-xl bg-cyan-500/15 flex-shrink-0">
@@ -1307,7 +1307,7 @@ export default function ClientDashboard() {
                         const hasData = sessionNotesQuery.isSuccess && sessionNotesQuery.data && sessionNotesQuery.data.length > 0;
                         const sessionCard = (
                           <div className="rounded-2xl p-4 relative cursor-pointer h-full flex flex-col border-l-4 border-l-orange-500 shadow-lg glass-card overflow-hidden">
-                            <div className="gradient-animate rounded-2xl bg-gradient-to-br from-orange-500/15 to-amber-500/12" />
+                            <div className="gradient-animate rounded-2xl bg-gradient-to-br from-orange-500/15 to-amber-500/12 dark:from-orange-500/30 dark:to-amber-500/22" />
                             <div className="relative z-10 flex flex-col h-full">
                               <div className="flex-shrink-0 flex items-start justify-between mb-3">
                                 <div className="p-2.5 rounded-xl bg-orange-500/15 flex-shrink-0">
@@ -1366,7 +1366,7 @@ export default function ClientDashboard() {
                         };
                         return (
                           <div className="rounded-2xl p-4 relative cursor-pointer h-full flex flex-col border-l-4 border-l-amber-500 shadow-lg glass-card overflow-hidden">
-                            <div className="gradient-animate rounded-2xl bg-gradient-to-br from-amber-500/15 to-yellow-500/12" />
+                            <div className="gradient-animate rounded-2xl bg-gradient-to-br from-amber-500/15 to-yellow-500/12 dark:from-amber-500/30 dark:to-yellow-500/22" />
                             <div className="relative z-10 flex flex-col h-full">
                               <div className="flex-shrink-0 flex items-start justify-between mb-3">
                                 <div className="p-2.5 rounded-xl bg-amber-500/15 flex-shrink-0">
@@ -1423,7 +1423,7 @@ export default function ClientDashboard() {
                       if (widget.type === "conflict") {
                         return (
                           <div className="rounded-2xl p-4 relative cursor-pointer h-full flex flex-col border-l-4 border-l-rose-500 shadow-lg glass-card overflow-hidden">
-                            <div className="gradient-animate rounded-2xl bg-gradient-to-br from-rose-500/15 to-pink-500/12" />
+                            <div className="gradient-animate rounded-2xl bg-gradient-to-br from-rose-500/15 to-pink-500/12 dark:from-rose-500/30 dark:to-pink-500/22" />
                             <div className="relative z-10 flex flex-col h-full">
                               <div className="flex-shrink-0 flex items-start justify-between mb-3">
                                 <div className="p-2.5 rounded-xl bg-rose-500/15 flex-shrink-0">
@@ -1462,7 +1462,7 @@ export default function ClientDashboard() {
                         return (
                           <Link href="/date-night" className="block h-full">
                             <div className="rounded-2xl p-4 relative cursor-pointer h-full flex flex-col border-l-4 border-l-pink-500 shadow-lg glass-card overflow-hidden">
-                              <div className="gradient-animate rounded-2xl bg-gradient-to-br from-pink-500/15 to-rose-500/12" />
+                              <div className="gradient-animate rounded-2xl bg-gradient-to-br from-pink-500/15 to-rose-500/12 dark:from-pink-500/30 dark:to-rose-500/22" />
                               <div className="relative z-10 flex flex-col h-full">
                                 <div className="flex-shrink-0 flex items-start justify-between mb-3">
                                   <div className="p-2.5 rounded-xl bg-pink-500/15 flex-shrink-0">
@@ -1503,7 +1503,7 @@ export default function ClientDashboard() {
                         return (
                           <Link href="/weekly-checkin" className="block h-full">
                             <div className="rounded-2xl p-4 relative cursor-pointer h-full flex flex-col border-l-4 border-l-blue-500 shadow-lg glass-card overflow-hidden">
-                              <div className="gradient-animate rounded-2xl bg-gradient-to-br from-blue-500/15 to-indigo-500/12" />
+                              <div className="gradient-animate rounded-2xl bg-gradient-to-br from-blue-500/15 to-indigo-500/12 dark:from-blue-500/30 dark:to-indigo-500/22" />
                               <div className="relative z-10 flex flex-col h-full">
                                 <div className="flex-shrink-0 flex items-start justify-between mb-3">
                                   <div className="p-2.5 rounded-xl bg-blue-500/15 flex-shrink-0">
@@ -1576,7 +1576,7 @@ export default function ClientDashboard() {
                         return (
                           <Link href="/goals" className="block h-full">
                             <div className="rounded-2xl p-4 relative cursor-pointer h-full flex flex-col border-l-4 border-l-blue-500 shadow-lg glass-card overflow-hidden">
-                              <div className="gradient-animate rounded-2xl bg-gradient-to-br from-blue-500/15 to-indigo-500/12" />
+                              <div className="gradient-animate rounded-2xl bg-gradient-to-br from-blue-500/15 to-indigo-500/12 dark:from-blue-500/30 dark:to-indigo-500/22" />
                               <div className="relative z-10 flex flex-col h-full">
                                 <div className="flex-shrink-0 flex items-start justify-between mb-3">
                                   <div className="p-2.5 rounded-xl bg-blue-500/15 flex-shrink-0">
@@ -1616,7 +1616,7 @@ export default function ClientDashboard() {
                         const unlistenedCount = voiceMemosQuery.data?.filter((m: any) => !m.listened_at && m.sender_id !== user?.id)?.length || 0;
                         return (
                           <div className="rounded-2xl p-4 relative cursor-pointer h-full flex flex-col border-l-4 border-l-slate-500 shadow-lg glass-card overflow-hidden">
-                            <div className="gradient-animate rounded-2xl bg-gradient-to-br from-slate-500/15 to-gray-500/12" />
+                            <div className="gradient-animate rounded-2xl bg-gradient-to-br from-slate-500/15 to-gray-500/12 dark:from-slate-500/30 dark:to-gray-500/22" />
                             <div className="relative z-10 flex flex-col h-full">
                               <div className="flex-shrink-0 flex items-start justify-between mb-3">
                                 <div className="p-2.5 rounded-xl bg-slate-500/15 flex-shrink-0">
@@ -1659,7 +1659,7 @@ export default function ClientDashboard() {
                         return (
                           <Link href="/calendar" className="block h-full">
                             <div className="rounded-2xl p-4 relative cursor-pointer h-full flex flex-col border-l-4 border-l-blue-500 shadow-lg glass-card overflow-hidden">
-                              <div className="gradient-animate rounded-2xl bg-gradient-to-br from-blue-500/15 to-indigo-500/12" />
+                              <div className="gradient-animate rounded-2xl bg-gradient-to-br from-blue-500/15 to-indigo-500/12 dark:from-blue-500/30 dark:to-indigo-500/22" />
                               <div className="relative z-10 flex flex-col h-full">
                                 <div className="flex-shrink-0 flex items-start justify-between mb-3">
                                   <div className="p-2.5 rounded-xl bg-blue-500/15 flex-shrink-0">
@@ -1696,7 +1696,7 @@ export default function ClientDashboard() {
                         return (
                           <Link href="/rituals" className="block h-full">
                             <div className="rounded-2xl p-4 relative cursor-pointer h-full flex flex-col border-l-4 border-l-purple-500 shadow-lg glass-card overflow-hidden">
-                              <div className="gradient-animate rounded-2xl bg-gradient-to-br from-purple-500/15 to-pink-500/12" />
+                              <div className="gradient-animate rounded-2xl bg-gradient-to-br from-purple-500/15 to-pink-500/12 dark:from-purple-500/30 dark:to-pink-500/22" />
                               <div className="relative z-10 flex flex-col h-full">
                                 <div className="flex-shrink-0 flex items-start justify-between mb-3">
                                   <div className="p-2.5 rounded-xl bg-purple-500/15 flex-shrink-0">
@@ -1799,7 +1799,7 @@ export default function ClientDashboard() {
                         return (
                           <Link href="/couple-compatibility" className="block h-full">
                             <div className="rounded-2xl p-4 relative cursor-pointer h-full flex flex-col border-l-4 border-l-purple-500 shadow-lg glass-card overflow-hidden">
-                              <div className="gradient-animate rounded-2xl bg-gradient-to-br from-purple-500/15 to-pink-500/12" />
+                              <div className="gradient-animate rounded-2xl bg-gradient-to-br from-purple-500/15 to-pink-500/12 dark:from-purple-500/30 dark:to-pink-500/22" />
                               <div className="relative z-10 flex flex-col h-full">
                                 <div className="flex-shrink-0 flex items-start justify-between mb-3">
                                   <div className="p-2.5 rounded-xl bg-purple-500/15 flex-shrink-0">
@@ -1842,7 +1842,7 @@ export default function ClientDashboard() {
                         return (
                           <Link href="/progress-timeline" className="block h-full">
                             <div className="rounded-2xl p-4 relative cursor-pointer h-full flex flex-col border-l-4 border-l-blue-500 shadow-lg glass-card overflow-hidden">
-                              <div className="gradient-animate rounded-2xl bg-gradient-to-br from-blue-500/15 to-indigo-500/12" />
+                              <div className="gradient-animate rounded-2xl bg-gradient-to-br from-blue-500/15 to-indigo-500/12 dark:from-blue-500/30 dark:to-indigo-500/22" />
                               <div className="relative z-10 flex flex-col h-full">
                                 <div className="flex-shrink-0 flex items-start justify-between mb-3">
                                   <div className="p-2.5 rounded-xl bg-blue-500/15 flex-shrink-0">
@@ -1886,7 +1886,7 @@ export default function ClientDashboard() {
                         return (
                           <Link href="/growth-plan" className="block h-full">
                             <div className="rounded-2xl p-4 relative cursor-pointer h-full flex flex-col border-l-4 border-l-amber-500 shadow-lg glass-card overflow-hidden">
-                              <div className="gradient-animate rounded-2xl bg-gradient-to-br from-amber-500/15 to-yellow-500/12" />
+                              <div className="gradient-animate rounded-2xl bg-gradient-to-br from-amber-500/15 to-yellow-500/12 dark:from-amber-500/30 dark:to-yellow-500/22" />
                               <div className="relative z-10 flex flex-col h-full">
                                 <div className="flex-shrink-0 flex items-start justify-between mb-3">
                                   <div className="p-2.5 rounded-xl bg-amber-500/15 flex-shrink-0">
@@ -1915,7 +1915,7 @@ export default function ClientDashboard() {
                         return (
                           <Link href="/messages" className="block h-full">
                             <div className="rounded-2xl p-4 relative cursor-pointer h-full flex flex-col border-l-4 border-l-blue-500 shadow-lg glass-card overflow-hidden">
-                              <div className="gradient-animate rounded-2xl bg-gradient-to-br from-blue-500/15 to-indigo-500/12" />
+                              <div className="gradient-animate rounded-2xl bg-gradient-to-br from-blue-500/15 to-indigo-500/12 dark:from-blue-500/30 dark:to-indigo-500/22" />
                               <div className="relative z-10 flex flex-col h-full">
                                 <div className="flex-shrink-0 flex items-start justify-between mb-3">
                                   <div className="p-2.5 rounded-xl bg-blue-500/15 flex-shrink-0">
@@ -1952,7 +1952,7 @@ export default function ClientDashboard() {
                       if (widget.type === "pause") {
                         return (
                           <div className="rounded-2xl p-4 relative cursor-pointer h-full flex flex-col border-l-4 border-l-slate-500 shadow-lg glass-card overflow-hidden">
-                            <div className="gradient-animate rounded-2xl bg-gradient-to-br from-slate-500/15 to-gray-500/12" />
+                            <div className="gradient-animate rounded-2xl bg-gradient-to-br from-slate-500/15 to-gray-500/12 dark:from-slate-500/30 dark:to-gray-500/22" />
                             <div className="relative z-10 flex flex-col h-full">
                               <div className="flex-shrink-0 flex items-start justify-between mb-3">
                                 <div className="p-2.5 rounded-xl bg-slate-500/15 flex-shrink-0">
@@ -2011,7 +2011,7 @@ export default function ClientDashboard() {
                         return (
                           <Link href="/ifs-intro" className="block h-full">
                             <div className="rounded-2xl p-4 relative cursor-pointer h-full flex flex-col border-l-4 border-l-purple-500 shadow-lg glass-card overflow-hidden">
-                              <div className="gradient-animate rounded-2xl bg-gradient-to-br from-purple-500/15 to-pink-500/12" />
+                              <div className="gradient-animate rounded-2xl bg-gradient-to-br from-purple-500/15 to-pink-500/12 dark:from-purple-500/30 dark:to-pink-500/22" />
                               <div className="relative z-10 flex flex-col h-full">
                                 <div className="flex-shrink-0 flex items-start justify-between mb-3">
                                   <div className="p-2.5 rounded-xl bg-purple-500/15 flex-shrink-0">
@@ -2051,7 +2051,7 @@ export default function ClientDashboard() {
                         return (
                           <Link href="/daily-tips" className="block h-full">
                             <div className="rounded-2xl p-4 relative cursor-pointer h-full flex flex-col border-l-4 border-l-amber-500 shadow-lg glass-card overflow-hidden">
-                              <div className="gradient-animate rounded-2xl bg-gradient-to-br from-amber-500/15 to-yellow-500/12" />
+                              <div className="gradient-animate rounded-2xl bg-gradient-to-br from-amber-500/15 to-yellow-500/12 dark:from-amber-500/30 dark:to-yellow-500/22" />
                               <div className="relative z-10 flex flex-col h-full">
                                 <div className="flex-shrink-0 flex items-start justify-between mb-3">
                                   <div className="p-2.5 rounded-xl bg-amber-500/15 flex-shrink-0">
