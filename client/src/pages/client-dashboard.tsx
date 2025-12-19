@@ -1810,12 +1810,15 @@ export default function ClientDashboard() {
 
                       if (widget.type === "progress") {
                         const totalCheckins = weeklyCheckinsQuery.data?.length || 0;
-                        const totalGratitudes = gratitudeQuery.data?.length || 0;
+                        const hasGratitude = (gratitudeQuery.data?.length || 0) > 0;
                         const totalGoals = goalsQuery.data?.filter((g: any) => g.status === "completed")?.length || 0;
+                        const hasAssessments = loveLanguages.length > 0 || (attachmentQuery.data && attachmentQuery.data.length > 0);
                         const milestones = [];
-                        if (totalCheckins >= 4) milestones.push("4 weeks of check-ins");
-                        if (totalGratitudes >= 10) milestones.push("10 gratitude entries");
-                        if (totalGoals >= 1) milestones.push("First goal achieved");
+                        if (totalCheckins >= 1) milestones.push("First check-in done");
+                        if (totalCheckins >= 4) milestones.push("4 weeks streak");
+                        if (hasGratitude) milestones.push("Started gratitude practice");
+                        if (totalGoals >= 1) milestones.push("Goal achieved");
+                        if (hasAssessments) milestones.push("Assessments completed");
                         return (
                           <Link href="/progress-timeline" className="block h-full">
                             <div className="rounded-2xl p-4 relative cursor-pointer h-full flex flex-col border-l-4 border-l-blue-500 shadow-lg glass-card overflow-hidden">
