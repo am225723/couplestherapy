@@ -56,6 +56,7 @@ import {
   Send,
   MessageSquare,
   CheckCircle2,
+  CheckCircle,
   XCircle,
   Sparkles,
   TrendingUp,
@@ -71,6 +72,8 @@ import {
   Edit,
   Save,
   X,
+  Activity,
+  LayoutDashboard,
 } from "lucide-react";
 import {
   Couple,
@@ -1080,20 +1083,24 @@ export default function AdminDashboard() {
                 {/* Overview tab - new default view */}
                 <TabsContent value="overview" className="space-y-6">
                   <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-semibold">Overview</h3>
+                    <h3 className="text-lg font-semibold flex items-center gap-2">
+                      <LayoutDashboard className="h-5 w-5 text-primary" />
+                      Overview
+                    </h3>
                     {selectedCouple && (
                       <ScheduleNotificationDialog couple={selectedCouple} />
                     )}
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <Card>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <Card className="glass-card border-l-4 border-l-primary/60 hover-elevate">
                       <CardHeader className="pb-2">
-                        <CardTitle className="text-sm font-medium">
+                        <CardTitle className="text-sm font-medium flex items-center gap-2">
+                          <CheckCircle className="h-4 w-4 text-primary" />
                           Weekly Check-ins
                         </CardTitle>
                       </CardHeader>
                       <CardContent>
-                        <div className="text-2xl font-bold">
+                        <div className="text-3xl font-bold text-primary">
                           {checkins.length}
                         </div>
                         <p className="text-xs text-muted-foreground">
@@ -1101,14 +1108,15 @@ export default function AdminDashboard() {
                         </p>
                       </CardContent>
                     </Card>
-                    <Card>
+                    <Card className="glass-card border-l-4 border-l-accent/60 hover-elevate">
                       <CardHeader className="pb-2">
-                        <CardTitle className="text-sm font-medium">
+                        <CardTitle className="text-sm font-medium flex items-center gap-2">
+                          <Activity className="h-4 w-4 text-accent" />
                           Activities
                         </CardTitle>
                       </CardHeader>
                       <CardContent>
-                        <div className="text-2xl font-bold">
+                        <div className="text-3xl font-bold text-accent">
                           {activities.length}
                         </div>
                         <p className="text-xs text-muted-foreground">
@@ -1116,14 +1124,15 @@ export default function AdminDashboard() {
                         </p>
                       </CardContent>
                     </Card>
-                    <Card>
+                    <Card className="glass-card border-l-4 border-l-rose-500/60 hover-elevate">
                       <CardHeader className="pb-2">
-                        <CardTitle className="text-sm font-medium">
+                        <CardTitle className="text-sm font-medium flex items-center gap-2">
+                          <Heart className="h-4 w-4 text-rose-500" />
                           Love Languages
                         </CardTitle>
                       </CardHeader>
                       <CardContent>
-                        <div className="text-2xl font-bold">
+                        <div className="text-3xl font-bold text-rose-500">
                           {loveLanguages.length}/2
                         </div>
                         <p className="text-xs text-muted-foreground">
@@ -1132,9 +1141,12 @@ export default function AdminDashboard() {
                       </CardContent>
                     </Card>
                   </div>
-                  <Card>
+                  <Card className="glass-card border-l-4 border-l-primary/40">
                     <CardHeader>
-                      <CardTitle>Therapist Thoughts</CardTitle>
+                      <CardTitle className="flex items-center gap-2">
+                        <Lightbulb className="h-5 w-5 text-primary" />
+                        Therapist Thoughts
+                      </CardTitle>
                       <CardDescription>
                         Manage your to-dos, messages, and notes for this couple
                       </CardDescription>
