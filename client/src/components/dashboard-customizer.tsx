@@ -368,6 +368,82 @@ const SIZE_DIMENSIONS = {
   large: { cols: 3, label: "L", description: "3 columns" },
 };
 
+const WIDGET_GRADIENTS: Record<string, string> = {
+  "date-night": "from-pink-500/15 to-rose-500/10 dark:from-pink-500/22 dark:to-rose-500/15",
+  "checkin-history": "from-blue-500/15 to-indigo-500/10 dark:from-blue-500/22 dark:to-indigo-500/15",
+  "ai-suggestions": "from-amber-500/15 to-orange-500/10 dark:from-amber-500/22 dark:to-orange-500/15",
+  "weekly-checkin": "from-blue-500/15 to-sky-500/10 dark:from-blue-500/22 dark:to-sky-500/15",
+  "love-languages": "from-red-500/15 to-rose-500/10 dark:from-red-500/22 dark:to-rose-500/15",
+  gratitude: "from-yellow-500/15 to-amber-500/10 dark:from-yellow-500/22 dark:to-amber-500/15",
+  "shared-goals": "from-green-500/15 to-emerald-500/10 dark:from-green-500/22 dark:to-emerald-500/15",
+  conversations: "from-purple-500/15 to-violet-500/10 dark:from-purple-500/22 dark:to-violet-500/15",
+  "love-map": "from-pink-500/15 to-fuchsia-500/10 dark:from-pink-500/22 dark:to-fuchsia-500/15",
+  "voice-memos": "from-orange-500/15 to-red-500/10 dark:from-orange-500/22 dark:to-red-500/15",
+  calendar: "from-teal-500/15 to-cyan-500/10 dark:from-teal-500/22 dark:to-cyan-500/15",
+  rituals: "from-indigo-500/15 to-purple-500/10 dark:from-indigo-500/22 dark:to-purple-500/15",
+  "four-horsemen": "from-red-600/15 to-rose-600/10 dark:from-red-600/22 dark:to-rose-600/15",
+  "demon-dialogues": "from-rose-500/15 to-pink-500/10 dark:from-rose-500/22 dark:to-pink-500/15",
+  meditation: "from-cyan-500/15 to-teal-500/10 dark:from-cyan-500/22 dark:to-teal-500/15",
+  intimacy: "from-pink-500/15 to-rose-500/10 dark:from-pink-500/22 dark:to-rose-500/15",
+  values: "from-amber-500/15 to-yellow-500/10 dark:from-amber-500/22 dark:to-yellow-500/15",
+  parenting: "from-emerald-500/15 to-green-500/10 dark:from-emerald-500/22 dark:to-green-500/15",
+  "therapist-thoughts": "from-violet-500/15 to-purple-500/10 dark:from-violet-500/22 dark:to-purple-500/15",
+  compatibility: "from-rose-500/15 to-pink-500/10 dark:from-rose-500/22 dark:to-pink-500/15",
+  "progress-timeline": "from-blue-500/15 to-indigo-500/10 dark:from-blue-500/22 dark:to-indigo-500/15",
+  "growth-plan": "from-amber-500/15 to-orange-500/10 dark:from-amber-500/22 dark:to-orange-500/15",
+  attachment: "from-indigo-500/15 to-blue-500/10 dark:from-indigo-500/22 dark:to-blue-500/15",
+  enneagram: "from-purple-500/15 to-violet-500/10 dark:from-purple-500/22 dark:to-violet-500/15",
+  messages: "from-blue-500/15 to-cyan-500/10 dark:from-blue-500/22 dark:to-cyan-500/15",
+  "echo-empathy": "from-teal-500/15 to-emerald-500/10 dark:from-teal-500/22 dark:to-emerald-500/15",
+  conflict: "from-orange-500/15 to-amber-500/10 dark:from-orange-500/22 dark:to-amber-500/15",
+  pause: "from-red-500/15 to-rose-500/10 dark:from-red-500/22 dark:to-rose-500/15",
+  journal: "from-emerald-500/15 to-teal-500/10 dark:from-emerald-500/22 dark:to-teal-500/15",
+  mood: "from-yellow-500/15 to-orange-500/10 dark:from-yellow-500/22 dark:to-orange-500/15",
+  ifs: "from-purple-500/15 to-indigo-500/10 dark:from-purple-500/22 dark:to-indigo-500/15",
+  chores: "from-green-500/15 to-lime-500/10 dark:from-green-500/22 dark:to-lime-500/15",
+  todos: "from-slate-500/15 to-gray-500/10 dark:from-slate-500/22 dark:to-gray-500/15",
+  financial: "from-green-500/15 to-emerald-500/10 dark:from-green-500/22 dark:to-emerald-500/15",
+  "daily-tips": "from-amber-500/15 to-yellow-500/10 dark:from-amber-500/22 dark:to-yellow-500/15",
+};
+
+const WIDGET_BORDER_COLORS: Record<string, string> = {
+  "date-night": "border-l-pink-500",
+  "checkin-history": "border-l-blue-500",
+  "ai-suggestions": "border-l-amber-500",
+  "weekly-checkin": "border-l-blue-500",
+  "love-languages": "border-l-red-500",
+  gratitude: "border-l-yellow-500",
+  "shared-goals": "border-l-green-500",
+  conversations: "border-l-purple-500",
+  "love-map": "border-l-pink-500",
+  "voice-memos": "border-l-orange-500",
+  calendar: "border-l-teal-500",
+  rituals: "border-l-indigo-500",
+  "four-horsemen": "border-l-red-600",
+  "demon-dialogues": "border-l-rose-500",
+  meditation: "border-l-cyan-500",
+  intimacy: "border-l-pink-500",
+  values: "border-l-amber-500",
+  parenting: "border-l-emerald-500",
+  "therapist-thoughts": "border-l-violet-500",
+  compatibility: "border-l-rose-500",
+  "progress-timeline": "border-l-blue-500",
+  "growth-plan": "border-l-amber-500",
+  attachment: "border-l-indigo-500",
+  enneagram: "border-l-purple-500",
+  messages: "border-l-blue-500",
+  "echo-empathy": "border-l-teal-500",
+  conflict: "border-l-orange-500",
+  pause: "border-l-red-500",
+  journal: "border-l-emerald-500",
+  mood: "border-l-yellow-500",
+  ifs: "border-l-purple-500",
+  chores: "border-l-green-500",
+  todos: "border-l-slate-500",
+  financial: "border-l-green-500",
+  "daily-tips": "border-l-amber-500",
+};
+
 function WidgetPreviewCard({
   widgetId,
   size,
@@ -392,10 +468,13 @@ function WidgetPreviewCard({
   }[size];
 
   const heightClass = {
-    small: "h-24",
-    medium: "h-28",
-    large: "h-32",
+    small: "h-28",
+    medium: "h-32",
+    large: "h-36",
   }[size];
+
+  const gradientClass = WIDGET_GRADIENTS[widgetId] || "from-primary/15 to-primary/10";
+  const borderClass = WIDGET_BORDER_COLORS[widgetId] || "border-l-primary";
 
   return (
     <div
@@ -405,16 +484,17 @@ function WidgetPreviewCard({
         !enabled && "opacity-40",
       )}
     >
-      <Card
+      <div
         className={cn(
-          "h-full relative group",
+          "glass-card h-full relative group overflow-hidden rounded-xl border-l-4",
           heightClass,
-          enabled
-            ? "border-border"
-            : "border-dashed border-muted-foreground/30",
+          borderClass,
+          enabled ? "" : "border-dashed opacity-60",
         )}
       >
-        <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+        <div className={cn("gradient-animate bg-gradient-to-br", gradientClass)} />
+        
+        <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-20">
           <Button
             size="icon"
             variant={size === "small" ? "default" : "outline"}
@@ -444,33 +524,31 @@ function WidgetPreviewCard({
           </Button>
         </div>
 
-        <CardHeader className="p-3 pb-2">
-          <div className="flex items-center gap-2">
+        <div className="relative z-10 p-3">
+          <div className="flex items-start gap-3">
             <Checkbox
               checked={enabled}
               onCheckedChange={onToggle}
-              className="h-4 w-4"
+              className="h-4 w-4 mt-1"
               data-testid={`checkbox-enable-${widgetId}`}
             />
-            <div className={cn("p-1.5 rounded-md", config.bgColor)}>
-              <Icon className={cn("w-4 h-4", config.color)} />
+            <div className={cn("p-2.5 rounded-xl", config.bgColor)}>
+              <Icon className={cn("w-5 h-5", config.color)} />
             </div>
             <div className="flex-1 min-w-0">
-              <CardTitle className="text-sm truncate">{config.label}</CardTitle>
+              <h3 className="font-bold text-sm truncate">{config.label}</h3>
+              <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">
+                {config.description}
+              </p>
             </div>
           </div>
-        </CardHeader>
-        <CardContent className="p-3 pt-0">
-          <p className="text-xs text-muted-foreground line-clamp-2">
-            {config.description}
-          </p>
-          <div className="mt-2 flex items-center justify-between">
-            <Badge variant="outline" className="text-[10px] px-1.5 py-0">
+          <div className="mt-3 flex items-center justify-between">
+            <Badge variant="outline" className="text-[10px] px-1.5 py-0.5 bg-background/60">
               {SIZE_DIMENSIONS[size].description}
             </Badge>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }

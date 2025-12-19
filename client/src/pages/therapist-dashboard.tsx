@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useRoute, Link } from "wouter";
+import { useRoute, Link, useLocation } from "wouter";
 import {
   Card,
   CardContent,
@@ -49,6 +49,11 @@ import {
   BarChart3,
   Calendar,
   Heart,
+  Send,
+  Sparkles,
+  Settings,
+  PenLine,
+  Eye,
 } from "lucide-react";
 import { SessionNotesPanel } from "@/components/session-notes-panel";
 
@@ -264,17 +269,20 @@ function CouplesList({
             </div>
           ) : (
             filteredCouples.map((couple) => (
-              <Link key={couple.id} href={`/admin/couple/${couple.id}`}>
-                <div
-                  className={`p-3 rounded-xl cursor-pointer transition-all ${
-                    selectedCouple?.id === couple.id
-                      ? "bg-primary/10 ring-1 ring-primary/50 shadow-sm"
-                      : "hover:bg-muted/50 hover-elevate"
-                  }`}
-                  onClick={onSelectCouple}
-                  data-testid={`card-couple-${couple.id}`}
-                >
-                  <div className="flex items-center gap-3">
+              <div
+                key={couple.id}
+                className={`p-3 rounded-xl transition-all ${
+                  selectedCouple?.id === couple.id
+                    ? "bg-primary/10 ring-1 ring-primary/50 shadow-sm"
+                    : "hover:bg-muted/50"
+                }`}
+                data-testid={`card-couple-${couple.id}`}
+              >
+                <Link href={`/admin/couple/${couple.id}`}>
+                  <div
+                    className="flex items-center gap-3 cursor-pointer"
+                    onClick={onSelectCouple}
+                  >
                     <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center flex-shrink-0">
                       <Users className="w-4 h-4 text-primary" />
                     </div>
@@ -287,8 +295,42 @@ function CouplesList({
                       </p>
                     </div>
                   </div>
+                </Link>
+                <div className="flex items-center gap-1 mt-2 pl-13">
+                  <Link href={`/admin/couple/${couple.id}?tab=notes`}>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-8 px-2 text-xs rounded-lg"
+                      data-testid={`button-quick-notes-${couple.id}`}
+                    >
+                      <PenLine className="w-3.5 h-3.5 mr-1" />
+                      Note
+                    </Button>
+                  </Link>
+                  <Link href={`/admin/couple/${couple.id}?tab=thoughts`}>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-8 px-2 text-xs rounded-lg"
+                      data-testid={`button-quick-message-${couple.id}`}
+                    >
+                      <Send className="w-3.5 h-3.5 mr-1" />
+                      Message
+                    </Button>
+                  </Link>
+                  <Link href={`/admin/couple/${couple.id}/calendar`}>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-8 px-2 text-xs rounded-lg"
+                      data-testid={`button-quick-calendar-${couple.id}`}
+                    >
+                      <Calendar className="w-3.5 h-3.5" />
+                    </Button>
+                  </Link>
                 </div>
-              </Link>
+              </div>
             ))
           )}
         </div>
@@ -299,6 +341,17 @@ function CouplesList({
 
 function CoupleDetails({ couple, therapistId }: { couple: CoupleData; therapistId: string }) {
   const { toast } = useToast();
+  const [location] = useLocation();
+  
+  const urlParams = new URLSearchParams(window.location.search);
+  const tabFromUrl = urlParams.get("tab") || "overview";
+  const [activeTab, setActiveTab] = useState(tabFromUrl);
+  
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const tab = params.get("tab") || "overview";
+    setActiveTab(tab);
+  }, [location]);
 
   // Fetch therapist thoughts
   const thoughtsQuery = useQuery({
@@ -315,16 +368,61 @@ function CoupleDetails({ couple, therapistId }: { couple: CoupleData; therapistI
 
   return (
     <div className="space-y-6">
-      {/* Couple Header */}
-      <div className="space-y-1">
-        <h1 className="text-2xl font-semibold tracking-tight">
-          {couple.partner1?.full_name} & {couple.partner2?.full_name}
-        </h1>
-        <p className="text-sm text-muted-foreground">Manage their progress and activities</p>
+      {/* Couple Header with Quick Actions */}
+      <div className="space-y-4">
+        <div className="space-y-1">
+          <h1 className="text-2xl font-semibold tracking-tight">
+            {couple.partner1?.full_name} & {couple.partner2?.full_name}
+          </h1>
+          <p className="text-sm text-muted-foreground">Manage their progress and activities</p>
+        </div>
+
+        {/* Quick Actions Row - Touch Friendly */}
+        <div className="flex flex-wrap gap-2">
+          <Link href={`/admin/couple/${couple.id}/customization`}>
+            <Button
+              variant="outline"
+              className="h-11 px-4 rounded-xl gap-2 text-sm"
+              data-testid="button-customize-dashboard"
+            >
+              <Settings className="w-4 h-4" />
+              Customize
+            </Button>
+          </Link>
+          <Link href={`/admin/couple/${couple.id}/analytics`}>
+            <Button
+              variant="outline"
+              className="h-11 px-4 rounded-xl gap-2 text-sm"
+              data-testid="button-view-insights"
+            >
+              <Eye className="w-4 h-4" />
+              Insights
+            </Button>
+          </Link>
+          <Link href={`/admin/couple/${couple.id}/session-prep`}>
+            <Button
+              variant="outline"
+              className="h-11 px-4 rounded-xl gap-2 text-sm"
+              data-testid="button-session-prep"
+            >
+              <Sparkles className="w-4 h-4" />
+              AI Prep
+            </Button>
+          </Link>
+          <Button
+            variant="default"
+            className="h-11 px-4 rounded-xl gap-2 text-sm"
+            onClick={() => setActiveTab("notes")}
+            data-testid="button-add-note-quick"
+          >
+            <Plus className="w-4 h-4" />
+            Add Note
+          </Button>
+        </div>
       </div>
 
       {/* Tabs */}
-      <Tabs defaultValue="overview" className="w-full">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 h-10 p-1 rounded-xl bg-muted/50">
           <TabsTrigger value="overview" className="text-xs md:text-sm rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm">
             <BarChart3 className="h-3.5 w-3.5 mr-1.5 hidden sm:inline" />
