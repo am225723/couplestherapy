@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
+import { authenticatedFetch } from "@/lib/authenticated-fetch";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -90,7 +91,7 @@ export function SessionNotesPanel({ coupleId, therapistId }: SessionNotesPanelPr
   const notesQuery = useQuery({
     queryKey: ["/api/session-notes/couple", coupleId],
     queryFn: async () => {
-      const res = await fetch(`/api/session-notes/couple/${coupleId}`);
+      const res = await authenticatedFetch(`/api/session-notes/couple/${coupleId}`);
       if (!res.ok) throw new Error("Failed to fetch notes");
       return res.json() as Promise<SessionNote[]>;
     },
