@@ -1236,7 +1236,9 @@ export default function ClientDashboard() {
                       }
 
                       if (widget.type === "checkin-history") {
-                        const hasData = weeklyCheckinsQuery.isSuccess && weeklyCheckinsQuery.data && weeklyCheckinsQuery.data.length > 0;
+                        const checkins = weeklyCheckinsQuery.data || [];
+                        const hasData = checkins.length > 0;
+                        const totalCount = checkins.length;
                         const checkinCard = (
                           <div className="rounded-2xl p-4 relative cursor-pointer h-full flex flex-col border-l-4 border-l-cyan-500 shadow-lg glass-card overflow-hidden">
                             <div className="gradient-animate rounded-2xl bg-gradient-to-br from-cyan-500/8 to-teal-500/6" />
@@ -1245,6 +1247,9 @@ export default function ClientDashboard() {
                                 <div className="p-2.5 rounded-xl bg-cyan-500/15 flex-shrink-0">
                                   <TrendingUp className="h-6 w-6 text-cyan-500" />
                                 </div>
+                                {totalCount > 0 && (
+                                  <Badge variant="secondary" className="text-xs">{totalCount} check-ins</Badge>
+                                )}
                               </div>
                               <h3 className="font-bold text-base text-foreground leading-tight mb-2">
                                 Check-In History
@@ -1256,19 +1261,19 @@ export default function ClientDashboard() {
                                     <div className="h-4 bg-muted rounded w-1/2" />
                                   </div>
                                 ) : hasData ? (
-                                  weeklyCheckinsQuery.data.slice(0, isLargeHeight ? 4 : 2).map((checkin: any, idx: number) => (
+                                  checkins.slice(0, isLargeHeight ? 4 : 2).map((checkin: any, idx: number) => (
                                     <div key={checkin.id || idx} className="p-1.5 rounded bg-background/60">
                                       <div className="flex items-center justify-between">
-                                        <span className="text-sm font-medium">Week {checkin.week_number}, {checkin.year}</span>
-                                        <span className="text-sm text-muted-foreground">{checkin.q_connectedness}/10</span>
+                                        <span className="text-sm font-medium">Week {checkin.week_number || idx + 1}</span>
+                                        <span className="text-sm text-muted-foreground">{checkin.q_connectedness || checkin.connectedness || '-'}/10</span>
                                       </div>
-                                      {isLargeHeight && checkin.q_appreciation && (
-                                        <p className="text-sm text-muted-foreground mt-0.5 line-clamp-1">{checkin.q_appreciation}</p>
+                                      {isLargeHeight && (checkin.q_appreciation || checkin.appreciation) && (
+                                        <p className="text-sm text-muted-foreground mt-0.5 line-clamp-1">{checkin.q_appreciation || checkin.appreciation}</p>
                                       )}
                                     </div>
                                   ))
                                 ) : (
-                                  <p className="text-sm text-muted-foreground text-center py-2">Complete your first check-in</p>
+                                  <p className="text-sm text-muted-foreground text-center py-2">No check-ins yet</p>
                                 )}
                               </div>
                             </div>
@@ -1466,8 +1471,15 @@ export default function ClientDashboard() {
                       if (widget.type === "weekly-checkin") {
                         const checkins = weeklyCheckinsQuery.data || [];
                         const lastCheckin = checkins[0];
-                        const daysSince = lastCheckin ? Math.floor((Date.now() - new Date(lastCheckin.created_at).getTime()) / (1000 * 60 * 60 * 24)) : null;
                         const totalCheckins = checkins.length;
+                        const now = new Date();
+                        const currentDay = now.getDay();
+                        const daysUntilSunday = currentDay === 0 ? 0 : 7 - currentDay;
+                        const lastCheckinDate = lastCheckin ? new Date(lastCheckin.created_at) : null;
+                        const startOfWeek = new Date(now);
+                        startOfWeek.setDate(now.getDate() - currentDay);
+                        startOfWeek.setHours(0, 0, 0, 0);
+                        const completedThisWeek = lastCheckinDate && lastCheckinDate >= startOfWeek;
                         return (
                           <Link href="/weekly-checkin" className="block h-full">
                             <div className="rounded-2xl p-4 relative cursor-pointer h-full flex flex-col border-l-4 border-l-blue-500 shadow-lg glass-card overflow-hidden">
@@ -1483,14 +1495,21 @@ export default function ClientDashboard() {
                                 </div>
                                 <h3 className="font-bold text-base text-foreground leading-tight mb-2">Weekly Check-In</h3>
                                 <div className="flex-1 text-sm text-muted-foreground">
-                                  {daysSince !== null ? (
+                                  {completedThisWeek ? (
                                     <div className="space-y-1">
-                                      <p>{daysSince === 0 ? "Completed today" : daysSince === 1 ? "1 day ago" : `${daysSince} days ago`}</p>
-                                      {daysSince <= 7 && <p className="text-xs text-emerald-500">On track this week</p>}
-                                      {daysSince > 7 && <p className="text-xs text-amber-500">Time for a new check-in</p>}
+                                      <p className="text-emerald-500 font-medium">Completed this week</p>
+                                      <p className="text-xs">Great job staying connected!</p>
+                                    </div>
+                                  ) : totalCheckins > 0 ? (
+                                    <div className="space-y-1">
+                                      <p className="text-amber-500 font-medium">Due in {daysUntilSunday} day{daysUntilSunday !== 1 ? 's' : ''}</p>
+                                      <p className="text-xs">{daysUntilSunday === 0 ? "Today is Sunday!" : "Complete before Sunday"}</p>
                                     </div>
                                   ) : (
-                                    <p className="text-primary font-medium">Start your first check-in</p>
+                                    <div className="space-y-1">
+                                      <p className="text-primary font-medium">Start your first check-in</p>
+                                      <p className="text-xs">Due every Sunday</p>
+                                    </div>
                                   )}
                                 </div>
                               </div>
@@ -1635,10 +1654,13 @@ export default function ClientDashboard() {
                                   {nextEvent ? (
                                     <div className="space-y-1">
                                       <p className="font-medium text-foreground">{nextEvent.title}</p>
-                                      <p className="text-xs">{formatEventDate(nextEvent.start_at)}</p>
+                                      <p className="text-xs">{formatEventDate(nextEvent.start_at)} at {new Date(nextEvent.start_at).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}</p>
+                                      {upcomingEvents.length > 1 && (
+                                        <p className="text-xs text-primary">+{upcomingEvents.length - 1} more event{upcomingEvents.length > 2 ? 's' : ''}</p>
+                                      )}
                                     </div>
                                   ) : (
-                                    <p>Add your first shared event</p>
+                                    <p className="text-primary font-medium">Add your first shared event</p>
                                   )}
                                 </div>
                               </div>
@@ -1748,6 +1770,12 @@ export default function ClientDashboard() {
                       }
 
                       if (widget.type === "compatibility") {
+                        const hasAssessments = loveLanguages.length > 0 || (attachmentQuery.data && attachmentQuery.data.length > 0);
+                        const insights = [
+                          "Communication patterns",
+                          "Emotional connection style",
+                          "Conflict resolution approach",
+                        ];
                         return (
                           <Link href="/couple-compatibility" className="block h-full">
                             <div className="rounded-2xl p-4 relative cursor-pointer h-full flex flex-col border-l-4 border-l-purple-500 shadow-lg glass-card overflow-hidden">
@@ -1759,7 +1787,21 @@ export default function ClientDashboard() {
                                   </div>
                                 </div>
                                 <h3 className="font-bold text-base text-foreground leading-tight mb-2">Compatibility</h3>
-                                <p className="flex-1 text-sm text-muted-foreground">View compatibility insights</p>
+                                <div className="flex-1 text-sm text-muted-foreground overflow-hidden">
+                                  {hasAssessments ? (
+                                    <div className="space-y-1">
+                                      {insights.slice(0, 2).map((insight, idx) => (
+                                        <div key={idx} className="flex items-center gap-2">
+                                          <div className="w-1.5 h-1.5 rounded-full bg-purple-500 flex-shrink-0" />
+                                          <span className="truncate text-xs">{insight}</span>
+                                        </div>
+                                      ))}
+                                      <p className="text-xs text-primary mt-1">View full insights</p>
+                                    </div>
+                                  ) : (
+                                    <p className="text-primary font-medium">Complete assessments for insights</p>
+                                  )}
+                                </div>
                               </div>
                             </div>
                           </Link>
@@ -1767,6 +1809,13 @@ export default function ClientDashboard() {
                       }
 
                       if (widget.type === "progress") {
+                        const totalCheckins = weeklyCheckinsQuery.data?.length || 0;
+                        const totalGratitudes = gratitudeQuery.data?.length || 0;
+                        const totalGoals = goalsQuery.data?.filter((g: any) => g.status === "completed")?.length || 0;
+                        const milestones = [];
+                        if (totalCheckins >= 4) milestones.push("4 weeks of check-ins");
+                        if (totalGratitudes >= 10) milestones.push("10 gratitude entries");
+                        if (totalGoals >= 1) milestones.push("First goal achieved");
                         return (
                           <Link href="/progress-timeline" className="block h-full">
                             <div className="rounded-2xl p-4 relative cursor-pointer h-full flex flex-col border-l-4 border-l-blue-500 shadow-lg glass-card overflow-hidden">
@@ -1776,9 +1825,29 @@ export default function ClientDashboard() {
                                   <div className="p-2.5 rounded-xl bg-blue-500/15 flex-shrink-0">
                                     <Clock className="h-6 w-6 text-blue-500" />
                                   </div>
+                                  {milestones.length > 0 && (
+                                    <Badge variant="secondary" className="text-xs">{milestones.length} earned</Badge>
+                                  )}
                                 </div>
                                 <h3 className="font-bold text-base text-foreground leading-tight mb-2">Progress</h3>
-                                <p className="flex-1 text-sm text-muted-foreground">Your relationship journey</p>
+                                <div className="flex-1 text-sm text-muted-foreground overflow-hidden">
+                                  {milestones.length > 0 ? (
+                                    <div className="space-y-1">
+                                      {milestones.slice(0, 2).map((milestone, idx) => (
+                                        <div key={idx} className="flex items-center gap-2">
+                                          <div className="w-1.5 h-1.5 rounded-full bg-blue-500 flex-shrink-0" />
+                                          <span className="truncate text-xs">{milestone}</span>
+                                        </div>
+                                      ))}
+                                      <p className="text-xs text-primary mt-1">View timeline</p>
+                                    </div>
+                                  ) : (
+                                    <div className="space-y-1">
+                                      <p>Keep going to earn milestones!</p>
+                                      <p className="text-xs text-primary">View your journey</p>
+                                    </div>
+                                  )}
+                                </div>
                               </div>
                             </div>
                           </Link>
@@ -1965,11 +2034,16 @@ export default function ClientDashboard() {
                                   <div className="p-2.5 rounded-xl bg-amber-500/15 flex-shrink-0">
                                     <Lightbulb className="h-6 w-6 text-amber-500" />
                                   </div>
+                                  <Badge variant="secondary" className="text-xs">Today</Badge>
                                 </div>
                                 <h3 className="font-bold text-base text-foreground leading-tight mb-2">Daily Tips</h3>
-                                <p className="flex-1 text-sm text-muted-foreground line-clamp-2">
-                                  {cleanTipText ? cleanTipText.substring(0, 60) + "..." : "Relationship tips for today"}
-                                </p>
+                                <div className="flex-1 text-sm text-muted-foreground overflow-hidden">
+                                  {cleanTipText ? (
+                                    <p className="line-clamp-4">{cleanTipText}</p>
+                                  ) : (
+                                    <p>Relationship tips for today</p>
+                                  )}
+                                </div>
                               </div>
                             </div>
                           </Link>
