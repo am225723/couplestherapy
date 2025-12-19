@@ -38,6 +38,7 @@ export const couplesProfiles = pgTable("Couples_profiles", {
   full_name: text("full_name"),
   role: text("role").notNull(), // 'therapist' or 'client'
   couple_id: uuid("couple_id"),
+  avatar_url: text("avatar_url"),
   expo_push_token: text("expo_push_token"), // Mobile (Expo) push notification token
   fcm_token: text("fcm_token"), // Web (Firebase Cloud Messaging) push notification token
 });
