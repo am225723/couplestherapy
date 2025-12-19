@@ -53,6 +53,7 @@ import {
   ArrowRight,
   Calendar,
   TrendingUp,
+  TrendingDown,
   BookOpen,
   Activity,
   Compass,
@@ -445,7 +446,18 @@ export default function ClientDashboard() {
   });
 
   const weeklyCheckinsQuery = useQuery<any[]>({
-    queryKey: ["/api/weekly-checkin/history", profile?.couple_id],
+    queryKey: ["weekly-checkins", profile?.couple_id],
+    queryFn: async () => {
+      if (!profile?.couple_id) return [];
+      const { data, error } = await supabase
+        .from("Couples_weekly_checkins")
+        .select("*")
+        .eq("couple_id", profile.couple_id)
+        .order("year", { ascending: false })
+        .order("week_number", { ascending: false });
+      if (error) throw error;
+      return data || [];
+    },
     enabled: !!profile?.couple_id,
     staleTime: 1000 * 60 * 15,
   });
@@ -1239,6 +1251,10 @@ export default function ClientDashboard() {
                         const checkins = weeklyCheckinsQuery.data || [];
                         const hasData = checkins.length > 0;
                         const totalCount = checkins.length;
+                        const latestScore = checkins[0]?.q_connectedness || checkins[0]?.connectedness;
+                        const previousScore = checkins[1]?.q_connectedness || checkins[1]?.connectedness;
+                        const trend = latestScore && previousScore ? (latestScore > previousScore ? "up" : latestScore < previousScore ? "down" : "same") : null;
+                        const avgScore = hasData ? Math.round(checkins.reduce((sum: number, c: any) => sum + (c.q_connectedness || c.connectedness || 0), 0) / checkins.length * 10) / 10 : null;
                         const checkinCard = (
                           <div className="rounded-2xl p-4 relative cursor-pointer h-full flex flex-col border-l-4 border-l-cyan-500 shadow-lg glass-card overflow-hidden">
                             <div className="gradient-animate rounded-2xl bg-gradient-to-br from-cyan-500/8 to-teal-500/6" />
@@ -1261,17 +1277,21 @@ export default function ClientDashboard() {
                                     <div className="h-4 bg-muted rounded w-1/2" />
                                   </div>
                                 ) : hasData ? (
-                                  checkins.slice(0, isLargeHeight ? 4 : 2).map((checkin: any, idx: number) => (
-                                    <div key={checkin.id || idx} className="p-1.5 rounded bg-background/60">
-                                      <div className="flex items-center justify-between">
-                                        <span className="text-sm font-medium">Week {checkin.week_number || idx + 1}</span>
-                                        <span className="text-sm text-muted-foreground">{checkin.q_connectedness || checkin.connectedness || '-'}/10</span>
-                                      </div>
-                                      {isLargeHeight && (checkin.q_appreciation || checkin.appreciation) && (
-                                        <p className="text-sm text-muted-foreground mt-0.5 line-clamp-1">{checkin.q_appreciation || checkin.appreciation}</p>
-                                      )}
+                                  <div className="space-y-2">
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-sm text-muted-foreground">Avg connection:</span>
+                                      <span className="text-sm font-medium">{avgScore}/10</span>
+                                      {trend === "up" && <TrendingUp className="h-3 w-3 text-emerald-500" />}
+                                      {trend === "down" && <TrendingDown className="h-3 w-3 text-amber-500" />}
                                     </div>
-                                  ))
+                                    {isLargeHeight && checkins.slice(0, 3).map((checkin: any, idx: number) => (
+                                      <div key={checkin.id || idx} className="flex items-center justify-between text-xs text-muted-foreground">
+                                        <span>Week {checkin.week_number}</span>
+                                        <span className="font-medium">{checkin.q_connectedness || checkin.connectedness}/10</span>
+                                      </div>
+                                    ))}
+                                    <p className="text-xs text-primary">View full history</p>
+                                  </div>
                                 ) : (
                                   <p className="text-sm text-muted-foreground text-center py-2">No check-ins yet</p>
                                 )}
