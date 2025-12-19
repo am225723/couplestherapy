@@ -29,7 +29,7 @@ sessionNotesRouter.get("/couple/:coupleId", async (req: Request, res: Response) 
 
     const { data: couple } = await supabaseAdmin
       .from("Couples_couples")
-      .select("id, therapist_id")
+      .select("id")
       .eq("id", coupleId)
       .single();
 
@@ -37,10 +37,7 @@ sessionNotesRouter.get("/couple/:coupleId", async (req: Request, res: Response) 
       return res.status(404).json({ error: "Couple not found" });
     }
 
-    if (couple.therapist_id !== authResult.therapistId) {
-      return res.status(403).json({ error: "You do not have access to this couple" });
-    }
-
+    // Cross-therapist access: all therapists can view session notes for any couple
     const { data, error } = await supabaseAdmin
       .from("Couples_session_notes")
       .select("*")
@@ -65,9 +62,10 @@ sessionNotesRouter.get("/:id", async (req: Request, res: Response) => {
 
     const { id } = req.params;
 
+    // Cross-therapist access: all therapists can view any session note
     const { data, error } = await supabaseAdmin
       .from("Couples_session_notes")
-      .select("*, couple:Couples_couples!couple_id(therapist_id)")
+      .select("*")
       .eq("id", id)
       .single();
 
@@ -77,13 +75,7 @@ sessionNotesRouter.get("/:id", async (req: Request, res: Response) => {
       return res.status(404).json({ error: "Session note not found" });
     }
 
-    const coupleTherapistId = (data.couple as any)?.therapist_id;
-    if (coupleTherapistId !== authResult.therapistId) {
-      return res.status(403).json({ error: "You do not have access to this session note" });
-    }
-
-    const { couple, ...noteData } = data;
-    res.json(noteData);
+    res.json(data);
   } catch (error) {
     console.error("Error fetching session note:", error);
     res.status(500).json({ error: "Failed to fetch session note" });
@@ -105,7 +97,7 @@ sessionNotesRouter.post("/", async (req: Request, res: Response) => {
 
     const { data: couple } = await supabaseAdmin
       .from("Couples_couples")
-      .select("id, therapist_id")
+      .select("id")
       .eq("id", couple_id)
       .single();
 
@@ -113,10 +105,7 @@ sessionNotesRouter.post("/", async (req: Request, res: Response) => {
       return res.status(404).json({ error: "Couple not found" });
     }
 
-    if (couple.therapist_id !== authResult.therapistId) {
-      return res.status(403).json({ error: "You do not have access to this couple" });
-    }
-
+    // Cross-therapist access: all therapists can create session notes for any couple
     const validationResult = sessionNoteSchema.safeParse(req.body);
     if (!validationResult.success) {
       return res.status(400).json({ error: validationResult.error.errors[0]?.message || "Validation failed" });
