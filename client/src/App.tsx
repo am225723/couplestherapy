@@ -398,13 +398,9 @@ function AuthenticatedApp() {
       );
       const isOnRootRoute = location === "/";
 
-      // If therapist is on /admin (without /couple), redirect to /admin/couple
-      if (isTherapist && location === "/admin") {
-        setLocation("/admin/couple");
-      }
-      // If therapist is on a client route, redirect to /admin/couple
-      else if (isTherapist && isOnClientRoute) {
-        setLocation("/admin/couple");
+      // If therapist is on a client route, redirect to /admin
+      if (isTherapist && isOnClientRoute) {
+        setLocation("/admin");
       }
       // If client is on a therapist route, redirect based on couple setup status
       else if (!isTherapist && isOnTherapistRoute) {
@@ -413,7 +409,7 @@ function AuthenticatedApp() {
       // If on root route, redirect based on role
       else if (isOnRootRoute) {
         if (isTherapist) {
-          setLocation("/admin/couple");
+          setLocation("/admin");
         } else {
           setLocation(profile.couple_id ? "/dashboard" : "/couple-setup");
         }
