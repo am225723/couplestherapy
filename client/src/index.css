@@ -320,7 +320,7 @@
     background-size: 300% 300%;
     animation: gradientShift 12s ease infinite;
     pointer-events: none;
-    z-index: -1;
+    z-index: 0;
     transition: opacity 0.3s ease;
     opacity: 0.8;
   }
