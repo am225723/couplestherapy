@@ -1895,6 +1895,9 @@ export default function AdminDashboard() {
                                 <SelectValue placeholder="Select activity" />
                               </SelectTrigger>
                               <SelectContent>
+                                <SelectItem value="reflection">
+                                  Reflection Question
+                                </SelectItem>
                                 <SelectItem value="weekly-checkin">
                                   Weekly Check-In
                                 </SelectItem>

@@ -585,6 +585,22 @@ export default function ClientDashboard() {
     staleTime: 1000 * 60 * 10,
   });
 
+  const therapistPromptsQuery = useQuery<any[]>({
+    queryKey: ["/api/therapist-prompts/couple", profile?.couple_id],
+    queryFn: async () => {
+      if (!profile?.couple_id) return [];
+      const response = await fetch(`/api/therapist-prompts/couple/${profile.couple_id}`);
+      if (!response.ok) return [];
+      return response.json();
+    },
+    enabled: !!profile?.couple_id,
+    staleTime: 1000 * 60 * 5,
+  });
+
+  const reflectionPrompts = therapistPromptsQuery.data?.filter(
+    (p: any) => p.tool_name === "reflection"
+  ) || [];
+
   const deleteLoveLanguageMutation = useMutation({
     mutationFn: async (id: string) => {
       return await apiRequest("DELETE", `/api/love-languages/user/${id}`);
@@ -799,6 +815,40 @@ export default function ClientDashboard() {
             <p className="text-sm text-foreground/90 font-medium">Growing together, one connection at a time</p>
           </div>
         </div>
+
+        {reflectionPrompts.length > 0 && (
+          <section className="mb-4" data-testid="section-reflection-prompts">
+            <Card className="glass-card border-l-4 border-l-purple-500/60 overflow-hidden">
+              <div className="gradient-animate rounded-xl bg-gradient-to-br from-purple-500/15 to-pink-500/10 dark:from-purple-500/25 dark:to-pink-500/15" />
+              <CardHeader className="relative z-10 pb-2">
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <div className="p-2 rounded-lg bg-purple-500/15">
+                    <Lightbulb className="h-5 w-5 text-purple-500" />
+                  </div>
+                  Reflection Questions from Your Therapist
+                </CardTitle>
+                <CardDescription>
+                  Take a moment to reflect on these questions together
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="relative z-10 space-y-3">
+                {reflectionPrompts.map((prompt: any) => (
+                  <div 
+                    key={prompt.id} 
+                    className="p-4 rounded-xl bg-background/60 backdrop-blur-sm border border-border/30"
+                    data-testid={`reflection-prompt-${prompt.id}`}
+                  >
+                    <h4 className="font-semibold text-sm mb-1">{prompt.title}</h4>
+                    {prompt.description && (
+                      <p className="text-xs text-muted-foreground mb-2">{prompt.description}</p>
+                    )}
+                    <p className="text-sm text-foreground/90 italic">"{prompt.suggested_action}"</p>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          </section>
+        )}
 
         <section>
 
