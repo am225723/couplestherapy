@@ -810,7 +810,7 @@ export default function ClientDashboard() {
                   {...provided.droppableProps}
                   className="grid gap-3"
                   style={{ 
-                    gridTemplateColumns: "repeat(3, 1fr)",
+                    gridTemplateColumns: "repeat(2, 1fr)",
                     gridAutoRows: "200px",
                     gridAutoFlow: "dense"
                   }}
