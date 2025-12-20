@@ -783,7 +783,14 @@ export function DashboardCustomizer({
             </CardHeader>
             <CardContent>
               <div className="border rounded-lg p-4 bg-muted/30">
-                <div className="grid grid-cols-6 gap-3">
+                <div 
+                  className="grid gap-3"
+                  style={{ 
+                    gridTemplateColumns: "repeat(auto-fit, minmax(min(160px, 100%), 1fr))",
+                    gridAutoRows: "200px",
+                    gridAutoFlow: "dense"
+                  }}
+                >
                   {enabledWidgets.map((widgetId) => (
                     <WidgetPreviewCard
                       key={widgetId}
