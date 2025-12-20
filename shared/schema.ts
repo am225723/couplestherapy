@@ -1083,12 +1083,13 @@ export const DASHBOARD_WIDGETS = [
   "rituals",
 ] as const;
 
-// 29. THERAPIST PROMPTS - Custom prompts/suggestions therapists can set for couples
+// 29. THERAPIST PROMPTS - Custom prompts/suggestions therapists can set for couples or individuals
 export const couplesTherapistPrompts = pgTable("Couples_therapist_prompts", {
   id: uuid("id").primaryKey(),
   couple_id: uuid("couple_id").notNull(),
   therapist_id: uuid("therapist_id").notNull(),
-  tool_name: text("tool_name").notNull(), // e.g., "weekly-checkin", "gratitude", "shared-goals"
+  target_user_id: uuid("target_user_id"), // Optional: if set, prompt is only for this specific partner
+  tool_name: text("tool_name").notNull(), // e.g., "weekly-checkin", "gratitude", "shared-goals", "reflection"
   title: text("title").notNull(), // Display title
   description: text("description"), // Description of the activity
   suggested_action: text("suggested_action").notNull(), // The prompt/suggestion for the couple
@@ -1107,6 +1108,28 @@ export const insertTherapistPromptSchema = createInsertSchema(
 });
 export type InsertTherapistPrompt = z.infer<typeof insertTherapistPromptSchema>;
 export type TherapistPrompt = typeof couplesTherapistPrompts.$inferSelect;
+
+// 29b. REFLECTION RESPONSES - Couple responses to therapist-initiated reflection prompts
+export const couplesReflectionResponses = pgTable("Couples_reflection_responses", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  prompt_id: uuid("prompt_id").notNull(), // FK to Couples_therapist_prompts
+  couple_id: uuid("couple_id").notNull(),
+  responder_id: uuid("responder_id").notNull(), // FK to Couples_profiles (which partner responded)
+  response_text: text("response_text").notNull(),
+  is_shared_with_partner: boolean("is_shared_with_partner").default(false),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow(),
+});
+
+export const insertReflectionResponseSchema = createInsertSchema(
+  couplesReflectionResponses,
+).omit({
+  id: true,
+  created_at: true,
+  updated_at: true,
+});
+export type InsertReflectionResponse = z.infer<typeof insertReflectionResponseSchema>;
+export type ReflectionResponse = typeof couplesReflectionResponses.$inferSelect;
 
 // ============ MODULE SUBSCRIPTIONS ============
 

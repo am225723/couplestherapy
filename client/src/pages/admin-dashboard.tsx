@@ -206,6 +206,7 @@ export default function AdminDashboard() {
   const [editingPromptId, setEditingPromptId] = useState<string | null>(null);
   const [newPrompt, setNewPrompt] = useState({
     tool_name: "",
+    target_user_id: "" as string | null,
     title: "",
     description: "",
     suggested_action: "",
@@ -243,6 +244,7 @@ export default function AdminDashboard() {
     mutationFn: async (promptData: {
       couple_id: string;
       therapist_id: string;
+      target_user_id?: string | null;
       tool_name: string;
       title: string;
       description: string;
@@ -260,6 +262,7 @@ export default function AdminDashboard() {
       });
       setNewPrompt({
         tool_name: "",
+        target_user_id: null,
         title: "",
         description: "",
         suggested_action: "",
@@ -281,6 +284,7 @@ export default function AdminDashboard() {
       ...data
     }: {
       id: string;
+      target_user_id?: string | null;
       tool_name?: string;
       title?: string;
       description?: string;
@@ -1922,6 +1926,39 @@ export default function AdminDashboard() {
                               </SelectContent>
                             </Select>
                           </div>
+                          <div className="space-y-2">
+                            <label className="text-sm font-medium">
+                              Target
+                            </label>
+                            <Select
+                              value={newPrompt.target_user_id || "both"}
+                              onValueChange={(value) =>
+                                setNewPrompt((p) => ({ 
+                                  ...p, 
+                                  target_user_id: value === "both" ? null : value 
+                                }))
+                              }
+                            >
+                              <SelectTrigger data-testid="select-target-user">
+                                <SelectValue placeholder="Select target" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="both">Both Partners</SelectItem>
+                                {selectedCouple?.partner1 && (
+                                  <SelectItem value={selectedCouple.partner1.id}>
+                                    {selectedCouple.partner1.full_name || "Partner 1"}
+                                  </SelectItem>
+                                )}
+                                {selectedCouple?.partner2 && (
+                                  <SelectItem value={selectedCouple.partner2.id}>
+                                    {selectedCouple.partner2.full_name || "Partner 2"}
+                                  </SelectItem>
+                                )}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div className="space-y-2">
                             <label className="text-sm font-medium">Title</label>
                             <Input

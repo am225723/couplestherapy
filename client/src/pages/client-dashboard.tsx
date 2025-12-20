@@ -598,8 +598,39 @@ export default function ClientDashboard() {
   });
 
   const reflectionPrompts = therapistPromptsQuery.data?.filter(
-    (p: any) => p.tool_name === "reflection"
+    (p: any) => p.tool_name === "reflection" && 
+    (p.target_user_id === null || p.target_user_id === profile?.id)
   ) || [];
+
+  // State for reflection responses (per prompt)
+  const [reflectionResponses, setReflectionResponses] = useState<Record<string, string>>({});
+  const [submittingPromptId, setSubmittingPromptId] = useState<string | null>(null);
+
+  // Submit reflection response mutation
+  const submitReflectionMutation = useMutation({
+    mutationFn: async (data: { prompt_id: string; response_text: string; is_shared_with_partner?: boolean }) => {
+      return authenticatedFetchJson("/api/therapist-prompts/reflection-responses", {
+        method: "POST",
+        body: JSON.stringify(data),
+      });
+    },
+    onSuccess: (_data, variables) => {
+      toast({
+        title: "Response saved",
+        description: "Your reflection has been saved",
+      });
+      setReflectionResponses((prev) => ({ ...prev, [variables.prompt_id]: "" }));
+      setSubmittingPromptId(null);
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to save response",
+        variant: "destructive",
+      });
+      setSubmittingPromptId(null);
+    },
+  });
 
   const deleteLoveLanguageMutation = useMutation({
     mutationFn: async (id: string) => {
@@ -842,7 +873,43 @@ export default function ClientDashboard() {
                     {prompt.description && (
                       <p className="text-xs text-muted-foreground mb-2">{prompt.description}</p>
                     )}
-                    <p className="text-sm text-foreground/90 italic">"{prompt.suggested_action}"</p>
+                    <p className="text-sm text-foreground/90 italic mb-3">"{prompt.suggested_action}"</p>
+                    <div className="space-y-2">
+                      <Textarea
+                        placeholder="Share your thoughts..."
+                        value={reflectionResponses[prompt.id] || ""}
+                        onChange={(e) => setReflectionResponses((prev) => ({
+                          ...prev,
+                          [prompt.id]: e.target.value
+                        }))}
+                        className="min-h-20 bg-background/80 border-border/50"
+                        data-testid={`textarea-reflection-${prompt.id}`}
+                      />
+                      <div className="flex items-center justify-end gap-2">
+                        <Button
+                          size="sm"
+                          onClick={() => {
+                            setSubmittingPromptId(prompt.id);
+                            submitReflectionMutation.mutate({
+                              prompt_id: prompt.id,
+                              response_text: reflectionResponses[prompt.id] || "",
+                              is_shared_with_partner: false,
+                            });
+                          }}
+                          disabled={
+                            !reflectionResponses[prompt.id]?.trim() || 
+                            submittingPromptId === prompt.id
+                          }
+                          data-testid={`button-submit-reflection-${prompt.id}`}
+                        >
+                          {submittingPromptId === prompt.id ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            "Save Response"
+                          )}
+                        </Button>
+                      </div>
+                    </div>
                   </div>
                 ))}
               </CardContent>
