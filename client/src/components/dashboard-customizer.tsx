@@ -16,6 +16,12 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import {
   GripVertical,
   Save,
   Heart,
@@ -52,6 +58,9 @@ import {
   Clock,
   Scale,
   HelpCircle,
+  Layout,
+  ChevronDown,
+  Check,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -105,6 +114,95 @@ const ALL_WIDGETS = [
   "financial",
   "daily-tips",
   "reflection-prompts",
+];
+
+const WIDGET_CATEGORIES: {
+  id: string;
+  label: string;
+  description: string;
+  widgets: string[];
+}[] = [
+  {
+    id: "assessments",
+    label: "Assessments & Insights",
+    description: "Personality and compatibility assessments",
+    widgets: ["love-languages", "attachment", "enneagram", "love-map", "compatibility"],
+  },
+  {
+    id: "communication",
+    label: "Communication Tools",
+    description: "Connect and communicate with your partner",
+    widgets: ["messages", "voice-memos", "echo-empathy", "conversations", "pause"],
+  },
+  {
+    id: "activities",
+    label: "Shared Activities",
+    description: "Things you do together",
+    widgets: ["gratitude", "shared-goals", "rituals", "calendar", "journal", "mood"],
+  },
+  {
+    id: "therapy",
+    label: "Therapy & Growth",
+    description: "Therapeutic exercises and tools",
+    widgets: ["therapist-thoughts", "reflection-prompts", "ifs", "conflict", "four-horsemen", "demon-dialogues"],
+  },
+  {
+    id: "ai",
+    label: "AI-Powered Features",
+    description: "Smart recommendations and insights",
+    widgets: ["date-night", "ai-suggestions", "growth-plan", "daily-tips"],
+  },
+  {
+    id: "progress",
+    label: "Progress Tracking",
+    description: "Monitor your relationship journey",
+    widgets: ["weekly-checkin", "checkin-history", "progress-timeline"],
+  },
+  {
+    id: "practical",
+    label: "Practical Tools",
+    description: "Day-to-day household management",
+    widgets: ["chores", "todos", "financial"],
+  },
+  {
+    id: "other",
+    label: "Other Features",
+    description: "Additional helpful tools",
+    widgets: ["meditation", "intimacy", "values", "parenting"],
+  },
+];
+
+const PRESET_TEMPLATES = [
+  {
+    id: "essential",
+    name: "Essential Starter",
+    description: "Core features for new couples starting therapy",
+    widgets: ["weekly-checkin", "love-languages", "gratitude", "shared-goals", "therapist-thoughts"],
+  },
+  {
+    id: "communication",
+    name: "Communication Focus",
+    description: "Emphasis on improving partner communication",
+    widgets: ["messages", "voice-memos", "echo-empathy", "conversations", "pause", "weekly-checkin"],
+  },
+  {
+    id: "assessment",
+    name: "Deep Assessment",
+    description: "Comprehensive personality and compatibility analysis",
+    widgets: ["love-languages", "attachment", "enneagram", "love-map", "compatibility", "weekly-checkin"],
+  },
+  {
+    id: "ai-powered",
+    name: "AI-Enhanced",
+    description: "Leverage AI for personalized recommendations",
+    widgets: ["date-night", "ai-suggestions", "growth-plan", "daily-tips", "weekly-checkin"],
+  },
+  {
+    id: "full",
+    name: "Full Experience",
+    description: "All features enabled for comprehensive support",
+    widgets: ALL_WIDGETS,
+  },
 ];
 
 const WIDGET_CONFIG: Record<
@@ -764,21 +862,227 @@ export function DashboardCustomizer({
         </Button>
       </div>
 
-      <Tabs defaultValue="preview" className="w-full">
-        <TabsList className="mb-4 flex-wrap">
-          <TabsTrigger value="preview" className="gap-2">
+      <Tabs defaultValue="templates" className="w-full">
+        <TabsList className="mb-4 flex-wrap gap-1">
+          <TabsTrigger value="templates" className="gap-2" data-testid="tab-templates">
+            <Layout className="h-4 w-4" />
+            Templates
+          </TabsTrigger>
+          <TabsTrigger value="categories" className="gap-2" data-testid="tab-categories">
+            <ChevronDown className="h-4 w-4" />
+            By Category
+          </TabsTrigger>
+          <TabsTrigger value="preview" className="gap-2" data-testid="tab-preview">
             <Eye className="h-4 w-4" />
-            Visual Preview
+            Preview
           </TabsTrigger>
-          <TabsTrigger value="list" className="gap-2">
+          <TabsTrigger value="list" className="gap-2" data-testid="tab-list">
             <Settings2 className="h-4 w-4" />
-            List View
+            All Widgets
           </TabsTrigger>
-          <TabsTrigger value="content" className="gap-2">
+          <TabsTrigger value="content" className="gap-2" data-testid="tab-content">
             <Pencil className="h-4 w-4" />
             Card Content
           </TabsTrigger>
         </TabsList>
+
+        <TabsContent value="templates" className="space-y-4">
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Layout className="h-5 w-5" />
+                Quick Start Templates
+              </CardTitle>
+              <CardDescription>
+                Choose a pre-configured template to quickly set up the dashboard. 
+                You can customize individual widgets after applying a template.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {PRESET_TEMPLATES.map((template) => {
+                  const templateWidgetsEnabled = template.widgets.filter(w => enabled[w]).length;
+                  const totalEnabled = Object.keys(enabled).filter(k => enabled[k]).length;
+                  const isExactMatch = template.widgets.every(w => enabled[w]) && totalEnabled === template.widgets.length;
+                  const isPartialMatch = templateWidgetsEnabled === template.widgets.length && totalEnabled > template.widgets.length;
+                  return (
+                    <Card 
+                      key={template.id}
+                      className={cn(
+                        "cursor-pointer transition-all hover-elevate",
+                        isExactMatch && "ring-2 ring-primary border-primary",
+                        isPartialMatch && "ring-1 ring-primary/50 border-primary/50"
+                      )}
+                      onClick={() => {
+                        const newEnabled: Record<string, boolean> = {};
+                        ALL_WIDGETS.forEach(w => {
+                          newEnabled[w] = template.widgets.includes(w);
+                        });
+                        setEnabled(newEnabled);
+                        toast({
+                          title: "Template Applied",
+                          description: `"${template.name}" template has been applied with ${template.widgets.length} widgets enabled. Don't forget to save!`,
+                        });
+                      }}
+                      data-testid={`template-${template.id}`}
+                    >
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-base flex items-center justify-between">
+                          {template.name}
+                          {isExactMatch && <Check className="h-4 w-4 text-primary" />}
+                          {isPartialMatch && <Badge variant="secondary" className="text-xs">+ extras</Badge>}
+                        </CardTitle>
+                        <CardDescription className="text-sm">
+                          {template.description}
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent className="pt-0">
+                        <div className="flex flex-wrap gap-1">
+                          {template.widgets.slice(0, 5).map(widgetId => {
+                            const config = WIDGET_CONFIG[widgetId];
+                            const Icon = config?.icon || Heart;
+                            return (
+                              <Badge key={widgetId} variant="secondary" className="text-xs gap-1">
+                                <Icon className="h-3 w-3" />
+                                {config?.label?.split(" ")[0] || widgetId}
+                              </Badge>
+                            );
+                          })}
+                          {template.widgets.length > 5 && (
+                            <Badge variant="outline" className="text-xs">
+                              +{template.widgets.length - 5} more
+                            </Badge>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="categories" className="space-y-4">
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <ChevronDown className="h-5 w-5" />
+                Widgets by Category
+              </CardTitle>
+              <CardDescription>
+                Browse and enable widgets organized by category. 
+                Click the checkbox to toggle visibility on the client dashboard.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Accordion type="multiple" defaultValue={["assessments", "therapy", "progress"]} className="w-full">
+                {WIDGET_CATEGORIES.map((category) => {
+                  const enabledCount = category.widgets.filter(w => enabled[w]).length;
+                  const totalCount = category.widgets.length;
+                  return (
+                    <AccordionItem key={category.id} value={category.id}>
+                      <AccordionTrigger className="hover:no-underline">
+                        <div className="flex items-center gap-3 flex-1">
+                          <span className="font-medium">{category.label}</span>
+                          <Badge variant={enabledCount === totalCount ? "default" : enabledCount > 0 ? "secondary" : "outline"} className="text-xs">
+                            {enabledCount}/{totalCount}
+                          </Badge>
+                          <span className="text-sm text-muted-foreground hidden sm:inline">
+                            {category.description}
+                          </span>
+                        </div>
+                      </AccordionTrigger>
+                      <AccordionContent>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2 pt-2">
+                          {category.widgets.map(widgetId => {
+                            const config = WIDGET_CONFIG[widgetId];
+                            if (!config) return null;
+                            const Icon = config.icon;
+                            return (
+                              <div 
+                                key={widgetId}
+                                className={cn(
+                                  "flex items-center gap-3 p-3 rounded-lg border transition",
+                                  enabled[widgetId] ? "bg-primary/5 border-primary/20" : "bg-muted/30 opacity-70"
+                                )}
+                              >
+                                <Checkbox
+                                  checked={enabled[widgetId]}
+                                  onCheckedChange={() => toggleEnabled(widgetId)}
+                                  data-testid={`category-checkbox-${widgetId}`}
+                                />
+                                <div className={cn("p-2 rounded-md", config.bgColor)}>
+                                  <Icon className={cn("w-4 h-4", config.color)} />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className="font-medium text-sm truncate">{config.label}</p>
+                                  <p className="text-xs text-muted-foreground truncate">{config.description}</p>
+                                </div>
+                                <div className="flex gap-1">
+                                  {(["small", "medium", "large"] as const).map((s) => (
+                                    <Button
+                                      key={s}
+                                      size="sm"
+                                      variant={sizes[widgetId] === s ? "default" : "ghost"}
+                                      className="h-6 w-6 p-0 text-xs"
+                                      onClick={() => setSize(widgetId, s)}
+                                      data-testid={`category-size-${s}-${widgetId}`}
+                                    >
+                                      {SIZE_DIMENSIONS[s].label}
+                                    </Button>
+                                  ))}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                        <div className="flex gap-2 mt-3 pt-3 border-t">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              setEnabled(prev => {
+                                const newEnabled = { ...prev };
+                                category.widgets.forEach(w => newEnabled[w] = true);
+                                return newEnabled;
+                              });
+                              toast({
+                                title: "Widgets Enabled",
+                                description: `All ${category.label} widgets have been enabled.`,
+                              });
+                            }}
+                            data-testid={`button-enable-all-${category.id}`}
+                          >
+                            Enable All
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => {
+                              setEnabled(prev => {
+                                const newEnabled = { ...prev };
+                                category.widgets.forEach(w => newEnabled[w] = false);
+                                return newEnabled;
+                              });
+                              toast({
+                                title: "Widgets Disabled",
+                                description: `All ${category.label} widgets have been hidden.`,
+                              });
+                            }}
+                            data-testid={`button-disable-all-${category.id}`}
+                          >
+                            Disable All
+                          </Button>
+                        </div>
+                      </AccordionContent>
+                    </AccordionItem>
+                  );
+                })}
+              </Accordion>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
         <TabsContent value="preview" className="space-y-4">
           <Card>
