@@ -22,6 +22,9 @@ import {
   Wrench,
   FileText,
   PenLine,
+  PanelLeft,
+  Sliders,
+  Lightbulb,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -61,6 +64,8 @@ interface AdminNavigationProps {
   currentSection?: string;
   onSelectSection?: (section: string) => void;
   onAddCouple?: () => void;
+  sidebarOpen?: boolean;
+  onToggleSidebar?: () => void;
 }
 
 const MAIN_TABS = [
@@ -95,6 +100,12 @@ const TOOL_SECTIONS = [
   { id: "activity", label: "Activity Feed", icon: Activity },
 ];
 
+const CUSTOMIZE_SECTIONS = [
+  { id: "dashboard-customization", label: "Dashboard Layout", icon: LayoutDashboard },
+  { id: "reminders", label: "Reminders", icon: Calendar },
+  { id: "therapist-thoughts", label: "Therapist Thoughts", icon: Lightbulb },
+];
+
 export function AdminNavigation({
   couples,
   selectedCoupleId,
@@ -102,6 +113,8 @@ export function AdminNavigation({
   currentSection = "overview",
   onSelectSection,
   onAddCouple,
+  sidebarOpen = true,
+  onToggleSidebar,
 }: AdminNavigationProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const { profile, signOut } = useAuth();
@@ -130,7 +143,8 @@ export function AdminNavigation({
 
   const getActiveTab = () => {
     if (currentSection === "overview") return "overview";
-    if (currentSection === "dashboard-customization") return "customize";
+    if (CUSTOMIZE_SECTIONS.some((s) => s.id === currentSection))
+      return "customize";
     if (INSIGHT_SECTIONS.some((s) => s.id === currentSection))
       return "insights";
     if (TOOL_SECTIONS.some((s) => s.id === currentSection)) return "tools";
@@ -322,6 +336,41 @@ export function AdminNavigation({
                   </Button>
                 );
               })}
+            </div>
+          )}
+
+          {getActiveTab() === "customize" && (
+            <div className="flex flex-wrap gap-1 py-2">
+              {CUSTOMIZE_SECTIONS.map((section) => {
+                const Icon = section.icon;
+                return (
+                  <Button
+                    key={section.id}
+                    variant={
+                      currentSection === section.id ? "secondary" : "ghost"
+                    }
+                    size="sm"
+                    className="gap-1.5"
+                    onClick={() => onSelectSection(section.id)}
+                    data-testid={`button-section-${section.id}`}
+                  >
+                    <Icon className="h-3.5 w-3.5" />
+                    <span className="hidden sm:inline">{section.label}</span>
+                  </Button>
+                );
+              })}
+              {onToggleSidebar && (
+                <Button
+                  variant={sidebarOpen ? "secondary" : "ghost"}
+                  size="sm"
+                  className="gap-1.5 ml-auto"
+                  onClick={onToggleSidebar}
+                  data-testid="button-toggle-sidebar"
+                >
+                  <PanelLeft className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline">{sidebarOpen ? "Hide" : "Show"} Sidebar</span>
+                </Button>
+              )}
             </div>
           )}
         </div>

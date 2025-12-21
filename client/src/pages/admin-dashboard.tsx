@@ -45,6 +45,8 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { AdminNavigation } from "@/components/admin-navigation";
+import { AdminSidebar } from "@/components/admin-sidebar";
+import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { AddCoupleModal } from "@/components/add-couple-modal";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/lib/supabase";
@@ -175,6 +177,7 @@ export default function AdminDashboard() {
     "notes",
     "reminders",
     "reflection-responses",
+    "therapist-thoughts",
   ];
   const currentSection = validSections.includes(params?.section || "")
     ? params?.section || "overview"
@@ -204,6 +207,7 @@ export default function AdminDashboard() {
   const [dashboardCustomization, setDashboardCustomization] =
     useState<DashboardCustomization | null>(null);
   const [showAddCoupleModal, setShowAddCoupleModal] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
   const [editingPromptId, setEditingPromptId] = useState<string | null>(null);
   const [newPrompt, setNewPrompt] = useState({
     tool_name: "",
@@ -794,17 +798,31 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="flex flex-col h-screen w-full">
-      <AdminNavigation
-        couples={couples}
-        selectedCoupleId={selectedCouple?.id || null}
-        onSelectCouple={handleSelectCouple}
-        currentSection={currentSection}
-        onSelectSection={handleSelectSection}
-        onAddCouple={() => setShowAddCoupleModal(true)}
-      />
+    <SidebarProvider>
+      <div className="flex flex-col h-screen w-full">
+        <AdminNavigation
+          couples={couples}
+          selectedCoupleId={selectedCouple?.id || null}
+          onSelectCouple={handleSelectCouple}
+          currentSection={currentSection}
+          onSelectSection={handleSelectSection}
+          onAddCouple={() => setShowAddCoupleModal(true)}
+          sidebarOpen={sidebarOpen}
+          onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
+        />
 
-      <div className="flex flex-col flex-1 overflow-y-auto min-h-0">
+        <div className="flex flex-1 overflow-hidden">
+          {sidebarOpen && (
+            <AdminSidebar
+              couples={couples}
+              selectedCoupleId={selectedCouple?.id || null}
+              onSelectCouple={handleSelectCouple}
+              currentSection={currentSection}
+              onSelectSection={handleSelectSection}
+            />
+          )}
+
+          <SidebarInset className="flex flex-col flex-1 overflow-y-auto min-h-0">
         <header className="border-b shrink-0 bg-gradient-to-r from-background to-muted/30">
           <div className="flex items-center justify-between p-4 gap-4">
             <div className="flex items-center gap-4">
@@ -1084,6 +1102,9 @@ export default function AdminDashboard() {
                     </TabsTrigger>
                     <TabsTrigger value="reflection-responses">
                       Reflection Responses
+                    </TabsTrigger>
+                    <TabsTrigger value="therapist-thoughts">
+                      Therapist Thoughts
                     </TabsTrigger>
                   </TabsList>
                 </div>
@@ -2220,6 +2241,34 @@ export default function AdminDashboard() {
                   />
                 </TabsContent>
 
+                <TabsContent value="therapist-thoughts" className="space-y-6">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Therapist Thoughts</CardTitle>
+                      <CardDescription>
+                        Manage your to-dos, messages, and notes for this couple
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      {selectedCouple && (
+                        <TherapistThoughtsPanel
+                          coupleId={selectedCouple.id}
+                          partner1={
+                            selectedCouple.partner1 && selectedCouple.partner1_id
+                              ? { id: selectedCouple.partner1_id, full_name: selectedCouple.partner1.full_name }
+                              : null
+                          }
+                          partner2={
+                            selectedCouple.partner2 && selectedCouple.partner2_id
+                              ? { id: selectedCouple.partner2_id, full_name: selectedCouple.partner2.full_name }
+                              : null
+                          }
+                        />
+                      )}
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+
                 <TabsContent value="gratitude" className="space-y-4">
                   <Card>
                     <CardHeader>
@@ -2333,17 +2382,19 @@ export default function AdminDashboard() {
             </div>
           </ScrollArea>
         </main>
-      </div>
+            </SidebarInset>
+          </div>
 
-      <AddCoupleModal
-        open={showAddCoupleModal}
-        onOpenChange={setShowAddCoupleModal}
-        therapistId={profile?.id || ""}
-        onSuccess={() => {
-          fetchCouples();
-        }}
-      />
-    </div>
+        <AddCoupleModal
+          open={showAddCoupleModal}
+          onOpenChange={setShowAddCoupleModal}
+          therapistId={profile?.id || ""}
+          onSuccess={() => {
+            fetchCouples();
+          }}
+        />
+      </div>
+    </SidebarProvider>
   );
 }
 
