@@ -80,6 +80,7 @@ const INSIGHT_SECTIONS = [
 
 const TOOL_SECTIONS = [
   { id: "notes", label: "Session Notes", icon: FileText },
+  { id: "reflection-responses", label: "Reflection Responses", icon: MessageSquare },
   { id: "messages", label: "Messages", icon: MessageSquare },
   { id: "echo", label: "Echo & Empathy", icon: Users },
   { id: "conversations", label: "Hold Me Tight", icon: Heart },
