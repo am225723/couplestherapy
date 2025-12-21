@@ -75,6 +75,9 @@ import {
   Copy,
   Plus,
   Loader2,
+  Smartphone,
+  Monitor,
+  Tablet,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -573,22 +576,29 @@ function WidgetPreviewCard({
   enabled,
   onToggle,
   onSizeChange,
+  previewDevice = "desktop",
 }: {
   widgetId: string;
   size: "small" | "medium" | "large";
   enabled: boolean;
   onToggle: () => void;
   onSizeChange: (size: "small" | "medium" | "large") => void;
+  previewDevice?: "desktop" | "tablet" | "mobile";
 }) {
   const config = WIDGET_CONFIG[widgetId];
   if (!config) return null;
 
   const Icon = config.icon;
-  const sizeClass = {
-    small: "col-span-1",
-    medium: "col-span-2",
-    large: "col-span-3",
-  }[size];
+  
+  // Adjust column spans based on device mode
+  let sizeClass = "col-span-1";
+  if (previewDevice === "desktop") {
+    sizeClass = { small: "col-span-1", medium: "col-span-2", large: "col-span-3" }[size];
+  } else if (previewDevice === "tablet") {
+    // Tablet: max 2 columns, so clamp span
+    sizeClass = size === "small" ? "col-span-1" : "col-span-2";
+  }
+  // Mobile: always col-span-1 (already default)
 
   const heightClass = {
     small: "h-28",
@@ -829,6 +839,9 @@ export function DashboardCustomizer({
   const [saveDialogOpen, setSaveDialogOpen] = useState(false);
   const [templateName, setTemplateName] = useState("");
   const [templateDescription, setTemplateDescription] = useState("");
+
+  // Device preview mode
+  const [previewDevice, setPreviewDevice] = useState<"desktop" | "tablet" | "mobile">("desktop");
 
   const { data: savedTemplates = [], isLoading: templatesLoading } = useQuery<LayoutTemplate[]>({
     queryKey: ["/api/layout-templates/therapist", therapistId],
@@ -1313,41 +1326,111 @@ export function DashboardCustomizer({
         <TabsContent value="preview" className="space-y-4">
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Eye className="h-5 w-5" />
-                Client Dashboard Preview
+              <CardTitle className="text-lg flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Eye className="h-5 w-5" />
+                  Client Dashboard Preview
+                </div>
+                <div className="flex gap-1">
+                  <Button
+                    size="sm"
+                    variant={previewDevice === "mobile" ? "default" : "ghost"}
+                    className="gap-1.5"
+                    onClick={() => setPreviewDevice("mobile")}
+                    data-testid="button-preview-mobile"
+                  >
+                    <Smartphone className="h-4 w-4" />
+                    Mobile
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant={previewDevice === "tablet" ? "default" : "ghost"}
+                    className="gap-1.5"
+                    onClick={() => setPreviewDevice("tablet")}
+                    data-testid="button-preview-tablet"
+                  >
+                    <Tablet className="h-4 w-4" />
+                    Tablet
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant={previewDevice === "desktop" ? "default" : "ghost"}
+                    className="gap-1.5"
+                    onClick={() => setPreviewDevice("desktop")}
+                    data-testid="button-preview-desktop"
+                  >
+                    <Monitor className="h-4 w-4" />
+                    Desktop
+                  </Button>
+                </div>
               </CardTitle>
               <CardDescription>
-                This shows how widgets will appear on the client's dashboard.
-                Hover over widgets to adjust size.
+                Preview how the dashboard will appear on different devices.
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="border rounded-lg p-4 bg-muted/30">
-                <div 
-                  className="grid gap-3"
-                  style={{ 
-                    gridTemplateColumns: "repeat(auto-fit, minmax(min(160px, 100%), 1fr))",
-                    gridAutoRows: "200px",
-                    gridAutoFlow: "dense"
-                  }}
-                >
-                  {enabledWidgets.map((widgetId) => (
-                    <WidgetPreviewCard
-                      key={widgetId}
-                      widgetId={widgetId}
-                      size={sizes[widgetId] || "medium"}
-                      enabled={enabled[widgetId]}
-                      onToggle={() => toggleEnabled(widgetId)}
-                      onSizeChange={(s) => setSize(widgetId, s)}
-                    />
-                  ))}
-                </div>
-                {enabledWidgets.length === 0 && (
-                  <div className="text-center py-8 text-muted-foreground">
-                    No widgets enabled. Enable widgets from the list view.
+              <div className={cn(
+                "mx-auto transition-all duration-300",
+                previewDevice === "mobile" && "max-w-[375px]",
+                previewDevice === "tablet" && "max-w-[768px]",
+                previewDevice === "desktop" && "max-w-full"
+              )}>
+                {/* Device Frame */}
+                <div className={cn(
+                  "relative transition-all duration-300",
+                  previewDevice === "mobile" && "rounded-[2.5rem] border-[10px] border-gray-800 dark:border-gray-600 bg-gray-800 dark:bg-gray-600 p-1",
+                  previewDevice === "tablet" && "rounded-[1.5rem] border-[8px] border-gray-700 dark:border-gray-500 bg-gray-700 dark:bg-gray-500 p-1",
+                  previewDevice === "desktop" && ""
+                )}>
+                  {/* Device notch for mobile */}
+                  {previewDevice === "mobile" && (
+                    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-24 h-6 bg-gray-800 dark:bg-gray-600 rounded-b-xl z-10" />
+                  )}
+                  {/* Device camera for tablet */}
+                  {previewDevice === "tablet" && (
+                    <div className="absolute top-2 left-1/2 -translate-x-1/2 w-2 h-2 bg-gray-500 dark:bg-gray-400 rounded-full z-10" />
+                  )}
+                  
+                  {/* Screen content */}
+                  <div className={cn(
+                    "border rounded-lg p-4 bg-background overflow-hidden",
+                    previewDevice === "mobile" && "rounded-[1.5rem] pt-8",
+                    previewDevice === "tablet" && "rounded-[1rem] pt-6"
+                  )}>
+                    <div 
+                      className={cn(
+                        "grid gap-3",
+                        previewDevice === "mobile" && "grid-cols-1",
+                        previewDevice === "tablet" && "grid-cols-2"
+                      )}
+                      style={previewDevice === "desktop" ? { 
+                        gridTemplateColumns: "repeat(auto-fit, minmax(min(160px, 100%), 1fr))",
+                        gridAutoRows: "200px",
+                        gridAutoFlow: "dense"
+                      } : {
+                        gridAutoRows: previewDevice === "mobile" ? "120px" : "160px",
+                        gridAutoFlow: "dense"
+                      }}
+                    >
+                      {enabledWidgets.map((widgetId) => (
+                        <WidgetPreviewCard
+                          key={widgetId}
+                          widgetId={widgetId}
+                          size={sizes[widgetId] || "medium"}
+                          enabled={enabled[widgetId]}
+                          onToggle={() => toggleEnabled(widgetId)}
+                          onSizeChange={(s) => setSize(widgetId, s)}
+                          previewDevice={previewDevice}
+                        />
+                      ))}
+                    </div>
+                    {enabledWidgets.length === 0 && (
+                      <div className="text-center py-8 text-muted-foreground">
+                        No widgets enabled. Enable widgets from the list view.
+                      </div>
+                    )}
                   </div>
-                )}
+                </div>
               </div>
 
               {disabledWidgets.length > 0 && (
