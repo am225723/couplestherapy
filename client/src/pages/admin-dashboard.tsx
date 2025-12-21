@@ -1081,6 +1081,9 @@ export default function AdminDashboard() {
                     <TabsTrigger value="notes">
                       Session Notes
                     </TabsTrigger>
+                    <TabsTrigger value="reflection-responses">
+                      Reflection Responses
+                    </TabsTrigger>
                   </TabsList>
                 </div>
 
@@ -2206,6 +2209,14 @@ export default function AdminDashboard() {
                   {selectedCouple && (
                     <CheckinReminders couple={selectedCouple} />
                   )}
+                </TabsContent>
+
+                <TabsContent value="reflection-responses" className="space-y-6">
+                  <ReflectionResponsesTab 
+                    coupleId={selectedCouple.id}
+                    partner1={selectedCouple.partner1}
+                    partner2={selectedCouple.partner2}
+                  />
                 </TabsContent>
 
                 <TabsContent value="gratitude" className="space-y-4">
@@ -4773,6 +4784,192 @@ function EditPromptForm({
           Cancel
         </Button>
       </div>
+    </div>
+  );
+}
+
+function ReflectionResponsesTab({ 
+  coupleId, 
+  partner1, 
+  partner2 
+}: { 
+  coupleId: string; 
+  partner1?: Profile | null; 
+  partner2?: Profile | null;
+}) {
+  const { data: prompts = [], isLoading: promptsLoading } = useQuery<TherapistPrompt[]>({
+    queryKey: ["reflection-prompts", coupleId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("Couples_therapist_prompts")
+        .select("*")
+        .eq("couple_id", coupleId)
+        .eq("tool_name", "reflection")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!coupleId,
+  });
+
+  const { data: responses = [], isLoading: responsesLoading } = useQuery<any[]>({
+    queryKey: ["reflection-responses", coupleId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("Couples_reflection_responses")
+        .select("*, responder:responder_id(id, full_name)")
+        .eq("couple_id", coupleId)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!coupleId,
+  });
+
+  const getResponderName = (responderId: string) => {
+    if (partner1?.id === responderId) return partner1.full_name || "Partner 1";
+    if (partner2?.id === responderId) return partner2.full_name || "Partner 2";
+    return "Unknown";
+  };
+
+  const getPromptTitle = (promptId: string) => {
+    const prompt = prompts.find((p) => p.id === promptId);
+    return prompt?.title || "Unknown Prompt";
+  };
+
+  const isLoading = promptsLoading || responsesLoading;
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  if (prompts.length === 0) {
+    return (
+      <Card>
+        <CardContent className="py-8 text-center text-muted-foreground">
+          <MessageSquare className="h-12 w-12 mx-auto mb-4 opacity-50" />
+          <p>No reflection prompts created yet.</p>
+          <p className="text-sm mt-1">
+            Go to the "Prompts" tab to create reflection questions for this couple.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <MessageSquare className="h-5 w-5 text-violet-600 dark:text-violet-400" />
+            Reflection Prompt Responses
+          </CardTitle>
+          <CardDescription>
+            View responses from both partners to your reflection questions
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {prompts.map((prompt) => {
+            const promptResponses = responses.filter((r) => r.prompt_id === prompt.id);
+            const partner1Response = promptResponses.find((r) => r.responder_id === partner1?.id);
+            const partner2Response = promptResponses.find((r) => r.responder_id === partner2?.id);
+
+            return (
+              <div key={prompt.id} className="border rounded-lg p-4 space-y-4">
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <h4 className="font-medium">{prompt.title}</h4>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      {prompt.suggested_action}
+                    </p>
+                    <div className="flex items-center gap-2 mt-2">
+                      <Badge variant="outline" className="text-xs">
+                        {prompt.target_user_id 
+                          ? `For ${getResponderName(prompt.target_user_id)}`
+                          : "Both Partners"
+                        }
+                      </Badge>
+                      <span className="text-xs text-muted-foreground">
+                        Created {format(new Date(prompt.created_at), "MMM d, yyyy")}
+                      </span>
+                    </div>
+                  </div>
+                  <Badge 
+                    variant={promptResponses.length === 0 ? "secondary" : "default"}
+                    className="flex-shrink-0"
+                  >
+                    {promptResponses.length} response{promptResponses.length !== 1 ? "s" : ""}
+                  </Badge>
+                </div>
+
+                {promptResponses.length === 0 ? (
+                  <div className="bg-muted/50 rounded p-3 text-center text-sm text-muted-foreground">
+                    No responses yet
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {partner1 && (
+                      <div className={`p-3 rounded-lg border ${partner1Response ? "bg-primary/5" : "bg-muted/30"}`}>
+                        <div className="flex items-center gap-2 mb-2">
+                          <Avatar className="h-6 w-6">
+                            <AvatarFallback className="text-xs">
+                              {(partner1.full_name || "P1").charAt(0)}
+                            </AvatarFallback>
+                          </Avatar>
+                          <span className="text-sm font-medium">{partner1.full_name || "Partner 1"}</span>
+                          {partner1Response?.is_shared_with_partner && (
+                            <Badge variant="secondary" className="text-xs ml-auto">Shared</Badge>
+                          )}
+                        </div>
+                        {partner1Response ? (
+                          <>
+                            <p className="text-sm whitespace-pre-wrap">{partner1Response.response_text}</p>
+                            <p className="text-xs text-muted-foreground mt-2">
+                              {format(new Date(partner1Response.created_at), "MMM d, yyyy 'at' h:mm a")}
+                            </p>
+                          </>
+                        ) : (
+                          <p className="text-sm text-muted-foreground italic">No response yet</p>
+                        )}
+                      </div>
+                    )}
+                    {partner2 && (
+                      <div className={`p-3 rounded-lg border ${partner2Response ? "bg-primary/5" : "bg-muted/30"}`}>
+                        <div className="flex items-center gap-2 mb-2">
+                          <Avatar className="h-6 w-6">
+                            <AvatarFallback className="text-xs">
+                              {(partner2.full_name || "P2").charAt(0)}
+                            </AvatarFallback>
+                          </Avatar>
+                          <span className="text-sm font-medium">{partner2.full_name || "Partner 2"}</span>
+                          {partner2Response?.is_shared_with_partner && (
+                            <Badge variant="secondary" className="text-xs ml-auto">Shared</Badge>
+                          )}
+                        </div>
+                        {partner2Response ? (
+                          <>
+                            <p className="text-sm whitespace-pre-wrap">{partner2Response.response_text}</p>
+                            <p className="text-xs text-muted-foreground mt-2">
+                              {format(new Date(partner2Response.created_at), "MMM d, yyyy 'at' h:mm a")}
+                            </p>
+                          </>
+                        ) : (
+                          <p className="text-sm text-muted-foreground italic">No response yet</p>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </CardContent>
+      </Card>
     </div>
   );
 }

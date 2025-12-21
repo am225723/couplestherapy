@@ -51,6 +51,7 @@ import {
   Zap,
   Clock,
   Scale,
+  HelpCircle,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -103,6 +104,7 @@ const ALL_WIDGETS = [
   "todos",
   "financial",
   "daily-tips",
+  "reflection-prompts",
 ];
 
 const WIDGET_CONFIG: Record<
@@ -360,6 +362,13 @@ const WIDGET_CONFIG: Record<
     bgColor: "bg-amber-100 dark:bg-amber-900/30",
     description: "Personalized relationship tips",
   },
+  "reflection-prompts": {
+    label: "Reflection Prompts",
+    icon: HelpCircle,
+    color: "text-violet-600 dark:text-violet-400",
+    bgColor: "bg-violet-100 dark:bg-violet-900/30",
+    description: "Guided questions from your therapist",
+  },
 };
 
 const SIZE_DIMENSIONS = {
@@ -404,6 +413,7 @@ const WIDGET_GRADIENTS: Record<string, string> = {
   todos: "from-slate-500/15 to-gray-500/10 dark:from-slate-500/22 dark:to-gray-500/15",
   financial: "from-green-500/15 to-emerald-500/10 dark:from-green-500/22 dark:to-emerald-500/15",
   "daily-tips": "from-amber-500/15 to-yellow-500/10 dark:from-amber-500/22 dark:to-yellow-500/15",
+  "reflection-prompts": "from-violet-500/15 to-purple-500/10 dark:from-violet-500/22 dark:to-purple-500/15",
 };
 
 const WIDGET_BORDER_COLORS: Record<string, string> = {
@@ -442,6 +452,7 @@ const WIDGET_BORDER_COLORS: Record<string, string> = {
   todos: "border-l-slate-500",
   financial: "border-l-green-500",
   "daily-tips": "border-l-amber-500",
+  "reflection-prompts": "border-l-violet-500",
 };
 
 function WidgetPreviewCard({

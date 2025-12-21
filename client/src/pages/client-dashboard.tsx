@@ -139,6 +139,7 @@ const widgetVariants: Record<string, "default" | "primary" | "accent" | "success
   "todos": "default",
   "financial": "success",
   "daily-tips": "warning",
+  "reflection-prompts": "accent",
 };
 
 export default function ClientDashboard() {
@@ -679,7 +680,7 @@ export default function ClientDashboard() {
     }
   };
 
-  type WidgetType = "standard" | "therapist" | "suggestion" | "ai" | "love-results" | "attachment" | "enneagram" | "todos" | "chores" | "checkin-history" | "session-notes" | "mood" | "conflict" | "date-night" | "weekly-checkin" | "gratitude" | "goals" | "voice-memos" | "calendar" | "rituals" | "conversations" | "love-map" | "compatibility" | "progress" | "growth" | "messages" | "echo" | "pause" | "journal" | "ifs" | "financial" | "tips";
+  type WidgetType = "standard" | "therapist" | "suggestion" | "ai" | "love-results" | "attachment" | "enneagram" | "todos" | "chores" | "checkin-history" | "session-notes" | "mood" | "conflict" | "date-night" | "weekly-checkin" | "gratitude" | "goals" | "voice-memos" | "calendar" | "rituals" | "conversations" | "love-map" | "compatibility" | "progress" | "growth" | "messages" | "echo" | "pause" | "journal" | "ifs" | "financial" | "tips" | "reflection";
   
   const allWidgets: Array<{
     widgetId: string;
@@ -723,6 +724,7 @@ export default function ClientDashboard() {
     { widgetId: "todos", title: "To-Do List", description: "Shared tasks", icon: ListTodo, path: "/shared-todos", size: "md", type: "todos" },
     { widgetId: "financial", title: "Financial", description: "Money tools", icon: DollarSign, path: "/financial-toolkit", size: "sm", type: "financial" },
     { widgetId: "daily-tips", title: "Daily Tips", description: "Relationship tips", icon: Lightbulb, path: "/daily-tips", size: "sm", type: "tips" },
+    { widgetId: "reflection-prompts", title: "Reflection Prompts", description: "Guided questions from your therapist", icon: MessageCircle, path: "/reflection-prompts", size: "md", type: "reflection" },
   ];
 
   const isWidgetEnabled = (widgetId: string): boolean => {

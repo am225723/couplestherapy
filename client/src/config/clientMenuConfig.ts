@@ -90,6 +90,12 @@ export const clientMenuConfig: MenuCategory[] = [
         icon: BookOpen,
         testId: "nav-session-notes",
       },
+      {
+        title: "Reflection Prompts",
+        url: "/reflection-prompts",
+        icon: MessageCircle,
+        testId: "nav-reflection-prompts",
+      },
     ],
   },
   {
