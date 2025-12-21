@@ -969,26 +969,26 @@ export function DashboardCustomizer({
       </div>
 
       <Tabs defaultValue="templates" className="w-full">
-        <TabsList className="mb-4 flex-wrap gap-1">
-          <TabsTrigger value="templates" className="gap-2" data-testid="tab-templates">
+        <TabsList className="mb-4 h-auto flex-wrap gap-1 p-1">
+          <TabsTrigger value="templates" className="gap-1.5" data-testid="tab-templates">
             <Layout className="h-4 w-4" />
-            Templates
+            <span className="hidden sm:inline">Templates</span>
           </TabsTrigger>
-          <TabsTrigger value="categories" className="gap-2" data-testid="tab-categories">
+          <TabsTrigger value="categories" className="gap-1.5" data-testid="tab-categories">
             <ChevronDown className="h-4 w-4" />
-            By Category
+            <span className="hidden sm:inline">By Category</span>
           </TabsTrigger>
-          <TabsTrigger value="preview" className="gap-2" data-testid="tab-preview">
+          <TabsTrigger value="preview" className="gap-1.5" data-testid="tab-preview">
             <Eye className="h-4 w-4" />
-            Preview
+            <span className="hidden sm:inline">Preview</span>
           </TabsTrigger>
-          <TabsTrigger value="list" className="gap-2" data-testid="tab-list">
+          <TabsTrigger value="list" className="gap-1.5" data-testid="tab-list">
             <Settings2 className="h-4 w-4" />
-            All Widgets
+            <span className="hidden sm:inline">All Widgets</span>
           </TabsTrigger>
-          <TabsTrigger value="content" className="gap-2" data-testid="tab-content">
+          <TabsTrigger value="content" className="gap-1.5" data-testid="tab-content">
             <Pencil className="h-4 w-4" />
-            Card Content
+            <span className="hidden sm:inline">Card Content</span>
           </TabsTrigger>
         </TabsList>
 
