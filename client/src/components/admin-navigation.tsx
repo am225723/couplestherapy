@@ -21,6 +21,7 @@ import {
   Activity,
   Wrench,
   FileText,
+  PenLine,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -80,6 +81,7 @@ const INSIGHT_SECTIONS = [
 
 const TOOL_SECTIONS = [
   { id: "notes", label: "Session Notes", icon: FileText },
+  { id: "prompts", label: "Send Prompts", icon: PenLine, highlight: true },
   { id: "reflection-responses", label: "Reflection Responses", icon: MessageSquare },
   { id: "messages", label: "Messages", icon: MessageSquare },
   { id: "echo", label: "Echo & Empathy", icon: Users },
@@ -274,7 +276,7 @@ export function AdminNavigation({
           </Tabs>
 
           {getActiveTab() === "insights" && (
-            <div className="flex gap-1 py-2 overflow-x-auto">
+            <div className="flex flex-wrap gap-1 py-2">
               {INSIGHT_SECTIONS.map((section) => {
                 const Icon = section.icon;
                 return (
@@ -284,12 +286,12 @@ export function AdminNavigation({
                       currentSection === section.id ? "secondary" : "ghost"
                     }
                     size="sm"
-                    className="gap-1.5 flex-shrink-0"
+                    className="gap-1.5"
                     onClick={() => onSelectSection(section.id)}
                     data-testid={`button-section-${section.id}`}
                   >
                     <Icon className="h-3.5 w-3.5" />
-                    {section.label}
+                    <span className="hidden sm:inline">{section.label}</span>
                   </Button>
                 );
               })}
@@ -297,9 +299,10 @@ export function AdminNavigation({
           )}
 
           {getActiveTab() === "tools" && (
-            <div className="flex gap-1 py-2 overflow-x-auto">
+            <div className="flex flex-wrap gap-1 py-2">
               {TOOL_SECTIONS.map((section) => {
                 const Icon = section.icon;
+                const isHighlighted = (section as any).highlight;
                 return (
                   <Button
                     key={section.id}
@@ -307,12 +310,15 @@ export function AdminNavigation({
                       currentSection === section.id ? "secondary" : "ghost"
                     }
                     size="sm"
-                    className="gap-1.5 flex-shrink-0"
+                    className={cn(
+                      "gap-1.5",
+                      isHighlighted && currentSection !== section.id && "bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300"
+                    )}
                     onClick={() => onSelectSection(section.id)}
                     data-testid={`button-section-${section.id}`}
                   >
                     <Icon className="h-3.5 w-3.5" />
-                    {section.label}
+                    <span className="hidden sm:inline">{section.label}</span>
                   </Button>
                 );
               })}
