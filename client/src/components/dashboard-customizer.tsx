@@ -5,6 +5,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
+  CardFooter,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -21,6 +22,15 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import {
   GripVertical,
   Save,
@@ -61,12 +71,16 @@ import {
   Layout,
   ChevronDown,
   Check,
+  Trash2,
+  Copy,
+  Plus,
+  Loader2,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
-import type { WidgetContentOverrides } from "@shared/schema";
+import type { WidgetContentOverrides, LayoutTemplate } from "@shared/schema";
 
 interface DashboardCustomizerProps {
   coupleId: string;
@@ -811,6 +825,85 @@ export function DashboardCustomizer({
     },
   });
 
+  // Saved templates state and queries
+  const [saveDialogOpen, setSaveDialogOpen] = useState(false);
+  const [templateName, setTemplateName] = useState("");
+  const [templateDescription, setTemplateDescription] = useState("");
+
+  const { data: savedTemplates = [], isLoading: templatesLoading } = useQuery<LayoutTemplate[]>({
+    queryKey: ["/api/layout-templates/therapist", therapistId],
+    queryFn: async () => {
+      const response = await fetch(`/api/layout-templates/therapist/${therapistId}`);
+      if (!response.ok) throw new Error("Failed to fetch templates");
+      return response.json();
+    },
+  });
+
+  const createTemplateMutation = useMutation({
+    mutationFn: async (data: { name: string; description: string }) => {
+      return apiRequest("POST", "/api/layout-templates", {
+        therapist_id: therapistId,
+        name: data.name,
+        description: data.description,
+        widget_order: order,
+        enabled_widgets: enabled,
+        widget_sizes: sizes,
+        widget_content_overrides: contentOverrides,
+      });
+    },
+    onSuccess: () => {
+      toast({ title: "Template Saved", description: "Your layout has been saved as a template" });
+      queryClient.invalidateQueries({ queryKey: ["/api/layout-templates/therapist", therapistId] });
+      setSaveDialogOpen(false);
+      setTemplateName("");
+      setTemplateDescription("");
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Failed to save template", variant: "destructive" });
+    },
+  });
+
+  const deleteTemplateMutation = useMutation({
+    mutationFn: async (templateId: string) => {
+      return apiRequest("DELETE", `/api/layout-templates/${templateId}`);
+    },
+    onSuccess: () => {
+      toast({ title: "Template Deleted", description: "The template has been removed" });
+      queryClient.invalidateQueries({ queryKey: ["/api/layout-templates/therapist", therapistId] });
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Failed to delete template", variant: "destructive" });
+    },
+  });
+
+  const applyTemplateMutation = useMutation({
+    mutationFn: async (templateId: string) => {
+      return apiRequest("POST", `/api/layout-templates/${templateId}/apply/${coupleId}`, {
+        therapist_id: therapistId,
+      });
+    },
+    onSuccess: () => {
+      toast({ title: "Template Applied", description: "The template has been applied to this couple's dashboard" });
+      queryClient.invalidateQueries({ queryKey: [`/api/dashboard-customization/couple/${coupleId}`] });
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Failed to apply template", variant: "destructive" });
+    },
+  });
+
+  const applySavedTemplate = (template: LayoutTemplate) => {
+    setOrder(template.widget_order as string[]);
+    setEnabled(template.enabled_widgets as Record<string, boolean>);
+    setSizes(template.widget_sizes as Record<string, "small" | "medium" | "large">);
+    if (template.widget_content_overrides) {
+      setContentOverrides(template.widget_content_overrides as WidgetContentOverrides);
+    }
+    toast({
+      title: "Template Applied",
+      description: `"${template.name}" layout has been applied locally. Save to apply permanently.`,
+    });
+  };
+
   const handleDragStart = (widget: string) => {
     setDraggedItem(widget);
   };
@@ -959,6 +1052,139 @@ export function DashboardCustomizer({
                   );
                 })}
               </div>
+            </CardContent>
+          </Card>
+
+          {/* Saved Templates */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Save className="h-5 w-5" />
+                  Your Saved Templates
+                </div>
+                <Dialog open={saveDialogOpen} onOpenChange={setSaveDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button size="sm" className="gap-2" data-testid="button-save-as-template">
+                      <Plus className="h-4 w-4" />
+                      Save Current Layout
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Save Layout as Template</DialogTitle>
+                      <DialogDescription>
+                        Save your current widget configuration as a reusable template that you can apply to other couples.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="template-name">Template Name</Label>
+                        <Input
+                          id="template-name"
+                          placeholder="e.g., New Couple Starter Pack"
+                          value={templateName}
+                          onChange={(e) => setTemplateName(e.target.value)}
+                          data-testid="input-template-name"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="template-description">Description (optional)</Label>
+                        <Textarea
+                          id="template-description"
+                          placeholder="What's this template good for?"
+                          value={templateDescription}
+                          onChange={(e) => setTemplateDescription(e.target.value)}
+                          data-testid="input-template-description"
+                        />
+                      </div>
+                      <div className="text-sm text-muted-foreground">
+                        This template will include {Object.values(enabled).filter(Boolean).length} enabled widgets.
+                      </div>
+                    </div>
+                    <DialogFooter>
+                      <Button variant="outline" onClick={() => setSaveDialogOpen(false)}>
+                        Cancel
+                      </Button>
+                      <Button 
+                        onClick={() => createTemplateMutation.mutate({ name: templateName, description: templateDescription })}
+                        disabled={!templateName.trim() || createTemplateMutation.isPending}
+                        data-testid="button-confirm-save-template"
+                      >
+                        {createTemplateMutation.isPending ? (
+                          <>
+                            <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                            Saving...
+                          </>
+                        ) : (
+                          "Save Template"
+                        )}
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+              </CardTitle>
+              <CardDescription>
+                Templates you've created from previous configurations. Click to apply to this couple.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {templatesLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                </div>
+              ) : savedTemplates.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <Save className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                  <p>No saved templates yet.</p>
+                  <p className="text-sm">Create your first template using the button above.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {savedTemplates.map((template) => {
+                    const enabledCount = Object.values(template.enabled_widgets as Record<string, boolean>).filter(Boolean).length;
+                    return (
+                      <Card 
+                        key={template.id}
+                        className="cursor-pointer transition-all hover-elevate"
+                        onClick={() => applySavedTemplate(template)}
+                        data-testid={`saved-template-${template.id}`}
+                      >
+                        <CardHeader className="pb-2">
+                          <CardTitle className="text-base flex items-center justify-between">
+                            {template.name}
+                            <Badge variant="outline" className="text-xs">
+                              {enabledCount} widgets
+                            </Badge>
+                          </CardTitle>
+                          {template.description && (
+                            <CardDescription className="text-sm">
+                              {template.description}
+                            </CardDescription>
+                          )}
+                        </CardHeader>
+                        <CardFooter className="pt-0 flex justify-between">
+                          <span className="text-xs text-muted-foreground">
+                            Used {template.usage_count || 0} times
+                          </span>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-8 w-8 p-0"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              deleteTemplateMutation.mutate(template.id);
+                            }}
+                            data-testid={`button-delete-template-${template.id}`}
+                          >
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        </CardFooter>
+                      </Card>
+                    );
+                  })}
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>

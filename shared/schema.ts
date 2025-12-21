@@ -1297,3 +1297,36 @@ export const insertSharedTodoSchema = createInsertSchema(couplesSharedTodos).omi
 });
 export type InsertSharedTodo = z.infer<typeof insertSharedTodoSchema>;
 export type SharedTodo = typeof couplesSharedTodos.$inferSelect;
+
+// ============ LAYOUT TEMPLATES ============
+
+// 36. LAYOUT TEMPLATES - Therapist-created dashboard layout templates
+export const couplesLayoutTemplates = pgTable("Couples_layout_templates", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  therapist_id: uuid("therapist_id").notNull(),
+  name: text("name").notNull(),
+  description: text("description"),
+  widget_order: jsonb("widget_order").notNull(),
+  enabled_widgets: jsonb("enabled_widgets").notNull(),
+  widget_sizes: jsonb("widget_sizes").notNull(),
+  widget_content_overrides: jsonb("widget_content_overrides").default("{}"),
+  is_shared: boolean("is_shared").default(false), // If true, template is available to other therapists
+  usage_count: integer("usage_count").default(0), // How many times this template has been applied
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow(),
+});
+
+export const insertLayoutTemplateSchema = createInsertSchema(couplesLayoutTemplates).omit({
+  id: true,
+  created_at: true,
+  updated_at: true,
+  usage_count: true,
+}).extend({
+  name: z.string().min(1, "Template name is required"),
+  widget_order: z.array(z.string()),
+  enabled_widgets: z.record(z.boolean()),
+  widget_sizes: z.record(z.string()),
+  widget_content_overrides: z.record(z.any()).optional(),
+});
+export type InsertLayoutTemplate = z.infer<typeof insertLayoutTemplateSchema>;
+export type LayoutTemplate = typeof couplesLayoutTemplates.$inferSelect;
