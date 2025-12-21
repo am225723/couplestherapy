@@ -140,7 +140,7 @@ export function AdminNavigation({
     if (tab === "overview") onSelectSection("overview");
     else if (tab === "customize") onSelectSection("dashboard-customization");
     else if (tab === "insights") onSelectSection("checkins");
-    else if (tab === "tools") onSelectSection("messages");
+    else if (tab === "tools") onSelectSection("notes");
   };
 
   return (

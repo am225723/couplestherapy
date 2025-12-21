@@ -174,6 +174,7 @@ export default function AdminDashboard() {
     "mood",
     "notes",
     "reminders",
+    "reflection-responses",
   ];
   const currentSection = validSections.includes(params?.section || "")
     ? params?.section || "overview"
