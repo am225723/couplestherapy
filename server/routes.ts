@@ -37,6 +37,7 @@ import sharedTodosRouter from "./routes/sharedTodos.js";
 import sessionNotesRouter from "./routes/sessionNotes.js";
 import dailySuggestionRouter from "./routes/dailySuggestion.js";
 import layoutTemplatesRouter from "./routes/layoutTemplates.js";
+import individualLayoutPreferencesRouter from "./routes/individualLayoutPreferences.js";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Register all feature-based routers
@@ -80,6 +81,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use("/api/session-notes", sessionNotesRouter);
   app.use("/api/daily-suggestion", dailySuggestionRouter);
   app.use("/api/layout-templates", layoutTemplatesRouter);
+  app.use("/api/individual-layout-preferences", individualLayoutPreferencesRouter);
 
   // Create and return the HTTP server
   const httpServer = createServer(app);

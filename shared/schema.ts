@@ -1330,3 +1330,32 @@ export const insertLayoutTemplateSchema = createInsertSchema(couplesLayoutTempla
 });
 export type InsertLayoutTemplate = z.infer<typeof insertLayoutTemplateSchema>;
 export type LayoutTemplate = typeof couplesLayoutTemplates.$inferSelect;
+
+// ============ INDIVIDUAL LAYOUT PREFERENCES ============
+
+// 37. INDIVIDUAL LAYOUT PREFERENCES - Per-user dashboard customization that overrides couple defaults
+export const couplesIndividualLayoutPreferences = pgTable("Couples_individual_layout_preferences", {
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  user_id: uuid("user_id").notNull().unique(),
+  couple_id: uuid("couple_id").notNull(),
+  use_personal_layout: boolean("use_personal_layout").default(false),
+  widget_order: jsonb("widget_order"),
+  enabled_widgets: jsonb("enabled_widgets"),
+  widget_sizes: jsonb("widget_sizes"),
+  hidden_widgets: jsonb("hidden_widgets").default("[]"),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow(),
+});
+
+export const insertIndividualLayoutPreferenceSchema = createInsertSchema(couplesIndividualLayoutPreferences).omit({
+  id: true,
+  created_at: true,
+  updated_at: true,
+}).extend({
+  widget_order: z.array(z.string()).optional(),
+  enabled_widgets: z.record(z.boolean()).optional(),
+  widget_sizes: z.record(z.string()).optional(),
+  hidden_widgets: z.array(z.string()).optional(),
+});
+export type InsertIndividualLayoutPreference = z.infer<typeof insertIndividualLayoutPreferenceSchema>;
+export type IndividualLayoutPreference = typeof couplesIndividualLayoutPreferences.$inferSelect;
