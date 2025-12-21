@@ -1,6 +1,6 @@
 import { Router, Request, Response } from "express";
 import { supabaseAdmin } from "../supabase.js";
-import { insertConflictSessionSchema } from "@shared/schema";
+import { insertConflictSessionSchema } from "../../shared/schema.js";
 import { z } from "zod";
 
 const router = Router();

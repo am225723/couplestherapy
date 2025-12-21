@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { supabaseAdmin } from "../supabase.js";
 import { z } from "zod";
-import { insertChoreSchema } from "@shared/schema";
+import { insertChoreSchema } from "../../shared/schema.js";
 
 const router = Router();
 
