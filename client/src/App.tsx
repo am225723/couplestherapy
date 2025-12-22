@@ -399,9 +399,9 @@ function AuthenticatedApp() {
       );
       const isOnRootRoute = location === "/";
 
-      // If therapist is on a client route, redirect to /admin
+      // If therapist is on a client route, redirect to /admin/couple
       if (isTherapist && isOnClientRoute) {
-        setLocation("/admin");
+        setLocation("/admin/couple");
       }
       // If client is on a therapist route, redirect based on couple setup status
       else if (!isTherapist && isOnTherapistRoute) {
@@ -410,7 +410,7 @@ function AuthenticatedApp() {
       // If on root route, redirect based on role
       else if (isOnRootRoute) {
         if (isTherapist) {
-          setLocation("/admin");
+          setLocation("/admin/couple");
         } else {
           setLocation(profile.couple_id ? "/dashboard" : "/couple-setup");
         }
@@ -522,7 +522,9 @@ function AuthenticatedApp() {
         </header>
         <main className="flex-1 overflow-y-auto">
           <Switch>
-            <Route path="/admin" component={TherapistDashboard} />
+            <Route path="/admin">
+              <Redirect to="/admin/couple" />
+            </Route>
             <Route path="/admin/couple" component={AdminDashboard} />
             <Route path="/admin/couple/:id" component={AdminDashboard} />
             <Route
