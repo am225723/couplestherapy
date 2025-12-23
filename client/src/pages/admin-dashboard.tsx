@@ -77,6 +77,7 @@ import {
   Activity,
   LayoutDashboard,
   ExternalLink,
+  CalendarDays,
 } from "lucide-react";
 import {
   Couple,
