@@ -72,21 +72,51 @@ async function generateAiTip(category: string): Promise<string> {
   }
 }
 
+// Helper to verify access (either couple member or therapist)
+async function verifyAccessToCouple(userId: string, coupleId: string): Promise<boolean> {
+  // Check if user is a partner in the couple
+  const { data: couple } = await supabaseAdmin
+    .from("Couples_couples")
+    .select("id, partner1_id, partner2_id")
+    .eq("id", coupleId)
+    .single();
+
+  if (!couple) return false;
+
+  // User is a partner
+  if (couple.partner1_id === userId || couple.partner2_id === userId) {
+    return true;
+  }
+
+  // Check if user is a therapist
+  const { data: profile } = await supabaseAdmin
+    .from("Couples_profiles")
+    .select("role")
+    .eq("id", userId)
+    .single();
+
+  if (profile?.role === "therapist") {
+    return true;
+  }
+
+  return false;
+}
+
 // GET /couple/:coupleId - Get daily tips
 router.get("/couple/:coupleId", async (req: Request, res: Response) => {
   try {
+    const authResult = await verifyUserSession(req);
+    if (!authResult.success) {
+      return res.status(authResult.status).json({ error: authResult.error });
+    }
+
     const { coupleId } = req.params;
     const limit = req.query.limit ? parseInt(req.query.limit as string) : 30;
 
-    // Verify couple exists
-    const { data: couple } = await supabaseAdmin
-      .from("Couples_couples")
-      .select("id")
-      .eq("id", coupleId)
-      .single();
-
-    if (!couple) {
-      return res.status(403).json({ error: "Couple not found" });
+    // Verify access (either couple member or therapist)
+    const hasAccess = await verifyAccessToCouple(authResult.userId, coupleId);
+    if (!hasAccess) {
+      return res.status(403).json({ error: "Access denied" });
     }
 
     const { data: tips, error } = await supabaseAdmin
@@ -107,17 +137,17 @@ router.get("/couple/:coupleId", async (req: Request, res: Response) => {
 // GET /couple/:coupleId/today - Get today's tip
 router.get("/couple/:coupleId/today", async (req: Request, res: Response) => {
   try {
+    const authResult = await verifyUserSession(req);
+    if (!authResult.success) {
+      return res.status(authResult.status).json({ error: authResult.error });
+    }
+
     const { coupleId } = req.params;
 
-    // Verify couple exists (allow access to any valid couple)
-    const { data: couple } = await supabaseAdmin
-      .from("Couples_couples")
-      .select("id")
-      .eq("id", coupleId)
-      .single();
-
-    if (!couple) {
-      return res.status(403).json({ error: "Couple not found" });
+    // Verify access (either couple member or therapist)
+    const hasAccess = await verifyAccessToCouple(authResult.userId, coupleId);
+    if (!hasAccess) {
+      return res.status(403).json({ error: "Access denied" });
     }
 
     const today = new Date();
@@ -175,18 +205,18 @@ router.get("/couple/:coupleId/today", async (req: Request, res: Response) => {
 // POST /couple/:coupleId - Generate new tip
 router.post("/couple/:coupleId", async (req: Request, res: Response) => {
   try {
+    const authResult = await verifyUserSession(req);
+    if (!authResult.success) {
+      return res.status(authResult.status).json({ error: authResult.error });
+    }
+
     const { coupleId } = req.params;
     const { category = "connection" } = req.body;
 
-    // Verify couple exists
-    const { data: couple } = await supabaseAdmin
-      .from("Couples_couples")
-      .select("id")
-      .eq("id", coupleId)
-      .single();
-
-    if (!couple) {
-      return res.status(403).json({ error: "Couple not found" });
+    // Verify access (either couple member or therapist)
+    const hasAccess = await verifyAccessToCouple(authResult.userId, coupleId);
+    if (!hasAccess) {
+      return res.status(403).json({ error: "Access denied" });
     }
 
     try {
