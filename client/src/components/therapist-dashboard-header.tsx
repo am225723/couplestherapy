@@ -78,15 +78,6 @@ export function TherapistDashboardHeader({
   return (
     <div className="sticky top-0 z-40 bg-gradient-to-r from-primary/5 via-background to-accent/5 border-b backdrop-blur-sm">
       <div className="flex items-center gap-4 px-4 py-3">
-        <div className="flex items-center gap-2 shrink-0">
-          <div className="p-2 rounded-xl bg-gradient-to-br from-primary to-accent">
-            <Heart className="h-5 w-5 text-white" />
-          </div>
-          <span className="font-bold text-lg bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-            ALEIC
-          </span>
-        </div>
-
         <div className="flex-1 flex items-center gap-3 max-w-md">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
