@@ -76,6 +76,7 @@ import {
   X,
   Activity,
   LayoutDashboard,
+  ExternalLink,
 } from "lucide-react";
 import {
   Couple,
@@ -87,15 +88,11 @@ import {
   JournalEntry,
   GratitudeLog,
   SharedGoal,
-  Ritual,
-  Conversation,
   Message,
   CalendarEvent,
-  EchoSession,
-  EchoTurn,
-  IfsExercise,
-  IfsPart,
-  PauseEvent,
+  EchoEmpathySession,
+  IFSExercise,
+  PauseButton,
   DashboardCustomization,
   TherapistPrompt,
 } from "@shared/schema";
@@ -1161,6 +1158,14 @@ export default function AdminDashboard() {
               </TabsContent>
 
                 <TabsContent value="checkins" className="space-y-6">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <div className="p-2 rounded-lg bg-gradient-to-br from-violet-500 to-purple-500">
+                      <CheckCircle className="h-5 w-5 text-white" />
+                    </div>
+                    <h3 className="text-xl font-semibold bg-gradient-to-r from-violet-600 to-purple-600 dark:from-violet-400 dark:to-purple-400 bg-clip-text text-transparent">
+                      Weekly Check-Ins
+                    </h3>
+                  </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {checkins.slice(0, 2).map((checkin) => (
                       <Card key={checkin.id}>
@@ -1244,6 +1249,14 @@ export default function AdminDashboard() {
                 </TabsContent>
 
                 <TabsContent value="languages" className="space-y-6">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <div className="p-2 rounded-lg bg-gradient-to-br from-amber-500 to-orange-500">
+                      <Heart className="h-5 w-5 text-white" />
+                    </div>
+                    <h3 className="text-xl font-semibold bg-gradient-to-r from-amber-600 to-orange-600 dark:from-amber-400 dark:to-orange-400 bg-clip-text text-transparent">
+                      Love Languages
+                    </h3>
+                  </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {loveLanguages.map((lang) => {
                       const partner = [
@@ -1328,6 +1341,14 @@ export default function AdminDashboard() {
                 </TabsContent>
 
                 <TabsContent value="attachment" className="space-y-6">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <div className="p-2 rounded-lg bg-gradient-to-br from-amber-500 to-orange-500">
+                      <Users className="h-5 w-5 text-white" />
+                    </div>
+                    <h3 className="text-xl font-semibold bg-gradient-to-r from-amber-600 to-orange-600 dark:from-amber-400 dark:to-orange-400 bg-clip-text text-transparent">
+                      Attachment Styles
+                    </h3>
+                  </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {attachmentStyles.map((style) => {
                       const partner = [
@@ -1387,6 +1408,14 @@ export default function AdminDashboard() {
                 </TabsContent>
 
                 <TabsContent value="enneagram" className="space-y-6">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <div className="p-2 rounded-lg bg-gradient-to-br from-amber-500 to-orange-500">
+                      <Target className="h-5 w-5 text-white" />
+                    </div>
+                    <h3 className="text-xl font-semibold bg-gradient-to-r from-amber-600 to-orange-600 dark:from-amber-400 dark:to-orange-400 bg-clip-text text-transparent">
+                      Enneagram
+                    </h3>
+                  </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {enneagramAssessments.map((assessment) => {
                       const partner = [
@@ -1535,6 +1564,14 @@ export default function AdminDashboard() {
                 </TabsContent>
 
                 <TabsContent value="activity" className="space-y-4">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <div className="p-2 rounded-lg bg-gradient-to-br from-rose-500 to-pink-500">
+                      <Activity className="h-5 w-5 text-white" />
+                    </div>
+                    <h3 className="text-xl font-semibold bg-gradient-to-r from-rose-600 to-pink-600 dark:from-rose-400 dark:to-pink-400 bg-clip-text text-transparent">
+                      Activity Feed
+                    </h3>
+                  </div>
                   {activities.map((activity) => (
                     <Card key={`${activity.type}-${activity.id}`}>
                       <CardContent className="pt-6 space-y-4">
@@ -1667,9 +1704,16 @@ export default function AdminDashboard() {
                 </TabsContent>
 
                 <TabsContent value="notes" className="space-y-4">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <div className="p-2 rounded-lg bg-gradient-to-br from-violet-500 to-purple-500">
+                      <FileText className="h-5 w-5 text-white" />
+                    </div>
+                    <h3 className="text-xl font-semibold bg-gradient-to-r from-violet-600 to-purple-600 dark:from-violet-400 dark:to-purple-400 bg-clip-text text-transparent">
+                      Session Notes
+                    </h3>
+                  </div>
                   <Card>
                     <CardHeader>
-                      <CardTitle>Session Notes</CardTitle>
                       <CardDescription>
                         Document your therapy sessions with this couple
                       </CardDescription>
@@ -1840,14 +1884,16 @@ export default function AdminDashboard() {
                 {/* Client Prompts Tab - Therapist-customizable suggestions */}
                 <TabsContent value="prompts" className="space-y-6">
                   <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h3 className="text-lg font-semibold">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <div className="p-2 rounded-lg bg-gradient-to-br from-amber-500 to-orange-500">
+                        <MessageSquare className="h-5 w-5 text-white" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-xl font-semibold bg-gradient-to-r from-amber-600 to-orange-600 dark:from-amber-400 dark:to-orange-400 bg-clip-text text-transparent">
                           Client Prompts
                         </h3>
                         <p className="text-sm text-muted-foreground">
-                          Create custom suggestions and prompts that appear in
-                          your client's "Suggested For You" section
+                          Create custom suggestions and prompts that appear in your client's "Suggested For You" section
                         </p>
                       </div>
                     </div>
@@ -2453,13 +2499,22 @@ function MessagesTab({
   }, [coupleId]);
 
   return (
-    <Card className="flex flex-col overflow-hidden h-[600px]">
-      <CardHeader className="border-b">
-        <CardTitle className="flex items-center gap-2">
-          <MessageSquare className="h-5 w-5" />
-          Conversation with Couple
-        </CardTitle>
-      </CardHeader>
+    <div className="space-y-4">
+      <div className="flex items-center gap-2 flex-wrap">
+        <div className="p-2 rounded-lg bg-gradient-to-br from-rose-500 to-pink-500">
+          <MessageSquare className="h-5 w-5 text-white" />
+        </div>
+        <h3 className="text-xl font-semibold bg-gradient-to-r from-rose-600 to-pink-600 dark:from-rose-400 dark:to-pink-400 bg-clip-text text-transparent">
+          Messages
+        </h3>
+      </div>
+      <Card className="flex flex-col overflow-hidden h-[600px]">
+        <CardHeader className="border-b">
+          <CardTitle className="flex items-center gap-2">
+            <MessageSquare className="h-5 w-5" />
+            Conversation with Couple
+          </CardTitle>
+        </CardHeader>
 
       <CardContent className="flex-1 flex flex-col p-0 overflow-hidden">
         {isLoading ? (
@@ -2567,7 +2622,8 @@ function MessagesTab({
           </div>
         </div>
       </CardContent>
-    </Card>
+      </Card>
+    </div>
   );
 }
 
@@ -2591,9 +2647,9 @@ function CalendarTab({ coupleId }: { coupleId: string }) {
 
   const calendarEvents = events.map((event) => ({
     ...event,
-    start: new Date(event.start_at),
-    end: new Date(event.end_at),
-    title: event.title,
+    start: new Date(event.event_date),
+    end: new Date(event.event_date),
+    title: event.event_title,
   }));
 
   const handleViewChange = (newView: any) => {
@@ -2621,18 +2677,27 @@ function CalendarTab({ coupleId }: { coupleId: string }) {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Calendar</CardTitle>
-        <CardDescription>
-          View the couple's scheduled events and dates (read-only)
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div
-          style={{ height: "600px" }}
-          data-testid="calendar-container-therapist"
-        >
+    <div className="space-y-4">
+      <div className="flex items-center gap-2 flex-wrap">
+        <div className="p-2 rounded-lg bg-gradient-to-br from-teal-500 to-cyan-500">
+          <CalendarDays className="h-5 w-5 text-white" />
+        </div>
+        <h3 className="text-xl font-semibold bg-gradient-to-r from-teal-600 to-cyan-600 dark:from-teal-400 dark:to-cyan-400 bg-clip-text text-transparent">
+          Calendar
+        </h3>
+      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Shared Calendar</CardTitle>
+          <CardDescription>
+            View the couple's scheduled events and dates (read-only)
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div
+            style={{ height: "600px" }}
+            data-testid="calendar-container-therapist"
+          >
           <Calendar
             localizer={localizer}
             events={calendarEvents}
@@ -2647,8 +2712,9 @@ function CalendarTab({ coupleId }: { coupleId: string }) {
             style={{ height: "100%" }}
           />
         </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
 
@@ -2886,10 +2952,24 @@ function LoveMapTab({ coupleId }: { coupleId: string }) {
   );
 }
 
+interface EchoTurnData {
+  id: string;
+  session_id: string;
+  step: number;
+  content: string;
+  created_at: string | null;
+}
+
+interface EchoSessionData {
+  id: string;
+  couple_id: string;
+  status: string;
+  created_at: string | null;
+  turns: EchoTurnData[];
+}
+
 function EchoEmpathyTab({ coupleId }: { coupleId: string }) {
-  const [echoSessions, setEchoSessions] = useState<
-    (EchoSession & { turns: EchoTurn[] })[]
-  >([]);
+  const [echoSessions, setEchoSessions] = useState<EchoSessionData[]>([]);
 
   useEffect(() => {
     fetchEchoSessions();
@@ -2940,9 +3020,9 @@ function EchoEmpathyTab({ coupleId }: { coupleId: string }) {
           {echoSessions.length > 0 ? (
             <div className="space-y-4">
               {echoSessions.map((session) => {
-                const step1Turn = session.turns.find((t) => t.step === 1);
-                const step2Turn = session.turns.find((t) => t.step === 2);
-                const step3Turn = session.turns.find((t) => t.step === 3);
+                const step1Turn = session.turns.find((t: EchoTurnData) => t.step === 1);
+                const step2Turn = session.turns.find((t: EchoTurnData) => t.step === 2);
+                const step3Turn = session.turns.find((t: EchoTurnData) => t.step === 3);
 
                 return (
                   <Card key={session.id}>
@@ -3015,6 +3095,15 @@ function EchoEmpathyTab({ coupleId }: { coupleId: string }) {
   );
 }
 
+interface IfsPartData {
+  id: string;
+  user_id: string;
+  part_name: string;
+  when_appears: string;
+  letter_content: string;
+  created_at: string | null;
+}
+
 function IfsTab({
   coupleId,
   partnerId1,
@@ -3028,8 +3117,8 @@ function IfsTab({
   partner1Name?: string;
   partner2Name?: string;
 }) {
-  const [partner1Parts, setPartner1Parts] = useState<IfsPart[]>([]);
-  const [partner2Parts, setPartner2Parts] = useState<IfsPart[]>([]);
+  const [partner1Parts, setPartner1Parts] = useState<IfsPartData[]>([]);
+  const [partner2Parts, setPartner2Parts] = useState<IfsPartData[]>([]);
 
   useEffect(() => {
     fetchIfsParts();
@@ -3055,7 +3144,7 @@ function IfsTab({
     }
   };
 
-  const renderParts = (parts: IfsPart[], partnerName?: string) => (
+  const renderParts = (parts: IfsPartData[], partnerName?: string) => (
     <Card>
       <CardHeader>
         <CardTitle>{partnerName}'s Protective Parts</CardTitle>
@@ -3131,6 +3220,16 @@ function IfsTab({
   );
 }
 
+interface PauseEventData {
+  id: string;
+  couple_id: string;
+  initiated_by: string;
+  started_at: string | null;
+  ended_at: string | null;
+  duration_minutes: number | null;
+  reflection: string | null;
+}
+
 function PauseHistoryTab({
   coupleId,
   partnerId1,
@@ -3144,7 +3243,7 @@ function PauseHistoryTab({
   partner1Name?: string;
   partner2Name?: string;
 }) {
-  const [pauseEvents, setPauseEvents] = useState<PauseEvent[]>([]);
+  const [pauseEvents, setPauseEvents] = useState<PauseEventData[]>([]);
 
   useEffect(() => {
     fetchPauseHistory();
@@ -3165,7 +3264,7 @@ function PauseHistoryTab({
     }
   };
 
-  const getInitiatorName = (pause: PauseEvent) => {
+  const getInitiatorName = (pause: PauseEventData) => {
     if (pause.initiated_by === partnerId1) return partner1Name || "Partner 1";
     if (pause.initiated_by === partnerId2) return partner2Name || "Partner 2";
     return "Unknown";
@@ -4896,7 +4995,7 @@ function ReflectionResponsesTab({
                         }
                       </Badge>
                       <span className="text-xs text-muted-foreground">
-                        Created {format(new Date(prompt.created_at), "MMM d, yyyy")}
+                        Created {prompt.created_at ? format(new Date(prompt.created_at), "MMM d, yyyy") : "Recently"}
                       </span>
                     </div>
                   </div>
