@@ -181,30 +181,28 @@ export function TherapistDashboardHeader({
         </div>
 
         {selectedCouple && (
-          <div className="flex items-center gap-2 ml-auto">
+          <div className="flex items-center gap-2 ml-auto shrink-0">
             <Badge 
               variant="secondary" 
-              className="gap-1.5 bg-primary/10 text-primary border-primary/20"
+              className="gap-1 bg-primary/10 text-primary border-primary/20 whitespace-nowrap hidden sm:flex"
             >
               <Users className="h-3 w-3" />
-              {couples.length} couples
+              {couples.length}
             </Badge>
             {onAISessionPrep && (
               <Button
+                size="sm"
                 onClick={onAISessionPrep}
                 disabled={isAILoading}
-                className="gap-2 bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 text-white shadow-md"
+                className="gap-1.5 bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 text-white shadow-md whitespace-nowrap"
                 data-testid="button-ai-session-prep"
               >
                 {isAILoading ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    <span className="hidden sm:inline">Analyzing...</span>
-                  </>
+                  <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
                   <>
                     <Sparkles className="h-4 w-4" />
-                    <span className="hidden sm:inline">AI Session Prep</span>
+                    <span className="hidden sm:inline">AI Prep</span>
                   </>
                 )}
               </Button>
