@@ -129,7 +129,7 @@ export function TherapistSubNavigation({
                 variant="ghost"
                 size="sm"
                 className={cn(
-                  "gap-2 h-9 px-3 border transition-all duration-150",
+                  "gap-1.5 h-auto py-1.5 px-2.5 border transition-all duration-150",
                   isActive
                     ? colors.active
                     : `border-transparent ${colors.hover}`
@@ -137,8 +137,8 @@ export function TherapistSubNavigation({
                 onClick={() => onSelectSection(item.id)}
                 data-testid={`button-section-${item.id}`}
               >
-                <Icon className={cn("h-4 w-4", isActive && colors.icon)} />
-                <span className="hidden sm:inline">{item.label}</span>
+                <Icon className={cn("h-4 w-4 flex-shrink-0", isActive && colors.icon)} />
+                <span className="text-xs">{item.label}</span>
               </Button>
             );
           })}

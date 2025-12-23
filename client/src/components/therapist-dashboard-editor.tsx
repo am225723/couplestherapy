@@ -106,8 +106,6 @@ const SIZE_OPTIONS: Array<{ cols: 1 | 2 | 3; rows: 1 | 2; label: string }> = [
   { cols: 1, rows: 2, label: "1×2" },
   { cols: 2, rows: 1, label: "2×1" },
   { cols: 2, rows: 2, label: "2×2" },
-  { cols: 3, rows: 1, label: "3×1" },
-  { cols: 3, rows: 2, label: "3×2" },
 ];
 
 export function TherapistDashboardEditor({ coupleId, coupleName }: TherapistDashboardEditorProps) {
@@ -491,13 +489,13 @@ export function TherapistDashboardEditor({ coupleId, coupleName }: TherapistDash
               <div
                 ref={provided.innerRef}
                 {...provided.droppableProps}
-                className="grid grid-cols-3 gap-3"
+                className="grid grid-cols-2 gap-3"
               >
                 {orderedWidgets.map((widget, index) => {
                   const Icon = widget.icon;
                   const variant = widgetVariants[widget.widgetId] || "default";
                   const widgetSize = getWidgetSize(widget.widgetId);
-                  const colSpanClass = widgetSize.cols === 3 ? "col-span-3" : widgetSize.cols === 2 ? "col-span-2" : "";
+                  const colSpanClass = widgetSize.cols >= 2 ? "col-span-2" : "";
                   const rowSpanClass = widgetSize.rows === 2 ? "row-span-2" : "";
 
                   const specialContent = widget.type ? renderSpecialWidget(widget) : null;

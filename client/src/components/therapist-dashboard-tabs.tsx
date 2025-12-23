@@ -70,7 +70,7 @@ export function TherapistDashboardTabs({
                   key={tab.id}
                   value={tab.id}
                   className={cn(
-                    "gap-2 px-4 py-2.5 rounded-lg transition-all duration-200",
+                    "gap-1.5 px-3 py-2 rounded-lg transition-all duration-200",
                     "data-[state=active]:shadow-none",
                     isActive
                       ? `${tab.bgColor} ${tab.textColor} border-2 ${tab.borderColor}`
@@ -78,8 +78,8 @@ export function TherapistDashboardTabs({
                   )}
                   data-testid={`tab-${tab.id}`}
                 >
-                  <Icon className={cn("h-4 w-4", isActive && tab.textColor)} />
-                  <span className="font-medium">{tab.label}</span>
+                  <Icon className={cn("h-4 w-4 flex-shrink-0", isActive && tab.textColor)} />
+                  <span className="font-medium text-sm">{tab.label}</span>
                 </TabsTrigger>
               );
             })}
