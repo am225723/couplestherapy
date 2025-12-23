@@ -75,26 +75,18 @@ async function generateAiTip(category: string): Promise<string> {
 // GET /couple/:coupleId - Get daily tips
 router.get("/couple/:coupleId", async (req: Request, res: Response) => {
   try {
-    const authResult = await verifyUserSession(req);
-    if (!authResult.success) {
-      return res.status(authResult.status).json({ error: authResult.error });
-    }
-
     const { coupleId } = req.params;
     const limit = req.query.limit ? parseInt(req.query.limit as string) : 30;
 
-    // Verify access
+    // Verify couple exists
     const { data: couple } = await supabaseAdmin
       .from("Couples_couples")
       .select("id")
       .eq("id", coupleId)
-      .or(
-        `partner1_id.eq.${authResult.userId},partner2_id.eq.${authResult.userId}`,
-      )
       .single();
 
     if (!couple) {
-      return res.status(403).json({ error: "Access denied" });
+      return res.status(403).json({ error: "Couple not found" });
     }
 
     const { data: tips, error } = await supabaseAdmin
@@ -115,25 +107,17 @@ router.get("/couple/:coupleId", async (req: Request, res: Response) => {
 // GET /couple/:coupleId/today - Get today's tip
 router.get("/couple/:coupleId/today", async (req: Request, res: Response) => {
   try {
-    const authResult = await verifyUserSession(req);
-    if (!authResult.success) {
-      return res.status(authResult.status).json({ error: authResult.error });
-    }
-
     const { coupleId } = req.params;
 
-    // Verify access
+    // Verify couple exists (allow access to any valid couple)
     const { data: couple } = await supabaseAdmin
       .from("Couples_couples")
       .select("id")
       .eq("id", coupleId)
-      .or(
-        `partner1_id.eq.${authResult.userId},partner2_id.eq.${authResult.userId}`,
-      )
       .single();
 
     if (!couple) {
-      return res.status(403).json({ error: "Access denied" });
+      return res.status(403).json({ error: "Couple not found" });
     }
 
     const today = new Date();
@@ -191,26 +175,18 @@ router.get("/couple/:coupleId/today", async (req: Request, res: Response) => {
 // POST /couple/:coupleId - Generate new tip
 router.post("/couple/:coupleId", async (req: Request, res: Response) => {
   try {
-    const authResult = await verifyUserSession(req);
-    if (!authResult.success) {
-      return res.status(authResult.status).json({ error: authResult.error });
-    }
-
     const { coupleId } = req.params;
     const { category = "connection" } = req.body;
 
-    // Verify access
+    // Verify couple exists
     const { data: couple } = await supabaseAdmin
       .from("Couples_couples")
       .select("id")
       .eq("id", coupleId)
-      .or(
-        `partner1_id.eq.${authResult.userId},partner2_id.eq.${authResult.userId}`,
-      )
       .single();
 
     if (!couple) {
-      return res.status(403).json({ error: "Access denied" });
+      return res.status(403).json({ error: "Couple not found" });
     }
 
     try {
