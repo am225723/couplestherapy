@@ -44,9 +44,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { AdminNavigation } from "@/components/admin-navigation";
-import { AdminSidebar } from "@/components/admin-sidebar";
-import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
+import { TherapistDashboardHeader } from "@/components/therapist-dashboard-header";
+import { TherapistDashboardTabs, type TabCategory } from "@/components/therapist-dashboard-tabs";
+import { TherapistSubNavigation, getSectionCategory } from "@/components/therapist-sub-navigation";
 import { AddCoupleModal } from "@/components/add-couple-modal";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/lib/supabase";
@@ -207,7 +207,7 @@ export default function AdminDashboard() {
   const [dashboardCustomization, setDashboardCustomization] =
     useState<DashboardCustomization | null>(null);
   const [showAddCoupleModal, setShowAddCoupleModal] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [activeTab, setActiveTab] = useState<TabCategory>("overview");
   const [editingPromptId, setEditingPromptId] = useState<string | null>(null);
   const [newPrompt, setNewPrompt] = useState({
     tool_name: "",
@@ -797,106 +797,47 @@ export default function AdminDashboard() {
     );
   }
 
+  const handleTabChange = (tab: TabCategory) => {
+    setActiveTab(tab);
+    if (tab === "overview") handleSelectSection("overview");
+    else if (tab === "session") handleSelectSection("notes");
+    else if (tab === "client") handleSelectSection("dashboard-customization");
+    else if (tab === "communication") handleSelectSection("messages");
+  };
+
+  const currentTabCategory = getSectionCategory(currentSection);
+
   return (
-    <SidebarProvider>
-      <div className="flex flex-col h-screen w-full">
-        <AdminNavigation
-          couples={couples}
-          selectedCoupleId={selectedCouple?.id || null}
-          onSelectCouple={handleSelectCouple}
-          currentSection={currentSection}
-          onSelectSection={handleSelectSection}
-          onAddCouple={() => setShowAddCoupleModal(true)}
-          sidebarOpen={sidebarOpen}
-          onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
-        />
+    <div className="flex flex-col h-screen w-full bg-gradient-to-br from-background via-background to-muted/20">
+      <TherapistDashboardHeader
+        couples={couples}
+        selectedCouple={selectedCouple}
+        onSelectCouple={handleSelectCouple}
+        onAddCouple={() => setShowAddCoupleModal(true)}
+        onAISessionPrep={() => sessionPrepMutation.mutate(selectedCouple?.id || "")}
+        isAILoading={sessionPrepMutation.isPending}
+      />
 
-        <div className="flex flex-1 overflow-hidden">
-          {sidebarOpen && (
-            <AdminSidebar
-              couples={couples}
-              selectedCoupleId={selectedCouple?.id || null}
-              onSelectCouple={handleSelectCouple}
-              currentSection={currentSection}
-              onSelectSection={handleSelectSection}
-            />
-          )}
+      <TherapistDashboardTabs
+        activeTab={currentTabCategory}
+        onTabChange={handleTabChange}
+      />
 
-          <SidebarInset className="flex flex-col flex-1 overflow-y-auto min-h-0">
-        <header className="border-b shrink-0 bg-gradient-to-r from-background to-muted/30">
-          <div className="flex items-center justify-between p-4 gap-4">
-            <div className="flex items-center gap-4">
-              {selectedCouple && (
-                <div className="flex items-center gap-3">
-                  <div className="flex -space-x-2">
-                    <Avatar className="border-2 border-background h-10 w-10">
-                      <AvatarFallback className="bg-gradient-to-br from-primary/20 to-accent/20 text-primary font-semibold">
-                        {selectedCouple.partner1?.full_name?.charAt(0) || "?"}
-                      </AvatarFallback>
-                    </Avatar>
-                    <Avatar className="border-2 border-background h-10 w-10">
-                      <AvatarFallback className="bg-gradient-to-br from-secondary/30 to-accent/20 text-secondary-foreground font-semibold">
-                        {selectedCouple.partner2?.full_name?.charAt(0) || "?"}
-                      </AvatarFallback>
-                    </Avatar>
-                  </div>
-                  <h1 className="text-xl font-semibold">
-                    {selectedCouple.partner1?.full_name} &{" "}
-                    {selectedCouple.partner2?.full_name}
-                  </h1>
-                </div>
-              )}
-            </div>
+      <TherapistSubNavigation
+        category={currentTabCategory}
+        currentSection={currentSection}
+        onSelectSection={handleSelectSection}
+      />
 
-            <div className="flex items-center gap-2">
-              <Button asChild variant="outline" size="sm" className="gap-2">
-                <Link href={`/admin/couple/${selectedCouple?.id}/notes`} data-testid="header-button-notes">
-                  <FileText className="h-4 w-4" />
-                  Notes
-                </Link>
-              </Button>
-              <Button asChild variant="outline" size="sm" className="gap-2">
-                <Link href={`/admin/couple/${selectedCouple?.id}/messages`} data-testid="header-button-messages">
-                  <MessageSquare className="h-4 w-4" />
-                  Messages
-                </Link>
-              </Button>
-              <Button asChild variant="outline" size="sm" className="gap-2">
-                <Link href={`/admin/couple/${selectedCouple?.id}/dashboard-customization`} data-testid="header-button-customize">
-                  <Sliders className="h-4 w-4" />
-                  Customize
-                </Link>
-              </Button>
-              <Dialog>
-            <DialogTrigger asChild>
-              <Button
-                variant="default"
-                className="gap-2"
-                onClick={() => sessionPrepMutation.mutate(selectedCouple.id)}
-                disabled={sessionPrepMutation.isPending}
-                data-testid="button-ai-session-prep"
-              >
-                {sessionPrepMutation.isPending ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    Analyzing...
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="h-4 w-4" />
-                    AI Session Prep
-                  </>
-                )}
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle className="flex items-center gap-2">
-                  <Sparkles className="h-5 w-5 text-primary" />
-                  AI Session Preparation Summary
-                </DialogTitle>
-                <DialogDescription>
-                  AI-powered analysis of the last 4 weeks of couple activity
+      <Dialog open={sessionPrepMutation.isSuccess} onOpenChange={() => sessionPrepMutation.reset()}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-violet-500" />
+              AI Session Preparation Summary
+            </DialogTitle>
+            <DialogDescription>
+              AI-powered analysis of the last 4 weeks of couple activity
                 </DialogDescription>
               </DialogHeader>
 
@@ -1054,159 +995,170 @@ export default function AdminDashboard() {
                   </div>
                 </div>
               )}
-            </DialogContent>
-          </Dialog>
-            </div>
-          </div>
-        </header>
+          </DialogContent>
+      </Dialog>
 
-        <main className="flex-1 min-h-0 overflow-y-auto">
-          <ScrollArea className="h-full">
-            <div className="p-4 md:p-8 space-y-6 max-w-7xl mx-auto">
-              {/* Controlled Tabs - synced with URL section */}
-              <Tabs value={currentSection} onValueChange={handleSelectSection}>
-                {/* TabsList hidden - navigation via sidebar only */}
-                <div className="sr-only">
-                  <TabsList>
-                    <TabsTrigger value="overview">Overview</TabsTrigger>
-                    <TabsTrigger value="checkins">Weekly Check-ins</TabsTrigger>
-                    <TabsTrigger value="languages">Love Languages</TabsTrigger>
-                    <TabsTrigger value="attachment">Attachment Styles</TabsTrigger>
-                    <TabsTrigger value="enneagram">Enneagram</TabsTrigger>
-                    <TabsTrigger value="lovemap">Love Map Quiz</TabsTrigger>
-                    <TabsTrigger value="echo">Echo & Empathy</TabsTrigger>
-                    <TabsTrigger value="ifs">IFS Exercises</TabsTrigger>
-                    <TabsTrigger value="pause">Pause History</TabsTrigger>
-                    <TabsTrigger value="activity">Activity Feed</TabsTrigger>
-                    <TabsTrigger value="messages">Messages</TabsTrigger>
-                    <TabsTrigger value="calendar">Calendar</TabsTrigger>
-                    <TabsTrigger value="conversations">Hold Me Tight</TabsTrigger>
-                    <TabsTrigger value="goals">Shared Goals</TabsTrigger>
-                    <TabsTrigger value="rituals">Rituals</TabsTrigger>
-                    <TabsTrigger value="journal">Journal Entries</TabsTrigger>
-                    <TabsTrigger value="analytics">AI Analytics</TabsTrigger>
-                    <TabsTrigger value="therapy-tools">
-                      Therapy Tools
-                    </TabsTrigger>
-                    <TabsTrigger value="dashboard-customization">
-                      Dashboard Customization
-                    </TabsTrigger>
-                    <TabsTrigger value="prompts">
-                      Client Prompts
-                    </TabsTrigger>
-                    <TabsTrigger value="reminders">
-                      Reminders
-                    </TabsTrigger>
-                    <TabsTrigger value="notes">
-                      Session Notes
-                    </TabsTrigger>
-                    <TabsTrigger value="reflection-responses">
-                      Reflection Responses
-                    </TabsTrigger>
-                    <TabsTrigger value="therapist-thoughts">
-                      Therapist Thoughts
-                    </TabsTrigger>
-                  </TabsList>
-                </div>
+      <main className="flex-1 min-h-0 overflow-y-auto">
+        <ScrollArea className="h-full">
+          <div className="p-4 md:p-8 space-y-6 max-w-7xl mx-auto">
+            <Tabs value={currentSection} onValueChange={handleSelectSection}>
+              <div className="sr-only">
+                <TabsList>
+                  <TabsTrigger value="overview">Overview</TabsTrigger>
+                  <TabsTrigger value="checkins">Weekly Check-ins</TabsTrigger>
+                  <TabsTrigger value="languages">Love Languages</TabsTrigger>
+                  <TabsTrigger value="attachment">Attachment Styles</TabsTrigger>
+                  <TabsTrigger value="enneagram">Enneagram</TabsTrigger>
+                  <TabsTrigger value="lovemap">Love Map Quiz</TabsTrigger>
+                  <TabsTrigger value="echo">Echo & Empathy</TabsTrigger>
+                  <TabsTrigger value="ifs">IFS Exercises</TabsTrigger>
+                  <TabsTrigger value="pause">Pause History</TabsTrigger>
+                  <TabsTrigger value="activity">Activity Feed</TabsTrigger>
+                  <TabsTrigger value="messages">Messages</TabsTrigger>
+                  <TabsTrigger value="calendar">Calendar</TabsTrigger>
+                  <TabsTrigger value="conversations">Hold Me Tight</TabsTrigger>
+                  <TabsTrigger value="goals">Shared Goals</TabsTrigger>
+                  <TabsTrigger value="rituals">Rituals</TabsTrigger>
+                  <TabsTrigger value="journal">Journal Entries</TabsTrigger>
+                  <TabsTrigger value="analytics">AI Analytics</TabsTrigger>
+                  <TabsTrigger value="dashboard-customization">Dashboard Customization</TabsTrigger>
+                  <TabsTrigger value="prompts">Client Prompts</TabsTrigger>
+                  <TabsTrigger value="reminders">Reminders</TabsTrigger>
+                  <TabsTrigger value="notes">Session Notes</TabsTrigger>
+                  <TabsTrigger value="reflection-responses">Reflection Responses</TabsTrigger>
+                  <TabsTrigger value="therapist-thoughts">Therapist Thoughts</TabsTrigger>
+                </TabsList>
+              </div>
 
                 {/* Overview tab - new default view */}
-                <TabsContent value="overview" className="space-y-6">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-semibold flex items-center gap-2">
-                      <LayoutDashboard className="h-5 w-5 text-primary" />
-                      Overview
-                    </h3>
-                    {selectedCouple && (
-                      <ScheduleNotificationDialog couple={selectedCouple} />
-                    )}
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <Card className="glass-card border-l-4 border-l-primary/60 hover-elevate">
-                      <CardHeader className="pb-2">
-                        <CardTitle className="text-sm font-medium flex items-center gap-2">
-                          <CheckCircle className="h-4 w-4 text-primary" />
-                          Weekly Check-ins
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="text-3xl font-bold text-primary">
-                          {checkins.length}
-                        </div>
-                        <p className="text-xs text-muted-foreground">
-                          Total completed
-                        </p>
-                      </CardContent>
-                    </Card>
-                    <Card className="glass-card border-l-4 border-l-accent/60 hover-elevate">
-                      <CardHeader className="pb-2">
-                        <CardTitle className="text-sm font-medium flex items-center gap-2">
-                          <Activity className="h-4 w-4 text-accent" />
-                          Activities
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="text-3xl font-bold text-accent">
-                          {activities.length}
-                        </div>
-                        <p className="text-xs text-muted-foreground">
-                          Recent activities
-                        </p>
-                      </CardContent>
-                    </Card>
-                    <Card className="glass-card border-l-4 border-l-rose-500/60 hover-elevate">
-                      <CardHeader className="pb-2">
-                        <CardTitle className="text-sm font-medium flex items-center gap-2">
-                          <Heart className="h-4 w-4 text-rose-500" />
-                          Love Languages
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="text-3xl font-bold text-rose-500">
-                          {loveLanguages.length}/2
-                        </div>
-                        <p className="text-xs text-muted-foreground">
-                          Partners completed
-                        </p>
-                      </CardContent>
-                    </Card>
-                  </div>
-                  <Card className="glass-card border-l-4 border-l-primary/40">
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <Lightbulb className="h-5 w-5 text-primary" />
-                        Therapist Thoughts
+              <TabsContent value="overview" className="space-y-6">
+                <div className="flex items-center justify-between flex-wrap gap-2">
+                  <h3 className="text-xl font-semibold flex items-center gap-2">
+                    <div className="p-2 rounded-lg bg-gradient-to-br from-teal-500 to-emerald-500">
+                      <LayoutDashboard className="h-5 w-5 text-white" />
+                    </div>
+                    <span className="bg-gradient-to-r from-teal-600 to-emerald-600 dark:from-teal-400 dark:to-emerald-400 bg-clip-text text-transparent">
+                      Couple Overview
+                    </span>
+                  </h3>
+                  {selectedCouple && (
+                    <ScheduleNotificationDialog couple={selectedCouple} />
+                  )}
+                </div>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <Card className="relative overflow-hidden border-0 bg-gradient-to-br from-teal-500/10 to-emerald-500/10 dark:from-teal-500/20 dark:to-emerald-500/20 hover-elevate">
+                    <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-teal-500/20 to-transparent rounded-bl-full" />
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm font-medium flex items-center gap-2 text-teal-700 dark:text-teal-300">
+                        <CheckCircle className="h-4 w-4" />
+                        Weekly Check-ins
                       </CardTitle>
-                      <CardDescription>
-                        Manage your to-dos, messages, and notes for this couple
-                      </CardDescription>
                     </CardHeader>
                     <CardContent>
-                      {selectedCouple && (
-                        <TherapistThoughtsPanel
-                          coupleId={selectedCouple.id}
-                          partner1={
-                            selectedCouple.partner1 &&
-                            selectedCouple.partner1_id
-                              ? {
-                                  id: selectedCouple.partner1_id,
-                                  full_name: selectedCouple.partner1.full_name,
-                                }
-                              : null
-                          }
-                          partner2={
-                            selectedCouple.partner2 &&
-                            selectedCouple.partner2_id
-                              ? {
-                                  id: selectedCouple.partner2_id,
-                                  full_name: selectedCouple.partner2.full_name,
-                                }
-                              : null
-                          }
-                        />
-                      )}
+                      <div className="text-4xl font-bold text-teal-600 dark:text-teal-400">
+                        {checkins.length}
+                      </div>
+                      <p className="text-xs text-teal-600/70 dark:text-teal-400/70">
+                        Total completed
+                      </p>
                     </CardContent>
                   </Card>
-                </TabsContent>
+                  
+                  <Card className="relative overflow-hidden border-0 bg-gradient-to-br from-violet-500/10 to-purple-500/10 dark:from-violet-500/20 dark:to-purple-500/20 hover-elevate">
+                    <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-violet-500/20 to-transparent rounded-bl-full" />
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm font-medium flex items-center gap-2 text-violet-700 dark:text-violet-300">
+                        <Activity className="h-4 w-4" />
+                        Activities
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-4xl font-bold text-violet-600 dark:text-violet-400">
+                        {activities.length}
+                      </div>
+                      <p className="text-xs text-violet-600/70 dark:text-violet-400/70">
+                        Recent activities
+                      </p>
+                    </CardContent>
+                  </Card>
+                  
+                  <Card className="relative overflow-hidden border-0 bg-gradient-to-br from-rose-500/10 to-pink-500/10 dark:from-rose-500/20 dark:to-pink-500/20 hover-elevate">
+                    <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-rose-500/20 to-transparent rounded-bl-full" />
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm font-medium flex items-center gap-2 text-rose-700 dark:text-rose-300">
+                        <Heart className="h-4 w-4" />
+                        Love Languages
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-4xl font-bold text-rose-600 dark:text-rose-400">
+                        {loveLanguages.length}/2
+                      </div>
+                      <p className="text-xs text-rose-600/70 dark:text-rose-400/70">
+                        Partners completed
+                      </p>
+                    </CardContent>
+                  </Card>
+                  
+                  <Card className="relative overflow-hidden border-0 bg-gradient-to-br from-amber-500/10 to-orange-500/10 dark:from-amber-500/20 dark:to-orange-500/20 hover-elevate">
+                    <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-amber-500/20 to-transparent rounded-bl-full" />
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm font-medium flex items-center gap-2 text-amber-700 dark:text-amber-300">
+                        <Users className="h-4 w-4" />
+                        Attachment
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-4xl font-bold text-amber-600 dark:text-amber-400">
+                        {attachmentStyles.length}/2
+                      </div>
+                      <p className="text-xs text-amber-600/70 dark:text-amber-400/70">
+                        Assessments done
+                      </p>
+                    </CardContent>
+                  </Card>
+                </div>
+                
+                <Card className="border-0 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-amber-700 dark:text-amber-300">
+                      <div className="p-1.5 rounded-lg bg-gradient-to-br from-amber-500 to-orange-500">
+                        <Lightbulb className="h-4 w-4 text-white" />
+                      </div>
+                      Therapist Thoughts
+                    </CardTitle>
+                    <CardDescription className="text-amber-600/80 dark:text-amber-400/80">
+                      Manage your to-dos, messages, and notes for this couple
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {selectedCouple && (
+                      <TherapistThoughtsPanel
+                        coupleId={selectedCouple.id}
+                        partner1={
+                          selectedCouple.partner1 &&
+                          selectedCouple.partner1_id
+                            ? {
+                                id: selectedCouple.partner1_id,
+                                full_name: selectedCouple.partner1.full_name,
+                              }
+                            : null
+                        }
+                        partner2={
+                          selectedCouple.partner2 &&
+                          selectedCouple.partner2_id
+                            ? {
+                                id: selectedCouple.partner2_id,
+                                full_name: selectedCouple.partner2.full_name,
+                              }
+                            : null
+                        }
+                      />
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
 
                 <TabsContent value="checkins" className="space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -2379,22 +2331,19 @@ export default function AdminDashboard() {
                   <ConversationsTab coupleId={selectedCouple.id} />
                 </TabsContent>
               </Tabs>
-            </div>
-          </ScrollArea>
-        </main>
-            </SidebarInset>
           </div>
+        </ScrollArea>
+      </main>
 
-        <AddCoupleModal
-          open={showAddCoupleModal}
-          onOpenChange={setShowAddCoupleModal}
-          therapistId={profile?.id || ""}
-          onSuccess={() => {
-            fetchCouples();
-          }}
-        />
-      </div>
-    </SidebarProvider>
+      <AddCoupleModal
+        open={showAddCoupleModal}
+        onOpenChange={setShowAddCoupleModal}
+        therapistId={profile?.id || ""}
+        onSuccess={() => {
+          fetchCouples();
+        }}
+      />
+    </div>
   );
 }
 
