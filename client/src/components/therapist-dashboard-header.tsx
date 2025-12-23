@@ -81,34 +81,36 @@ export function TherapistDashboardHeader({
         <div className="flex-1 flex items-center gap-3 max-w-md">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button
-                variant="outline"
-                className="gap-2 w-full justify-between bg-background/80 hover:bg-background"
+              <button
+                className="flex items-center gap-3 p-2 rounded-lg bg-card/50 border hover-elevate cursor-pointer"
                 data-testid="dropdown-couple-selector"
               >
                 {selectedCouple ? (
-                  <div className="flex items-center gap-2">
-                    <div className="flex -space-x-1">
-                      <Avatar className="h-6 w-6 border-2 border-primary/20">
-                        <AvatarFallback className="text-xs bg-gradient-to-br from-teal-400 to-teal-600 text-white">
+                  <>
+                    <div className="flex -space-x-2">
+                      <Avatar className="h-10 w-10 border-2 border-teal-200 dark:border-teal-800 ring-2 ring-teal-500/20">
+                        <AvatarFallback className="bg-gradient-to-br from-teal-400 to-teal-600 text-white font-semibold">
                           {getInitials(selectedCouple.partner1?.full_name)}
                         </AvatarFallback>
                       </Avatar>
-                      <Avatar className="h-6 w-6 border-2 border-secondary/20">
-                        <AvatarFallback className="text-xs bg-gradient-to-br from-coral-400 to-coral-600 text-white">
+                      <Avatar className="h-10 w-10 border-2 border-coral-200 dark:border-coral-800 ring-2 ring-coral-500/20">
+                        <AvatarFallback className="bg-gradient-to-br from-coral-400 to-coral-600 text-white font-semibold">
                           {getInitials(selectedCouple.partner2?.full_name)}
                         </AvatarFallback>
                       </Avatar>
                     </div>
-                    <span className="font-medium truncate">
-                      {getCoupleDisplayName(selectedCouple)}
-                    </span>
-                  </div>
+                    <div className="flex flex-col flex-1 min-w-0">
+                      <span className="font-semibold text-base text-left">
+                        {selectedCouple.partner1?.full_name || "Partner 1"} & {selectedCouple.partner2?.full_name || "Partner 2"}
+                      </span>
+                      <span className="text-xs text-muted-foreground">Currently viewing</span>
+                    </div>
+                    <ChevronDown className="h-4 w-4 opacity-50 shrink-0" />
+                  </>
                 ) : (
                   <span className="text-muted-foreground">Select a couple</span>
                 )}
-                <ChevronDown className="h-4 w-4 opacity-50 shrink-0" />
-              </Button>
+              </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="w-[300px]">
               <div className="p-2">
@@ -202,30 +204,6 @@ export function TherapistDashboardHeader({
         )}
       </div>
 
-      {selectedCouple && (
-        <div className="flex items-center gap-3 px-4 pb-3">
-          <div className="flex items-center gap-3 p-2 rounded-lg bg-card/50 border">
-            <div className="flex -space-x-2">
-              <Avatar className="h-10 w-10 border-2 border-teal-200 dark:border-teal-800 ring-2 ring-teal-500/20">
-                <AvatarFallback className="bg-gradient-to-br from-teal-400 to-teal-600 text-white font-semibold">
-                  {getInitials(selectedCouple.partner1?.full_name)}
-                </AvatarFallback>
-              </Avatar>
-              <Avatar className="h-10 w-10 border-2 border-coral-200 dark:border-coral-800 ring-2 ring-coral-500/20">
-                <AvatarFallback className="bg-gradient-to-br from-coral-400 to-coral-600 text-white font-semibold">
-                  {getInitials(selectedCouple.partner2?.full_name)}
-                </AvatarFallback>
-              </Avatar>
-            </div>
-            <div className="flex flex-col">
-              <span className="font-semibold text-base">
-                {selectedCouple.partner1?.full_name || "Partner 1"} & {selectedCouple.partner2?.full_name || "Partner 2"}
-              </span>
-              <span className="text-xs text-muted-foreground">Currently viewing</span>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
