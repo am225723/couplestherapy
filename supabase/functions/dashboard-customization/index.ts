@@ -28,12 +28,12 @@ const DEFAULT_ENABLED_WIDGETS: Record<string, boolean> = {
   "love-results": true,
   "weekly-checkin": true,
   "love-languages": true,
-  "gratitude": true,
+  gratitude: true,
   "shared-goals": true,
   "voice-memos": true,
-  "calendar": true,
-  "rituals": true,
-  "conversations": true,
+  calendar: true,
+  rituals: true,
+  conversations: true,
   "love-map": true,
 };
 
@@ -60,7 +60,9 @@ Deno.serve(async (req) => {
     if (req.method === "GET") {
       const { data, error } = await supabaseAdmin
         .from("Couples_dashboard_customization")
-        .select("couple_id, therapist_id, widget_order, enabled_widgets, widget_sizes")
+        .select(
+          "couple_id, therapist_id, widget_order, enabled_widgets, widget_sizes",
+        )
         .eq("couple_id", coupleId)
         .single();
 
@@ -79,7 +81,7 @@ Deno.serve(async (req) => {
           }),
           {
             headers: { ...corsHeaders, "Content-Type": "application/json" },
-          }
+          },
         );
       }
 
@@ -90,7 +92,8 @@ Deno.serve(async (req) => {
 
     if (req.method === "POST") {
       const body = await req.json();
-      const { therapist_id, widget_order, enabled_widgets, widget_sizes } = body;
+      const { therapist_id, widget_order, enabled_widgets, widget_sizes } =
+        body;
 
       const { data, error } = await supabaseAdmin
         .from("Couples_dashboard_customization")
@@ -102,7 +105,9 @@ Deno.serve(async (req) => {
           widget_sizes: widget_sizes || {},
           updated_at: new Date().toISOString(),
         })
-        .select("couple_id, therapist_id, widget_order, enabled_widgets, widget_sizes")
+        .select(
+          "couple_id, therapist_id, widget_order, enabled_widgets, widget_sizes",
+        )
         .single();
 
       if (error) throw error;
@@ -117,10 +122,15 @@ Deno.serve(async (req) => {
 
       const { data: existingArray, error: fetchError } = await supabaseAdmin
         .from("Couples_dashboard_customization")
-        .select("couple_id, therapist_id, widget_order, enabled_widgets, widget_sizes")
+        .select(
+          "couple_id, therapist_id, widget_order, enabled_widgets, widget_sizes",
+        )
         .eq("couple_id", coupleId);
 
-      const existing = Array.isArray(existingArray) && existingArray.length > 0 ? existingArray[0] : null;
+      const existing =
+        Array.isArray(existingArray) && existingArray.length > 0
+          ? existingArray[0]
+          : null;
 
       const merged: Record<string, any> = {
         couple_id: coupleId,
@@ -131,20 +141,25 @@ Deno.serve(async (req) => {
         merged.therapist_id = body.therapist_id ?? existing?.therapist_id;
       }
 
-      merged.widget_order = body.widget_order ?? existing?.widget_order ?? DEFAULT_WIDGET_ORDER;
+      merged.widget_order =
+        body.widget_order ?? existing?.widget_order ?? DEFAULT_WIDGET_ORDER;
 
-      merged.enabled_widgets = body.enabled_widgets !== undefined
-        ? { ...(existing?.enabled_widgets || {}), ...body.enabled_widgets }
-        : existing?.enabled_widgets || {};
+      merged.enabled_widgets =
+        body.enabled_widgets !== undefined
+          ? { ...(existing?.enabled_widgets || {}), ...body.enabled_widgets }
+          : existing?.enabled_widgets || {};
 
-      merged.widget_sizes = body.widget_sizes !== undefined
-        ? { ...(existing?.widget_sizes || {}), ...body.widget_sizes }
-        : existing?.widget_sizes || {};
+      merged.widget_sizes =
+        body.widget_sizes !== undefined
+          ? { ...(existing?.widget_sizes || {}), ...body.widget_sizes }
+          : existing?.widget_sizes || {};
 
       const { data, error } = await supabaseAdmin
         .from("Couples_dashboard_customization")
         .upsert(merged, { onConflict: "couple_id" })
-        .select("couple_id, therapist_id, widget_order, enabled_widgets, widget_sizes")
+        .select(
+          "couple_id, therapist_id, widget_order, enabled_widgets, widget_sizes",
+        )
         .single();
 
       if (error) throw error;
@@ -165,7 +180,7 @@ Deno.serve(async (req) => {
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 500,
-      }
+      },
     );
   }
 });

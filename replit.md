@@ -17,41 +17,41 @@ The design incorporates a warm, compassionate aesthetic using the Inter font, ge
 
 **Technical Implementations:**
 
--   **Authentication & Database:** Supabase for authentication, PostgreSQL database with Row Level Security (RLS) for data privacy. All tables are prefixed with `Couples_`.
--   **Realtime & Storage:** Supabase Realtime for live updates and Supabase Storage for media.
--   **AI Integration:** Seven AI features are implemented as Supabase Edge Functions, secured with JWT and RLS, including `ai-exercise-recommendations`, `ai-empathy-prompt`, `ai-echo-coaching`, `ai-voice-memo-sentiment`, `ai-session-prep`, `ai-insights`, and `ai-date-night`.
--   **Personalized Daily Tips:** AI-powered daily relationship tips personalized to couples based on completed assessments (attachment style, enneagram type, love language), using Perplexity AI with 24-hour caching.
--   **Push Notifications:** Therapists can schedule notifications to couples via Edge Functions and Expo Push Service.
--   **Cross-Therapist Access:** Therapists can view and interact with all couples in the system, supporting multi-therapist practices.
--   **Therapist Tools:** Includes a "Therapist Thoughts" system for managing to-dos and notes, customizable prompts for clients, and the ability to send reflection prompts to couples or individuals. Therapists can also customize "From Your Therapist" card content for each couple.
--   **Module Subscriptions:** A per-user subscription system for add-on modules (Chores App, IFS App, Conflict Resolution) processed via Stripe.
--   **Conflict Resolution Module:** Integrates an AI-powered I-Statement Builder using Supabase Edge Functions and Perplexity AI.
--   **Progress Timeline:** A visual timeline showing couples their relationship journey, including assessment completions, milestones, and key dates.
--   **Session Notes:** A CRUD system for therapists to document therapy sessions, integrated into the therapist dashboard.
--   **Auto-save Drafts:** Assessments feature auto-save functionality to localStorage with recovery UI.
--   **Mobile Optimization:** Utilizes swipe gesture navigation and touch-optimized components.
--   **AI-Powered Relationship Growth Plan:** Generates personalized exercises and goals based on couple assessments and activity using Supabase Edge Functions and Perplexity AI.
--   **Dashboard Customizer:** Enhanced with templates, categorized widgets, and size controls for therapist customization of client dashboards.
--   **Layout Templates System:** Therapists can save and apply reusable dashboard configurations as templates to different couples.
--   **Individual Layout Preferences:** Users can customize their own dashboard layout, overriding therapist-configured defaults.
--   **Device Preview Mode:** Dashboard customizer includes a device preview feature to visualize client dashboards on different screen sizes (Mobile, Tablet, Desktop).
+- **Authentication & Database:** Supabase for authentication, PostgreSQL database with Row Level Security (RLS) for data privacy. All tables are prefixed with `Couples_`.
+- **Realtime & Storage:** Supabase Realtime for live updates and Supabase Storage for media.
+- **AI Integration:** Seven AI features are implemented as Supabase Edge Functions, secured with JWT and RLS, including `ai-exercise-recommendations`, `ai-empathy-prompt`, `ai-echo-coaching`, `ai-voice-memo-sentiment`, `ai-session-prep`, `ai-insights`, and `ai-date-night`.
+- **Personalized Daily Tips:** AI-powered daily relationship tips personalized to couples based on completed assessments (attachment style, enneagram type, love language), using Perplexity AI with 24-hour caching.
+- **Push Notifications:** Therapists can schedule notifications to couples via Edge Functions and Expo Push Service.
+- **Cross-Therapist Access:** Therapists can view and interact with all couples in the system, supporting multi-therapist practices.
+- **Therapist Tools:** Includes a "Therapist Thoughts" system for managing to-dos and notes, customizable prompts for clients, and the ability to send reflection prompts to couples or individuals. Therapists can also customize "From Your Therapist" card content for each couple.
+- **Module Subscriptions:** A per-user subscription system for add-on modules (Chores App, IFS App, Conflict Resolution) processed via Stripe.
+- **Conflict Resolution Module:** Integrates an AI-powered I-Statement Builder using Supabase Edge Functions and Perplexity AI.
+- **Progress Timeline:** A visual timeline showing couples their relationship journey, including assessment completions, milestones, and key dates.
+- **Session Notes:** A CRUD system for therapists to document therapy sessions, integrated into the therapist dashboard.
+- **Auto-save Drafts:** Assessments feature auto-save functionality to localStorage with recovery UI.
+- **Mobile Optimization:** Utilizes swipe gesture navigation and touch-optimized components.
+- **AI-Powered Relationship Growth Plan:** Generates personalized exercises and goals based on couple assessments and activity using Supabase Edge Functions and Perplexity AI.
+- **Dashboard Customizer:** Enhanced with templates, categorized widgets, and size controls for therapist customization of client dashboards.
+- **Layout Templates System:** Therapists can save and apply reusable dashboard configurations as templates to different couples.
+- **Individual Layout Preferences:** Users can customize their own dashboard layout, overriding therapist-configured defaults.
+- **Device Preview Mode:** Dashboard customizer includes a device preview feature to visualize client dashboards on different screen sizes (Mobile, Tablet, Desktop).
 
 **Feature Specifications:**
 
--   **Client App (for Couples):** Assessments, Assessment Insights (Couple Compatibility Module), Shared Activities, Communication & Interaction tools, and Individual Exercises.
--   **Admin App (for Therapists):** User Management, Client Roster, Couple Dashboard (side-by-side comparisons), Intervention Tools (Therapist Thoughts, Contextual Commenting, AI-powered Analytics), and views of all client activities and assessments.
+- **Client App (for Couples):** Assessments, Assessment Insights (Couple Compatibility Module), Shared Activities, Communication & Interaction tools, and Individual Exercises.
+- **Admin App (for Therapists):** User Management, Client Roster, Couple Dashboard (side-by-side comparisons), Intervention Tools (Therapist Thoughts, Contextual Commenting, AI-powered Analytics), and views of all client activities and assessments.
 
 ## External Dependencies
 
--   **Database**: Supabase (PostgreSQL)
--   **Authentication**: Supabase Authentication
--   **Realtime**: Supabase Realtime
--   **Storage**: Supabase Storage
--   **AI**: Perplexity AI
--   **Web Frontend**: React 18, Vite, Wouter
--   **Mobile Frontend**: React Native, Expo, React Navigation
--   **State Management**: TanStack Query v5
--   **UI Libraries**: Tailwind CSS, Shadcn UI (Radix primitives)
--   **Payments**: Stripe (for module subscriptions)
--   **Web Components**: react-big-calendar, React Beautiful DnD
--   **Mobile Components**: expo-image-picker, expo-av, expo-notifications, react-native-calendars
+- **Database**: Supabase (PostgreSQL)
+- **Authentication**: Supabase Authentication
+- **Realtime**: Supabase Realtime
+- **Storage**: Supabase Storage
+- **AI**: Perplexity AI
+- **Web Frontend**: React 18, Vite, Wouter
+- **Mobile Frontend**: React Native, Expo, React Navigation
+- **State Management**: TanStack Query v5
+- **UI Libraries**: Tailwind CSS, Shadcn UI (Radix primitives)
+- **Payments**: Stripe (for module subscriptions)
+- **Web Components**: react-big-calendar, React Beautiful DnD
+- **Mobile Components**: expo-image-picker, expo-av, expo-notifications, react-native-calendars

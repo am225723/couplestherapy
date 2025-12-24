@@ -46,22 +46,32 @@ individualLayoutPreferencesRouter.post(
   async (req: Request, res: Response) => {
     try {
       const { userId } = req.params;
-      const { couple_id, use_personal_layout, widget_order, enabled_widgets, widget_sizes, hidden_widgets } = req.body;
+      const {
+        couple_id,
+        use_personal_layout,
+        widget_order,
+        enabled_widgets,
+        widget_sizes,
+        hidden_widgets,
+      } = req.body;
 
       const { data, error } = await supabaseAdmin
         .from("Couples_individual_layout_preferences")
-        .upsert({
-          user_id: userId,
-          couple_id: couple_id,
-          use_personal_layout: use_personal_layout ?? false,
-          widget_order: widget_order,
-          enabled_widgets: enabled_widgets,
-          widget_sizes: widget_sizes,
-          hidden_widgets: hidden_widgets || [],
-          updated_at: new Date().toISOString(),
-        }, {
-          onConflict: "user_id"
-        })
+        .upsert(
+          {
+            user_id: userId,
+            couple_id: couple_id,
+            use_personal_layout: use_personal_layout ?? false,
+            widget_order: widget_order,
+            enabled_widgets: enabled_widgets,
+            widget_sizes: widget_sizes,
+            hidden_widgets: hidden_widgets || [],
+            updated_at: new Date().toISOString(),
+          },
+          {
+            onConflict: "user_id",
+          },
+        )
         .select()
         .single();
 
@@ -131,12 +141,13 @@ individualLayoutPreferencesRouter.put(
         .eq("user_id", userId)
         .single();
 
-      let hiddenWidgets: string[] = (existing?.hidden_widgets as string[]) || [];
+      let hiddenWidgets: string[] =
+        (existing?.hidden_widgets as string[]) || [];
 
       if (hidden && !hiddenWidgets.includes(widget_id)) {
         hiddenWidgets.push(widget_id);
       } else if (!hidden) {
-        hiddenWidgets = hiddenWidgets.filter(w => w !== widget_id);
+        hiddenWidgets = hiddenWidgets.filter((w) => w !== widget_id);
       }
 
       const upsertData: Record<string, any> = {
@@ -150,13 +161,15 @@ individualLayoutPreferencesRouter.put(
       } else if (existing) {
         upsertData.couple_id = existing.couple_id;
       } else {
-        return res.status(400).json({ error: "couple_id is required for new preference" });
+        return res
+          .status(400)
+          .json({ error: "couple_id is required for new preference" });
       }
 
       const { data, error } = await supabaseAdmin
         .from("Couples_individual_layout_preferences")
         .upsert(upsertData, {
-          onConflict: "user_id"
+          onConflict: "user_id",
         })
         .select()
         .single();
@@ -185,7 +198,10 @@ individualLayoutPreferencesRouter.delete(
 
       if (error) throw error;
 
-      res.json({ success: true, message: "Preferences reset to couple defaults" });
+      res.json({
+        success: true,
+        message: "Preferences reset to couple defaults",
+      });
     } catch (error) {
       console.error("Error resetting preferences:", error);
       res.status(500).json({ error: "Failed to reset preferences" });

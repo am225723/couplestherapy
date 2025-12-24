@@ -166,7 +166,9 @@ Deno.serve(async (req) => {
 
     if (!feeling || !situation) {
       return new Response(
-        JSON.stringify({ error: "Missing required fields: feeling, situation" }),
+        JSON.stringify({
+          error: "Missing required fields: feeling, situation",
+        }),
         {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
           status: 400,
@@ -184,9 +186,9 @@ Always respond with valid JSON only.`;
 CONTEXT:
 - The person feels: "${feeling}"
 - Situation: "${situation}"
-- Impact: "${because || 'Not specified'}"
-- Their request: "${request || 'Not specified'}"
-${enhanced_statement ? `- Their I-statement: "${enhanced_statement}"` : ''}
+- Impact: "${because || "Not specified"}"
+- Their request: "${request || "Not specified"}"
+${enhanced_statement ? `- Their I-statement: "${enhanced_statement}"` : ""}
 
 Provide 3 different types of suggestions:
 1. TIMING: When and how to initiate this conversation for best reception
@@ -229,7 +231,13 @@ Return ONLY the JSON, no additional text.`;
     await supabaseAdmin.from("Couples_conflict_ai_events").insert({
       user_id: userId,
       request_type: "generate_suggestions",
-      prompt_payload: { feeling, situation, because, request, enhanced_statement },
+      prompt_payload: {
+        feeling,
+        situation,
+        because,
+        request,
+        enhanced_statement,
+      },
       response_text: result.content,
       response_parsed: parsed,
       error_message: parsed ? null : "Failed to parse AI response",
@@ -243,17 +251,20 @@ Return ONLY the JSON, no additional text.`;
           suggestions: [
             {
               title: "Choose the Right Moment",
-              content: "Wait for a calm moment when both of you have time and emotional bandwidth. Avoid starting this conversation when either of you is tired, hungry, or stressed.",
+              content:
+                "Wait for a calm moment when both of you have time and emotional bandwidth. Avoid starting this conversation when either of you is tired, hungry, or stressed.",
               category: "timing",
             },
             {
               title: "Consider Their Perspective",
-              content: "Your partner may not be aware of how their actions affected you. They might have their own stressors or concerns that influenced the situation.",
+              content:
+                "Your partner may not be aware of how their actions affected you. They might have their own stressors or concerns that influenced the situation.",
               category: "understanding",
             },
             {
               title: "Listen and Connect",
-              content: "After sharing your I-statement, pause and give your partner space to respond. Show you value their perspective by listening without interrupting.",
+              content:
+                "After sharing your I-statement, pause and give your partner space to respond. Show you value their perspective by listening without interrupting.",
               category: "follow-up",
             },
           ],

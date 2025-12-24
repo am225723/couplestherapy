@@ -45,8 +45,14 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { TherapistDashboardHeader } from "@/components/therapist-dashboard-header";
-import { TherapistDashboardTabs, type TabCategory } from "@/components/therapist-dashboard-tabs";
-import { TherapistSubNavigation, getSectionCategory } from "@/components/therapist-sub-navigation";
+import {
+  TherapistDashboardTabs,
+  type TabCategory,
+} from "@/components/therapist-dashboard-tabs";
+import {
+  TherapistSubNavigation,
+  getSectionCategory,
+} from "@/components/therapist-sub-navigation";
 import { AddCoupleModal } from "@/components/add-couple-modal";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/lib/supabase";
@@ -115,7 +121,10 @@ import "react-big-calendar/lib/css/react-big-calendar.css";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { aiFunctions } from "@/lib/ai-functions";
-import { invokeDashboardCustomization, type DashboardCustomization as DashboardCustomizationType } from "@/lib/dashboard-api";
+import {
+  invokeDashboardCustomization,
+  type DashboardCustomization as DashboardCustomizationType,
+} from "@/lib/dashboard-api";
 import adminHeroImage from "@assets/generated_images/Admin_app_hero_image_7f3581f4.png";
 
 const locales = {
@@ -190,8 +199,12 @@ export default function AdminDashboard() {
     (WeeklyCheckin & { author?: Profile })[]
   >([]);
   const [loveLanguages, setLoveLanguages] = useState<LoveLanguage[]>([]);
-  const [attachmentStyles, setAttachmentStyles] = useState<AttachmentAssessment[]>([]);
-  const [enneagramAssessments, setEnneagramAssessments] = useState<EnneagramAssessment[]>([]);
+  const [attachmentStyles, setAttachmentStyles] = useState<
+    AttachmentAssessment[]
+  >([]);
+  const [enneagramAssessments, setEnneagramAssessments] = useState<
+    EnneagramAssessment[]
+  >([]);
   const [journalEntries, setJournalEntries] = useState<JournalEntry[]>([]);
   const [activities, setActivities] = useState<any[]>([]);
   const [commentText, setCommentText] = useState("");
@@ -411,7 +424,7 @@ export default function AdminDashboard() {
   useEffect(() => {
     if (couples.length > 0) {
       const targetCoupleId = params?.id || null;
-      
+
       if (targetCoupleId) {
         // If ID is in URL, use it - but only fetch if it changed
         const couple = couples.find((c) => c.id === targetCoupleId);
@@ -485,7 +498,7 @@ export default function AdminDashboard() {
     // This is reset in catch block if fetch fails, allowing retries
     lastFetchedCoupleIdRef.current = couple.id;
     const fetchingCoupleId = couple.id;
-    
+
     try {
       const [
         checkinsRes,
@@ -711,8 +724,8 @@ export default function AdminDashboard() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {couples.map((couple) => (
-                <Card 
-                  key={couple.id} 
+                <Card
+                  key={couple.id}
                   className="glass-card border-none border-l-4 border-l-primary/50 hover-elevate cursor-pointer group"
                   data-testid={`card-couple-${couple.id}`}
                 >
@@ -742,35 +755,44 @@ export default function AdminDashboard() {
                   </CardHeader>
                   <CardContent className="pt-0">
                     <div className="flex items-center gap-2">
-                      <Button 
+                      <Button
                         asChild
-                        variant="ghost" 
-                        size="sm" 
+                        variant="ghost"
+                        size="sm"
                         className="flex-1 gap-2 h-9"
                       >
-                        <Link href={`/admin/couple/${couple.id}/notes`} data-testid={`button-notes-${couple.id}`}>
+                        <Link
+                          href={`/admin/couple/${couple.id}/notes`}
+                          data-testid={`button-notes-${couple.id}`}
+                        >
                           <FileText className="h-4 w-4" />
                           Notes
                         </Link>
                       </Button>
-                      <Button 
+                      <Button
                         asChild
-                        variant="ghost" 
-                        size="sm" 
+                        variant="ghost"
+                        size="sm"
                         className="flex-1 gap-2 h-9"
                       >
-                        <Link href={`/admin/couple/${couple.id}/messages`} data-testid={`button-messages-${couple.id}`}>
+                        <Link
+                          href={`/admin/couple/${couple.id}/messages`}
+                          data-testid={`button-messages-${couple.id}`}
+                        >
                           <Send className="h-4 w-4" />
                           Message
                         </Link>
                       </Button>
-                      <Button 
+                      <Button
                         asChild
-                        variant="ghost" 
-                        size="sm" 
+                        variant="ghost"
+                        size="sm"
                         className="flex-1 gap-2 h-9"
                       >
-                        <Link href={`/admin/couple/${couple.id}/dashboard-customization`} data-testid={`button-customize-${couple.id}`}>
+                        <Link
+                          href={`/admin/couple/${couple.id}/dashboard-customization`}
+                          data-testid={`button-customize-${couple.id}`}
+                        >
                           <Sliders className="h-4 w-4" />
                           Customize
                         </Link>
@@ -812,7 +834,9 @@ export default function AdminDashboard() {
         selectedCouple={selectedCouple}
         onSelectCouple={handleSelectCouple}
         onAddCouple={() => setShowAddCoupleModal(true)}
-        onAISessionPrep={() => sessionPrepMutation.mutate(selectedCouple?.id || "")}
+        onAISessionPrep={() =>
+          sessionPrepMutation.mutate(selectedCouple?.id || "")
+        }
         isAILoading={sessionPrepMutation.isPending}
       />
 
@@ -827,7 +851,10 @@ export default function AdminDashboard() {
         onSelectSection={handleSelectSection}
       />
 
-      <Dialog open={sessionPrepMutation.isSuccess} onOpenChange={() => sessionPrepMutation.reset()}>
+      <Dialog
+        open={sessionPrepMutation.isSuccess}
+        onOpenChange={() => sessionPrepMutation.reset()}
+      >
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
@@ -836,164 +863,159 @@ export default function AdminDashboard() {
             </DialogTitle>
             <DialogDescription>
               AI-powered analysis of the last 4 weeks of couple activity
-                </DialogDescription>
-              </DialogHeader>
+            </DialogDescription>
+          </DialogHeader>
 
-              {sessionPrepMutation.isPending && (
-                <div className="flex items-center justify-center py-12">
-                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                </div>
-              )}
+          {sessionPrepMutation.isPending && (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+          )}
 
-              {sessionPrepMutation.isError && (
-                <Alert
-                  variant="destructive"
-                  data-testid="alert-session-prep-error"
-                >
-                  <AlertDescription>
-                    {sessionPrepMutation.error instanceof Error
-                      ? sessionPrepMutation.error.message
-                      : "Failed to generate session prep"}
-                  </AlertDescription>
-                </Alert>
-              )}
+          {sessionPrepMutation.isError && (
+            <Alert variant="destructive" data-testid="alert-session-prep-error">
+              <AlertDescription>
+                {sessionPrepMutation.error instanceof Error
+                  ? sessionPrepMutation.error.message
+                  : "Failed to generate session prep"}
+              </AlertDescription>
+            </Alert>
+          )}
 
-              {sessionPrepMutation.isSuccess && sessionPrepMutation.data && (
-                <div
-                  className="space-y-6"
-                  data-testid="container-session-prep-results"
-                >
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2 text-lg">
-                        <Heart className="h-5 w-5 text-primary" />
-                        Engagement Summary
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p
-                        className="text-sm text-muted-foreground"
-                        data-testid="text-engagement-summary"
-                      >
-                        {sessionPrepMutation.data.engagement_summary}
-                      </p>
-                    </CardContent>
-                  </Card>
+          {sessionPrepMutation.isSuccess && sessionPrepMutation.data && (
+            <div
+              className="space-y-6"
+              data-testid="container-session-prep-results"
+            >
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <Heart className="h-5 w-5 text-primary" />
+                    Engagement Summary
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p
+                    className="text-sm text-muted-foreground"
+                    data-testid="text-engagement-summary"
+                  >
+                    {sessionPrepMutation.data.engagement_summary}
+                  </p>
+                </CardContent>
+              </Card>
 
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2 text-lg">
-                        <TrendingDown className="h-5 w-5 text-destructive" />
-                        Concerning Patterns
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <ul className="space-y-2">
-                        {sessionPrepMutation.data.concerning_patterns.map(
-                          (pattern: string, idx: number) => (
-                            <li
-                              key={idx}
-                              className="flex items-start gap-2"
-                              data-testid={`text-concerning-pattern-${idx}`}
-                            >
-                              <span className="text-destructive mt-1">•</span>
-                              <span className="text-sm">{pattern}</span>
-                            </li>
-                          ),
-                        )}
-                      </ul>
-                    </CardContent>
-                  </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <TrendingDown className="h-5 w-5 text-destructive" />
+                    Concerning Patterns
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ul className="space-y-2">
+                    {sessionPrepMutation.data.concerning_patterns.map(
+                      (pattern: string, idx: number) => (
+                        <li
+                          key={idx}
+                          className="flex items-start gap-2"
+                          data-testid={`text-concerning-pattern-${idx}`}
+                        >
+                          <span className="text-destructive mt-1">•</span>
+                          <span className="text-sm">{pattern}</span>
+                        </li>
+                      ),
+                    )}
+                  </ul>
+                </CardContent>
+              </Card>
 
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2 text-lg">
-                        <TrendingUp className="h-5 w-5 text-green-600" />
-                        Positive Patterns
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <ul className="space-y-2">
-                        {sessionPrepMutation.data.positive_patterns.map(
-                          (pattern: string, idx: number) => (
-                            <li
-                              key={idx}
-                              className="flex items-start gap-2"
-                              data-testid={`text-positive-pattern-${idx}`}
-                            >
-                              <span className="text-green-600 mt-1">•</span>
-                              <span className="text-sm">{pattern}</span>
-                            </li>
-                          ),
-                        )}
-                      </ul>
-                    </CardContent>
-                  </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <TrendingUp className="h-5 w-5 text-green-600" />
+                    Positive Patterns
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ul className="space-y-2">
+                    {sessionPrepMutation.data.positive_patterns.map(
+                      (pattern: string, idx: number) => (
+                        <li
+                          key={idx}
+                          className="flex items-start gap-2"
+                          data-testid={`text-positive-pattern-${idx}`}
+                        >
+                          <span className="text-green-600 mt-1">•</span>
+                          <span className="text-sm">{pattern}</span>
+                        </li>
+                      ),
+                    )}
+                  </ul>
+                </CardContent>
+              </Card>
 
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2 text-lg">
-                        <Target className="h-5 w-5 text-primary" />
-                        Session Focus Areas
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <ul className="space-y-2">
-                        {sessionPrepMutation.data.session_focus_areas.map(
-                          (area: string, idx: number) => (
-                            <li
-                              key={idx}
-                              className="flex items-start gap-2"
-                              data-testid={`text-focus-area-${idx}`}
-                            >
-                              <span className="text-primary mt-1">•</span>
-                              <span className="text-sm font-medium">
-                                {area}
-                              </span>
-                            </li>
-                          ),
-                        )}
-                      </ul>
-                    </CardContent>
-                  </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <Target className="h-5 w-5 text-primary" />
+                    Session Focus Areas
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ul className="space-y-2">
+                    {sessionPrepMutation.data.session_focus_areas.map(
+                      (area: string, idx: number) => (
+                        <li
+                          key={idx}
+                          className="flex items-start gap-2"
+                          data-testid={`text-focus-area-${idx}`}
+                        >
+                          <span className="text-primary mt-1">•</span>
+                          <span className="text-sm font-medium">{area}</span>
+                        </li>
+                      ),
+                    )}
+                  </ul>
+                </CardContent>
+              </Card>
 
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2 text-lg">
-                        <Lightbulb className="h-5 w-5 text-amber-500" />
-                        Recommended Interventions
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <ul className="space-y-2">
-                        {sessionPrepMutation.data.recommended_interventions.map(
-                          (intervention: string, idx: number) => (
-                            <li
-                              key={idx}
-                              className="flex items-start gap-2"
-                              data-testid={`text-intervention-${idx}`}
-                            >
-                              <span className="text-amber-500 mt-1">•</span>
-                              <span className="text-sm">{intervention}</span>
-                            </li>
-                          ),
-                        )}
-                      </ul>
-                    </CardContent>
-                  </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <Lightbulb className="h-5 w-5 text-amber-500" />
+                    Recommended Interventions
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ul className="space-y-2">
+                    {sessionPrepMutation.data.recommended_interventions.map(
+                      (intervention: string, idx: number) => (
+                        <li
+                          key={idx}
+                          className="flex items-start gap-2"
+                          data-testid={`text-intervention-${idx}`}
+                        >
+                          <span className="text-amber-500 mt-1">•</span>
+                          <span className="text-sm">{intervention}</span>
+                        </li>
+                      ),
+                    )}
+                  </ul>
+                </CardContent>
+              </Card>
 
-                  <div className="text-xs text-muted-foreground text-center pt-4 border-t">
-                    Generated{" "}
-                    {sessionPrepMutation.data.generated_at
-                      ? formatDistanceToNow(
-                          new Date(sessionPrepMutation.data.generated_at),
-                          { addSuffix: true },
-                        )
-                      : "just now"}
-                  </div>
-                </div>
-              )}
-          </DialogContent>
+              <div className="text-xs text-muted-foreground text-center pt-4 border-t">
+                Generated{" "}
+                {sessionPrepMutation.data.generated_at
+                  ? formatDistanceToNow(
+                      new Date(sessionPrepMutation.data.generated_at),
+                      { addSuffix: true },
+                    )
+                  : "just now"}
+              </div>
+            </div>
+          )}
+        </DialogContent>
       </Dialog>
 
       <main className="flex-1 min-h-0 overflow-y-auto">
@@ -1005,7 +1027,9 @@ export default function AdminDashboard() {
                   <TabsTrigger value="overview">Overview</TabsTrigger>
                   <TabsTrigger value="checkins">Weekly Check-ins</TabsTrigger>
                   <TabsTrigger value="languages">Love Languages</TabsTrigger>
-                  <TabsTrigger value="attachment">Attachment Styles</TabsTrigger>
+                  <TabsTrigger value="attachment">
+                    Attachment Styles
+                  </TabsTrigger>
                   <TabsTrigger value="enneagram">Enneagram</TabsTrigger>
                   <TabsTrigger value="lovemap">Love Map Quiz</TabsTrigger>
                   <TabsTrigger value="echo">Echo & Empathy</TabsTrigger>
@@ -1019,16 +1043,22 @@ export default function AdminDashboard() {
                   <TabsTrigger value="rituals">Rituals</TabsTrigger>
                   <TabsTrigger value="journal">Journal Entries</TabsTrigger>
                   <TabsTrigger value="analytics">AI Analytics</TabsTrigger>
-                  <TabsTrigger value="dashboard-customization">Dashboard Customization</TabsTrigger>
+                  <TabsTrigger value="dashboard-customization">
+                    Dashboard Customization
+                  </TabsTrigger>
                   <TabsTrigger value="prompts">Client Prompts</TabsTrigger>
                   <TabsTrigger value="reminders">Reminders</TabsTrigger>
                   <TabsTrigger value="notes">Session Notes</TabsTrigger>
-                  <TabsTrigger value="reflection-responses">Reflection Responses</TabsTrigger>
-                  <TabsTrigger value="therapist-thoughts">Therapist Thoughts</TabsTrigger>
+                  <TabsTrigger value="reflection-responses">
+                    Reflection Responses
+                  </TabsTrigger>
+                  <TabsTrigger value="therapist-thoughts">
+                    Therapist Thoughts
+                  </TabsTrigger>
                 </TabsList>
               </div>
 
-                {/* Overview tab - new default view */}
+              {/* Overview tab - new default view */}
               <TabsContent value="overview" className="space-y-6">
                 <div className="flex items-center justify-between flex-wrap gap-2">
                   <h3 className="text-xl font-semibold flex items-center gap-2">
@@ -1043,7 +1073,7 @@ export default function AdminDashboard() {
                     <ScheduleNotificationDialog couple={selectedCouple} />
                   )}
                 </div>
-                
+
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                   <Card className="relative overflow-hidden border-0 bg-gradient-to-br from-teal-500/10 to-emerald-500/10 dark:from-teal-500/20 dark:to-emerald-500/20 hover-elevate">
                     <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-teal-500/20 to-transparent rounded-bl-full" />
@@ -1062,7 +1092,7 @@ export default function AdminDashboard() {
                       </p>
                     </CardContent>
                   </Card>
-                  
+
                   <Card className="relative overflow-hidden border-0 bg-gradient-to-br from-violet-500/10 to-purple-500/10 dark:from-violet-500/20 dark:to-purple-500/20 hover-elevate">
                     <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-violet-500/20 to-transparent rounded-bl-full" />
                     <CardHeader className="pb-2">
@@ -1080,7 +1110,7 @@ export default function AdminDashboard() {
                       </p>
                     </CardContent>
                   </Card>
-                  
+
                   <Card className="relative overflow-hidden border-0 bg-gradient-to-br from-rose-500/10 to-pink-500/10 dark:from-rose-500/20 dark:to-pink-500/20 hover-elevate">
                     <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-rose-500/20 to-transparent rounded-bl-full" />
                     <CardHeader className="pb-2">
@@ -1098,7 +1128,7 @@ export default function AdminDashboard() {
                       </p>
                     </CardContent>
                   </Card>
-                  
+
                   <Card className="relative overflow-hidden border-0 bg-gradient-to-br from-amber-500/10 to-orange-500/10 dark:from-amber-500/20 dark:to-orange-500/20 hover-elevate">
                     <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-amber-500/20 to-transparent rounded-bl-full" />
                     <CardHeader className="pb-2">
@@ -1117,7 +1147,7 @@ export default function AdminDashboard() {
                     </CardContent>
                   </Card>
                 </div>
-                
+
                 <Card className="border-0 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2 text-amber-700 dark:text-amber-300">
@@ -1135,8 +1165,7 @@ export default function AdminDashboard() {
                       <TherapistThoughtsPanel
                         coupleId={selectedCouple.id}
                         partner1={
-                          selectedCouple.partner1 &&
-                          selectedCouple.partner1_id
+                          selectedCouple.partner1 && selectedCouple.partner1_id
                             ? {
                                 id: selectedCouple.partner1_id,
                                 full_name: selectedCouple.partner1.full_name,
@@ -1144,8 +1173,7 @@ export default function AdminDashboard() {
                             : null
                         }
                         partner2={
-                          selectedCouple.partner2 &&
-                          selectedCouple.partner2_id
+                          selectedCouple.partner2 && selectedCouple.partner2_id
                             ? {
                                 id: selectedCouple.partner2_id,
                                 full_name: selectedCouple.partner2.full_name,
@@ -1158,1226 +1186,1251 @@ export default function AdminDashboard() {
                 </Card>
               </TabsContent>
 
-                <TabsContent value="checkins" className="space-y-6">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <div className="p-2 rounded-lg bg-gradient-to-br from-violet-500 to-purple-500">
-                      <CheckCircle className="h-5 w-5 text-white" />
-                    </div>
-                    <h3 className="text-xl font-semibold bg-gradient-to-r from-violet-600 to-purple-600 dark:from-violet-400 dark:to-purple-400 bg-clip-text text-transparent">
-                      Weekly Check-Ins
-                    </h3>
+              <TabsContent value="checkins" className="space-y-6">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <div className="p-2 rounded-lg bg-gradient-to-br from-violet-500 to-purple-500">
+                    <CheckCircle className="h-5 w-5 text-white" />
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {checkins.slice(0, 2).map((checkin) => (
-                      <Card key={checkin.id}>
-                        <CardHeader>
-                          <CardTitle className="flex items-center gap-2">
-                            <Avatar className="h-8 w-8">
-                              <AvatarFallback className="bg-primary/10 text-primary text-sm">
-                                {checkin.author?.full_name?.charAt(0) || "?"}
-                              </AvatarFallback>
-                            </Avatar>
-                            {checkin.author?.full_name}
-                          </CardTitle>
-                          <CardDescription>
-                            {checkin.created_at
-                              ? formatDistanceToNow(
-                                  new Date(checkin.created_at),
-                                  { addSuffix: true },
-                                )
-                              : "Recently"}
-                          </CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-6">
-                          <div className="space-y-2">
-                            <div className="flex items-center justify-between">
-                              <Label>Connectedness</Label>
-                              <span className="text-2xl font-bold text-primary">
-                                {checkin.q_connectedness}/10
-                              </span>
-                            </div>
-                            <div className="h-2 bg-secondary rounded-full overflow-hidden">
-                              <div
-                                className="h-full bg-primary"
-                                style={{
-                                  width: `${(checkin.q_connectedness || 0) * 10}%`,
-                                }}
-                              />
-                            </div>
-                          </div>
-
-                          <div className="space-y-2">
-                            <div className="flex items-center justify-between">
-                              <Label>Conflict Resolution</Label>
-                              <span className="text-2xl font-bold text-secondary-foreground">
-                                {checkin.q_conflict}/10
-                              </span>
-                            </div>
-                            <div className="h-2 bg-secondary rounded-full overflow-hidden">
-                              <div
-                                className="h-full bg-accent"
-                                style={{
-                                  width: `${(checkin.q_conflict || 0) * 10}%`,
-                                }}
-                              />
-                            </div>
-                          </div>
-
-                          <div className="space-y-2">
-                            <Label>Appreciation</Label>
-                            <p className="text-sm text-muted-foreground border-l-4 border-primary/30 pl-4 italic">
-                              {checkin.q_appreciation}
-                            </p>
-                          </div>
-
-                          <div className="space-y-2">
-                            <Label>Regrettable Incident</Label>
-                            <p className="text-sm text-muted-foreground border-l-4 border-destructive/30 pl-4 italic">
-                              {checkin.q_regrettable_incident}
-                            </p>
-                          </div>
-
-                          <div className="space-y-2">
-                            <Label>Need</Label>
-                            <p className="text-sm text-muted-foreground border-l-4 border-accent/30 pl-4 italic">
-                              {checkin.q_my_need}
-                            </p>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                </TabsContent>
-
-                <TabsContent value="languages" className="space-y-6">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <div className="p-2 rounded-lg bg-gradient-to-br from-amber-500 to-orange-500">
-                      <Heart className="h-5 w-5 text-white" />
-                    </div>
-                    <h3 className="text-xl font-semibold bg-gradient-to-r from-amber-600 to-orange-600 dark:from-amber-400 dark:to-orange-400 bg-clip-text text-transparent">
-                      Love Languages
-                    </h3>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {loveLanguages.map((lang) => {
-                      const partner = [
-                        selectedCouple.partner1,
-                        selectedCouple.partner2,
-                      ].find((p) => p?.id === lang.user_id);
-                      return (
-                        <Card key={lang.id}>
-                          <CardHeader>
-                            <div className="flex items-center justify-between gap-4">
-                              <CardTitle>
-                                {partner?.full_name || "Unknown"}
-                              </CardTitle>
-                              <AlertDialog>
-                                <AlertDialogTrigger asChild>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    data-testid={`button-delete-love-language-${lang.id}`}
-                                  >
-                                    <Trash2 className="h-4 w-4 text-destructive" />
-                                  </Button>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent>
-                                  <AlertDialogHeader>
-                                    <AlertDialogTitle>
-                                      Delete Love Language Result?
-                                    </AlertDialogTitle>
-                                    <AlertDialogDescription>
-                                      This will permanently delete{" "}
-                                      {partner?.full_name || "this partner"}'s
-                                      love language quiz result. They will need
-                                      to retake the quiz.
-                                    </AlertDialogDescription>
-                                  </AlertDialogHeader>
-                                  <AlertDialogFooter>
-                                    <AlertDialogCancel data-testid="button-cancel-delete-love-language">
-                                      Cancel
-                                    </AlertDialogCancel>
-                                    <AlertDialogAction
-                                      onClick={() =>
-                                        deleteLoveLanguageMutation.mutate(
-                                          lang.id,
-                                        )
-                                      }
-                                      disabled={
-                                        deleteLoveLanguageMutation.isPending
-                                      }
-                                      data-testid="button-confirm-delete-love-language"
-                                    >
-                                      {deleteLoveLanguageMutation.isPending
-                                        ? "Deleting..."
-                                        : "Delete"}
-                                    </AlertDialogAction>
-                                  </AlertDialogFooter>
-                                </AlertDialogContent>
-                              </AlertDialog>
-                            </div>
-                          </CardHeader>
-                          <CardContent className="space-y-4">
-                            <div className="space-y-2">
-                              <Label className="text-sm text-muted-foreground">
-                                Primary Language
-                              </Label>
-                              <p className="text-lg font-semibold text-primary">
-                                {lang.primary_language}
-                              </p>
-                            </div>
-                            <div className="space-y-2">
-                              <Label className="text-sm text-muted-foreground">
-                                Secondary Language
-                              </Label>
-                              <p className="text-lg font-semibold text-secondary-foreground">
-                                {lang.secondary_language}
-                              </p>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      );
-                    })}
-                  </div>
-                </TabsContent>
-
-                <TabsContent value="attachment" className="space-y-6">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <div className="p-2 rounded-lg bg-gradient-to-br from-amber-500 to-orange-500">
-                      <Users className="h-5 w-5 text-white" />
-                    </div>
-                    <h3 className="text-xl font-semibold bg-gradient-to-r from-amber-600 to-orange-600 dark:from-amber-400 dark:to-orange-400 bg-clip-text text-transparent">
-                      Attachment Styles
-                    </h3>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {attachmentStyles.map((style) => {
-                      const partner = [
-                        selectedCouple.partner1,
-                        selectedCouple.partner2,
-                      ].find((p) => p?.id === style.user_id);
-                      return (
-                        <Card key={style.id}>
-                          <CardHeader>
-                            <CardTitle>
-                              {partner?.full_name || "Unknown"}
-                            </CardTitle>
-                            <CardDescription>
-                              Attachment Assessment
-                            </CardDescription>
-                          </CardHeader>
-                          <CardContent className="space-y-4">
-                            <div className="space-y-2">
-                              <Label className="text-sm text-muted-foreground">
-                                Attachment Style
-                              </Label>
-                              <p className="text-lg font-semibold text-primary capitalize">
-                                {style.attachment_style?.replace(/-/g, " ") || "Not assessed"}
-                              </p>
-                            </div>
-                            {style.score !== null && (
-                              <div className="space-y-3">
-                                <div className="flex items-center justify-between">
-                                  <span className="text-sm text-muted-foreground">Assessment Score</span>
-                                  <span className="text-sm font-medium">{style.score}%</span>
-                                </div>
-                                <Progress value={style.score} className="h-2" />
-                              </div>
-                            )}
-                            {style.dynamics_with_partner && (
-                              <div className="space-y-2">
-                                <Label className="text-sm text-muted-foreground">
-                                  Dynamics with Partner
-                                </Label>
-                                <p className="text-sm text-muted-foreground">
-                                  {style.dynamics_with_partner}
-                                </p>
-                              </div>
-                            )}
-                          </CardContent>
-                        </Card>
-                      );
-                    })}
-                    {attachmentStyles.length === 0 && (
-                      <Card className="col-span-full">
-                        <CardContent className="pt-6 text-center text-muted-foreground">
-                          No attachment style assessments completed yet.
-                        </CardContent>
-                      </Card>
-                    )}
-                  </div>
-                </TabsContent>
-
-                <TabsContent value="enneagram" className="space-y-6">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <div className="p-2 rounded-lg bg-gradient-to-br from-amber-500 to-orange-500">
-                      <Target className="h-5 w-5 text-white" />
-                    </div>
-                    <h3 className="text-xl font-semibold bg-gradient-to-r from-amber-600 to-orange-600 dark:from-amber-400 dark:to-orange-400 bg-clip-text text-transparent">
-                      Enneagram
-                    </h3>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {enneagramAssessments.map((assessment) => {
-                      const partner = [
-                        selectedCouple.partner1,
-                        selectedCouple.partner2,
-                      ].find((p) => p?.id === assessment.user_id);
-                      const enneagramTypeNames: Record<number, string> = {
-                        1: "The Reformer",
-                        2: "The Helper",
-                        3: "The Achiever",
-                        4: "The Individualist",
-                        5: "The Investigator",
-                        6: "The Loyalist",
-                        7: "The Enthusiast",
-                        8: "The Challenger",
-                        9: "The Peacemaker",
-                      };
-                      return (
-                        <Card key={assessment.id}>
-                          <CardHeader>
-                            <CardTitle>
-                              {partner?.full_name || "Unknown"}
-                            </CardTitle>
-                            <CardDescription>
-                              Enneagram Assessment
-                            </CardDescription>
-                          </CardHeader>
-                          <CardContent className="space-y-4">
-                            <div className="space-y-2">
-                              <Label className="text-sm text-muted-foreground">
-                                Primary Type
-                              </Label>
-                              <p className="text-lg font-semibold text-primary">
-                                Type {assessment.primary_type}: {assessment.primary_type ? enneagramTypeNames[assessment.primary_type] : "Not assessed"}
-                              </p>
-                            </div>
-                            {assessment.primary_score !== null && (
-                              <div className="space-y-3">
-                                <div className="flex items-center justify-between">
-                                  <span className="text-sm text-muted-foreground">Primary Score</span>
-                                  <span className="text-sm font-medium">{assessment.primary_score}%</span>
-                                </div>
-                                <Progress value={assessment.primary_score} className="h-2" />
-                              </div>
-                            )}
-                            {assessment.secondary_type && (
-                              <div className="space-y-2">
-                                <Label className="text-sm text-muted-foreground">
-                                  Secondary Type (Wing)
-                                </Label>
-                                <p className="text-sm">
-                                  Type {assessment.secondary_type}: {enneagramTypeNames[assessment.secondary_type]}
-                                </p>
-                              </div>
-                            )}
-                            {assessment.couple_dynamics && (
-                              <div className="space-y-2">
-                                <Label className="text-sm text-muted-foreground">
-                                  Couple Dynamics
-                                </Label>
-                                <p className="text-sm text-muted-foreground">
-                                  {assessment.couple_dynamics}
-                                </p>
-                              </div>
-                            )}
-                          </CardContent>
-                        </Card>
-                      );
-                    })}
-                    {enneagramAssessments.length === 0 && (
-                      <Card className="col-span-full">
-                        <CardContent className="pt-6 text-center text-muted-foreground">
-                          No Enneagram assessments completed yet.
-                        </CardContent>
-                      </Card>
-                    )}
-                  </div>
-                </TabsContent>
-
-                <TabsContent value="journal" className="space-y-6">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Shared Journal Entries</CardTitle>
-                      <CardDescription>
-                        Journal entries shared with therapist by the couple
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      {journalEntries.length > 0 ? (
-                        <div className="space-y-4">
-                          {journalEntries.map((entry) => {
-                            const author = [
-                              selectedCouple.partner1,
-                              selectedCouple.partner2,
-                            ].find((p) => p?.id === entry.created_by);
-                            return (
-                              <Card key={entry.id} className="border-l-4 border-l-primary">
-                                <CardHeader className="pb-2">
-                                  <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-2">
-                                      <Avatar className="h-8 w-8">
-                                        <AvatarFallback className="text-xs">
-                                          {author?.full_name?.charAt(0) || "?"}
-                                        </AvatarFallback>
-                                      </Avatar>
-                                      <div>
-                                        <p className="text-sm font-medium">{author?.full_name || "Unknown"}</p>
-                                        <p className="text-xs text-muted-foreground">
-                                          {entry.created_at
-                                            ? format(new Date(entry.created_at), "MMM d, yyyy 'at' h:mm a")
-                                            : ""}
-                                        </p>
-                                      </div>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                      {entry.entry_type && (
-                                        <Badge variant="outline" className="capitalize">
-                                          {entry.entry_type}
-                                        </Badge>
-                                      )}
-                                      {entry.mood && (
-                                        <Badge variant="secondary" className="capitalize">
-                                          {entry.mood}
-                                        </Badge>
-                                      )}
-                                    </div>
-                                  </div>
-                                  {entry.title && (
-                                    <CardTitle className="text-base mt-2">{entry.title}</CardTitle>
-                                  )}
-                                </CardHeader>
-                                <CardContent>
-                                  <p className="text-sm whitespace-pre-wrap">{entry.content}</p>
-                                </CardContent>
-                              </Card>
-                            );
-                          })}
-                        </div>
-                      ) : (
-                        <p className="text-center text-muted-foreground py-8">
-                          No journal entries shared with therapist yet.
-                        </p>
-                      )}
-                    </CardContent>
-                  </Card>
-                </TabsContent>
-
-                <TabsContent value="activity" className="space-y-4">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <div className="p-2 rounded-lg bg-gradient-to-br from-rose-500 to-pink-500">
-                      <Activity className="h-5 w-5 text-white" />
-                    </div>
-                    <h3 className="text-xl font-semibold bg-gradient-to-r from-rose-600 to-pink-600 dark:from-rose-400 dark:to-pink-400 bg-clip-text text-transparent">
-                      Activity Feed
-                    </h3>
-                  </div>
-                  {activities.map((activity) => (
-                    <Card key={`${activity.type}-${activity.id}`}>
-                      <CardContent className="pt-6 space-y-4">
+                  <h3 className="text-xl font-semibold bg-gradient-to-r from-violet-600 to-purple-600 dark:from-violet-400 dark:to-purple-400 bg-clip-text text-transparent">
+                    Weekly Check-Ins
+                  </h3>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {checkins.slice(0, 2).map((checkin) => (
+                    <Card key={checkin.id}>
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                          <Avatar className="h-8 w-8">
+                            <AvatarFallback className="bg-primary/10 text-primary text-sm">
+                              {checkin.author?.full_name?.charAt(0) || "?"}
+                            </AvatarFallback>
+                          </Avatar>
+                          {checkin.author?.full_name}
+                        </CardTitle>
+                        <CardDescription>
+                          {checkin.created_at
+                            ? formatDistanceToNow(
+                                new Date(checkin.created_at),
+                                { addSuffix: true },
+                              )
+                            : "Recently"}
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent className="space-y-6">
                         <div className="space-y-2">
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs font-medium text-muted-foreground uppercase">
-                              {activity.type.replace(/_/g, " ")}
-                            </span>
-                            <span className="text-xs text-muted-foreground">
-                              {activity.timestamp
-                                ? formatDistanceToNow(
-                                    new Date(activity.timestamp),
-                                    { addSuffix: true },
-                                  )
-                                : ""}
+                          <div className="flex items-center justify-between">
+                            <Label>Connectedness</Label>
+                            <span className="text-2xl font-bold text-primary">
+                              {checkin.q_connectedness}/10
                             </span>
                           </div>
-                          {activity.type === "gratitude_logs" && (
-                            <p>{activity.text_content}</p>
-                          )}
-                          {activity.type === "shared_goals" && (
-                            <p>
-                              <strong>Goal:</strong> {activity.title}
-                            </p>
-                          )}
-                          {activity.type === "rituals" && (
-                            <p>
-                              <strong>{activity.category}:</strong>{" "}
-                              {activity.description}
-                            </p>
-                          )}
-                          {activity.type === "conversations" && (
-                            <p className="text-sm italic">
-                              Hold Me Tight conversation completed
-                            </p>
-                          )}
-                          {activity.type === "voice_memos" && (
-                            <div className="space-y-1">
-                              <p className="text-sm">
-                                <strong>
-                                  {activity.sender?.full_name || "Unknown"}
-                                </strong>{" "}
-                                →{" "}
-                                <strong>
-                                  {activity.recipient?.full_name || "Unknown"}
-                                </strong>
-                              </p>
-                              <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                                <span>
-                                  Duration:{" "}
-                                  {activity.duration_secs
-                                    ? `${Math.floor(parseFloat(activity.duration_secs) / 60)}:${(Math.floor(parseFloat(activity.duration_secs)) % 60).toString().padStart(2, "0")}`
-                                    : "Unknown"}
-                                </span>
-                                <span
-                                  className={
-                                    activity.is_listened
-                                      ? "text-primary"
-                                      : "text-destructive"
-                                  }
-                                >
-                                  {activity.is_listened
-                                    ? "✓ Listened"
-                                    : "○ Not listened"}
-                                </span>
-                              </div>
-                            </div>
-                          )}
+                          <div className="h-2 bg-secondary rounded-full overflow-hidden">
+                            <div
+                              className="h-full bg-primary"
+                              style={{
+                                width: `${(checkin.q_connectedness || 0) * 10}%`,
+                              }}
+                            />
+                          </div>
                         </div>
 
-                        {commentingOn?.id === activity.id ? (
-                          <div className="space-y-4 border-t pt-4">
-                            <Textarea
-                              placeholder="Add your comment or note..."
-                              value={commentText}
-                              onChange={(e) => setCommentText(e.target.value)}
-                              className="min-h-24"
-                            />
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-2">
-                                <Checkbox
-                                  id={`private-${activity.id}`}
-                                  checked={isPrivate}
-                                  onCheckedChange={(checked) =>
-                                    setIsPrivate(checked as boolean)
-                                  }
-                                />
-                                <Label
-                                  htmlFor={`private-${activity.id}`}
-                                  className="text-sm"
-                                >
-                                  Private note (only visible to you)
-                                </Label>
-                              </div>
-                              <div className="flex gap-2">
-                                <Button
-                                  variant="ghost"
-                                  onClick={() => setCommentingOn(null)}
-                                >
-                                  Cancel
-                                </Button>
-                                <Button
-                                  onClick={() =>
-                                    handleAddComment(activity.type, activity.id)
-                                  }
-                                >
-                                  <Send className="h-4 w-4 mr-2" />
-                                  Post
-                                </Button>
-                              </div>
-                            </div>
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <Label>Conflict Resolution</Label>
+                            <span className="text-2xl font-bold text-secondary-foreground">
+                              {checkin.q_conflict}/10
+                            </span>
                           </div>
-                        ) : (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() =>
-                              setCommentingOn({
-                                type: activity.type,
-                                id: activity.id,
-                              })
-                            }
-                          >
-                            Add Comment
-                          </Button>
-                        )}
+                          <div className="h-2 bg-secondary rounded-full overflow-hidden">
+                            <div
+                              className="h-full bg-accent"
+                              style={{
+                                width: `${(checkin.q_conflict || 0) * 10}%`,
+                              }}
+                            />
+                          </div>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label>Appreciation</Label>
+                          <p className="text-sm text-muted-foreground border-l-4 border-primary/30 pl-4 italic">
+                            {checkin.q_appreciation}
+                          </p>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label>Regrettable Incident</Label>
+                          <p className="text-sm text-muted-foreground border-l-4 border-destructive/30 pl-4 italic">
+                            {checkin.q_regrettable_incident}
+                          </p>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label>Need</Label>
+                          <p className="text-sm text-muted-foreground border-l-4 border-accent/30 pl-4 italic">
+                            {checkin.q_my_need}
+                          </p>
+                        </div>
                       </CardContent>
                     </Card>
                   ))}
-                </TabsContent>
+                </div>
+              </TabsContent>
 
-                <TabsContent value="notes" className="space-y-4">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <div className="p-2 rounded-lg bg-gradient-to-br from-violet-500 to-purple-500">
-                      <FileText className="h-5 w-5 text-white" />
-                    </div>
-                    <h3 className="text-xl font-semibold bg-gradient-to-r from-violet-600 to-purple-600 dark:from-violet-400 dark:to-purple-400 bg-clip-text text-transparent">
-                      Session Notes
-                    </h3>
+              <TabsContent value="languages" className="space-y-6">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <div className="p-2 rounded-lg bg-gradient-to-br from-amber-500 to-orange-500">
+                    <Heart className="h-5 w-5 text-white" />
                   </div>
-                  <Card>
-                    <CardHeader>
-                      <CardDescription>
-                        Document your therapy sessions with this couple
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <SessionNotesPanel
-                        coupleId={selectedCouple.id}
-                        therapistId={profile?.id || ""}
-                      />
-                    </CardContent>
-                  </Card>
-                </TabsContent>
-
-                <TabsContent value="messages" className="space-y-4">
-                  <MessagesTab
-                    coupleId={selectedCouple.id}
-                    therapistId={profile?.id || ""}
-                    userId={user?.id || ""}
-                    messageText={messageText}
-                    setMessageText={setMessageText}
-                    messagesEndRef={messagesEndRef}
-                  />
-                </TabsContent>
-
-                <TabsContent value="calendar" className="space-y-4">
-                  <CalendarTab coupleId={selectedCouple.id} />
-                </TabsContent>
-
-                <TabsContent value="lovemap" className="space-y-4">
-                  <LoveMapTab coupleId={selectedCouple.id} />
-                </TabsContent>
-
-                <TabsContent value="echo" className="space-y-4">
-                  <EchoEmpathyTab coupleId={selectedCouple.id} />
-                </TabsContent>
-
-                <TabsContent value="ifs" className="space-y-4">
-                  <IfsTab
-                    coupleId={selectedCouple.id}
-                    partnerId1={selectedCouple.partner1_id}
-                    partnerId2={selectedCouple.partner2_id}
-                    partner1Name={
-                      selectedCouple.partner1?.full_name || undefined
-                    }
-                    partner2Name={
-                      selectedCouple.partner2?.full_name || undefined
-                    }
-                  />
-                </TabsContent>
-
-                <TabsContent value="pause" className="space-y-4">
-                  <PauseHistoryTab
-                    coupleId={selectedCouple.id}
-                    partnerId1={selectedCouple.partner1_id}
-                    partnerId2={selectedCouple.partner2_id}
-                    partner1Name={
-                      selectedCouple.partner1?.full_name || undefined
-                    }
-                    partner2Name={
-                      selectedCouple.partner2?.full_name || undefined
-                    }
-                  />
-                </TabsContent>
-
-                <TabsContent value="therapy-tools" className="space-y-4">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Advanced Therapy Tools</CardTitle>
-                      <CardDescription>
-                        Track usage and progress across additional therapeutic
-                        interventions
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <Tabs defaultValue="four-horsemen">
-                        <TabsList className="grid w-full grid-cols-6 gap-2">
-                          <TabsTrigger
-                            value="four-horsemen"
-                            data-testid="tab-trigger-four-horsemen"
-                          >
-                            Four Horsemen
-                          </TabsTrigger>
-                          <TabsTrigger
-                            value="demon-dialogues"
-                            data-testid="tab-trigger-demon-dialogues"
-                          >
-                            Demon Dialogues
-                          </TabsTrigger>
-                          <TabsTrigger
-                            value="meditation"
-                            data-testid="tab-trigger-meditation"
-                          >
-                            Meditation
-                          </TabsTrigger>
-                          <TabsTrigger
-                            value="intimacy"
-                            data-testid="tab-trigger-intimacy"
-                          >
-                            Intimacy Mapping
-                          </TabsTrigger>
-                          <TabsTrigger
-                            value="values"
-                            data-testid="tab-trigger-values"
-                          >
-                            Values & Vision
-                          </TabsTrigger>
-                          <TabsTrigger
-                            value="parenting"
-                            data-testid="tab-trigger-parenting"
-                          >
-                            Parenting
-                          </TabsTrigger>
-                        </TabsList>
-
-                        <TabsContent
-                          value="four-horsemen"
-                          className="space-y-4 mt-6"
-                        >
-                          <FourHorsemenTab coupleId={selectedCouple.id} />
-                        </TabsContent>
-
-                        <TabsContent
-                          value="demon-dialogues"
-                          className="space-y-4 mt-6"
-                        >
-                          <DemonDialoguesTab coupleId={selectedCouple.id} />
-                        </TabsContent>
-
-                        <TabsContent
-                          value="meditation"
-                          className="space-y-4 mt-6"
-                        >
-                          <MeditationLibraryTab coupleId={selectedCouple.id} />
-                        </TabsContent>
-
-                        <TabsContent
-                          value="intimacy"
-                          className="space-y-4 mt-6"
-                        >
-                          <IntimacyMappingTab coupleId={selectedCouple.id} />
-                        </TabsContent>
-
-                        <TabsContent value="values" className="space-y-4 mt-6">
-                          <ValuesVisionTab coupleId={selectedCouple.id} />
-                        </TabsContent>
-
-                        <TabsContent
-                          value="parenting"
-                          className="space-y-4 mt-6"
-                        >
-                          <ParentingPartnersTab coupleId={selectedCouple.id} />
-                        </TabsContent>
-                      </Tabs>
-                    </CardContent>
-                  </Card>
-                </TabsContent>
-
-                <TabsContent
-                  value="dashboard-customization"
-                  className="space-y-4"
-                >
-                  <TherapistDashboardEditor
-                    coupleId={selectedCouple.id}
-                    coupleName={`${selectedCouple.partner1?.full_name?.split(" ")[0] || "Partner 1"} & ${selectedCouple.partner2?.full_name?.split(" ")[0] || "Partner 2"}`}
-                  />
-                </TabsContent>
-
-                {/* Client Prompts Tab - Therapist-customizable suggestions */}
-                <TabsContent value="prompts" className="space-y-6">
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <div className="p-2 rounded-lg bg-gradient-to-br from-amber-500 to-orange-500">
-                        <MessageSquare className="h-5 w-5 text-white" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h3 className="text-xl font-semibold bg-gradient-to-r from-amber-600 to-orange-600 dark:from-amber-400 dark:to-orange-400 bg-clip-text text-transparent">
-                          Client Prompts
-                        </h3>
-                        <p className="text-sm text-muted-foreground">
-                          Create custom suggestions and prompts that appear in your client's "Suggested For You" section
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Add New Prompt Form */}
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="text-base flex items-center gap-2">
-                          <Plus className="h-4 w-4" />
-                          Add New Prompt
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="space-y-4">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <h3 className="text-xl font-semibold bg-gradient-to-r from-amber-600 to-orange-600 dark:from-amber-400 dark:to-orange-400 bg-clip-text text-transparent">
+                    Love Languages
+                  </h3>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {loveLanguages.map((lang) => {
+                    const partner = [
+                      selectedCouple.partner1,
+                      selectedCouple.partner2,
+                    ].find((p) => p?.id === lang.user_id);
+                    return (
+                      <Card key={lang.id}>
+                        <CardHeader>
+                          <div className="flex items-center justify-between gap-4">
+                            <CardTitle>
+                              {partner?.full_name || "Unknown"}
+                            </CardTitle>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  data-testid={`button-delete-love-language-${lang.id}`}
+                                >
+                                  <Trash2 className="h-4 w-4 text-destructive" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>
+                                    Delete Love Language Result?
+                                  </AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    This will permanently delete{" "}
+                                    {partner?.full_name || "this partner"}'s
+                                    love language quiz result. They will need to
+                                    retake the quiz.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel data-testid="button-cancel-delete-love-language">
+                                    Cancel
+                                  </AlertDialogCancel>
+                                  <AlertDialogAction
+                                    onClick={() =>
+                                      deleteLoveLanguageMutation.mutate(lang.id)
+                                    }
+                                    disabled={
+                                      deleteLoveLanguageMutation.isPending
+                                    }
+                                    data-testid="button-confirm-delete-love-language"
+                                  >
+                                    {deleteLoveLanguageMutation.isPending
+                                      ? "Deleting..."
+                                      : "Delete"}
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </div>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
                           <div className="space-y-2">
-                            <label className="text-sm font-medium">
-                              Activity Type
-                            </label>
-                            <Select
-                              value={newPrompt.tool_name}
-                              onValueChange={(value) =>
-                                setNewPrompt((p) => ({ ...p, tool_name: value }))
-                              }
-                            >
-                              <SelectTrigger data-testid="select-tool-name">
-                                <SelectValue placeholder="Select activity" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="reflection">
-                                  Reflection Question
-                                </SelectItem>
-                                <SelectItem value="weekly-checkin">
-                                  Weekly Check-In
-                                </SelectItem>
-                                <SelectItem value="gratitude">
-                                  Gratitude Log
-                                </SelectItem>
-                                <SelectItem value="shared-goals">
-                                  Shared Goals
-                                </SelectItem>
-                                <SelectItem value="rituals">
-                                  Rituals of Connection
-                                </SelectItem>
-                                <SelectItem value="conversations">
-                                  Hold Me Tight
-                                </SelectItem>
-                                <SelectItem value="voice-memos">
-                                  Voice Memos
-                                </SelectItem>
-                                <SelectItem value="custom">
-                                  Custom Activity
-                                </SelectItem>
-                              </SelectContent>
-                            </Select>
+                            <Label className="text-sm text-muted-foreground">
+                              Primary Language
+                            </Label>
+                            <p className="text-lg font-semibold text-primary">
+                              {lang.primary_language}
+                            </p>
                           </div>
                           <div className="space-y-2">
-                            <label className="text-sm font-medium">
-                              Target
-                            </label>
-                            <Select
-                              value={newPrompt.target_user_id || "both"}
-                              onValueChange={(value) =>
-                                setNewPrompt((p) => ({ 
-                                  ...p, 
-                                  target_user_id: value === "both" ? null : value 
-                                }))
-                              }
-                            >
-                              <SelectTrigger data-testid="select-target-user">
-                                <SelectValue placeholder="Select target" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="both">Both Partners</SelectItem>
-                                {selectedCouple?.partner1 && (
-                                  <SelectItem value={selectedCouple.partner1.id}>
-                                    {selectedCouple.partner1.full_name || "Partner 1"}
-                                  </SelectItem>
-                                )}
-                                {selectedCouple?.partner2 && (
-                                  <SelectItem value={selectedCouple.partner2.id}>
-                                    {selectedCouple.partner2.full_name || "Partner 2"}
-                                  </SelectItem>
-                                )}
-                              </SelectContent>
-                            </Select>
+                            <Label className="text-sm text-muted-foreground">
+                              Secondary Language
+                            </Label>
+                            <p className="text-lg font-semibold text-secondary-foreground">
+                              {lang.secondary_language}
+                            </p>
                           </div>
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+              </TabsContent>
+
+              <TabsContent value="attachment" className="space-y-6">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <div className="p-2 rounded-lg bg-gradient-to-br from-amber-500 to-orange-500">
+                    <Users className="h-5 w-5 text-white" />
+                  </div>
+                  <h3 className="text-xl font-semibold bg-gradient-to-r from-amber-600 to-orange-600 dark:from-amber-400 dark:to-orange-400 bg-clip-text text-transparent">
+                    Attachment Styles
+                  </h3>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {attachmentStyles.map((style) => {
+                    const partner = [
+                      selectedCouple.partner1,
+                      selectedCouple.partner2,
+                    ].find((p) => p?.id === style.user_id);
+                    return (
+                      <Card key={style.id}>
+                        <CardHeader>
+                          <CardTitle>
+                            {partner?.full_name || "Unknown"}
+                          </CardTitle>
+                          <CardDescription>
+                            Attachment Assessment
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
                           <div className="space-y-2">
-                            <label className="text-sm font-medium">Title</label>
-                            <Input
-                              placeholder="e.g., Gratitude Log"
-                              value={newPrompt.title}
-                              onChange={(e) =>
-                                setNewPrompt((p) => ({
-                                  ...p,
-                                  title: e.target.value,
-                                }))
-                              }
-                              data-testid="input-prompt-title"
-                            />
+                            <Label className="text-sm text-muted-foreground">
+                              Attachment Style
+                            </Label>
+                            <p className="text-lg font-semibold text-primary capitalize">
+                              {style.attachment_style?.replace(/-/g, " ") ||
+                                "Not assessed"}
+                            </p>
                           </div>
-                        </div>
-                        <div className="space-y-2">
-                          <label className="text-sm font-medium">
-                            Description (optional)
-                          </label>
-                          <Input
-                            placeholder="Brief explanation of the activity"
-                            value={newPrompt.description}
-                            onChange={(e) =>
-                              setNewPrompt((p) => ({
-                                ...p,
-                                description: e.target.value,
-                              }))
-                            }
-                            data-testid="input-prompt-description"
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <label className="text-sm font-medium">
-                            Suggested Action
-                          </label>
-                          <Textarea
-                            placeholder="e.g., Tonight, share one thing you're grateful for about each other before bed."
-                            value={newPrompt.suggested_action}
-                            onChange={(e) =>
-                              setNewPrompt((p) => ({
-                                ...p,
-                                suggested_action: e.target.value,
-                              }))
-                            }
-                            className="min-h-24"
-                            data-testid="input-prompt-action"
-                          />
-                        </div>
-                        <Button
-                          onClick={() => {
-                            if (
-                              selectedCouple &&
-                              profile?.id &&
-                              newPrompt.tool_name &&
-                              newPrompt.title &&
-                              newPrompt.suggested_action
-                            ) {
-                              createPromptMutation.mutate({
-                                couple_id: selectedCouple.id,
-                                therapist_id: profile.id,
-                                ...newPrompt,
-                              });
-                            }
-                          }}
-                          disabled={
-                            createPromptMutation.isPending ||
-                            !newPrompt.tool_name ||
-                            !newPrompt.title ||
-                            !newPrompt.suggested_action
-                          }
-                          data-testid="button-create-prompt"
-                        >
-                          {createPromptMutation.isPending ? (
-                            <>
-                              <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                              Creating...
-                            </>
-                          ) : (
-                            <>
-                              <Plus className="h-4 w-4 mr-2" />
-                              Add Prompt
-                            </>
+                          {style.score !== null && (
+                            <div className="space-y-3">
+                              <div className="flex items-center justify-between">
+                                <span className="text-sm text-muted-foreground">
+                                  Assessment Score
+                                </span>
+                                <span className="text-sm font-medium">
+                                  {style.score}%
+                                </span>
+                              </div>
+                              <Progress value={style.score} className="h-2" />
+                            </div>
                           )}
-                        </Button>
+                          {style.dynamics_with_partner && (
+                            <div className="space-y-2">
+                              <Label className="text-sm text-muted-foreground">
+                                Dynamics with Partner
+                              </Label>
+                              <p className="text-sm text-muted-foreground">
+                                {style.dynamics_with_partner}
+                              </p>
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                  {attachmentStyles.length === 0 && (
+                    <Card className="col-span-full">
+                      <CardContent className="pt-6 text-center text-muted-foreground">
+                        No attachment style assessments completed yet.
                       </CardContent>
                     </Card>
+                  )}
+                </div>
+              </TabsContent>
 
-                    {/* Existing Prompts List */}
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="text-base">
-                          Active Prompts
-                        </CardTitle>
-                        <CardDescription>
-                          These prompts will appear in your client's dashboard
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        {therapistPromptsQuery.isLoading ? (
-                          <div className="flex items-center justify-center py-8">
-                            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+              <TabsContent value="enneagram" className="space-y-6">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <div className="p-2 rounded-lg bg-gradient-to-br from-amber-500 to-orange-500">
+                    <Target className="h-5 w-5 text-white" />
+                  </div>
+                  <h3 className="text-xl font-semibold bg-gradient-to-r from-amber-600 to-orange-600 dark:from-amber-400 dark:to-orange-400 bg-clip-text text-transparent">
+                    Enneagram
+                  </h3>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {enneagramAssessments.map((assessment) => {
+                    const partner = [
+                      selectedCouple.partner1,
+                      selectedCouple.partner2,
+                    ].find((p) => p?.id === assessment.user_id);
+                    const enneagramTypeNames: Record<number, string> = {
+                      1: "The Reformer",
+                      2: "The Helper",
+                      3: "The Achiever",
+                      4: "The Individualist",
+                      5: "The Investigator",
+                      6: "The Loyalist",
+                      7: "The Enthusiast",
+                      8: "The Challenger",
+                      9: "The Peacemaker",
+                    };
+                    return (
+                      <Card key={assessment.id}>
+                        <CardHeader>
+                          <CardTitle>
+                            {partner?.full_name || "Unknown"}
+                          </CardTitle>
+                          <CardDescription>
+                            Enneagram Assessment
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                          <div className="space-y-2">
+                            <Label className="text-sm text-muted-foreground">
+                              Primary Type
+                            </Label>
+                            <p className="text-lg font-semibold text-primary">
+                              Type {assessment.primary_type}:{" "}
+                              {assessment.primary_type
+                                ? enneagramTypeNames[assessment.primary_type]
+                                : "Not assessed"}
+                            </p>
                           </div>
-                        ) : therapistPromptsQuery.data &&
-                          therapistPromptsQuery.data.length > 0 ? (
-                          <div className="space-y-3">
-                            {therapistPromptsQuery.data.map((prompt) => (
-                              <div
-                                key={prompt.id}
-                                className={`p-4 rounded-lg border ${
-                                  prompt.is_enabled
-                                    ? "bg-background"
-                                    : "bg-muted/50 opacity-60"
-                                }`}
-                                data-testid={`prompt-item-${prompt.id}`}
-                              >
-                                {editingPromptId === prompt.id ? (
-                                  <EditPromptForm
-                                    prompt={prompt}
-                                    onSave={(data) => {
-                                      updatePromptMutation.mutate({
-                                        id: prompt.id,
-                                        ...data,
-                                      });
-                                    }}
-                                    onCancel={() => setEditingPromptId(null)}
-                                    isSaving={updatePromptMutation.isPending}
-                                  />
-                                ) : (
-                                  <div className="space-y-2">
-                                    <div className="flex items-start justify-between gap-2">
-                                      <div className="flex-1 min-w-0">
-                                        <div className="flex items-center gap-2 flex-wrap">
-                                          <span className="font-medium">
-                                            {prompt.title}
-                                          </span>
-                                          <Badge variant="outline">
-                                            {prompt.tool_name}
-                                          </Badge>
-                                          {!prompt.is_enabled && (
-                                            <Badge variant="secondary">
-                                              Disabled
-                                            </Badge>
-                                          )}
-                                        </div>
-                                        {prompt.description && (
-                                          <p className="text-sm text-muted-foreground mt-1">
-                                            {prompt.description}
-                                          </p>
-                                        )}
-                                      </div>
-                                      <div className="flex items-center gap-1">
-                                        <Button
-                                          variant="ghost"
-                                          size="icon"
-                                          onClick={() =>
-                                            setEditingPromptId(prompt.id)
-                                          }
-                                          data-testid={`button-edit-prompt-${prompt.id}`}
-                                        >
-                                          <Edit className="h-4 w-4" />
-                                        </Button>
-                                        <Button
-                                          variant="ghost"
-                                          size="icon"
-                                          onClick={() =>
-                                            updatePromptMutation.mutate({
-                                              id: prompt.id,
-                                              is_enabled: !prompt.is_enabled,
-                                            })
-                                          }
-                                          data-testid={`button-toggle-prompt-${prompt.id}`}
-                                        >
-                                          {prompt.is_enabled ? (
-                                            <CheckCircle2 className="h-4 w-4 text-green-500" />
-                                          ) : (
-                                            <XCircle className="h-4 w-4 text-muted-foreground" />
-                                          )}
-                                        </Button>
-                                        <AlertDialog>
-                                          <AlertDialogTrigger asChild>
-                                            <Button
-                                              variant="ghost"
-                                              size="icon"
-                                              data-testid={`button-delete-prompt-${prompt.id}`}
-                                            >
-                                              <Trash2 className="h-4 w-4 text-destructive" />
-                                            </Button>
-                                          </AlertDialogTrigger>
-                                          <AlertDialogContent>
-                                            <AlertDialogHeader>
-                                              <AlertDialogTitle>
-                                                Delete Prompt?
-                                              </AlertDialogTitle>
-                                              <AlertDialogDescription>
-                                                This will permanently delete
-                                                this prompt. This action cannot
-                                                be undone.
-                                              </AlertDialogDescription>
-                                            </AlertDialogHeader>
-                                            <AlertDialogFooter>
-                                              <AlertDialogCancel>
-                                                Cancel
-                                              </AlertDialogCancel>
-                                              <AlertDialogAction
-                                                onClick={() =>
-                                                  deletePromptMutation.mutate(
-                                                    prompt.id,
-                                                  )
-                                                }
-                                                className="bg-destructive hover:bg-destructive/90"
-                                              >
-                                                Delete
-                                              </AlertDialogAction>
-                                            </AlertDialogFooter>
-                                          </AlertDialogContent>
-                                        </AlertDialog>
-                                      </div>
-                                    </div>
-                                    <div className="p-3 bg-amber-50 dark:bg-amber-950/20 rounded border border-amber-200/30 dark:border-amber-800/30">
-                                      <p className="text-sm flex items-start gap-2">
-                                        <Lightbulb className="h-4 w-4 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
-                                        <span>{prompt.suggested_action}</span>
+                          {assessment.primary_score !== null && (
+                            <div className="space-y-3">
+                              <div className="flex items-center justify-between">
+                                <span className="text-sm text-muted-foreground">
+                                  Primary Score
+                                </span>
+                                <span className="text-sm font-medium">
+                                  {assessment.primary_score}%
+                                </span>
+                              </div>
+                              <Progress
+                                value={assessment.primary_score}
+                                className="h-2"
+                              />
+                            </div>
+                          )}
+                          {assessment.secondary_type && (
+                            <div className="space-y-2">
+                              <Label className="text-sm text-muted-foreground">
+                                Secondary Type (Wing)
+                              </Label>
+                              <p className="text-sm">
+                                Type {assessment.secondary_type}:{" "}
+                                {enneagramTypeNames[assessment.secondary_type]}
+                              </p>
+                            </div>
+                          )}
+                          {assessment.couple_dynamics && (
+                            <div className="space-y-2">
+                              <Label className="text-sm text-muted-foreground">
+                                Couple Dynamics
+                              </Label>
+                              <p className="text-sm text-muted-foreground">
+                                {assessment.couple_dynamics}
+                              </p>
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                  {enneagramAssessments.length === 0 && (
+                    <Card className="col-span-full">
+                      <CardContent className="pt-6 text-center text-muted-foreground">
+                        No Enneagram assessments completed yet.
+                      </CardContent>
+                    </Card>
+                  )}
+                </div>
+              </TabsContent>
+
+              <TabsContent value="journal" className="space-y-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Shared Journal Entries</CardTitle>
+                    <CardDescription>
+                      Journal entries shared with therapist by the couple
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {journalEntries.length > 0 ? (
+                      <div className="space-y-4">
+                        {journalEntries.map((entry) => {
+                          const author = [
+                            selectedCouple.partner1,
+                            selectedCouple.partner2,
+                          ].find((p) => p?.id === entry.created_by);
+                          return (
+                            <Card
+                              key={entry.id}
+                              className="border-l-4 border-l-primary"
+                            >
+                              <CardHeader className="pb-2">
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-2">
+                                    <Avatar className="h-8 w-8">
+                                      <AvatarFallback className="text-xs">
+                                        {author?.full_name?.charAt(0) || "?"}
+                                      </AvatarFallback>
+                                    </Avatar>
+                                    <div>
+                                      <p className="text-sm font-medium">
+                                        {author?.full_name || "Unknown"}
+                                      </p>
+                                      <p className="text-xs text-muted-foreground">
+                                        {entry.created_at
+                                          ? format(
+                                              new Date(entry.created_at),
+                                              "MMM d, yyyy 'at' h:mm a",
+                                            )
+                                          : ""}
                                       </p>
                                     </div>
                                   </div>
+                                  <div className="flex items-center gap-2">
+                                    {entry.entry_type && (
+                                      <Badge
+                                        variant="outline"
+                                        className="capitalize"
+                                      >
+                                        {entry.entry_type}
+                                      </Badge>
+                                    )}
+                                    {entry.mood && (
+                                      <Badge
+                                        variant="secondary"
+                                        className="capitalize"
+                                      >
+                                        {entry.mood}
+                                      </Badge>
+                                    )}
+                                  </div>
+                                </div>
+                                {entry.title && (
+                                  <CardTitle className="text-base mt-2">
+                                    {entry.title}
+                                  </CardTitle>
                                 )}
-                              </div>
-                            ))}
-                          </div>
-                        ) : (
-                          <div className="text-center py-8 text-muted-foreground">
-                            <p>No custom prompts yet.</p>
+                              </CardHeader>
+                              <CardContent>
+                                <p className="text-sm whitespace-pre-wrap">
+                                  {entry.content}
+                                </p>
+                              </CardContent>
+                            </Card>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <p className="text-center text-muted-foreground py-8">
+                        No journal entries shared with therapist yet.
+                      </p>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="activity" className="space-y-4">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <div className="p-2 rounded-lg bg-gradient-to-br from-rose-500 to-pink-500">
+                    <Activity className="h-5 w-5 text-white" />
+                  </div>
+                  <h3 className="text-xl font-semibold bg-gradient-to-r from-rose-600 to-pink-600 dark:from-rose-400 dark:to-pink-400 bg-clip-text text-transparent">
+                    Activity Feed
+                  </h3>
+                </div>
+                {activities.map((activity) => (
+                  <Card key={`${activity.type}-${activity.id}`}>
+                    <CardContent className="pt-6 space-y-4">
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-medium text-muted-foreground uppercase">
+                            {activity.type.replace(/_/g, " ")}
+                          </span>
+                          <span className="text-xs text-muted-foreground">
+                            {activity.timestamp
+                              ? formatDistanceToNow(
+                                  new Date(activity.timestamp),
+                                  { addSuffix: true },
+                                )
+                              : ""}
+                          </span>
+                        </div>
+                        {activity.type === "gratitude_logs" && (
+                          <p>{activity.text_content}</p>
+                        )}
+                        {activity.type === "shared_goals" && (
+                          <p>
+                            <strong>Goal:</strong> {activity.title}
+                          </p>
+                        )}
+                        {activity.type === "rituals" && (
+                          <p>
+                            <strong>{activity.category}:</strong>{" "}
+                            {activity.description}
+                          </p>
+                        )}
+                        {activity.type === "conversations" && (
+                          <p className="text-sm italic">
+                            Hold Me Tight conversation completed
+                          </p>
+                        )}
+                        {activity.type === "voice_memos" && (
+                          <div className="space-y-1">
                             <p className="text-sm">
-                              Create your first prompt above to give
-                              personalized suggestions to this couple.
+                              <strong>
+                                {activity.sender?.full_name || "Unknown"}
+                              </strong>{" "}
+                              →{" "}
+                              <strong>
+                                {activity.recipient?.full_name || "Unknown"}
+                              </strong>
                             </p>
+                            <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                              <span>
+                                Duration:{" "}
+                                {activity.duration_secs
+                                  ? `${Math.floor(parseFloat(activity.duration_secs) / 60)}:${(Math.floor(parseFloat(activity.duration_secs)) % 60).toString().padStart(2, "0")}`
+                                  : "Unknown"}
+                              </span>
+                              <span
+                                className={
+                                  activity.is_listened
+                                    ? "text-primary"
+                                    : "text-destructive"
+                                }
+                              >
+                                {activity.is_listened
+                                  ? "✓ Listened"
+                                  : "○ Not listened"}
+                              </span>
+                            </div>
                           </div>
                         )}
-                      </CardContent>
-                    </Card>
-                  </div>
-                </TabsContent>
+                      </div>
 
-                <TabsContent value="reminders" className="space-y-6">
-                  {selectedCouple && (
-                    <CheckinReminders couple={selectedCouple} />
-                  )}
-                </TabsContent>
-
-                <TabsContent value="reflection-responses" className="space-y-6">
-                  <ReflectionResponsesTab 
-                    coupleId={selectedCouple.id}
-                    partner1={selectedCouple.partner1}
-                    partner2={selectedCouple.partner2}
-                  />
-                </TabsContent>
-
-                <TabsContent value="therapist-thoughts" className="space-y-6">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Therapist Thoughts</CardTitle>
-                      <CardDescription>
-                        Manage your to-dos, messages, and notes for this couple
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      {selectedCouple && (
-                        <TherapistThoughtsPanel
-                          coupleId={selectedCouple.id}
-                          partner1={
-                            selectedCouple.partner1 && selectedCouple.partner1_id
-                              ? { id: selectedCouple.partner1_id, full_name: selectedCouple.partner1.full_name }
-                              : null
+                      {commentingOn?.id === activity.id ? (
+                        <div className="space-y-4 border-t pt-4">
+                          <Textarea
+                            placeholder="Add your comment or note..."
+                            value={commentText}
+                            onChange={(e) => setCommentText(e.target.value)}
+                            className="min-h-24"
+                          />
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <Checkbox
+                                id={`private-${activity.id}`}
+                                checked={isPrivate}
+                                onCheckedChange={(checked) =>
+                                  setIsPrivate(checked as boolean)
+                                }
+                              />
+                              <Label
+                                htmlFor={`private-${activity.id}`}
+                                className="text-sm"
+                              >
+                                Private note (only visible to you)
+                              </Label>
+                            </div>
+                            <div className="flex gap-2">
+                              <Button
+                                variant="ghost"
+                                onClick={() => setCommentingOn(null)}
+                              >
+                                Cancel
+                              </Button>
+                              <Button
+                                onClick={() =>
+                                  handleAddComment(activity.type, activity.id)
+                                }
+                              >
+                                <Send className="h-4 w-4 mr-2" />
+                                Post
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() =>
+                            setCommentingOn({
+                              type: activity.type,
+                              id: activity.id,
+                            })
                           }
-                          partner2={
-                            selectedCouple.partner2 && selectedCouple.partner2_id
-                              ? { id: selectedCouple.partner2_id, full_name: selectedCouple.partner2.full_name }
-                              : null
-                          }
-                        />
+                        >
+                          Add Comment
+                        </Button>
                       )}
                     </CardContent>
                   </Card>
-                </TabsContent>
+                ))}
+              </TabsContent>
 
-                <TabsContent value="gratitude" className="space-y-4">
+              <TabsContent value="notes" className="space-y-4">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <div className="p-2 rounded-lg bg-gradient-to-br from-violet-500 to-purple-500">
+                    <FileText className="h-5 w-5 text-white" />
+                  </div>
+                  <h3 className="text-xl font-semibold bg-gradient-to-r from-violet-600 to-purple-600 dark:from-violet-400 dark:to-purple-400 bg-clip-text text-transparent">
+                    Session Notes
+                  </h3>
+                </div>
+                <Card>
+                  <CardHeader>
+                    <CardDescription>
+                      Document your therapy sessions with this couple
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <SessionNotesPanel
+                      coupleId={selectedCouple.id}
+                      therapistId={profile?.id || ""}
+                    />
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="messages" className="space-y-4">
+                <MessagesTab
+                  coupleId={selectedCouple.id}
+                  therapistId={profile?.id || ""}
+                  userId={user?.id || ""}
+                  messageText={messageText}
+                  setMessageText={setMessageText}
+                  messagesEndRef={messagesEndRef}
+                />
+              </TabsContent>
+
+              <TabsContent value="calendar" className="space-y-4">
+                <CalendarTab coupleId={selectedCouple.id} />
+              </TabsContent>
+
+              <TabsContent value="lovemap" className="space-y-4">
+                <LoveMapTab coupleId={selectedCouple.id} />
+              </TabsContent>
+
+              <TabsContent value="echo" className="space-y-4">
+                <EchoEmpathyTab coupleId={selectedCouple.id} />
+              </TabsContent>
+
+              <TabsContent value="ifs" className="space-y-4">
+                <IfsTab
+                  coupleId={selectedCouple.id}
+                  partnerId1={selectedCouple.partner1_id}
+                  partnerId2={selectedCouple.partner2_id}
+                  partner1Name={selectedCouple.partner1?.full_name || undefined}
+                  partner2Name={selectedCouple.partner2?.full_name || undefined}
+                />
+              </TabsContent>
+
+              <TabsContent value="pause" className="space-y-4">
+                <PauseHistoryTab
+                  coupleId={selectedCouple.id}
+                  partnerId1={selectedCouple.partner1_id}
+                  partnerId2={selectedCouple.partner2_id}
+                  partner1Name={selectedCouple.partner1?.full_name || undefined}
+                  partner2Name={selectedCouple.partner2?.full_name || undefined}
+                />
+              </TabsContent>
+
+              <TabsContent value="therapy-tools" className="space-y-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Advanced Therapy Tools</CardTitle>
+                    <CardDescription>
+                      Track usage and progress across additional therapeutic
+                      interventions
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <Tabs defaultValue="four-horsemen">
+                      <TabsList className="grid w-full grid-cols-6 gap-2">
+                        <TabsTrigger
+                          value="four-horsemen"
+                          data-testid="tab-trigger-four-horsemen"
+                        >
+                          Four Horsemen
+                        </TabsTrigger>
+                        <TabsTrigger
+                          value="demon-dialogues"
+                          data-testid="tab-trigger-demon-dialogues"
+                        >
+                          Demon Dialogues
+                        </TabsTrigger>
+                        <TabsTrigger
+                          value="meditation"
+                          data-testid="tab-trigger-meditation"
+                        >
+                          Meditation
+                        </TabsTrigger>
+                        <TabsTrigger
+                          value="intimacy"
+                          data-testid="tab-trigger-intimacy"
+                        >
+                          Intimacy Mapping
+                        </TabsTrigger>
+                        <TabsTrigger
+                          value="values"
+                          data-testid="tab-trigger-values"
+                        >
+                          Values & Vision
+                        </TabsTrigger>
+                        <TabsTrigger
+                          value="parenting"
+                          data-testid="tab-trigger-parenting"
+                        >
+                          Parenting
+                        </TabsTrigger>
+                      </TabsList>
+
+                      <TabsContent
+                        value="four-horsemen"
+                        className="space-y-4 mt-6"
+                      >
+                        <FourHorsemenTab coupleId={selectedCouple.id} />
+                      </TabsContent>
+
+                      <TabsContent
+                        value="demon-dialogues"
+                        className="space-y-4 mt-6"
+                      >
+                        <DemonDialoguesTab coupleId={selectedCouple.id} />
+                      </TabsContent>
+
+                      <TabsContent
+                        value="meditation"
+                        className="space-y-4 mt-6"
+                      >
+                        <MeditationLibraryTab coupleId={selectedCouple.id} />
+                      </TabsContent>
+
+                      <TabsContent value="intimacy" className="space-y-4 mt-6">
+                        <IntimacyMappingTab coupleId={selectedCouple.id} />
+                      </TabsContent>
+
+                      <TabsContent value="values" className="space-y-4 mt-6">
+                        <ValuesVisionTab coupleId={selectedCouple.id} />
+                      </TabsContent>
+
+                      <TabsContent value="parenting" className="space-y-4 mt-6">
+                        <ParentingPartnersTab coupleId={selectedCouple.id} />
+                      </TabsContent>
+                    </Tabs>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent
+                value="dashboard-customization"
+                className="space-y-4"
+              >
+                <TherapistDashboardEditor
+                  coupleId={selectedCouple.id}
+                  coupleName={`${selectedCouple.partner1?.full_name?.split(" ")[0] || "Partner 1"} & ${selectedCouple.partner2?.full_name?.split(" ")[0] || "Partner 2"}`}
+                />
+              </TabsContent>
+
+              {/* Client Prompts Tab - Therapist-customizable suggestions */}
+              <TabsContent value="prompts" className="space-y-6">
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <div className="p-2 rounded-lg bg-gradient-to-br from-amber-500 to-orange-500">
+                      <MessageSquare className="h-5 w-5 text-white" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-xl font-semibold bg-gradient-to-r from-amber-600 to-orange-600 dark:from-amber-400 dark:to-orange-400 bg-clip-text text-transparent">
+                        Client Prompts
+                      </h3>
+                      <p className="text-sm text-muted-foreground">
+                        Create custom suggestions and prompts that appear in
+                        your client's "Suggested For You" section
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Add New Prompt Form */}
                   <Card>
                     <CardHeader>
-                      <CardTitle>Gratitude Log</CardTitle>
+                      <CardTitle className="text-base flex items-center gap-2">
+                        <Plus className="h-4 w-4" />
+                        Add New Prompt
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium">
+                            Activity Type
+                          </label>
+                          <Select
+                            value={newPrompt.tool_name}
+                            onValueChange={(value) =>
+                              setNewPrompt((p) => ({ ...p, tool_name: value }))
+                            }
+                          >
+                            <SelectTrigger data-testid="select-tool-name">
+                              <SelectValue placeholder="Select activity" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="reflection">
+                                Reflection Question
+                              </SelectItem>
+                              <SelectItem value="weekly-checkin">
+                                Weekly Check-In
+                              </SelectItem>
+                              <SelectItem value="gratitude">
+                                Gratitude Log
+                              </SelectItem>
+                              <SelectItem value="shared-goals">
+                                Shared Goals
+                              </SelectItem>
+                              <SelectItem value="rituals">
+                                Rituals of Connection
+                              </SelectItem>
+                              <SelectItem value="conversations">
+                                Hold Me Tight
+                              </SelectItem>
+                              <SelectItem value="voice-memos">
+                                Voice Memos
+                              </SelectItem>
+                              <SelectItem value="custom">
+                                Custom Activity
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium">Target</label>
+                          <Select
+                            value={newPrompt.target_user_id || "both"}
+                            onValueChange={(value) =>
+                              setNewPrompt((p) => ({
+                                ...p,
+                                target_user_id: value === "both" ? null : value,
+                              }))
+                            }
+                          >
+                            <SelectTrigger data-testid="select-target-user">
+                              <SelectValue placeholder="Select target" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="both">
+                                Both Partners
+                              </SelectItem>
+                              {selectedCouple?.partner1 && (
+                                <SelectItem value={selectedCouple.partner1.id}>
+                                  {selectedCouple.partner1.full_name ||
+                                    "Partner 1"}
+                                </SelectItem>
+                              )}
+                              {selectedCouple?.partner2 && (
+                                <SelectItem value={selectedCouple.partner2.id}>
+                                  {selectedCouple.partner2.full_name ||
+                                    "Partner 2"}
+                                </SelectItem>
+                              )}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium">Title</label>
+                          <Input
+                            placeholder="e.g., Gratitude Log"
+                            value={newPrompt.title}
+                            onChange={(e) =>
+                              setNewPrompt((p) => ({
+                                ...p,
+                                title: e.target.value,
+                              }))
+                            }
+                            data-testid="input-prompt-title"
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">
+                          Description (optional)
+                        </label>
+                        <Input
+                          placeholder="Brief explanation of the activity"
+                          value={newPrompt.description}
+                          onChange={(e) =>
+                            setNewPrompt((p) => ({
+                              ...p,
+                              description: e.target.value,
+                            }))
+                          }
+                          data-testid="input-prompt-description"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">
+                          Suggested Action
+                        </label>
+                        <Textarea
+                          placeholder="e.g., Tonight, share one thing you're grateful for about each other before bed."
+                          value={newPrompt.suggested_action}
+                          onChange={(e) =>
+                            setNewPrompt((p) => ({
+                              ...p,
+                              suggested_action: e.target.value,
+                            }))
+                          }
+                          className="min-h-24"
+                          data-testid="input-prompt-action"
+                        />
+                      </div>
+                      <Button
+                        onClick={() => {
+                          if (
+                            selectedCouple &&
+                            profile?.id &&
+                            newPrompt.tool_name &&
+                            newPrompt.title &&
+                            newPrompt.suggested_action
+                          ) {
+                            createPromptMutation.mutate({
+                              couple_id: selectedCouple.id,
+                              therapist_id: profile.id,
+                              ...newPrompt,
+                            });
+                          }
+                        }}
+                        disabled={
+                          createPromptMutation.isPending ||
+                          !newPrompt.tool_name ||
+                          !newPrompt.title ||
+                          !newPrompt.suggested_action
+                        }
+                        data-testid="button-create-prompt"
+                      >
+                        {createPromptMutation.isPending ? (
+                          <>
+                            <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                            Creating...
+                          </>
+                        ) : (
+                          <>
+                            <Plus className="h-4 w-4 mr-2" />
+                            Add Prompt
+                          </>
+                        )}
+                      </Button>
+                    </CardContent>
+                  </Card>
+
+                  {/* Existing Prompts List */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-base">
+                        Active Prompts
+                      </CardTitle>
                       <CardDescription>
-                        Gratitude entries shared between partners
+                        These prompts will appear in your client's dashboard
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <GratitudeTab coupleId={selectedCouple.id} />
+                      {therapistPromptsQuery.isLoading ? (
+                        <div className="flex items-center justify-center py-8">
+                          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                        </div>
+                      ) : therapistPromptsQuery.data &&
+                        therapistPromptsQuery.data.length > 0 ? (
+                        <div className="space-y-3">
+                          {therapistPromptsQuery.data.map((prompt) => (
+                            <div
+                              key={prompt.id}
+                              className={`p-4 rounded-lg border ${
+                                prompt.is_enabled
+                                  ? "bg-background"
+                                  : "bg-muted/50 opacity-60"
+                              }`}
+                              data-testid={`prompt-item-${prompt.id}`}
+                            >
+                              {editingPromptId === prompt.id ? (
+                                <EditPromptForm
+                                  prompt={prompt}
+                                  onSave={(data) => {
+                                    updatePromptMutation.mutate({
+                                      id: prompt.id,
+                                      ...data,
+                                    });
+                                  }}
+                                  onCancel={() => setEditingPromptId(null)}
+                                  isSaving={updatePromptMutation.isPending}
+                                />
+                              ) : (
+                                <div className="space-y-2">
+                                  <div className="flex items-start justify-between gap-2">
+                                    <div className="flex-1 min-w-0">
+                                      <div className="flex items-center gap-2 flex-wrap">
+                                        <span className="font-medium">
+                                          {prompt.title}
+                                        </span>
+                                        <Badge variant="outline">
+                                          {prompt.tool_name}
+                                        </Badge>
+                                        {!prompt.is_enabled && (
+                                          <Badge variant="secondary">
+                                            Disabled
+                                          </Badge>
+                                        )}
+                                      </div>
+                                      {prompt.description && (
+                                        <p className="text-sm text-muted-foreground mt-1">
+                                          {prompt.description}
+                                        </p>
+                                      )}
+                                    </div>
+                                    <div className="flex items-center gap-1">
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={() =>
+                                          setEditingPromptId(prompt.id)
+                                        }
+                                        data-testid={`button-edit-prompt-${prompt.id}`}
+                                      >
+                                        <Edit className="h-4 w-4" />
+                                      </Button>
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={() =>
+                                          updatePromptMutation.mutate({
+                                            id: prompt.id,
+                                            is_enabled: !prompt.is_enabled,
+                                          })
+                                        }
+                                        data-testid={`button-toggle-prompt-${prompt.id}`}
+                                      >
+                                        {prompt.is_enabled ? (
+                                          <CheckCircle2 className="h-4 w-4 text-green-500" />
+                                        ) : (
+                                          <XCircle className="h-4 w-4 text-muted-foreground" />
+                                        )}
+                                      </Button>
+                                      <AlertDialog>
+                                        <AlertDialogTrigger asChild>
+                                          <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            data-testid={`button-delete-prompt-${prompt.id}`}
+                                          >
+                                            <Trash2 className="h-4 w-4 text-destructive" />
+                                          </Button>
+                                        </AlertDialogTrigger>
+                                        <AlertDialogContent>
+                                          <AlertDialogHeader>
+                                            <AlertDialogTitle>
+                                              Delete Prompt?
+                                            </AlertDialogTitle>
+                                            <AlertDialogDescription>
+                                              This will permanently delete this
+                                              prompt. This action cannot be
+                                              undone.
+                                            </AlertDialogDescription>
+                                          </AlertDialogHeader>
+                                          <AlertDialogFooter>
+                                            <AlertDialogCancel>
+                                              Cancel
+                                            </AlertDialogCancel>
+                                            <AlertDialogAction
+                                              onClick={() =>
+                                                deletePromptMutation.mutate(
+                                                  prompt.id,
+                                                )
+                                              }
+                                              className="bg-destructive hover:bg-destructive/90"
+                                            >
+                                              Delete
+                                            </AlertDialogAction>
+                                          </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                      </AlertDialog>
+                                    </div>
+                                  </div>
+                                  <div className="p-3 bg-amber-50 dark:bg-amber-950/20 rounded border border-amber-200/30 dark:border-amber-800/30">
+                                    <p className="text-sm flex items-start gap-2">
+                                      <Lightbulb className="h-4 w-4 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
+                                      <span>{prompt.suggested_action}</span>
+                                    </p>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="text-center py-8 text-muted-foreground">
+                          <p>No custom prompts yet.</p>
+                          <p className="text-sm">
+                            Create your first prompt above to give personalized
+                            suggestions to this couple.
+                          </p>
+                        </div>
+                      )}
                     </CardContent>
                   </Card>
-                </TabsContent>
+                </div>
+              </TabsContent>
 
-                <TabsContent value="conflict" className="space-y-4">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Conflict Resolution Sessions</CardTitle>
-                      <CardDescription>
-                        I-Statement sessions and resolution progress
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <ConflictResolutionTab coupleId={selectedCouple.id} />
-                    </CardContent>
-                  </Card>
-                </TabsContent>
+              <TabsContent value="reminders" className="space-y-6">
+                {selectedCouple && <CheckinReminders couple={selectedCouple} />}
+              </TabsContent>
 
-                <TabsContent value="voice-memos" className="space-y-4">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Voice Memos</CardTitle>
-                      <CardDescription>
-                        Audio messages exchanged between partners
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <VoiceMemosTab coupleId={selectedCouple.id} />
-                    </CardContent>
-                  </Card>
-                </TabsContent>
+              <TabsContent value="reflection-responses" className="space-y-6">
+                <ReflectionResponsesTab
+                  coupleId={selectedCouple.id}
+                  partner1={selectedCouple.partner1}
+                  partner2={selectedCouple.partner2}
+                />
+              </TabsContent>
 
-                <TabsContent value="financial" className="space-y-4">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Financial Toolkit</CardTitle>
-                      <CardDescription>
-                        Money management activities and budgeting
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <FinancialToolkitTab coupleId={selectedCouple.id} />
-                    </CardContent>
-                  </Card>
-                </TabsContent>
+              <TabsContent value="therapist-thoughts" className="space-y-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Therapist Thoughts</CardTitle>
+                    <CardDescription>
+                      Manage your to-dos, messages, and notes for this couple
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {selectedCouple && (
+                      <TherapistThoughtsPanel
+                        coupleId={selectedCouple.id}
+                        partner1={
+                          selectedCouple.partner1 && selectedCouple.partner1_id
+                            ? {
+                                id: selectedCouple.partner1_id,
+                                full_name: selectedCouple.partner1.full_name,
+                              }
+                            : null
+                        }
+                        partner2={
+                          selectedCouple.partner2 && selectedCouple.partner2_id
+                            ? {
+                                id: selectedCouple.partner2_id,
+                                full_name: selectedCouple.partner2.full_name,
+                              }
+                            : null
+                        }
+                      />
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
 
-                <TabsContent value="growth-plan" className="space-y-4">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Growth Plan</CardTitle>
-                      <CardDescription>
-                        AI-powered personalized exercises and goals
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <GrowthPlanTab coupleId={selectedCouple.id} />
-                    </CardContent>
-                  </Card>
-                </TabsContent>
+              <TabsContent value="gratitude" className="space-y-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Gratitude Log</CardTitle>
+                    <CardDescription>
+                      Gratitude entries shared between partners
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <GratitudeTab coupleId={selectedCouple.id} />
+                  </CardContent>
+                </Card>
+              </TabsContent>
 
-                <TabsContent value="progress-timeline" className="space-y-4">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Progress Timeline</CardTitle>
-                      <CardDescription>
-                        Relationship milestones and achievements
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <ProgressTimelineTab coupleId={selectedCouple.id} />
-                    </CardContent>
-                  </Card>
-                </TabsContent>
+              <TabsContent value="conflict" className="space-y-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Conflict Resolution Sessions</CardTitle>
+                    <CardDescription>
+                      I-Statement sessions and resolution progress
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <ConflictResolutionTab coupleId={selectedCouple.id} />
+                  </CardContent>
+                </Card>
+              </TabsContent>
 
-                <TabsContent value="mood" className="space-y-4">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Mood Tracker</CardTitle>
-                      <CardDescription>
-                        Emotional wellbeing tracking for both partners
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <MoodTrackerTab coupleId={selectedCouple.id} />
-                    </CardContent>
-                  </Card>
-                </TabsContent>
+              <TabsContent value="voice-memos" className="space-y-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Voice Memos</CardTitle>
+                    <CardDescription>
+                      Audio messages exchanged between partners
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <VoiceMemosTab coupleId={selectedCouple.id} />
+                  </CardContent>
+                </Card>
+              </TabsContent>
 
-                <TabsContent value="goals" className="space-y-4">
-                  <GoalsTab coupleId={selectedCouple.id} />
-                </TabsContent>
+              <TabsContent value="financial" className="space-y-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Financial Toolkit</CardTitle>
+                    <CardDescription>
+                      Money management activities and budgeting
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <FinancialToolkitTab coupleId={selectedCouple.id} />
+                  </CardContent>
+                </Card>
+              </TabsContent>
 
-                <TabsContent value="rituals" className="space-y-4">
-                  <RitualsTab coupleId={selectedCouple.id} />
-                </TabsContent>
+              <TabsContent value="growth-plan" className="space-y-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Growth Plan</CardTitle>
+                    <CardDescription>
+                      AI-powered personalized exercises and goals
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <GrowthPlanTab coupleId={selectedCouple.id} />
+                  </CardContent>
+                </Card>
+              </TabsContent>
 
-                <TabsContent value="conversations" className="space-y-4">
-                  <ConversationsTab coupleId={selectedCouple.id} />
-                </TabsContent>
-              </Tabs>
+              <TabsContent value="progress-timeline" className="space-y-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Progress Timeline</CardTitle>
+                    <CardDescription>
+                      Relationship milestones and achievements
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <ProgressTimelineTab coupleId={selectedCouple.id} />
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="mood" className="space-y-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Mood Tracker</CardTitle>
+                    <CardDescription>
+                      Emotional wellbeing tracking for both partners
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <MoodTrackerTab coupleId={selectedCouple.id} />
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="goals" className="space-y-4">
+                <GoalsTab coupleId={selectedCouple.id} />
+              </TabsContent>
+
+              <TabsContent value="rituals" className="space-y-4">
+                <RitualsTab coupleId={selectedCouple.id} />
+              </TabsContent>
+
+              <TabsContent value="conversations" className="space-y-4">
+                <ConversationsTab coupleId={selectedCouple.id} />
+              </TabsContent>
+            </Tabs>
           </div>
         </ScrollArea>
       </main>
@@ -2425,7 +2478,9 @@ function MessagesTab({
       return aiFunctions.sendMessage(coupleId, text);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["therapist-messages", coupleId] });
+      queryClient.invalidateQueries({
+        queryKey: ["therapist-messages", coupleId],
+      });
       setMessageText("");
     },
     onError: (error: any) => {
@@ -2517,112 +2572,112 @@ function MessagesTab({
           </CardTitle>
         </CardHeader>
 
-      <CardContent className="flex-1 flex flex-col p-0 overflow-hidden">
-        {isLoading ? (
-          <div className="flex-1 flex items-center justify-center">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          </div>
-        ) : messages.length === 0 ? (
-          <div className="flex-1 flex items-center justify-center p-8">
-            <div className="text-center space-y-4">
-              <MessageSquare className="h-12 w-12 mx-auto text-muted-foreground" />
-              <div>
-                <p className="font-medium">No messages yet</p>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Start a conversation with the couple
-                </p>
+        <CardContent className="flex-1 flex flex-col p-0 overflow-hidden">
+          {isLoading ? (
+            <div className="flex-1 flex items-center justify-center">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+          ) : messages.length === 0 ? (
+            <div className="flex-1 flex items-center justify-center p-8">
+              <div className="text-center space-y-4">
+                <MessageSquare className="h-12 w-12 mx-auto text-muted-foreground" />
+                <div>
+                  <p className="font-medium">No messages yet</p>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Start a conversation with the couple
+                  </p>
+                </div>
               </div>
             </div>
-          </div>
-        ) : (
-          <ScrollArea className="flex-1 p-6">
-            <div className="space-y-4">
-              {messages.map((message) => {
-                const isCurrentUser = message.sender_id === userId;
-                const isTherapist = message.sender.role === "therapist";
+          ) : (
+            <ScrollArea className="flex-1 p-6">
+              <div className="space-y-4">
+                {messages.map((message) => {
+                  const isCurrentUser = message.sender_id === userId;
+                  const isTherapist = message.sender.role === "therapist";
 
-                return (
-                  <div
-                    key={message.id}
-                    className={`flex gap-3 ${isCurrentUser ? "flex-row-reverse" : "flex-row"}`}
-                    data-testid={`message-${message.id}`}
-                  >
-                    <Avatar className="h-8 w-8 flex-shrink-0">
-                      <AvatarFallback
-                        className={
-                          isTherapist
-                            ? "bg-accent text-accent-foreground"
-                            : "bg-primary text-primary-foreground"
-                        }
-                      >
-                        {message.sender.full_name?.charAt(0) || "?"}
-                      </AvatarFallback>
-                    </Avatar>
-
+                  return (
                     <div
-                      className={`flex flex-col gap-1 max-w-[70%] ${isCurrentUser ? "items-end" : "items-start"}`}
+                      key={message.id}
+                      className={`flex gap-3 ${isCurrentUser ? "flex-row-reverse" : "flex-row"}`}
+                      data-testid={`message-${message.id}`}
                     >
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs font-medium">
-                          {isCurrentUser ? "You" : message.sender.full_name}
-                        </span>
-                        <span className="text-xs text-muted-foreground">
-                          {message.created_at
-                            ? formatDistanceToNow(
-                                new Date(message.created_at),
-                                { addSuffix: true },
-                              )
-                            : "Just now"}
-                        </span>
-                      </div>
+                      <Avatar className="h-8 w-8 flex-shrink-0">
+                        <AvatarFallback
+                          className={
+                            isTherapist
+                              ? "bg-accent text-accent-foreground"
+                              : "bg-primary text-primary-foreground"
+                          }
+                        >
+                          {message.sender.full_name?.charAt(0) || "?"}
+                        </AvatarFallback>
+                      </Avatar>
 
                       <div
-                        className={`rounded-lg px-4 py-2 ${
-                          isCurrentUser
-                            ? "bg-primary text-primary-foreground"
-                            : "bg-accent text-accent-foreground"
-                        }`}
+                        className={`flex flex-col gap-1 max-w-[70%] ${isCurrentUser ? "items-end" : "items-start"}`}
                       >
-                        <p className="text-sm whitespace-pre-wrap break-words">
-                          {message.message_text}
-                        </p>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-medium">
+                            {isCurrentUser ? "You" : message.sender.full_name}
+                          </span>
+                          <span className="text-xs text-muted-foreground">
+                            {message.created_at
+                              ? formatDistanceToNow(
+                                  new Date(message.created_at),
+                                  { addSuffix: true },
+                                )
+                              : "Just now"}
+                          </span>
+                        </div>
+
+                        <div
+                          className={`rounded-lg px-4 py-2 ${
+                            isCurrentUser
+                              ? "bg-primary text-primary-foreground"
+                              : "bg-accent text-accent-foreground"
+                          }`}
+                        >
+                          <p className="text-sm whitespace-pre-wrap break-words">
+                            {message.message_text}
+                          </p>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                );
-              })}
-              <div ref={messagesEndRef} />
-            </div>
-          </ScrollArea>
-        )}
+                  );
+                })}
+                <div ref={messagesEndRef} />
+              </div>
+            </ScrollArea>
+          )}
 
-        <div className="border-t p-4">
-          <div className="flex gap-2">
-            <Textarea
-              placeholder="Type your message... (Press Enter to send, Shift+Enter for new line)"
-              value={messageText}
-              onChange={(e) => setMessageText(e.target.value)}
-              onKeyDown={handleKeyDown}
-              className="resize-none min-h-[60px] max-h-[200px]"
-              disabled={sendMessageMutation.isPending}
-              data-testid="input-message-therapist"
-            />
-            <Button
-              onClick={handleSend}
-              disabled={!messageText.trim() || sendMessageMutation.isPending}
-              size="icon"
-              className="flex-shrink-0"
-              data-testid="button-send-message-therapist"
-            >
-              {sendMessageMutation.isPending ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Send className="h-4 w-4" />
-              )}
-            </Button>
+          <div className="border-t p-4">
+            <div className="flex gap-2">
+              <Textarea
+                placeholder="Type your message... (Press Enter to send, Shift+Enter for new line)"
+                value={messageText}
+                onChange={(e) => setMessageText(e.target.value)}
+                onKeyDown={handleKeyDown}
+                className="resize-none min-h-[60px] max-h-[200px]"
+                disabled={sendMessageMutation.isPending}
+                data-testid="input-message-therapist"
+              />
+              <Button
+                onClick={handleSend}
+                disabled={!messageText.trim() || sendMessageMutation.isPending}
+                size="icon"
+                className="flex-shrink-0"
+                data-testid="button-send-message-therapist"
+              >
+                {sendMessageMutation.isPending ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Send className="h-4 w-4" />
+                )}
+              </Button>
+            </div>
           </div>
-        </div>
-      </CardContent>
+        </CardContent>
       </Card>
     </div>
   );
@@ -2699,20 +2754,20 @@ function CalendarTab({ coupleId }: { coupleId: string }) {
             style={{ height: "600px" }}
             data-testid="calendar-container-therapist"
           >
-          <Calendar
-            localizer={localizer}
-            events={calendarEvents}
-            startAccessor="start"
-            endAccessor="end"
-            view={view}
-            onView={handleViewChange}
-            date={date}
-            onNavigate={setDate}
-            selectable={false}
-            popup
-            style={{ height: "100%" }}
-          />
-        </div>
+            <Calendar
+              localizer={localizer}
+              events={calendarEvents}
+              startAccessor="start"
+              endAccessor="end"
+              view={view}
+              onView={handleViewChange}
+              date={date}
+              onNavigate={setDate}
+              selectable={false}
+              popup
+              style={{ height: "100%" }}
+            />
+          </div>
         </CardContent>
       </Card>
     </div>
@@ -3021,9 +3076,15 @@ function EchoEmpathyTab({ coupleId }: { coupleId: string }) {
           {echoSessions.length > 0 ? (
             <div className="space-y-4">
               {echoSessions.map((session) => {
-                const step1Turn = session.turns.find((t: EchoTurnData) => t.step === 1);
-                const step2Turn = session.turns.find((t: EchoTurnData) => t.step === 2);
-                const step3Turn = session.turns.find((t: EchoTurnData) => t.step === 3);
+                const step1Turn = session.turns.find(
+                  (t: EchoTurnData) => t.step === 1,
+                );
+                const step2Turn = session.turns.find(
+                  (t: EchoTurnData) => t.step === 2,
+                );
+                const step3Turn = session.turns.find(
+                  (t: EchoTurnData) => t.step === 3,
+                );
 
                 return (
                   <Card key={session.id}>
@@ -4889,16 +4950,18 @@ function EditPromptForm({
   );
 }
 
-function ReflectionResponsesTab({ 
-  coupleId, 
-  partner1, 
-  partner2 
-}: { 
-  coupleId: string; 
-  partner1?: Profile | null; 
+function ReflectionResponsesTab({
+  coupleId,
+  partner1,
+  partner2,
+}: {
+  coupleId: string;
+  partner1?: Profile | null;
   partner2?: Profile | null;
 }) {
-  const { data: prompts = [], isLoading: promptsLoading } = useQuery<TherapistPrompt[]>({
+  const { data: prompts = [], isLoading: promptsLoading } = useQuery<
+    TherapistPrompt[]
+  >({
     queryKey: ["reflection-prompts", coupleId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -4913,19 +4976,21 @@ function ReflectionResponsesTab({
     enabled: !!coupleId,
   });
 
-  const { data: responses = [], isLoading: responsesLoading } = useQuery<any[]>({
-    queryKey: ["reflection-responses", coupleId],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("Couples_reflection_responses")
-        .select("*, responder:responder_id(id, full_name)")
-        .eq("couple_id", coupleId)
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return data || [];
+  const { data: responses = [], isLoading: responsesLoading } = useQuery<any[]>(
+    {
+      queryKey: ["reflection-responses", coupleId],
+      queryFn: async () => {
+        const { data, error } = await supabase
+          .from("Couples_reflection_responses")
+          .select("*, responder:responder_id(id, full_name)")
+          .eq("couple_id", coupleId)
+          .order("created_at", { ascending: false });
+        if (error) throw error;
+        return data || [];
+      },
+      enabled: !!coupleId,
     },
-    enabled: !!coupleId,
-  });
+  );
 
   const getResponderName = (responderId: string) => {
     if (partner1?.id === responderId) return partner1.full_name || "Partner 1";
@@ -4955,7 +5020,8 @@ function ReflectionResponsesTab({
           <MessageSquare className="h-12 w-12 mx-auto mb-4 opacity-50" />
           <p>No reflection prompts created yet.</p>
           <p className="text-sm mt-1">
-            Go to the "Prompts" tab to create reflection questions for this couple.
+            Go to the "Prompts" tab to create reflection questions for this
+            couple.
           </p>
         </CardContent>
       </Card>
@@ -4976,9 +5042,15 @@ function ReflectionResponsesTab({
         </CardHeader>
         <CardContent className="space-y-6">
           {prompts.map((prompt) => {
-            const promptResponses = responses.filter((r) => r.prompt_id === prompt.id);
-            const partner1Response = promptResponses.find((r) => r.responder_id === partner1?.id);
-            const partner2Response = promptResponses.find((r) => r.responder_id === partner2?.id);
+            const promptResponses = responses.filter(
+              (r) => r.prompt_id === prompt.id,
+            );
+            const partner1Response = promptResponses.find(
+              (r) => r.responder_id === partner1?.id,
+            );
+            const partner2Response = promptResponses.find(
+              (r) => r.responder_id === partner2?.id,
+            );
 
             return (
               <div key={prompt.id} className="border rounded-lg p-4 space-y-4">
@@ -4990,21 +5062,26 @@ function ReflectionResponsesTab({
                     </p>
                     <div className="flex items-center gap-2 mt-2">
                       <Badge variant="outline" className="text-xs">
-                        {prompt.target_user_id 
+                        {prompt.target_user_id
                           ? `For ${getResponderName(prompt.target_user_id)}`
-                          : "Both Partners"
-                        }
+                          : "Both Partners"}
                       </Badge>
                       <span className="text-xs text-muted-foreground">
-                        Created {prompt.created_at ? format(new Date(prompt.created_at), "MMM d, yyyy") : "Recently"}
+                        Created{" "}
+                        {prompt.created_at
+                          ? format(new Date(prompt.created_at), "MMM d, yyyy")
+                          : "Recently"}
                       </span>
                     </div>
                   </div>
-                  <Badge 
-                    variant={promptResponses.length === 0 ? "secondary" : "default"}
+                  <Badge
+                    variant={
+                      promptResponses.length === 0 ? "secondary" : "default"
+                    }
                     className="flex-shrink-0"
                   >
-                    {promptResponses.length} response{promptResponses.length !== 1 ? "s" : ""}
+                    {promptResponses.length} response
+                    {promptResponses.length !== 1 ? "s" : ""}
                   </Badge>
                 </div>
 
@@ -5015,52 +5092,84 @@ function ReflectionResponsesTab({
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {partner1 && (
-                      <div className={`p-3 rounded-lg border ${partner1Response ? "bg-primary/5" : "bg-muted/30"}`}>
+                      <div
+                        className={`p-3 rounded-lg border ${partner1Response ? "bg-primary/5" : "bg-muted/30"}`}
+                      >
                         <div className="flex items-center gap-2 mb-2">
                           <Avatar className="h-6 w-6">
                             <AvatarFallback className="text-xs">
                               {(partner1.full_name || "P1").charAt(0)}
                             </AvatarFallback>
                           </Avatar>
-                          <span className="text-sm font-medium">{partner1.full_name || "Partner 1"}</span>
+                          <span className="text-sm font-medium">
+                            {partner1.full_name || "Partner 1"}
+                          </span>
                           {partner1Response?.is_shared_with_partner && (
-                            <Badge variant="secondary" className="text-xs ml-auto">Shared</Badge>
+                            <Badge
+                              variant="secondary"
+                              className="text-xs ml-auto"
+                            >
+                              Shared
+                            </Badge>
                           )}
                         </div>
                         {partner1Response ? (
                           <>
-                            <p className="text-sm whitespace-pre-wrap">{partner1Response.response_text}</p>
+                            <p className="text-sm whitespace-pre-wrap">
+                              {partner1Response.response_text}
+                            </p>
                             <p className="text-xs text-muted-foreground mt-2">
-                              {format(new Date(partner1Response.created_at), "MMM d, yyyy 'at' h:mm a")}
+                              {format(
+                                new Date(partner1Response.created_at),
+                                "MMM d, yyyy 'at' h:mm a",
+                              )}
                             </p>
                           </>
                         ) : (
-                          <p className="text-sm text-muted-foreground italic">No response yet</p>
+                          <p className="text-sm text-muted-foreground italic">
+                            No response yet
+                          </p>
                         )}
                       </div>
                     )}
                     {partner2 && (
-                      <div className={`p-3 rounded-lg border ${partner2Response ? "bg-primary/5" : "bg-muted/30"}`}>
+                      <div
+                        className={`p-3 rounded-lg border ${partner2Response ? "bg-primary/5" : "bg-muted/30"}`}
+                      >
                         <div className="flex items-center gap-2 mb-2">
                           <Avatar className="h-6 w-6">
                             <AvatarFallback className="text-xs">
                               {(partner2.full_name || "P2").charAt(0)}
                             </AvatarFallback>
                           </Avatar>
-                          <span className="text-sm font-medium">{partner2.full_name || "Partner 2"}</span>
+                          <span className="text-sm font-medium">
+                            {partner2.full_name || "Partner 2"}
+                          </span>
                           {partner2Response?.is_shared_with_partner && (
-                            <Badge variant="secondary" className="text-xs ml-auto">Shared</Badge>
+                            <Badge
+                              variant="secondary"
+                              className="text-xs ml-auto"
+                            >
+                              Shared
+                            </Badge>
                           )}
                         </div>
                         {partner2Response ? (
                           <>
-                            <p className="text-sm whitespace-pre-wrap">{partner2Response.response_text}</p>
+                            <p className="text-sm whitespace-pre-wrap">
+                              {partner2Response.response_text}
+                            </p>
                             <p className="text-xs text-muted-foreground mt-2">
-                              {format(new Date(partner2Response.created_at), "MMM d, yyyy 'at' h:mm a")}
+                              {format(
+                                new Date(partner2Response.created_at),
+                                "MMM d, yyyy 'at' h:mm a",
+                              )}
                             </p>
                           </>
                         ) : (
-                          <p className="text-sm text-muted-foreground italic">No response yet</p>
+                          <p className="text-sm text-muted-foreground italic">
+                            No response yet
+                          </p>
                         )}
                       </div>
                     )}
@@ -5103,7 +5212,9 @@ function GratitudeTab({ coupleId }: { coupleId: string }) {
     return (
       <div className="text-center py-8 text-muted-foreground">
         <p>No gratitude entries yet.</p>
-        <p className="text-sm">The couple hasn't shared any gratitude moments.</p>
+        <p className="text-sm">
+          The couple hasn't shared any gratitude moments.
+        </p>
       </div>
     );
   }
@@ -5151,7 +5262,9 @@ function ConflictResolutionTab({ coupleId }: { coupleId: string }) {
     return (
       <div className="text-center py-8 text-muted-foreground">
         <p>No conflict resolution sessions yet.</p>
-        <p className="text-sm">The couple hasn't used the I-Statement builder.</p>
+        <p className="text-sm">
+          The couple hasn't used the I-Statement builder.
+        </p>
       </div>
     );
   }
@@ -5161,7 +5274,9 @@ function ConflictResolutionTab({ coupleId }: { coupleId: string }) {
       {sessions.map((session: any) => (
         <div key={session.id} className="p-3 border rounded-md">
           <div className="flex items-center justify-between">
-            <Badge variant={session.status === "resolved" ? "default" : "secondary"}>
+            <Badge
+              variant={session.status === "resolved" ? "default" : "secondary"}
+            >
               {session.status}
             </Badge>
             <span className="text-xs text-muted-foreground">
@@ -5203,7 +5318,9 @@ function VoiceMemosTab({ coupleId }: { coupleId: string }) {
     return (
       <div className="text-center py-8 text-muted-foreground">
         <p>No voice memos yet.</p>
-        <p className="text-sm">The couple hasn't exchanged any audio messages.</p>
+        <p className="text-sm">
+          The couple hasn't exchanged any audio messages.
+        </p>
       </div>
     );
   }
@@ -5213,16 +5330,23 @@ function VoiceMemosTab({ coupleId }: { coupleId: string }) {
       {memos.map((memo: any) => (
         <div key={memo.id} className="p-3 border rounded-md">
           <div className="flex items-center justify-between">
-            <span className="text-sm font-medium">{memo.sender?.full_name || "Unknown"}</span>
+            <span className="text-sm font-medium">
+              {memo.sender?.full_name || "Unknown"}
+            </span>
             <span className="text-xs text-muted-foreground">
               {format(new Date(memo.created_at), "MMM d, yyyy h:mm a")}
             </span>
           </div>
           {memo.transcript && (
-            <p className="text-sm text-muted-foreground mt-2 italic">"{memo.transcript}"</p>
+            <p className="text-sm text-muted-foreground mt-2 italic">
+              "{memo.transcript}"
+            </p>
           )}
           <div className="text-xs text-muted-foreground mt-1">
-            Duration: {memo.duration_seconds ? `${Math.floor(memo.duration_seconds / 60)}:${(memo.duration_seconds % 60).toString().padStart(2, '0')}` : "Unknown"}
+            Duration:{" "}
+            {memo.duration_seconds
+              ? `${Math.floor(memo.duration_seconds / 60)}:${(memo.duration_seconds % 60).toString().padStart(2, "0")}`
+              : "Unknown"}
           </div>
         </div>
       ))}
@@ -5303,7 +5427,9 @@ function GrowthPlanTab({ coupleId }: { coupleId: string }) {
     return (
       <div className="text-center py-8 text-muted-foreground">
         <p>No growth plans yet.</p>
-        <p className="text-sm">The couple hasn't generated an AI-powered growth plan.</p>
+        <p className="text-sm">
+          The couple hasn't generated an AI-powered growth plan.
+        </p>
       </div>
     );
   }
@@ -5322,9 +5448,11 @@ function GrowthPlanTab({ coupleId }: { coupleId: string }) {
             <div>
               <p className="text-sm font-medium mb-2">Exercises:</p>
               <ul className="text-sm text-muted-foreground space-y-1">
-                {(plan.exercises as any[]).slice(0, 3).map((ex: any, i: number) => (
-                  <li key={i}>{ex.name || ex.title}</li>
-                ))}
+                {(plan.exercises as any[])
+                  .slice(0, 3)
+                  .map((ex: any, i: number) => (
+                    <li key={i}>{ex.name || ex.title}</li>
+                  ))}
               </ul>
             </div>
           )}
@@ -5373,12 +5501,19 @@ function ProgressTimelineTab({ coupleId }: { coupleId: string }) {
         <div key={event.id} className="flex gap-3 p-3 border rounded-md">
           <div className="flex-shrink-0 w-2 h-2 mt-2 rounded-full bg-primary" />
           <div className="flex-1">
-            <p className="text-sm font-medium">{event.title || event.event_type}</p>
+            <p className="text-sm font-medium">
+              {event.title || event.event_type}
+            </p>
             {event.description && (
-              <p className="text-sm text-muted-foreground">{event.description}</p>
+              <p className="text-sm text-muted-foreground">
+                {event.description}
+              </p>
             )}
             <span className="text-xs text-muted-foreground">
-              {format(new Date(event.event_date || event.created_at), "MMM d, yyyy")}
+              {format(
+                new Date(event.event_date || event.created_at),
+                "MMM d, yyyy",
+              )}
             </span>
           </div>
         </div>
@@ -5415,7 +5550,9 @@ function MoodTrackerTab({ coupleId }: { coupleId: string }) {
     return (
       <div className="text-center py-8 text-muted-foreground">
         <p>No mood entries yet.</p>
-        <p className="text-sm">Partners haven't logged their emotional states.</p>
+        <p className="text-sm">
+          Partners haven't logged their emotional states.
+        </p>
       </div>
     );
   }
@@ -5432,14 +5569,20 @@ function MoodTrackerTab({ coupleId }: { coupleId: string }) {
         <div key={entry.id} className="p-3 border rounded-md">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className={`w-3 h-3 rounded-full ${getMoodColor(entry.mood_score)}`} />
-              <span className="font-medium">{entry.author?.full_name || "Unknown"}</span>
+              <div
+                className={`w-3 h-3 rounded-full ${getMoodColor(entry.mood_score)}`}
+              />
+              <span className="font-medium">
+                {entry.author?.full_name || "Unknown"}
+              </span>
             </div>
             <span className="text-xs text-muted-foreground">
               {format(new Date(entry.created_at), "MMM d, yyyy")}
             </span>
           </div>
-          {entry.notes && <p className="text-sm text-muted-foreground mt-2">{entry.notes}</p>}
+          {entry.notes && (
+            <p className="text-sm text-muted-foreground mt-2">{entry.notes}</p>
+          )}
         </div>
       ))}
     </div>
@@ -5486,7 +5629,9 @@ function GoalsTab({ coupleId }: { coupleId: string }) {
     <Card>
       <CardHeader>
         <CardTitle>Shared Goals</CardTitle>
-        <CardDescription>Goals the couple is working toward together</CardDescription>
+        <CardDescription>
+          Goals the couple is working toward together
+        </CardDescription>
       </CardHeader>
       <CardContent className="space-y-3">
         {goals.map((goal: any) => (
@@ -5498,7 +5643,9 @@ function GoalsTab({ coupleId }: { coupleId: string }) {
               </Badge>
             </div>
             {goal.description && (
-              <p className="text-sm text-muted-foreground mt-1">{goal.description}</p>
+              <p className="text-sm text-muted-foreground mt-1">
+                {goal.description}
+              </p>
             )}
             {goal.target_date && (
               <p className="text-xs text-muted-foreground mt-2">
@@ -5541,7 +5688,9 @@ function RitualsTab({ coupleId }: { coupleId: string }) {
         <CardContent className="py-8">
           <div className="text-center text-muted-foreground">
             <p>No rituals of connection yet.</p>
-            <p className="text-sm">The couple hasn't established any rituals.</p>
+            <p className="text-sm">
+              The couple hasn't established any rituals.
+            </p>
           </div>
         </CardContent>
       </Card>
@@ -5564,7 +5713,9 @@ function RitualsTab({ coupleId }: { coupleId: string }) {
               )}
             </div>
             {ritual.description && (
-              <p className="text-sm text-muted-foreground mt-1">{ritual.description}</p>
+              <p className="text-sm text-muted-foreground mt-1">
+                {ritual.description}
+              </p>
             )}
           </div>
         ))}
@@ -5602,7 +5753,9 @@ function ConversationsTab({ coupleId }: { coupleId: string }) {
         <CardContent className="py-8">
           <div className="text-center text-muted-foreground">
             <p>No Hold Me Tight conversations yet.</p>
-            <p className="text-sm">The couple hasn't completed any structured conversations.</p>
+            <p className="text-sm">
+              The couple hasn't completed any structured conversations.
+            </p>
           </div>
         </CardContent>
       </Card>
@@ -5613,19 +5766,26 @@ function ConversationsTab({ coupleId }: { coupleId: string }) {
     <Card>
       <CardHeader>
         <CardTitle>Hold Me Tight Conversations</CardTitle>
-        <CardDescription>Emotionally-focused conversation exercises</CardDescription>
+        <CardDescription>
+          Emotionally-focused conversation exercises
+        </CardDescription>
       </CardHeader>
       <CardContent className="space-y-3">
         {conversations.map((conv: any) => (
           <div key={conv.id} className="p-3 border rounded-md">
             <div className="flex items-center justify-between">
-              <span className="font-medium">{conv.conversation_type || "Conversation"}</span>
+              <span className="font-medium">
+                {conv.conversation_type || "Conversation"}
+              </span>
               <span className="text-xs text-muted-foreground">
                 {format(new Date(conv.created_at), "MMM d, yyyy")}
               </span>
             </div>
             {conv.status && (
-              <Badge variant={conv.status === "completed" ? "default" : "secondary"} className="mt-2">
+              <Badge
+                variant={conv.status === "completed" ? "default" : "secondary"}
+                className="mt-2"
+              >
                 {conv.status}
               </Badge>
             )}

@@ -18,40 +18,43 @@ const sessionNoteSchema = z.object({
   is_private: z.boolean().optional(),
 });
 
-sessionNotesRouter.get("/couple/:coupleId", async (req: Request, res: Response) => {
-  try {
-    const authResult = await verifyTherapistSession(req);
-    if (!authResult.success) {
-      return res.status(authResult.status).json({ error: authResult.error });
+sessionNotesRouter.get(
+  "/couple/:coupleId",
+  async (req: Request, res: Response) => {
+    try {
+      const authResult = await verifyTherapistSession(req);
+      if (!authResult.success) {
+        return res.status(authResult.status).json({ error: authResult.error });
+      }
+
+      const { coupleId } = req.params;
+
+      const { data: couple } = await supabaseAdmin
+        .from("Couples_couples")
+        .select("id")
+        .eq("id", coupleId)
+        .single();
+
+      if (!couple) {
+        return res.status(404).json({ error: "Couple not found" });
+      }
+
+      // Cross-therapist access: all therapists can view session notes for any couple
+      const { data, error } = await supabaseAdmin
+        .from("Couples_session_notes")
+        .select("*")
+        .eq("couple_id", coupleId)
+        .order("session_date", { ascending: false });
+
+      if (error) throw error;
+
+      res.json(data || []);
+    } catch (error) {
+      console.error("Error fetching session notes:", error);
+      res.status(500).json({ error: "Failed to fetch session notes" });
     }
-
-    const { coupleId } = req.params;
-
-    const { data: couple } = await supabaseAdmin
-      .from("Couples_couples")
-      .select("id")
-      .eq("id", coupleId)
-      .single();
-
-    if (!couple) {
-      return res.status(404).json({ error: "Couple not found" });
-    }
-
-    // Cross-therapist access: all therapists can view session notes for any couple
-    const { data, error } = await supabaseAdmin
-      .from("Couples_session_notes")
-      .select("*")
-      .eq("couple_id", coupleId)
-      .order("session_date", { ascending: false });
-
-    if (error) throw error;
-
-    res.json(data || []);
-  } catch (error) {
-    console.error("Error fetching session notes:", error);
-    res.status(500).json({ error: "Failed to fetch session notes" });
-  }
-});
+  },
+);
 
 sessionNotesRouter.get("/:id", async (req: Request, res: Response) => {
   try {
@@ -108,7 +111,12 @@ sessionNotesRouter.post("/", async (req: Request, res: Response) => {
     // Cross-therapist access: all therapists can create session notes for any couple
     const validationResult = sessionNoteSchema.safeParse(req.body);
     if (!validationResult.success) {
-      return res.status(400).json({ error: validationResult.error.errors[0]?.message || "Validation failed" });
+      return res
+        .status(400)
+        .json({
+          error:
+            validationResult.error.errors[0]?.message || "Validation failed",
+        });
     }
 
     const noteData = validationResult.data;
@@ -118,7 +126,8 @@ sessionNotesRouter.post("/", async (req: Request, res: Response) => {
       .insert({
         couple_id,
         therapist_id: authResult.therapistId,
-        session_date: noteData.session_date || new Date().toISOString().split("T")[0],
+        session_date:
+          noteData.session_date || new Date().toISOString().split("T")[0],
         title: noteData.title,
         summary: noteData.summary,
         key_themes: noteData.key_themes || [],
@@ -160,7 +169,9 @@ sessionNotesRouter.patch("/:id", async (req: Request, res: Response) => {
     }
 
     if (existingNote.therapist_id !== authResult.therapistId) {
-      return res.status(403).json({ error: "You can only edit your own session notes" });
+      return res
+        .status(403)
+        .json({ error: "You can only edit your own session notes" });
     }
 
     const { therapist_id, couple_id, id: _, ...updates } = req.body;
@@ -204,7 +215,9 @@ sessionNotesRouter.delete("/:id", async (req: Request, res: Response) => {
     }
 
     if (existingNote.therapist_id !== authResult.therapistId) {
-      return res.status(403).json({ error: "You can only delete your own session notes" });
+      return res
+        .status(403)
+        .json({ error: "You can only delete your own session notes" });
     }
 
     const { error } = await supabaseAdmin

@@ -14,7 +14,9 @@ dashboardCustomizationRouter.get(
       // Note: widget_content_overrides temporarily excluded due to Supabase schema cache issue
       const { data, error } = await supabaseAdmin
         .from("Couples_dashboard_customization")
-        .select("couple_id, therapist_id, widget_order, enabled_widgets, widget_sizes")
+        .select(
+          "couple_id, therapist_id, widget_order, enabled_widgets, widget_sizes",
+        )
         .eq("couple_id", coupleId)
         .single();
 
@@ -91,7 +93,9 @@ dashboardCustomizationRouter.post(
           widget_sizes: widget_sizes || {},
           updated_at: new Date().toISOString(),
         })
-        .select("couple_id, therapist_id, widget_order, enabled_widgets, widget_sizes")
+        .select(
+          "couple_id, therapist_id, widget_order, enabled_widgets, widget_sizes",
+        )
         .single();
 
       if (error) throw error;
@@ -116,10 +120,15 @@ dashboardCustomizationRouter.patch(
       // Note: widget_content_overrides temporarily excluded due to Supabase schema cache issue
       const { data: existingArray, error: fetchError } = await supabaseAdmin
         .from("Couples_dashboard_customization")
-        .select("couple_id, therapist_id, widget_order, enabled_widgets, widget_sizes")
+        .select(
+          "couple_id, therapist_id, widget_order, enabled_widgets, widget_sizes",
+        )
         .eq("couple_id", coupleId);
 
-      const existing = Array.isArray(existingArray) && existingArray.length > 0 ? existingArray[0] : null;
+      const existing =
+        Array.isArray(existingArray) && existingArray.length > 0
+          ? existingArray[0]
+          : null;
 
       // Build merged object with all fields
       const merged: Record<string, any> = {
@@ -133,32 +142,37 @@ dashboardCustomizationRouter.patch(
       }
 
       // Handle widget_order
-      merged.widget_order = updates.widget_order ?? existing?.widget_order ?? [
-        "weekly-checkin",
-        "love-languages",
-        "gratitude",
-        "shared-goals",
-        "conversations",
-        "love-map",
-        "voice-memos",
-        "calendar",
-        "rituals",
-      ];
+      merged.widget_order = updates.widget_order ??
+        existing?.widget_order ?? [
+          "weekly-checkin",
+          "love-languages",
+          "gratitude",
+          "shared-goals",
+          "conversations",
+          "love-map",
+          "voice-memos",
+          "calendar",
+          "rituals",
+        ];
 
       // Handle enabled_widgets
-      merged.enabled_widgets = updates.enabled_widgets !== undefined 
-        ? { ...(existing?.enabled_widgets || {}), ...updates.enabled_widgets }
-        : existing?.enabled_widgets || {};
+      merged.enabled_widgets =
+        updates.enabled_widgets !== undefined
+          ? { ...(existing?.enabled_widgets || {}), ...updates.enabled_widgets }
+          : existing?.enabled_widgets || {};
 
       // Handle widget_sizes
-      merged.widget_sizes = updates.widget_sizes !== undefined
-        ? { ...(existing?.widget_sizes || {}), ...updates.widget_sizes }
-        : existing?.widget_sizes || {};
+      merged.widget_sizes =
+        updates.widget_sizes !== undefined
+          ? { ...(existing?.widget_sizes || {}), ...updates.widget_sizes }
+          : existing?.widget_sizes || {};
 
       const { data, error } = await supabaseAdmin
         .from("Couples_dashboard_customization")
         .upsert(merged, { onConflict: "couple_id" })
-        .select("couple_id, therapist_id, widget_order, enabled_widgets, widget_sizes")
+        .select(
+          "couple_id, therapist_id, widget_order, enabled_widgets, widget_sizes",
+        )
         .single();
 
       if (error) throw error;

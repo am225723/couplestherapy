@@ -51,7 +51,10 @@ router.post("/register-token", async (req, res) => {
 
 // Create scheduled notification
 router.post("/schedule", async (req, res) => {
-  console.log("[DEBUG] /schedule endpoint hit", { body: req.body, headers: req.headers.authorization?.substring(0, 20) });
+  console.log("[DEBUG] /schedule endpoint hit", {
+    body: req.body,
+    headers: req.headers.authorization?.substring(0, 20),
+  });
   try {
     const authHeader = req.headers.authorization;
     if (!authHeader?.startsWith("Bearer ")) {
@@ -153,7 +156,7 @@ router.get("/scheduled", async (req, res) => {
     const dataWithEstTime = data?.map((notification) => ({
       ...notification,
       scheduled_at_est: new Date(
-        new Date(notification.scheduled_at).getTime() - 5 * 60 * 60 * 1000
+        new Date(notification.scheduled_at).getTime() - 5 * 60 * 60 * 1000,
       ).toISOString(),
     }));
 
@@ -196,7 +199,9 @@ router.delete("/:id", async (req, res) => {
     }
 
     if (notification.status !== "pending") {
-      return res.status(403).json({ error: "Cannot delete sent notifications" });
+      return res
+        .status(403)
+        .json({ error: "Cannot delete sent notifications" });
     }
 
     // Delete notification

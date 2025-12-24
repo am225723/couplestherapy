@@ -189,13 +189,10 @@ Deno.serve(async (req) => {
       .single();
 
     if (profileError || !profile) {
-      return new Response(
-        JSON.stringify({ error: "User profile not found" }),
-        {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-          status: 403,
-        },
-      );
+      return new Response(JSON.stringify({ error: "User profile not found" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 403,
+      });
     }
 
     const coupleId = profile.couple_id;
@@ -327,8 +324,7 @@ Return ONLY the JSON, no additional text or markdown formatting.`;
         title: "Connect With Your Partner Today",
         description:
           "Take a moment to share something you appreciate about your partner. Small gestures of gratitude strengthen your bond.",
-        action_prompt:
-          "Tell your partner one thing you love about them today",
+        action_prompt: "Tell your partner one thing you love about them today",
         is_personalized: true,
         generated_at: new Date().toISOString(),
         assessment_summary: {

@@ -338,7 +338,9 @@ router.post("/assessments", async (req, res) => {
     // Validate request body
     const parseResult = saveAssessmentSchema.safeParse(req.body);
     if (!parseResult.success) {
-      return res.status(400).json({ error: parseResult.error.errors[0].message });
+      return res
+        .status(400)
+        .json({ error: parseResult.error.errors[0].message });
     }
 
     // Get user's couple_id from their profile
@@ -352,7 +354,13 @@ router.post("/assessments", async (req, res) => {
       return res.status(400).json({ error: "User is not part of a couple" });
     }
 
-    const { primary_type, secondary_type, primary_score, secondary_score, couple_dynamics } = parseResult.data;
+    const {
+      primary_type,
+      secondary_type,
+      primary_score,
+      secondary_score,
+      couple_dynamics,
+    } = parseResult.data;
 
     const { data, error } = await supabaseAdmin
       .from("Couples_enneagram_assessments")
@@ -373,7 +381,9 @@ router.post("/assessments", async (req, res) => {
     res.status(201).json(data);
   } catch (error: any) {
     console.error("Error saving enneagram assessment:", error);
-    res.status(500).json({ error: error.message || "Failed to save assessment" });
+    res
+      .status(500)
+      .json({ error: error.message || "Failed to save assessment" });
   }
 });
 
@@ -396,7 +406,9 @@ router.get("/assessments/my", async (req, res) => {
     res.json(data);
   } catch (error: any) {
     console.error("Error fetching enneagram assessments:", error);
-    res.status(500).json({ error: error.message || "Failed to fetch assessments" });
+    res
+      .status(500)
+      .json({ error: error.message || "Failed to fetch assessments" });
   }
 });
 
@@ -430,7 +442,9 @@ router.get("/assessments/couple", async (req, res) => {
     res.json(data);
   } catch (error: any) {
     console.error("Error fetching couple enneagram assessments:", error);
-    res.status(500).json({ error: error.message || "Failed to fetch couple assessments" });
+    res
+      .status(500)
+      .json({ error: error.message || "Failed to fetch couple assessments" });
   }
 });
 

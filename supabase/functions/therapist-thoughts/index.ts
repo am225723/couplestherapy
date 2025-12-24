@@ -31,10 +31,10 @@ Deno.serve(async (req) => {
 
     const url = new URL(req.url);
     const pathParts = url.pathname.split("/").filter(Boolean);
-    
+
     let coupleId: string | null = null;
     let thoughtId: string | null = null;
-    
+
     if (req.method === "POST") {
       const body = await req.json();
       coupleId = body.couple_id;
@@ -45,10 +45,13 @@ Deno.serve(async (req) => {
 
     if (req.method === "GET") {
       if (!coupleId) {
-        return new Response(JSON.stringify({ error: "couple_id is required" }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-          status: 400,
-        });
+        return new Response(
+          JSON.stringify({ error: "couple_id is required" }),
+          {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+            status: 400,
+          },
+        );
       }
 
       const coupleExists = await verifyCoupleExists(coupleId);
@@ -75,12 +78,15 @@ Deno.serve(async (req) => {
     if (req.method === "POST") {
       const body = await req.json();
       coupleId = body.couple_id;
-      
+
       if (!coupleId) {
-        return new Response(JSON.stringify({ error: "couple_id is required" }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-          status: 400,
-        });
+        return new Response(
+          JSON.stringify({ error: "couple_id is required" }),
+          {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+            status: 400,
+          },
+        );
       }
 
       const coupleExists = await verifyCoupleExists(coupleId);
@@ -106,7 +112,7 @@ Deno.serve(async (req) => {
           {
             headers: { ...corsHeaders, "Content-Type": "application/json" },
             status: 400,
-          }
+          },
         );
       }
 
@@ -139,10 +145,13 @@ Deno.serve(async (req) => {
       thoughtId = body.thought_id;
 
       if (!thoughtId) {
-        return new Response(JSON.stringify({ error: "thought_id is required" }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-          status: 400,
-        });
+        return new Response(
+          JSON.stringify({ error: "thought_id is required" }),
+          {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+            status: 400,
+          },
+        );
       }
 
       const { data: thought, error: fetchError } = await supabaseAdmin
@@ -160,11 +169,13 @@ Deno.serve(async (req) => {
 
       if (thought.therapist_id !== authResult.therapistId) {
         return new Response(
-          JSON.stringify({ error: "Access denied - can only edit your own thoughts" }),
+          JSON.stringify({
+            error: "Access denied - can only edit your own thoughts",
+          }),
           {
             headers: { ...corsHeaders, "Content-Type": "application/json" },
             status: 403,
-          }
+          },
         );
       }
 
@@ -172,7 +183,8 @@ Deno.serve(async (req) => {
       if (body.title !== undefined) updateData.title = body.title;
       if (body.content !== undefined) updateData.content = body.content;
       if (body.priority !== undefined) updateData.priority = body.priority;
-      if (body.is_completed !== undefined) updateData.is_completed = body.is_completed;
+      if (body.is_completed !== undefined)
+        updateData.is_completed = body.is_completed;
 
       const { data, error } = await supabaseAdmin
         .from("Couples_therapist_thoughts")
@@ -193,10 +205,13 @@ Deno.serve(async (req) => {
       thoughtId = body.thought_id;
 
       if (!thoughtId) {
-        return new Response(JSON.stringify({ error: "thought_id is required" }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-          status: 400,
-        });
+        return new Response(
+          JSON.stringify({ error: "thought_id is required" }),
+          {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+            status: 400,
+          },
+        );
       }
 
       const { data: thought, error: fetchError } = await supabaseAdmin
@@ -214,11 +229,13 @@ Deno.serve(async (req) => {
 
       if (thought.therapist_id !== authResult.therapistId) {
         return new Response(
-          JSON.stringify({ error: "Access denied - can only delete your own thoughts" }),
+          JSON.stringify({
+            error: "Access denied - can only delete your own thoughts",
+          }),
           {
             headers: { ...corsHeaders, "Content-Type": "application/json" },
             status: 403,
-          }
+          },
         );
       }
 
@@ -245,7 +262,7 @@ Deno.serve(async (req) => {
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 500,
-      }
+      },
     );
   }
 });

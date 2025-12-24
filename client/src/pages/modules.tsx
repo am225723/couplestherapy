@@ -1,13 +1,35 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  CardFooter,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/lib/auth-context";
-import { Loader2, CheckCircle2, ExternalLink, CreditCard, Package, ListTodo, User, MessageSquare } from "lucide-react";
+import {
+  Loader2,
+  CheckCircle2,
+  ExternalLink,
+  CreditCard,
+  Package,
+  ListTodo,
+  User,
+  MessageSquare,
+} from "lucide-react";
 
 interface ModulePrice {
   id: string;
@@ -103,7 +125,9 @@ export default function ModulesPage() {
   const subscriptionsQuery = useQuery<{ subscriptions: Subscription[] }>({
     queryKey: ["/api/modules/subscriptions"],
     queryFn: async () => {
-      const res = await fetch("/api/modules/subscriptions", { headers: authHeaders });
+      const res = await fetch("/api/modules/subscriptions", {
+        headers: authHeaders,
+      });
       if (!res.ok) throw new Error("Failed to fetch subscriptions");
       return res.json();
     },
@@ -112,7 +136,13 @@ export default function ModulesPage() {
 
   // Checkout mutation
   const checkoutMutation = useMutation({
-    mutationFn: async ({ moduleSlug, priceId }: { moduleSlug: string; priceId: string }) => {
+    mutationFn: async ({
+      moduleSlug,
+      priceId,
+    }: {
+      moduleSlug: string;
+      priceId: string;
+    }) => {
       const res = await fetch(`/api/modules/${moduleSlug}/checkout`, {
         method: "POST",
         headers: authHeaders,
@@ -187,7 +217,7 @@ export default function ModulesPage() {
         throw new Error(data.error || "Launch failed");
       }
       const data = await res.json();
-      
+
       // Open module with access token
       const moduleUrl = new URL(appUrl);
       moduleUrl.searchParams.set("token", data.token);
@@ -214,7 +244,9 @@ export default function ModulesPage() {
   return (
     <div className="container mx-auto py-8 px-4 max-w-6xl">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2" data-testid="text-page-title">Add-on Modules</h1>
+        <h1 className="text-3xl font-bold mb-2" data-testid="text-page-title">
+          Add-on Modules
+        </h1>
         <p className="text-muted-foreground">
           Extend your relationship journey with specialized tools and features.
         </p>
@@ -239,8 +271,12 @@ export default function ModulesPage() {
 
       <Tabs defaultValue="catalog" className="space-y-6">
         <TabsList data-testid="tabs-modules">
-          <TabsTrigger value="catalog" data-testid="tab-catalog">Module Catalog</TabsTrigger>
-          <TabsTrigger value="subscriptions" data-testid="tab-subscriptions">My Subscriptions</TabsTrigger>
+          <TabsTrigger value="catalog" data-testid="tab-catalog">
+            Module Catalog
+          </TabsTrigger>
+          <TabsTrigger value="subscriptions" data-testid="tab-subscriptions">
+            My Subscriptions
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="catalog">
@@ -252,13 +288,19 @@ export default function ModulesPage() {
             <Card>
               <CardContent className="py-12 text-center">
                 <Package className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                <p className="text-muted-foreground">No modules available yet.</p>
+                <p className="text-muted-foreground">
+                  No modules available yet.
+                </p>
               </CardContent>
             </Card>
           ) : (
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {modules.map((module) => (
-                <Card key={module.id} className="flex flex-col" data-testid={`card-module-${module.slug}`}>
+                <Card
+                  key={module.id}
+                  className="flex flex-col"
+                  data-testid={`card-module-${module.slug}`}
+                >
                   <CardHeader>
                     <div className="flex items-start justify-between gap-4">
                       <div className="p-3 rounded-lg bg-primary/10 text-primary">
@@ -277,12 +319,23 @@ export default function ModulesPage() {
                   <CardContent className="flex-1">
                     {!module.is_subscribed && module.prices.length > 0 && (
                       <div className="space-y-2">
-                        <p className="text-sm font-medium text-muted-foreground">Pricing:</p>
+                        <p className="text-sm font-medium text-muted-foreground">
+                          Pricing:
+                        </p>
                         {module.prices.map((price) => (
-                          <div key={price.id} className="flex items-center justify-between">
-                            <span className="text-sm capitalize">{price.interval}ly</span>
+                          <div
+                            key={price.id}
+                            className="flex items-center justify-between"
+                          >
+                            <span className="text-sm capitalize">
+                              {price.interval}ly
+                            </span>
                             <span className="font-semibold">
-                              {formatPrice(price.unit_amount, price.currency, price.interval)}
+                              {formatPrice(
+                                price.unit_amount,
+                                price.currency,
+                                price.interval,
+                              )}
                             </span>
                           </div>
                         ))}
@@ -291,9 +344,14 @@ export default function ModulesPage() {
                     {module.is_subscribed && module.subscription_ends_at && (
                       <div className="text-sm text-muted-foreground">
                         {module.cancel_at_period_end ? (
-                          <p>Access until {formatDate(module.subscription_ends_at)}</p>
+                          <p>
+                            Access until{" "}
+                            {formatDate(module.subscription_ends_at)}
+                          </p>
                         ) : (
-                          <p>Renews {formatDate(module.subscription_ends_at)}</p>
+                          <p>
+                            Renews {formatDate(module.subscription_ends_at)}
+                          </p>
                         )}
                       </div>
                     )}
@@ -303,7 +361,9 @@ export default function ModulesPage() {
                       <>
                         <Button
                           className="w-full"
-                          onClick={() => launchModule(module.slug, module.app_url)}
+                          onClick={() =>
+                            launchModule(module.slug, module.app_url)
+                          }
                           disabled={launchingModule === module.slug}
                           data-testid={`button-launch-${module.slug}`}
                         >
@@ -350,12 +410,21 @@ export default function ModulesPage() {
             <Card>
               <CardContent className="py-12 text-center">
                 <Package className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                <p className="text-muted-foreground mb-4">You don't have any active subscriptions.</p>
-                <Button variant="outline" onClick={() => {
-                  const tabs = document.querySelector('[data-testid="tabs-modules"]');
-                  const catalogTab = tabs?.querySelector('[value="catalog"]') as HTMLButtonElement;
-                  catalogTab?.click();
-                }}>
+                <p className="text-muted-foreground mb-4">
+                  You don't have any active subscriptions.
+                </p>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    const tabs = document.querySelector(
+                      '[data-testid="tabs-modules"]',
+                    );
+                    const catalogTab = tabs?.querySelector(
+                      '[value="catalog"]',
+                    ) as HTMLButtonElement;
+                    catalogTab?.click();
+                  }}
+                >
                   Browse Modules
                 </Button>
               </CardContent>
@@ -363,7 +432,10 @@ export default function ModulesPage() {
           ) : (
             <div className="space-y-4">
               {subscriptions.map((sub) => (
-                <Card key={sub.id} data-testid={`card-subscription-${sub.slug}`}>
+                <Card
+                  key={sub.id}
+                  data-testid={`card-subscription-${sub.slug}`}
+                >
                   <CardHeader>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-4">
@@ -375,7 +447,11 @@ export default function ModulesPage() {
                           <CardDescription>{sub.description}</CardDescription>
                         </div>
                       </div>
-                      <Badge variant={sub.status === "active" ? "default" : "secondary"}>
+                      <Badge
+                        variant={
+                          sub.status === "active" ? "default" : "secondary"
+                        }
+                      >
                         {sub.status}
                       </Badge>
                     </div>
@@ -393,7 +469,10 @@ export default function ModulesPage() {
                         {formatDate(sub.current_period_end)}
                       </div>
                       {sub.cancel_at_period_end && (
-                        <Badge variant="outline" className="text-yellow-600 border-yellow-600">
+                        <Badge
+                          variant="outline"
+                          className="text-yellow-600 border-yellow-600"
+                        >
                           Canceled
                         </Badge>
                       )}
@@ -430,7 +509,10 @@ export default function ModulesPage() {
       </Tabs>
 
       {/* Subscription Dialog */}
-      <Dialog open={!!selectedModule} onOpenChange={() => setSelectedModule(null)}>
+      <Dialog
+        open={!!selectedModule}
+        onOpenChange={() => setSelectedModule(null)}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Subscribe to {selectedModule?.name}</DialogTitle>
@@ -455,15 +537,22 @@ export default function ModulesPage() {
               >
                 <CardContent className="p-4 flex items-center justify-between">
                   <div>
-                    <p className="font-semibold capitalize">{price.interval}ly Plan</p>
+                    <p className="font-semibold capitalize">
+                      {price.interval}ly Plan
+                    </p>
                     <p className="text-sm text-muted-foreground">
-                      {price.interval === "year" && "Save 17% with annual billing"}
+                      {price.interval === "year" &&
+                        "Save 17% with annual billing"}
                       {price.interval === "month" && "Flexible monthly billing"}
                     </p>
                   </div>
                   <div className="text-right">
                     <p className="text-xl font-bold">
-                      {formatPrice(price.unit_amount, price.currency, price.interval)}
+                      {formatPrice(
+                        price.unit_amount,
+                        price.currency,
+                        price.interval,
+                      )}
                     </p>
                     {checkoutMutation.isPending && (
                       <Loader2 className="h-4 w-4 animate-spin ml-2 inline" />

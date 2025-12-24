@@ -489,9 +489,17 @@ function AuthenticatedApp() {
             </Button>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="rounded-full hover-elevate active-elevate-2" data-testid="button-therapist-profile">
+                <button
+                  className="rounded-full hover-elevate active-elevate-2"
+                  data-testid="button-therapist-profile"
+                >
                   <Avatar className="h-10 w-10 border-2 border-primary/20">
-                    {profile.avatar_url && <AvatarImage src={profile.avatar_url} alt={profile.full_name || "Profile"} />}
+                    {profile.avatar_url && (
+                      <AvatarImage
+                        src={profile.avatar_url}
+                        alt={profile.full_name || "Profile"}
+                      />
+                    )}
                     <AvatarFallback className="bg-primary/10 text-primary font-semibold">
                       {profile.full_name ? getInitials(profile.full_name) : "T"}
                     </AvatarFallback>
@@ -500,18 +508,30 @@ function AuthenticatedApp() {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <div className="px-3 py-2">
-                  <p className="text-sm font-semibold">{profile.full_name || "Therapist"}</p>
-                  <p className="text-xs text-muted-foreground">Licensed Therapist</p>
+                  <p className="text-sm font-semibold">
+                    {profile.full_name || "Therapist"}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Licensed Therapist
+                  </p>
                 </div>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
-                  <Link href="/therapist/profile" className="gap-2 cursor-pointer flex items-center" data-testid="menu-item-profile">
+                  <Link
+                    href="/therapist/profile"
+                    className="gap-2 cursor-pointer flex items-center"
+                    data-testid="menu-item-profile"
+                  >
                     <User className="h-4 w-4" />
                     Profile
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link href="/therapist/settings" className="gap-2 cursor-pointer flex items-center" data-testid="menu-item-settings">
+                  <Link
+                    href="/therapist/settings"
+                    className="gap-2 cursor-pointer flex items-center"
+                    data-testid="menu-item-settings"
+                  >
                     <Settings className="h-4 w-4" />
                     Settings
                   </Link>
@@ -559,49 +579,83 @@ function AuthenticatedApp() {
             <div className="flex items-center gap-2">
               <SidebarTrigger data-testid="button-sidebar-toggle" />
               <Link href="/dashboard">
-                <Button variant="ghost" size="icon" className="rounded-xl" data-testid="button-home">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="rounded-xl"
+                  data-testid="button-home"
+                >
                   <Home className="h-5 w-5" />
                 </Button>
               </Link>
             </div>
             <div className="flex items-center gap-2">
               <Link href="/dashboard?edit=true">
-                <Button variant="ghost" size="icon" className="rounded-xl" data-testid="button-edit-dashboard">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="rounded-xl"
+                  data-testid="button-edit-dashboard"
+                >
                   <Settings2 className="h-5 w-5" />
                 </Button>
               </Link>
               <ThemeToggle />
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <button className="rounded-full hover-elevate active-elevate-2" data-testid="button-client-profile">
+                  <button
+                    className="rounded-full hover-elevate active-elevate-2"
+                    data-testid="button-client-profile"
+                  >
                     <Avatar className="h-10 w-10 border-2 border-primary/20">
-                      {profile.avatar_url && <AvatarImage src={profile.avatar_url} alt={profile.full_name || "Profile"} />}
+                      {profile.avatar_url && (
+                        <AvatarImage
+                          src={profile.avatar_url}
+                          alt={profile.full_name || "Profile"}
+                        />
+                      )}
                       <AvatarFallback className="bg-primary/10 text-primary font-semibold">
-                        {profile.full_name ? getInitials(profile.full_name) : "U"}
+                        {profile.full_name
+                          ? getInitials(profile.full_name)
+                          : "U"}
                       </AvatarFallback>
                     </Avatar>
                   </button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   <div className="px-3 py-2">
-                    <p className="text-sm font-semibold">{profile.full_name || "User"}</p>
+                    <p className="text-sm font-semibold">
+                      {profile.full_name || "User"}
+                    </p>
                     <p className="text-xs text-muted-foreground">Client</p>
                   </div>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
-                    <Link href="/profile" className="gap-2 cursor-pointer flex items-center" data-testid="menu-item-client-profile">
+                    <Link
+                      href="/profile"
+                      className="gap-2 cursor-pointer flex items-center"
+                      data-testid="menu-item-client-profile"
+                    >
                       <User className="h-4 w-4" />
                       Profile
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link href="/settings" className="gap-2 cursor-pointer flex items-center" data-testid="menu-item-client-settings">
+                    <Link
+                      href="/settings"
+                      className="gap-2 cursor-pointer flex items-center"
+                      data-testid="menu-item-client-settings"
+                    >
                       <Settings className="h-4 w-4" />
                       Settings
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={signOut} className="gap-2 cursor-pointer" data-testid="menu-item-client-signout">
+                  <DropdownMenuItem
+                    onClick={signOut}
+                    className="gap-2 cursor-pointer"
+                    data-testid="menu-item-client-signout"
+                  >
                     <LogOut className="h-4 w-4" />
                     Sign Out
                   </DropdownMenuItem>
@@ -618,14 +672,8 @@ function AuthenticatedApp() {
                 path="/love-language-results"
                 component={LoveLanguageResults}
               />
-              <Route
-                path="/attachment-results"
-                component={AttachmentResults}
-              />
-              <Route
-                path="/enneagram-results"
-                component={EnneagramResults}
-              />
+              <Route path="/attachment-results" component={AttachmentResults} />
+              <Route path="/enneagram-results" component={EnneagramResults} />
               <Route path="/love-map" component={LoveMapQuiz} />
               <Route path="/weekly-checkin" component={WeeklyCheckin} />
               <Route path="/checkin-history" component={CheckinHistory} />
@@ -681,10 +729,19 @@ function AuthenticatedApp() {
               <Route path="/profile" component={ClientProfile} />
               <Route path="/settings" component={ClientSettings} />
               <Route path="/modules" component={ModulesPage} />
-              <Route path="/conflict-resolution" component={ConflictResolution} />
-              <Route path="/reflection-prompts" component={ReflectionPromptsPage} />
+              <Route
+                path="/conflict-resolution"
+                component={ConflictResolution}
+              />
+              <Route
+                path="/reflection-prompts"
+                component={ReflectionPromptsPage}
+              />
               <Route path="/shared-todos" component={SharedTodosPage} />
-              <Route path="/progress-timeline" component={ProgressTimelinePage} />
+              <Route
+                path="/progress-timeline"
+                component={ProgressTimelinePage}
+              />
               <Route path="/growth-plan" component={GrowthPlanPage} />
               <Route path="/">
                 {profile.couple_id ? (

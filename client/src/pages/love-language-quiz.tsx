@@ -53,21 +53,32 @@ export default function LoveLanguageQuiz() {
     const { scores, primary, secondary } =
       calculateLoveLanguageScores(finalAnswers);
     const coupleId = (profile as ProfileWithCouple).couple_id;
-    
-    console.log("Saving quiz results:", { coupleId, userId: user.id, primary, secondary, scores });
+
+    console.log("Saving quiz results:", {
+      coupleId,
+      userId: user.id,
+      primary,
+      secondary,
+      scores,
+    });
 
     try {
       if (!coupleId) {
-        throw new Error("You must be linked to a couple to save quiz results. Please complete the couple setup first.");
+        throw new Error(
+          "You must be linked to a couple to save quiz results. Please complete the couple setup first.",
+        );
       }
 
-      const { error, data } = await supabase.from("Couples_love_languages").insert({
-        couple_id: coupleId,
-        user_id: user.id,
-        primary_language: primary,
-        secondary_language: secondary,
-        scores,
-      }).select();
+      const { error, data } = await supabase
+        .from("Couples_love_languages")
+        .insert({
+          couple_id: coupleId,
+          user_id: user.id,
+          primary_language: primary,
+          secondary_language: secondary,
+          scores,
+        })
+        .select();
 
       console.log("Insert result:", { error, data });
 
@@ -135,7 +146,9 @@ export default function LoveLanguageQuiz() {
               onClick={() => handleAnswer(question.optionA.language)}
               data-testid={`button-option-a-${currentQuestion}`}
             >
-              <span className="text-base whitespace-normal break-words">{question.optionA.text}</span>
+              <span className="text-base whitespace-normal break-words">
+                {question.optionA.text}
+              </span>
             </Button>
             <Button
               variant="outline"
@@ -143,7 +156,9 @@ export default function LoveLanguageQuiz() {
               onClick={() => handleAnswer(question.optionB.language)}
               data-testid={`button-option-b-${currentQuestion}`}
             >
-              <span className="text-base whitespace-normal break-words">{question.optionB.text}</span>
+              <span className="text-base whitespace-normal break-words">
+                {question.optionB.text}
+              </span>
             </Button>
           </div>
           {currentQuestion > 0 && (

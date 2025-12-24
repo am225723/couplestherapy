@@ -143,25 +143,51 @@ const WIDGET_CATEGORIES: {
     id: "assessments",
     label: "Assessments & Insights",
     description: "Personality and compatibility assessments",
-    widgets: ["love-languages", "attachment", "enneagram", "love-map", "compatibility"],
+    widgets: [
+      "love-languages",
+      "attachment",
+      "enneagram",
+      "love-map",
+      "compatibility",
+    ],
   },
   {
     id: "communication",
     label: "Communication Tools",
     description: "Connect and communicate with your partner",
-    widgets: ["messages", "voice-memos", "echo-empathy", "conversations", "pause"],
+    widgets: [
+      "messages",
+      "voice-memos",
+      "echo-empathy",
+      "conversations",
+      "pause",
+    ],
   },
   {
     id: "activities",
     label: "Shared Activities",
     description: "Things you do together",
-    widgets: ["gratitude", "shared-goals", "rituals", "calendar", "journal", "mood"],
+    widgets: [
+      "gratitude",
+      "shared-goals",
+      "rituals",
+      "calendar",
+      "journal",
+      "mood",
+    ],
   },
   {
     id: "therapy",
     label: "Therapy & Growth",
     description: "Therapeutic exercises and tools",
-    widgets: ["therapist-thoughts", "reflection-prompts", "ifs", "conflict", "four-horsemen", "demon-dialogues"],
+    widgets: [
+      "therapist-thoughts",
+      "reflection-prompts",
+      "ifs",
+      "conflict",
+      "four-horsemen",
+      "demon-dialogues",
+    ],
   },
   {
     id: "ai",
@@ -194,25 +220,51 @@ const PRESET_TEMPLATES = [
     id: "essential",
     name: "Essential Starter",
     description: "Core features for new couples starting therapy",
-    widgets: ["weekly-checkin", "love-languages", "gratitude", "shared-goals", "therapist-thoughts"],
+    widgets: [
+      "weekly-checkin",
+      "love-languages",
+      "gratitude",
+      "shared-goals",
+      "therapist-thoughts",
+    ],
   },
   {
     id: "communication",
     name: "Communication Focus",
     description: "Emphasis on improving partner communication",
-    widgets: ["messages", "voice-memos", "echo-empathy", "conversations", "pause", "weekly-checkin"],
+    widgets: [
+      "messages",
+      "voice-memos",
+      "echo-empathy",
+      "conversations",
+      "pause",
+      "weekly-checkin",
+    ],
   },
   {
     id: "assessment",
     name: "Deep Assessment",
     description: "Comprehensive personality and compatibility analysis",
-    widgets: ["love-languages", "attachment", "enneagram", "love-map", "compatibility", "weekly-checkin"],
+    widgets: [
+      "love-languages",
+      "attachment",
+      "enneagram",
+      "love-map",
+      "compatibility",
+      "weekly-checkin",
+    ],
   },
   {
     id: "ai-powered",
     name: "AI-Enhanced",
     description: "Leverage AI for personalized recommendations",
-    widgets: ["date-night", "ai-suggestions", "growth-plan", "daily-tips", "weekly-checkin"],
+    widgets: [
+      "date-night",
+      "ai-suggestions",
+      "growth-plan",
+      "daily-tips",
+      "weekly-checkin",
+    ],
   },
   {
     id: "full",
@@ -493,42 +545,76 @@ const SIZE_DIMENSIONS = {
 };
 
 const WIDGET_GRADIENTS: Record<string, string> = {
-  "date-night": "from-pink-500/15 to-rose-500/10 dark:from-pink-500/22 dark:to-rose-500/15",
-  "checkin-history": "from-blue-500/15 to-indigo-500/10 dark:from-blue-500/22 dark:to-indigo-500/15",
-  "ai-suggestions": "from-amber-500/15 to-orange-500/10 dark:from-amber-500/22 dark:to-orange-500/15",
-  "weekly-checkin": "from-blue-500/15 to-sky-500/10 dark:from-blue-500/22 dark:to-sky-500/15",
-  "love-languages": "from-red-500/15 to-rose-500/10 dark:from-red-500/22 dark:to-rose-500/15",
-  gratitude: "from-yellow-500/15 to-amber-500/10 dark:from-yellow-500/22 dark:to-amber-500/15",
-  "shared-goals": "from-green-500/15 to-emerald-500/10 dark:from-green-500/22 dark:to-emerald-500/15",
-  conversations: "from-purple-500/15 to-violet-500/10 dark:from-purple-500/22 dark:to-violet-500/15",
-  "love-map": "from-pink-500/15 to-fuchsia-500/10 dark:from-pink-500/22 dark:to-fuchsia-500/15",
-  "voice-memos": "from-orange-500/15 to-red-500/10 dark:from-orange-500/22 dark:to-red-500/15",
-  calendar: "from-teal-500/15 to-cyan-500/10 dark:from-teal-500/22 dark:to-cyan-500/15",
-  rituals: "from-indigo-500/15 to-purple-500/10 dark:from-indigo-500/22 dark:to-purple-500/15",
-  "four-horsemen": "from-red-600/15 to-rose-600/10 dark:from-red-600/22 dark:to-rose-600/15",
-  "demon-dialogues": "from-rose-500/15 to-pink-500/10 dark:from-rose-500/22 dark:to-pink-500/15",
-  meditation: "from-cyan-500/15 to-teal-500/10 dark:from-cyan-500/22 dark:to-teal-500/15",
-  intimacy: "from-pink-500/15 to-rose-500/10 dark:from-pink-500/22 dark:to-rose-500/15",
-  values: "from-amber-500/15 to-yellow-500/10 dark:from-amber-500/22 dark:to-yellow-500/15",
-  parenting: "from-emerald-500/15 to-green-500/10 dark:from-emerald-500/22 dark:to-green-500/15",
-  "therapist-thoughts": "from-violet-500/15 to-purple-500/10 dark:from-violet-500/22 dark:to-purple-500/15",
-  compatibility: "from-rose-500/15 to-pink-500/10 dark:from-rose-500/22 dark:to-pink-500/15",
-  "progress-timeline": "from-blue-500/15 to-indigo-500/10 dark:from-blue-500/22 dark:to-indigo-500/15",
-  "growth-plan": "from-amber-500/15 to-orange-500/10 dark:from-amber-500/22 dark:to-orange-500/15",
-  attachment: "from-indigo-500/15 to-blue-500/10 dark:from-indigo-500/22 dark:to-blue-500/15",
-  enneagram: "from-purple-500/15 to-violet-500/10 dark:from-purple-500/22 dark:to-violet-500/15",
-  messages: "from-blue-500/15 to-cyan-500/10 dark:from-blue-500/22 dark:to-cyan-500/15",
-  "echo-empathy": "from-teal-500/15 to-emerald-500/10 dark:from-teal-500/22 dark:to-emerald-500/15",
-  conflict: "from-orange-500/15 to-amber-500/10 dark:from-orange-500/22 dark:to-amber-500/15",
-  pause: "from-red-500/15 to-rose-500/10 dark:from-red-500/22 dark:to-rose-500/15",
-  journal: "from-emerald-500/15 to-teal-500/10 dark:from-emerald-500/22 dark:to-teal-500/15",
+  "date-night":
+    "from-pink-500/15 to-rose-500/10 dark:from-pink-500/22 dark:to-rose-500/15",
+  "checkin-history":
+    "from-blue-500/15 to-indigo-500/10 dark:from-blue-500/22 dark:to-indigo-500/15",
+  "ai-suggestions":
+    "from-amber-500/15 to-orange-500/10 dark:from-amber-500/22 dark:to-orange-500/15",
+  "weekly-checkin":
+    "from-blue-500/15 to-sky-500/10 dark:from-blue-500/22 dark:to-sky-500/15",
+  "love-languages":
+    "from-red-500/15 to-rose-500/10 dark:from-red-500/22 dark:to-rose-500/15",
+  gratitude:
+    "from-yellow-500/15 to-amber-500/10 dark:from-yellow-500/22 dark:to-amber-500/15",
+  "shared-goals":
+    "from-green-500/15 to-emerald-500/10 dark:from-green-500/22 dark:to-emerald-500/15",
+  conversations:
+    "from-purple-500/15 to-violet-500/10 dark:from-purple-500/22 dark:to-violet-500/15",
+  "love-map":
+    "from-pink-500/15 to-fuchsia-500/10 dark:from-pink-500/22 dark:to-fuchsia-500/15",
+  "voice-memos":
+    "from-orange-500/15 to-red-500/10 dark:from-orange-500/22 dark:to-red-500/15",
+  calendar:
+    "from-teal-500/15 to-cyan-500/10 dark:from-teal-500/22 dark:to-cyan-500/15",
+  rituals:
+    "from-indigo-500/15 to-purple-500/10 dark:from-indigo-500/22 dark:to-purple-500/15",
+  "four-horsemen":
+    "from-red-600/15 to-rose-600/10 dark:from-red-600/22 dark:to-rose-600/15",
+  "demon-dialogues":
+    "from-rose-500/15 to-pink-500/10 dark:from-rose-500/22 dark:to-pink-500/15",
+  meditation:
+    "from-cyan-500/15 to-teal-500/10 dark:from-cyan-500/22 dark:to-teal-500/15",
+  intimacy:
+    "from-pink-500/15 to-rose-500/10 dark:from-pink-500/22 dark:to-rose-500/15",
+  values:
+    "from-amber-500/15 to-yellow-500/10 dark:from-amber-500/22 dark:to-yellow-500/15",
+  parenting:
+    "from-emerald-500/15 to-green-500/10 dark:from-emerald-500/22 dark:to-green-500/15",
+  "therapist-thoughts":
+    "from-violet-500/15 to-purple-500/10 dark:from-violet-500/22 dark:to-purple-500/15",
+  compatibility:
+    "from-rose-500/15 to-pink-500/10 dark:from-rose-500/22 dark:to-pink-500/15",
+  "progress-timeline":
+    "from-blue-500/15 to-indigo-500/10 dark:from-blue-500/22 dark:to-indigo-500/15",
+  "growth-plan":
+    "from-amber-500/15 to-orange-500/10 dark:from-amber-500/22 dark:to-orange-500/15",
+  attachment:
+    "from-indigo-500/15 to-blue-500/10 dark:from-indigo-500/22 dark:to-blue-500/15",
+  enneagram:
+    "from-purple-500/15 to-violet-500/10 dark:from-purple-500/22 dark:to-violet-500/15",
+  messages:
+    "from-blue-500/15 to-cyan-500/10 dark:from-blue-500/22 dark:to-cyan-500/15",
+  "echo-empathy":
+    "from-teal-500/15 to-emerald-500/10 dark:from-teal-500/22 dark:to-emerald-500/15",
+  conflict:
+    "from-orange-500/15 to-amber-500/10 dark:from-orange-500/22 dark:to-amber-500/15",
+  pause:
+    "from-red-500/15 to-rose-500/10 dark:from-red-500/22 dark:to-rose-500/15",
+  journal:
+    "from-emerald-500/15 to-teal-500/10 dark:from-emerald-500/22 dark:to-teal-500/15",
   mood: "from-yellow-500/15 to-orange-500/10 dark:from-yellow-500/22 dark:to-orange-500/15",
   ifs: "from-purple-500/15 to-indigo-500/10 dark:from-purple-500/22 dark:to-indigo-500/15",
-  chores: "from-green-500/15 to-lime-500/10 dark:from-green-500/22 dark:to-lime-500/15",
-  todos: "from-slate-500/15 to-gray-500/10 dark:from-slate-500/22 dark:to-gray-500/15",
-  financial: "from-green-500/15 to-emerald-500/10 dark:from-green-500/22 dark:to-emerald-500/15",
-  "daily-tips": "from-amber-500/15 to-yellow-500/10 dark:from-amber-500/22 dark:to-yellow-500/15",
-  "reflection-prompts": "from-violet-500/15 to-purple-500/10 dark:from-violet-500/22 dark:to-purple-500/15",
+  chores:
+    "from-green-500/15 to-lime-500/10 dark:from-green-500/22 dark:to-lime-500/15",
+  todos:
+    "from-slate-500/15 to-gray-500/10 dark:from-slate-500/22 dark:to-gray-500/15",
+  financial:
+    "from-green-500/15 to-emerald-500/10 dark:from-green-500/22 dark:to-emerald-500/15",
+  "daily-tips":
+    "from-amber-500/15 to-yellow-500/10 dark:from-amber-500/22 dark:to-yellow-500/15",
+  "reflection-prompts":
+    "from-violet-500/15 to-purple-500/10 dark:from-violet-500/22 dark:to-purple-500/15",
 };
 
 const WIDGET_BORDER_COLORS: Record<string, string> = {
@@ -589,11 +675,15 @@ function WidgetPreviewCard({
   if (!config) return null;
 
   const Icon = config.icon;
-  
+
   // Adjust column spans based on device mode
   let sizeClass = "col-span-1";
   if (previewDevice === "desktop") {
-    sizeClass = { small: "col-span-1", medium: "col-span-2", large: "col-span-3" }[size];
+    sizeClass = {
+      small: "col-span-1",
+      medium: "col-span-2",
+      large: "col-span-3",
+    }[size];
   } else if (previewDevice === "tablet") {
     // Tablet: max 2 columns, so clamp span
     sizeClass = size === "small" ? "col-span-1" : "col-span-2";
@@ -606,7 +696,8 @@ function WidgetPreviewCard({
     large: "h-36",
   }[size];
 
-  const gradientClass = WIDGET_GRADIENTS[widgetId] || "from-primary/15 to-primary/10";
+  const gradientClass =
+    WIDGET_GRADIENTS[widgetId] || "from-primary/15 to-primary/10";
   const borderClass = WIDGET_BORDER_COLORS[widgetId] || "border-l-primary";
 
   return (
@@ -625,8 +716,10 @@ function WidgetPreviewCard({
           enabled ? "" : "border-dashed opacity-60",
         )}
       >
-        <div className={cn("gradient-animate bg-gradient-to-br", gradientClass)} />
-        
+        <div
+          className={cn("gradient-animate bg-gradient-to-br", gradientClass)}
+        />
+
         <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-20">
           <Button
             size="icon"
@@ -676,7 +769,10 @@ function WidgetPreviewCard({
             </div>
           </div>
           <div className="mt-3 flex items-center justify-between">
-            <Badge variant="outline" className="text-[10px] px-1.5 py-0.5 bg-background/60">
+            <Badge
+              variant="outline"
+              className="text-[10px] px-1.5 py-0.5 bg-background/60"
+            >
               {SIZE_DIMENSIONS[size].description}
             </Badge>
           </div>
@@ -781,22 +877,33 @@ export function DashboardCustomizer({
     });
     return defaults;
   });
-  const [contentOverrides, setContentOverrides] = useState<WidgetContentOverrides>(() => {
-    return {
-      "therapist-thoughts": {
-        title: initialContentOverrides["therapist-thoughts"]?.title || "",
-        description: initialContentOverrides["therapist-thoughts"]?.description || "",
-        showMessages: initialContentOverrides["therapist-thoughts"]?.showMessages !== false,
-        showTodos: initialContentOverrides["therapist-thoughts"]?.showTodos !== false,
-        showResources: initialContentOverrides["therapist-thoughts"]?.showResources !== false,
-      },
-      ...initialContentOverrides,
-    };
-  });
+  const [contentOverrides, setContentOverrides] =
+    useState<WidgetContentOverrides>(() => {
+      return {
+        "therapist-thoughts": {
+          title: initialContentOverrides["therapist-thoughts"]?.title || "",
+          description:
+            initialContentOverrides["therapist-thoughts"]?.description || "",
+          showMessages:
+            initialContentOverrides["therapist-thoughts"]?.showMessages !==
+            false,
+          showTodos:
+            initialContentOverrides["therapist-thoughts"]?.showTodos !== false,
+          showResources:
+            initialContentOverrides["therapist-thoughts"]?.showResources !==
+            false,
+        },
+        ...initialContentOverrides,
+      };
+    });
   const [draggedItem, setDraggedItem] = useState<string | null>(null);
   const { toast } = useToast();
 
-  const updateContentOverride = (widgetId: string, field: string, value: any) => {
+  const updateContentOverride = (
+    widgetId: string,
+    field: string,
+    value: any,
+  ) => {
     setContentOverrides((prev) => ({
       ...prev,
       [widgetId]: {
@@ -841,12 +948,18 @@ export function DashboardCustomizer({
   const [templateDescription, setTemplateDescription] = useState("");
 
   // Device preview mode
-  const [previewDevice, setPreviewDevice] = useState<"desktop" | "tablet" | "mobile">("desktop");
+  const [previewDevice, setPreviewDevice] = useState<
+    "desktop" | "tablet" | "mobile"
+  >("desktop");
 
-  const { data: savedTemplates = [], isLoading: templatesLoading } = useQuery<LayoutTemplate[]>({
+  const { data: savedTemplates = [], isLoading: templatesLoading } = useQuery<
+    LayoutTemplate[]
+  >({
     queryKey: ["/api/layout-templates/therapist", therapistId],
     queryFn: async () => {
-      const response = await fetch(`/api/layout-templates/therapist/${therapistId}`);
+      const response = await fetch(
+        `/api/layout-templates/therapist/${therapistId}`,
+      );
       if (!response.ok) throw new Error("Failed to fetch templates");
       return response.json();
     },
@@ -865,14 +978,23 @@ export function DashboardCustomizer({
       });
     },
     onSuccess: () => {
-      toast({ title: "Template Saved", description: "Your layout has been saved as a template" });
-      queryClient.invalidateQueries({ queryKey: ["/api/layout-templates/therapist", therapistId] });
+      toast({
+        title: "Template Saved",
+        description: "Your layout has been saved as a template",
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/layout-templates/therapist", therapistId],
+      });
       setSaveDialogOpen(false);
       setTemplateName("");
       setTemplateDescription("");
     },
     onError: () => {
-      toast({ title: "Error", description: "Failed to save template", variant: "destructive" });
+      toast({
+        title: "Error",
+        description: "Failed to save template",
+        variant: "destructive",
+      });
     },
   });
 
@@ -881,35 +1003,61 @@ export function DashboardCustomizer({
       return apiRequest("DELETE", `/api/layout-templates/${templateId}`);
     },
     onSuccess: () => {
-      toast({ title: "Template Deleted", description: "The template has been removed" });
-      queryClient.invalidateQueries({ queryKey: ["/api/layout-templates/therapist", therapistId] });
+      toast({
+        title: "Template Deleted",
+        description: "The template has been removed",
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/layout-templates/therapist", therapistId],
+      });
     },
     onError: () => {
-      toast({ title: "Error", description: "Failed to delete template", variant: "destructive" });
+      toast({
+        title: "Error",
+        description: "Failed to delete template",
+        variant: "destructive",
+      });
     },
   });
 
   const applyTemplateMutation = useMutation({
     mutationFn: async (templateId: string) => {
-      return apiRequest("POST", `/api/layout-templates/${templateId}/apply/${coupleId}`, {
-        therapist_id: therapistId,
-      });
+      return apiRequest(
+        "POST",
+        `/api/layout-templates/${templateId}/apply/${coupleId}`,
+        {
+          therapist_id: therapistId,
+        },
+      );
     },
     onSuccess: () => {
-      toast({ title: "Template Applied", description: "The template has been applied to this couple's dashboard" });
-      queryClient.invalidateQueries({ queryKey: [`/api/dashboard-customization/couple/${coupleId}`] });
+      toast({
+        title: "Template Applied",
+        description: "The template has been applied to this couple's dashboard",
+      });
+      queryClient.invalidateQueries({
+        queryKey: [`/api/dashboard-customization/couple/${coupleId}`],
+      });
     },
     onError: () => {
-      toast({ title: "Error", description: "Failed to apply template", variant: "destructive" });
+      toast({
+        title: "Error",
+        description: "Failed to apply template",
+        variant: "destructive",
+      });
     },
   });
 
   const applySavedTemplate = (template: LayoutTemplate) => {
     setOrder(template.widget_order as string[]);
     setEnabled(template.enabled_widgets as Record<string, boolean>);
-    setSizes(template.widget_sizes as Record<string, "small" | "medium" | "large">);
+    setSizes(
+      template.widget_sizes as Record<string, "small" | "medium" | "large">,
+    );
     if (template.widget_content_overrides) {
-      setContentOverrides(template.widget_content_overrides as WidgetContentOverrides);
+      setContentOverrides(
+        template.widget_content_overrides as WidgetContentOverrides,
+      );
     }
     toast({
       title: "Template Applied",
@@ -970,15 +1118,27 @@ export function DashboardCustomizer({
 
       <Tabs defaultValue="templates" className="w-full">
         <TabsList className="mb-4 h-auto flex-wrap gap-1 p-1">
-          <TabsTrigger value="templates" className="gap-1.5" data-testid="tab-templates">
+          <TabsTrigger
+            value="templates"
+            className="gap-1.5"
+            data-testid="tab-templates"
+          >
             <Layout className="h-4 w-4" />
             <span className="hidden sm:inline">Templates</span>
           </TabsTrigger>
-          <TabsTrigger value="categories" className="gap-1.5" data-testid="tab-categories">
+          <TabsTrigger
+            value="categories"
+            className="gap-1.5"
+            data-testid="tab-categories"
+          >
             <ChevronDown className="h-4 w-4" />
             <span className="hidden sm:inline">By Category</span>
           </TabsTrigger>
-          <TabsTrigger value="preview" className="gap-1.5" data-testid="tab-preview">
+          <TabsTrigger
+            value="preview"
+            className="gap-1.5"
+            data-testid="tab-preview"
+          >
             <Eye className="h-4 w-4" />
             <span className="hidden sm:inline">Preview</span>
           </TabsTrigger>
@@ -986,7 +1146,11 @@ export function DashboardCustomizer({
             <Settings2 className="h-4 w-4" />
             <span className="hidden sm:inline">All Widgets</span>
           </TabsTrigger>
-          <TabsTrigger value="content" className="gap-1.5" data-testid="tab-content">
+          <TabsTrigger
+            value="content"
+            className="gap-1.5"
+            data-testid="tab-content"
+          >
             <Pencil className="h-4 w-4" />
             <span className="hidden sm:inline">Card Content</span>
           </TabsTrigger>
@@ -1000,28 +1164,38 @@ export function DashboardCustomizer({
                 Quick Start Templates
               </CardTitle>
               <CardDescription>
-                Choose a pre-configured template to quickly set up the dashboard. 
-                You can customize individual widgets after applying a template.
+                Choose a pre-configured template to quickly set up the
+                dashboard. You can customize individual widgets after applying a
+                template.
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {PRESET_TEMPLATES.map((template) => {
-                  const templateWidgetsEnabled = template.widgets.filter(w => enabled[w]).length;
-                  const totalEnabled = Object.keys(enabled).filter(k => enabled[k]).length;
-                  const isExactMatch = template.widgets.every(w => enabled[w]) && totalEnabled === template.widgets.length;
-                  const isPartialMatch = templateWidgetsEnabled === template.widgets.length && totalEnabled > template.widgets.length;
+                  const templateWidgetsEnabled = template.widgets.filter(
+                    (w) => enabled[w],
+                  ).length;
+                  const totalEnabled = Object.keys(enabled).filter(
+                    (k) => enabled[k],
+                  ).length;
+                  const isExactMatch =
+                    template.widgets.every((w) => enabled[w]) &&
+                    totalEnabled === template.widgets.length;
+                  const isPartialMatch =
+                    templateWidgetsEnabled === template.widgets.length &&
+                    totalEnabled > template.widgets.length;
                   return (
-                    <Card 
+                    <Card
                       key={template.id}
                       className={cn(
                         "cursor-pointer transition-all hover-elevate",
                         isExactMatch && "ring-2 ring-primary border-primary",
-                        isPartialMatch && "ring-1 ring-primary/50 border-primary/50"
+                        isPartialMatch &&
+                          "ring-1 ring-primary/50 border-primary/50",
                       )}
                       onClick={() => {
                         const newEnabled: Record<string, boolean> = {};
-                        ALL_WIDGETS.forEach(w => {
+                        ALL_WIDGETS.forEach((w) => {
                           newEnabled[w] = template.widgets.includes(w);
                         });
                         setEnabled(newEnabled);
@@ -1035,8 +1209,14 @@ export function DashboardCustomizer({
                       <CardHeader className="pb-2">
                         <CardTitle className="text-base flex items-center justify-between">
                           {template.name}
-                          {isExactMatch && <Check className="h-4 w-4 text-primary" />}
-                          {isPartialMatch && <Badge variant="secondary" className="text-xs">+ extras</Badge>}
+                          {isExactMatch && (
+                            <Check className="h-4 w-4 text-primary" />
+                          )}
+                          {isPartialMatch && (
+                            <Badge variant="secondary" className="text-xs">
+                              + extras
+                            </Badge>
+                          )}
                         </CardTitle>
                         <CardDescription className="text-sm">
                           {template.description}
@@ -1044,11 +1224,15 @@ export function DashboardCustomizer({
                       </CardHeader>
                       <CardContent className="pt-0">
                         <div className="flex flex-wrap gap-1">
-                          {template.widgets.slice(0, 5).map(widgetId => {
+                          {template.widgets.slice(0, 5).map((widgetId) => {
                             const config = WIDGET_CONFIG[widgetId];
                             const Icon = config?.icon || Heart;
                             return (
-                              <Badge key={widgetId} variant="secondary" className="text-xs gap-1">
+                              <Badge
+                                key={widgetId}
+                                variant="secondary"
+                                className="text-xs gap-1"
+                              >
                                 <Icon className="h-3 w-3" />
                                 {config?.label?.split(" ")[0] || widgetId}
                               </Badge>
@@ -1078,7 +1262,11 @@ export function DashboardCustomizer({
                 </div>
                 <Dialog open={saveDialogOpen} onOpenChange={setSaveDialogOpen}>
                   <DialogTrigger asChild>
-                    <Button size="sm" className="gap-2" data-testid="button-save-as-template">
+                    <Button
+                      size="sm"
+                      className="gap-2"
+                      data-testid="button-save-as-template"
+                    >
                       <Plus className="h-4 w-4" />
                       Save Current Layout
                     </Button>
@@ -1087,7 +1275,8 @@ export function DashboardCustomizer({
                     <DialogHeader>
                       <DialogTitle>Save Layout as Template</DialogTitle>
                       <DialogDescription>
-                        Save your current widget configuration as a reusable template that you can apply to other couples.
+                        Save your current widget configuration as a reusable
+                        template that you can apply to other couples.
                       </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4 py-4">
@@ -1102,26 +1291,43 @@ export function DashboardCustomizer({
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="template-description">Description (optional)</Label>
+                        <Label htmlFor="template-description">
+                          Description (optional)
+                        </Label>
                         <Textarea
                           id="template-description"
                           placeholder="What's this template good for?"
                           value={templateDescription}
-                          onChange={(e) => setTemplateDescription(e.target.value)}
+                          onChange={(e) =>
+                            setTemplateDescription(e.target.value)
+                          }
                           data-testid="input-template-description"
                         />
                       </div>
                       <div className="text-sm text-muted-foreground">
-                        This template will include {Object.values(enabled).filter(Boolean).length} enabled widgets.
+                        This template will include{" "}
+                        {Object.values(enabled).filter(Boolean).length} enabled
+                        widgets.
                       </div>
                     </div>
                     <DialogFooter>
-                      <Button variant="outline" onClick={() => setSaveDialogOpen(false)}>
+                      <Button
+                        variant="outline"
+                        onClick={() => setSaveDialogOpen(false)}
+                      >
                         Cancel
                       </Button>
-                      <Button 
-                        onClick={() => createTemplateMutation.mutate({ name: templateName, description: templateDescription })}
-                        disabled={!templateName.trim() || createTemplateMutation.isPending}
+                      <Button
+                        onClick={() =>
+                          createTemplateMutation.mutate({
+                            name: templateName,
+                            description: templateDescription,
+                          })
+                        }
+                        disabled={
+                          !templateName.trim() ||
+                          createTemplateMutation.isPending
+                        }
                         data-testid="button-confirm-save-template"
                       >
                         {createTemplateMutation.isPending ? (
@@ -1138,7 +1344,8 @@ export function DashboardCustomizer({
                 </Dialog>
               </CardTitle>
               <CardDescription>
-                Templates you've created from previous configurations. Click to apply to this couple.
+                Templates you've created from previous configurations. Click to
+                apply to this couple.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -1150,14 +1357,18 @@ export function DashboardCustomizer({
                 <div className="text-center py-8 text-muted-foreground">
                   <Save className="h-8 w-8 mx-auto mb-2 opacity-50" />
                   <p>No saved templates yet.</p>
-                  <p className="text-sm">Create your first template using the button above.</p>
+                  <p className="text-sm">
+                    Create your first template using the button above.
+                  </p>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {savedTemplates.map((template) => {
-                    const enabledCount = Object.values(template.enabled_widgets as Record<string, boolean>).filter(Boolean).length;
+                    const enabledCount = Object.values(
+                      template.enabled_widgets as Record<string, boolean>,
+                    ).filter(Boolean).length;
                     return (
-                      <Card 
+                      <Card
                         key={template.id}
                         className="cursor-pointer transition-all hover-elevate"
                         onClick={() => applySavedTemplate(template)}
@@ -1210,21 +1421,36 @@ export function DashboardCustomizer({
                 Widgets by Category
               </CardTitle>
               <CardDescription>
-                Browse and enable widgets organized by category. 
-                Click the checkbox to toggle visibility on the client dashboard.
+                Browse and enable widgets organized by category. Click the
+                checkbox to toggle visibility on the client dashboard.
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Accordion type="multiple" defaultValue={["assessments", "therapy", "progress"]} className="w-full">
+              <Accordion
+                type="multiple"
+                defaultValue={["assessments", "therapy", "progress"]}
+                className="w-full"
+              >
                 {WIDGET_CATEGORIES.map((category) => {
-                  const enabledCount = category.widgets.filter(w => enabled[w]).length;
+                  const enabledCount = category.widgets.filter(
+                    (w) => enabled[w],
+                  ).length;
                   const totalCount = category.widgets.length;
                   return (
                     <AccordionItem key={category.id} value={category.id}>
                       <AccordionTrigger className="hover:no-underline">
                         <div className="flex items-center gap-3 flex-1">
                           <span className="font-medium">{category.label}</span>
-                          <Badge variant={enabledCount === totalCount ? "default" : enabledCount > 0 ? "secondary" : "outline"} className="text-xs">
+                          <Badge
+                            variant={
+                              enabledCount === totalCount
+                                ? "default"
+                                : enabledCount > 0
+                                  ? "secondary"
+                                  : "outline"
+                            }
+                            className="text-xs"
+                          >
                             {enabledCount}/{totalCount}
                           </Badge>
                           <span className="text-sm text-muted-foreground hidden sm:inline">
@@ -1234,43 +1460,64 @@ export function DashboardCustomizer({
                       </AccordionTrigger>
                       <AccordionContent>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-2 pt-2">
-                          {category.widgets.map(widgetId => {
+                          {category.widgets.map((widgetId) => {
                             const config = WIDGET_CONFIG[widgetId];
                             if (!config) return null;
                             const Icon = config.icon;
                             return (
-                              <div 
+                              <div
                                 key={widgetId}
                                 className={cn(
                                   "flex items-center gap-3 p-3 rounded-lg border transition",
-                                  enabled[widgetId] ? "bg-primary/5 border-primary/20" : "bg-muted/30 opacity-70"
+                                  enabled[widgetId]
+                                    ? "bg-primary/5 border-primary/20"
+                                    : "bg-muted/30 opacity-70",
                                 )}
                               >
                                 <Checkbox
                                   checked={enabled[widgetId]}
-                                  onCheckedChange={() => toggleEnabled(widgetId)}
+                                  onCheckedChange={() =>
+                                    toggleEnabled(widgetId)
+                                  }
                                   data-testid={`category-checkbox-${widgetId}`}
                                 />
-                                <div className={cn("p-2 rounded-md", config.bgColor)}>
-                                  <Icon className={cn("w-4 h-4", config.color)} />
+                                <div
+                                  className={cn(
+                                    "p-2 rounded-md",
+                                    config.bgColor,
+                                  )}
+                                >
+                                  <Icon
+                                    className={cn("w-4 h-4", config.color)}
+                                  />
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                  <p className="font-medium text-sm truncate">{config.label}</p>
-                                  <p className="text-xs text-muted-foreground truncate">{config.description}</p>
+                                  <p className="font-medium text-sm truncate">
+                                    {config.label}
+                                  </p>
+                                  <p className="text-xs text-muted-foreground truncate">
+                                    {config.description}
+                                  </p>
                                 </div>
                                 <div className="flex gap-1">
-                                  {(["small", "medium", "large"] as const).map((s) => (
-                                    <Button
-                                      key={s}
-                                      size="sm"
-                                      variant={sizes[widgetId] === s ? "default" : "ghost"}
-                                      className="h-6 w-6 p-0 text-xs"
-                                      onClick={() => setSize(widgetId, s)}
-                                      data-testid={`category-size-${s}-${widgetId}`}
-                                    >
-                                      {SIZE_DIMENSIONS[s].label}
-                                    </Button>
-                                  ))}
+                                  {(["small", "medium", "large"] as const).map(
+                                    (s) => (
+                                      <Button
+                                        key={s}
+                                        size="sm"
+                                        variant={
+                                          sizes[widgetId] === s
+                                            ? "default"
+                                            : "ghost"
+                                        }
+                                        className="h-6 w-6 p-0 text-xs"
+                                        onClick={() => setSize(widgetId, s)}
+                                        data-testid={`category-size-${s}-${widgetId}`}
+                                      >
+                                        {SIZE_DIMENSIONS[s].label}
+                                      </Button>
+                                    ),
+                                  )}
                                 </div>
                               </div>
                             );
@@ -1281,9 +1528,11 @@ export function DashboardCustomizer({
                             size="sm"
                             variant="outline"
                             onClick={() => {
-                              setEnabled(prev => {
+                              setEnabled((prev) => {
                                 const newEnabled = { ...prev };
-                                category.widgets.forEach(w => newEnabled[w] = true);
+                                category.widgets.forEach(
+                                  (w) => (newEnabled[w] = true),
+                                );
                                 return newEnabled;
                               });
                               toast({
@@ -1299,9 +1548,11 @@ export function DashboardCustomizer({
                             size="sm"
                             variant="ghost"
                             onClick={() => {
-                              setEnabled(prev => {
+                              setEnabled((prev) => {
                                 const newEnabled = { ...prev };
-                                category.widgets.forEach(w => newEnabled[w] = false);
+                                category.widgets.forEach(
+                                  (w) => (newEnabled[w] = false),
+                                );
                                 return newEnabled;
                               });
                               toast({
@@ -1369,19 +1620,25 @@ export function DashboardCustomizer({
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className={cn(
-                "mx-auto transition-all duration-300",
-                previewDevice === "mobile" && "max-w-[375px]",
-                previewDevice === "tablet" && "max-w-[768px]",
-                previewDevice === "desktop" && "max-w-full"
-              )}>
+              <div
+                className={cn(
+                  "mx-auto transition-all duration-300",
+                  previewDevice === "mobile" && "max-w-[375px]",
+                  previewDevice === "tablet" && "max-w-[768px]",
+                  previewDevice === "desktop" && "max-w-full",
+                )}
+              >
                 {/* Device Frame */}
-                <div className={cn(
-                  "relative transition-all duration-300",
-                  previewDevice === "mobile" && "rounded-[2.5rem] border-[10px] border-gray-800 dark:border-gray-600 bg-gray-800 dark:bg-gray-600 p-1",
-                  previewDevice === "tablet" && "rounded-[1.5rem] border-[8px] border-gray-700 dark:border-gray-500 bg-gray-700 dark:bg-gray-500 p-1",
-                  previewDevice === "desktop" && ""
-                )}>
+                <div
+                  className={cn(
+                    "relative transition-all duration-300",
+                    previewDevice === "mobile" &&
+                      "rounded-[2.5rem] border-[10px] border-gray-800 dark:border-gray-600 bg-gray-800 dark:bg-gray-600 p-1",
+                    previewDevice === "tablet" &&
+                      "rounded-[1.5rem] border-[8px] border-gray-700 dark:border-gray-500 bg-gray-700 dark:bg-gray-500 p-1",
+                    previewDevice === "desktop" && "",
+                  )}
+                >
                   {/* Device notch for mobile */}
                   {previewDevice === "mobile" && (
                     <div className="absolute top-0 left-1/2 -translate-x-1/2 w-24 h-6 bg-gray-800 dark:bg-gray-600 rounded-b-xl z-10" />
@@ -1390,27 +1647,35 @@ export function DashboardCustomizer({
                   {previewDevice === "tablet" && (
                     <div className="absolute top-2 left-1/2 -translate-x-1/2 w-2 h-2 bg-gray-500 dark:bg-gray-400 rounded-full z-10" />
                   )}
-                  
+
                   {/* Screen content */}
-                  <div className={cn(
-                    "border rounded-lg p-4 bg-background overflow-hidden",
-                    previewDevice === "mobile" && "rounded-[1.5rem] pt-8",
-                    previewDevice === "tablet" && "rounded-[1rem] pt-6"
-                  )}>
-                    <div 
+                  <div
+                    className={cn(
+                      "border rounded-lg p-4 bg-background overflow-hidden",
+                      previewDevice === "mobile" && "rounded-[1.5rem] pt-8",
+                      previewDevice === "tablet" && "rounded-[1rem] pt-6",
+                    )}
+                  >
+                    <div
                       className={cn(
                         "grid gap-3",
                         previewDevice === "mobile" && "grid-cols-1",
-                        previewDevice === "tablet" && "grid-cols-2"
+                        previewDevice === "tablet" && "grid-cols-2",
                       )}
-                      style={previewDevice === "desktop" ? { 
-                        gridTemplateColumns: "repeat(auto-fit, minmax(min(160px, 100%), 1fr))",
-                        gridAutoRows: "200px",
-                        gridAutoFlow: "dense"
-                      } : {
-                        gridAutoRows: previewDevice === "mobile" ? "120px" : "160px",
-                        gridAutoFlow: "dense"
-                      }}
+                      style={
+                        previewDevice === "desktop"
+                          ? {
+                              gridTemplateColumns:
+                                "repeat(auto-fit, minmax(min(160px, 100%), 1fr))",
+                              gridAutoRows: "200px",
+                              gridAutoFlow: "dense",
+                            }
+                          : {
+                              gridAutoRows:
+                                previewDevice === "mobile" ? "120px" : "160px",
+                              gridAutoFlow: "dense",
+                            }
+                      }
                     >
                       {enabledWidgets.map((widgetId) => (
                         <WidgetPreviewCard
@@ -1471,7 +1736,8 @@ export function DashboardCustomizer({
                 Widget Configuration
               </CardTitle>
               <CardDescription className="break-words">
-                Drag to reorder. All {ALL_WIDGETS.length} widgets are shown - enable or disable as needed.
+                Drag to reorder. All {ALL_WIDGETS.length} widgets are shown -
+                enable or disable as needed.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -1504,7 +1770,8 @@ export function DashboardCustomizer({
                 "From Your Therapist" Card
               </CardTitle>
               <CardDescription className="break-words">
-                Customize the title, description, and visible sections of the therapist messages card on your client's dashboard.
+                Customize the title, description, and visible sections of the
+                therapist messages card on your client's dashboard.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -1515,7 +1782,13 @@ export function DashboardCustomizer({
                     id="therapist-card-title"
                     placeholder="From Your Therapist"
                     value={contentOverrides["therapist-thoughts"]?.title || ""}
-                    onChange={(e) => updateContentOverride("therapist-thoughts", "title", e.target.value)}
+                    onChange={(e) =>
+                      updateContentOverride(
+                        "therapist-thoughts",
+                        "title",
+                        e.target.value,
+                      )
+                    }
                     data-testid="input-therapist-card-title"
                   />
                   <p className="text-xs text-muted-foreground">
@@ -1524,12 +1797,22 @@ export function DashboardCustomizer({
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="therapist-card-description">Card Description</Label>
+                  <Label htmlFor="therapist-card-description">
+                    Card Description
+                  </Label>
                   <Textarea
                     id="therapist-card-description"
                     placeholder="Messages, to-dos, and resources from your therapy sessions"
-                    value={contentOverrides["therapist-thoughts"]?.description || ""}
-                    onChange={(e) => updateContentOverride("therapist-thoughts", "description", e.target.value)}
+                    value={
+                      contentOverrides["therapist-thoughts"]?.description || ""
+                    }
+                    onChange={(e) =>
+                      updateContentOverride(
+                        "therapist-thoughts",
+                        "description",
+                        e.target.value,
+                      )
+                    }
                     className="resize-none"
                     rows={2}
                     data-testid="input-therapist-card-description"
@@ -1548,45 +1831,78 @@ export function DashboardCustomizer({
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <div className="space-y-0.5">
-                      <Label htmlFor="show-messages" className="font-medium">Messages</Label>
+                      <Label htmlFor="show-messages" className="font-medium">
+                        Messages
+                      </Label>
                       <p className="text-xs text-muted-foreground">
                         General messages and notes to the couple
                       </p>
                     </div>
                     <Switch
                       id="show-messages"
-                      checked={contentOverrides["therapist-thoughts"]?.showMessages !== false}
-                      onCheckedChange={(checked) => updateContentOverride("therapist-thoughts", "showMessages", checked)}
+                      checked={
+                        contentOverrides["therapist-thoughts"]?.showMessages !==
+                        false
+                      }
+                      onCheckedChange={(checked) =>
+                        updateContentOverride(
+                          "therapist-thoughts",
+                          "showMessages",
+                          checked,
+                        )
+                      }
                       data-testid="switch-show-messages"
                     />
                   </div>
 
                   <div className="flex items-center justify-between">
                     <div className="space-y-0.5">
-                      <Label htmlFor="show-todos" className="font-medium">To-Dos</Label>
+                      <Label htmlFor="show-todos" className="font-medium">
+                        To-Dos
+                      </Label>
                       <p className="text-xs text-muted-foreground">
                         Action items and homework assignments
                       </p>
                     </div>
                     <Switch
                       id="show-todos"
-                      checked={contentOverrides["therapist-thoughts"]?.showTodos !== false}
-                      onCheckedChange={(checked) => updateContentOverride("therapist-thoughts", "showTodos", checked)}
+                      checked={
+                        contentOverrides["therapist-thoughts"]?.showTodos !==
+                        false
+                      }
+                      onCheckedChange={(checked) =>
+                        updateContentOverride(
+                          "therapist-thoughts",
+                          "showTodos",
+                          checked,
+                        )
+                      }
                       data-testid="switch-show-todos"
                     />
                   </div>
 
                   <div className="flex items-center justify-between">
                     <div className="space-y-0.5">
-                      <Label htmlFor="show-resources" className="font-medium">Resources</Label>
+                      <Label htmlFor="show-resources" className="font-medium">
+                        Resources
+                      </Label>
                       <p className="text-xs text-muted-foreground">
                         Links to articles, videos, and other materials
                       </p>
                     </div>
                     <Switch
                       id="show-resources"
-                      checked={contentOverrides["therapist-thoughts"]?.showResources !== false}
-                      onCheckedChange={(checked) => updateContentOverride("therapist-thoughts", "showResources", checked)}
+                      checked={
+                        contentOverrides["therapist-thoughts"]
+                          ?.showResources !== false
+                      }
+                      onCheckedChange={(checked) =>
+                        updateContentOverride(
+                          "therapist-thoughts",
+                          "showResources",
+                          checked,
+                        )
+                      }
                       data-testid="switch-show-resources"
                     />
                   </div>
@@ -1599,11 +1915,13 @@ export function DashboardCustomizer({
                   <div className="flex items-center gap-2 mb-1">
                     <MessageCircle className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                     <span className="font-semibold">
-                      {contentOverrides["therapist-thoughts"]?.title || "From Your Therapist"}
+                      {contentOverrides["therapist-thoughts"]?.title ||
+                        "From Your Therapist"}
                     </span>
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    {contentOverrides["therapist-thoughts"]?.description || "Messages, to-dos, and resources from your therapy sessions"}
+                    {contentOverrides["therapist-thoughts"]?.description ||
+                      "Messages, to-dos, and resources from your therapy sessions"}
                   </p>
                 </div>
               </div>

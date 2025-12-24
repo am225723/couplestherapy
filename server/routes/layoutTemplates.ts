@@ -72,7 +72,9 @@ layoutTemplatesRouter.post("/", async (req: Request, res: Response) => {
   } catch (error: any) {
     console.error("Error creating layout template:", error);
     if (error.name === "ZodError") {
-      return res.status(400).json({ error: "Invalid template data", details: error.errors });
+      return res
+        .status(400)
+        .json({ error: "Invalid template data", details: error.errors });
     }
     res.status(500).json({ error: "Failed to create layout template" });
   }
@@ -84,7 +86,15 @@ layoutTemplatesRouter.put(
   async (req: Request, res: Response) => {
     try {
       const { templateId } = req.params;
-      const { name, description, widget_order, enabled_widgets, widget_sizes, widget_content_overrides, is_shared } = req.body;
+      const {
+        name,
+        description,
+        widget_order,
+        enabled_widgets,
+        widget_sizes,
+        widget_content_overrides,
+        is_shared,
+      } = req.body;
 
       const updateData: Record<string, any> = {
         updated_at: new Date().toISOString(),
@@ -93,9 +103,11 @@ layoutTemplatesRouter.put(
       if (name !== undefined) updateData.name = name;
       if (description !== undefined) updateData.description = description;
       if (widget_order !== undefined) updateData.widget_order = widget_order;
-      if (enabled_widgets !== undefined) updateData.enabled_widgets = enabled_widgets;
+      if (enabled_widgets !== undefined)
+        updateData.enabled_widgets = enabled_widgets;
       if (widget_sizes !== undefined) updateData.widget_sizes = widget_sizes;
-      if (widget_content_overrides !== undefined) updateData.widget_content_overrides = widget_content_overrides;
+      if (widget_content_overrides !== undefined)
+        updateData.widget_content_overrides = widget_content_overrides;
       if (is_shared !== undefined) updateData.is_shared = is_shared;
 
       const { data, error } = await supabaseAdmin
@@ -172,7 +184,7 @@ layoutTemplatesRouter.post(
       // Increment usage count
       await supabaseAdmin
         .from("Couples_layout_templates")
-        .update({ 
+        .update({
           usage_count: (template.usage_count || 0) + 1,
           updated_at: new Date().toISOString(),
         })

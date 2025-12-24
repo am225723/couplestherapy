@@ -34,7 +34,10 @@ import { supabase } from "@/lib/supabase";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
-import { aiFunctions, TherapistThought as AITherapistThought } from "@/lib/ai-functions";
+import {
+  aiFunctions,
+  TherapistThought as AITherapistThought,
+} from "@/lib/ai-functions";
 import {
   Loader2,
   Users,
@@ -146,7 +149,9 @@ export default function TherapistDashboard() {
           />
           <div className="absolute left-0 top-0 bottom-0 w-80 bg-background/95 backdrop-blur-xl shadow-2xl flex flex-col border-r border-border/50">
             <div className="flex items-center justify-between p-4 border-b border-border/50">
-              <h2 className="text-lg font-semibold tracking-tight">My Couples</h2>
+              <h2 className="text-lg font-semibold tracking-tight">
+                My Couples
+              </h2>
               <Button
                 variant="ghost"
                 size="icon"
@@ -203,7 +208,10 @@ export default function TherapistDashboard() {
         <div className="flex-1 overflow-y-auto">
           <div className="max-w-5xl mx-auto p-4 md:p-6 space-y-6">
             {selectedCouple ? (
-              <CoupleDetails couple={selectedCouple} therapistId={profile?.id || ""} />
+              <CoupleDetails
+                couple={selectedCouple}
+                therapistId={profile?.id || ""}
+              />
             ) : (
               <div className="min-h-[300px] flex items-center justify-center">
                 <div className="text-center space-y-3 p-8 rounded-2xl bg-muted/30 border border-border/50">
@@ -212,7 +220,8 @@ export default function TherapistDashboard() {
                   </div>
                   <h3 className="text-lg font-medium">Select a Couple</h3>
                   <p className="text-sm text-muted-foreground max-w-xs">
-                    Choose a couple from the sidebar to view their details and manage their progress
+                    Choose a couple from the sidebar to view their details and
+                    manage their progress
                   </p>
                 </div>
               </div>
@@ -250,7 +259,8 @@ function CouplesList({
           data-testid="input-search-couples"
         />
         <p className="text-xs text-muted-foreground">
-          {filteredCouples.length} couple{filteredCouples.length !== 1 ? "s" : ""}
+          {filteredCouples.length} couple
+          {filteredCouples.length !== 1 ? "s" : ""}
         </p>
       </div>
 
@@ -339,14 +349,20 @@ function CouplesList({
   );
 }
 
-function CoupleDetails({ couple, therapistId }: { couple: CoupleData; therapistId: string }) {
+function CoupleDetails({
+  couple,
+  therapistId,
+}: {
+  couple: CoupleData;
+  therapistId: string;
+}) {
   const { toast } = useToast();
   const [location] = useLocation();
-  
+
   const urlParams = new URLSearchParams(window.location.search);
   const tabFromUrl = urlParams.get("tab") || "overview";
   const [activeTab, setActiveTab] = useState(tabFromUrl);
-  
+
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const tab = params.get("tab") || "overview";
@@ -374,7 +390,9 @@ function CoupleDetails({ couple, therapistId }: { couple: CoupleData; therapistI
           <h1 className="text-2xl font-semibold tracking-tight">
             {couple.partner1?.full_name} & {couple.partner2?.full_name}
           </h1>
-          <p className="text-sm text-muted-foreground">Manage their progress and activities</p>
+          <p className="text-sm text-muted-foreground">
+            Manage their progress and activities
+          </p>
         </div>
 
         {/* Quick Actions Row - Touch Friendly */}
@@ -433,19 +451,31 @@ function CoupleDetails({ couple, therapistId }: { couple: CoupleData; therapistI
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-3 md:grid-cols-5 h-auto p-1 rounded-xl bg-muted/50 gap-1">
-          <TabsTrigger value="overview" className="text-xs md:text-sm rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm">
+          <TabsTrigger
+            value="overview"
+            className="text-xs md:text-sm rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm"
+          >
             <BarChart3 className="h-3.5 w-3.5 mr-1.5 hidden sm:inline" />
             Overview
           </TabsTrigger>
-          <TabsTrigger value="prompts" className="text-xs md:text-sm rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm bg-violet-100 dark:bg-violet-900/30">
+          <TabsTrigger
+            value="prompts"
+            className="text-xs md:text-sm rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm bg-violet-100 dark:bg-violet-900/30"
+          >
             <PenLine className="h-3.5 w-3.5 mr-1.5 hidden sm:inline" />
             Prompts
           </TabsTrigger>
-          <TabsTrigger value="notes" className="text-xs md:text-sm rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm">
+          <TabsTrigger
+            value="notes"
+            className="text-xs md:text-sm rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm"
+          >
             <FileText className="h-3.5 w-3.5 mr-1.5 hidden sm:inline" />
             Notes
           </TabsTrigger>
-          <TabsTrigger value="thoughts" className="text-xs md:text-sm relative rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm">
+          <TabsTrigger
+            value="thoughts"
+            className="text-xs md:text-sm relative rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm"
+          >
             <MessageSquare className="h-3.5 w-3.5 mr-1.5 hidden sm:inline" />
             Thoughts
             {incompleteTodos.length > 0 && (
@@ -481,12 +511,20 @@ function CoupleDetails({ couple, therapistId }: { couple: CoupleData; therapistI
               <CardContent className="relative z-10 space-y-3">
                 <div className="grid grid-cols-2 gap-3">
                   <div className="p-3 rounded-xl bg-background/60 backdrop-blur-sm border border-border/30">
-                    <p className="text-xs text-muted-foreground mb-1">Partner 1</p>
-                    <p className="font-semibold text-sm">{couple.partner1?.full_name}</p>
+                    <p className="text-xs text-muted-foreground mb-1">
+                      Partner 1
+                    </p>
+                    <p className="font-semibold text-sm">
+                      {couple.partner1?.full_name}
+                    </p>
                   </div>
                   <div className="p-3 rounded-xl bg-background/60 backdrop-blur-sm border border-border/30">
-                    <p className="text-xs text-muted-foreground mb-1">Partner 2</p>
-                    <p className="font-semibold text-sm">{couple.partner2?.full_name}</p>
+                    <p className="text-xs text-muted-foreground mb-1">
+                      Partner 2
+                    </p>
+                    <p className="font-semibold text-sm">
+                      {couple.partner2?.full_name}
+                    </p>
                   </div>
                 </div>
               </CardContent>
@@ -533,8 +571,8 @@ function CoupleDetails({ couple, therapistId }: { couple: CoupleData; therapistI
 
         {/* Prompts Tab */}
         <TabsContent value="prompts" className="mt-6">
-          <ReflectionPromptsPanel 
-            coupleId={couple.id} 
+          <ReflectionPromptsPanel
+            coupleId={couple.id}
             partner1Id={couple.partner1_id}
             partner2Id={couple.partner2_id}
             partner1Name={couple.partner1?.full_name}
@@ -547,7 +585,10 @@ function CoupleDetails({ couple, therapistId }: { couple: CoupleData; therapistI
           <Card className="glass-card border-none overflow-hidden">
             <div className="gradient-animate bg-gradient-to-br from-emerald-500/10 to-teal-500/5" />
             <CardContent className="relative z-10 p-6">
-              <SessionNotesPanel coupleId={couple.id} therapistId={therapistId} />
+              <SessionNotesPanel
+                coupleId={couple.id}
+                therapistId={therapistId}
+              />
             </CardContent>
           </Card>
         </TabsContent>
@@ -902,13 +943,13 @@ function TherapistThoughtsPanel({ coupleId }: { coupleId: string }) {
   );
 }
 
-function ReflectionPromptsPanel({ 
-  coupleId, 
+function ReflectionPromptsPanel({
+  coupleId,
   partner1Id,
   partner2Id,
   partner1Name,
-  partner2Name 
-}: { 
+  partner2Name,
+}: {
   coupleId: string;
   partner1Id?: string;
   partner2Id?: string;
@@ -926,7 +967,8 @@ function ReflectionPromptsPanel({
   // Fetch existing reflection prompts using default queryFn
   const promptsQuery = useQuery<any[]>({
     queryKey: ["/api/therapist-prompts/therapist", coupleId],
-    select: (data) => data?.filter((p: any) => p.tool_name === "reflection") || [],
+    select: (data) =>
+      data?.filter((p: any) => p.tool_name === "reflection") || [],
     enabled: !!coupleId,
   });
 
@@ -949,12 +991,26 @@ function ReflectionPromptsPanel({
       return res.json();
     },
     onSuccess: () => {
-      setNewPrompt({ title: "", description: "", suggested_action: "", target_user_id: null });
-      toast({ title: "Success", description: "Reflection prompt sent to client(s)" });
-      queryClient.invalidateQueries({ queryKey: ["/api/therapist-prompts/therapist", coupleId] });
+      setNewPrompt({
+        title: "",
+        description: "",
+        suggested_action: "",
+        target_user_id: null,
+      });
+      toast({
+        title: "Success",
+        description: "Reflection prompt sent to client(s)",
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/therapist-prompts/therapist", coupleId],
+      });
     },
     onError: (error: any) => {
-      toast({ title: "Error", description: error?.message || "Failed to create prompt", variant: "destructive" });
+      toast({
+        title: "Error",
+        description: error?.message || "Failed to create prompt",
+        variant: "destructive",
+      });
     },
   });
 
@@ -964,7 +1020,9 @@ function ReflectionPromptsPanel({
     },
     onSuccess: () => {
       toast({ title: "Success", description: "Prompt deleted" });
-      queryClient.invalidateQueries({ queryKey: ["/api/therapist-prompts/therapist", coupleId] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/therapist-prompts/therapist", coupleId],
+      });
     },
   });
 
@@ -1003,7 +1061,9 @@ function ReflectionPromptsPanel({
               <Input
                 placeholder="e.g., Weekly Reflection"
                 value={newPrompt.title}
-                onChange={(e) => setNewPrompt((p) => ({ ...p, title: e.target.value }))}
+                onChange={(e) =>
+                  setNewPrompt((p) => ({ ...p, title: e.target.value }))
+                }
                 data-testid="input-prompt-title"
               />
             </div>
@@ -1011,7 +1071,12 @@ function ReflectionPromptsPanel({
               <label className="text-sm font-medium">Send To</label>
               <Select
                 value={newPrompt.target_user_id || "both"}
-                onValueChange={(value) => setNewPrompt((p) => ({ ...p, target_user_id: value === "both" ? null : value }))}
+                onValueChange={(value) =>
+                  setNewPrompt((p) => ({
+                    ...p,
+                    target_user_id: value === "both" ? null : value,
+                  }))
+                }
               >
                 <SelectTrigger data-testid="select-target-user">
                   <SelectValue placeholder="Select recipient" />
@@ -1020,8 +1085,12 @@ function ReflectionPromptsPanel({
                   <SelectItem value="both">Both Partners</SelectItem>
                   {canTargetIndividuals && (
                     <>
-                      <SelectItem value={partner1Id!}>{partner1Name || "Partner 1"}</SelectItem>
-                      <SelectItem value={partner2Id!}>{partner2Name || "Partner 2"}</SelectItem>
+                      <SelectItem value={partner1Id!}>
+                        {partner1Name || "Partner 1"}
+                      </SelectItem>
+                      <SelectItem value={partner2Id!}>
+                        {partner2Name || "Partner 2"}
+                      </SelectItem>
                     </>
                   )}
                 </SelectContent>
@@ -1033,14 +1102,23 @@ function ReflectionPromptsPanel({
             <Textarea
               placeholder="e.g., What is one thing you appreciated about your partner this week that you haven't told them yet?"
               value={newPrompt.suggested_action}
-              onChange={(e) => setNewPrompt((p) => ({ ...p, suggested_action: e.target.value }))}
+              onChange={(e) =>
+                setNewPrompt((p) => ({
+                  ...p,
+                  suggested_action: e.target.value,
+                }))
+              }
               className="min-h-[100px]"
               data-testid="input-prompt-question"
             />
           </div>
           <Button
             onClick={() => createMutation.mutate()}
-            disabled={!newPrompt.title || !newPrompt.suggested_action || createMutation.isPending}
+            disabled={
+              !newPrompt.title ||
+              !newPrompt.suggested_action ||
+              createMutation.isPending
+            }
             className="w-full gap-2 bg-violet-600 hover:bg-violet-700"
             data-testid="button-send-prompt"
           >
@@ -1080,20 +1158,24 @@ function ReflectionPromptsPanel({
         <Card className="glass-card border-none overflow-hidden">
           <div className="gradient-animate bg-gradient-to-br from-blue-500/10 to-indigo-500/5" />
           <CardHeader className="relative z-10 pb-2">
-            <CardTitle className="text-base">Sent Prompts & Responses</CardTitle>
-            <CardDescription>
-              View responses from your clients
-            </CardDescription>
+            <CardTitle className="text-base">
+              Sent Prompts & Responses
+            </CardTitle>
+            <CardDescription>View responses from your clients</CardDescription>
           </CardHeader>
           <CardContent className="relative z-10 space-y-4">
             {prompts.map((prompt) => {
-              const promptResponses = responses.filter((r) => r.prompt_id === prompt.id);
+              const promptResponses = responses.filter(
+                (r) => r.prompt_id === prompt.id,
+              );
               return (
                 <Card key={prompt.id} className="border bg-background/50">
                   <CardHeader className="pb-2">
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex-1 min-w-0">
-                        <CardTitle className="text-sm">{prompt.title}</CardTitle>
+                        <CardTitle className="text-sm">
+                          {prompt.title}
+                        </CardTitle>
                         <CardDescription className="text-xs mt-1 line-clamp-2">
                           {prompt.suggested_action}
                         </CardDescription>
@@ -1112,17 +1194,28 @@ function ReflectionPromptsPanel({
                       <Badge variant="outline" className="text-xs">
                         {getPartnerName(prompt.target_user_id)}
                       </Badge>
-                      <Badge variant={promptResponses.length > 0 ? "default" : "secondary"} className="text-xs">
-                        {promptResponses.length} response{promptResponses.length !== 1 ? "s" : ""}
+                      <Badge
+                        variant={
+                          promptResponses.length > 0 ? "default" : "secondary"
+                        }
+                        className="text-xs"
+                      >
+                        {promptResponses.length} response
+                        {promptResponses.length !== 1 ? "s" : ""}
                       </Badge>
                     </div>
                   </CardHeader>
                   {promptResponses.length > 0 && (
                     <CardContent className="pt-0 space-y-2">
                       {promptResponses.map((response) => (
-                        <div key={response.id} className="p-2 rounded bg-muted/50 text-sm">
+                        <div
+                          key={response.id}
+                          className="p-2 rounded bg-muted/50 text-sm"
+                        >
                           <p className="font-medium text-xs text-muted-foreground mb-1">
-                            {response.responder?.full_name || getPartnerName(response.responder_id)}:
+                            {response.responder?.full_name ||
+                              getPartnerName(response.responder_id)}
+                            :
                           </p>
                           <p className="text-sm">{response.response_text}</p>
                         </div>

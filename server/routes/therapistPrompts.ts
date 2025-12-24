@@ -70,9 +70,16 @@ therapistPromptsRouter.post("/", async (req: Request, res: Response) => {
       display_order,
     } = req.body;
 
-    if (!couple_id || !therapist_id || !tool_name || !title || !suggested_action) {
+    if (
+      !couple_id ||
+      !therapist_id ||
+      !tool_name ||
+      !title ||
+      !suggested_action
+    ) {
       return res.status(400).json({
-        error: "Missing required fields: couple_id, therapist_id, tool_name, title, suggested_action",
+        error:
+          "Missing required fields: couple_id, therapist_id, tool_name, title, suggested_action",
       });
     }
 
@@ -168,7 +175,9 @@ therapistPromptsRouter.put(
       const { prompt_orders } = req.body; // Array of { id, display_order }
 
       if (!Array.isArray(prompt_orders)) {
-        return res.status(400).json({ error: "prompt_orders must be an array" });
+        return res
+          .status(400)
+          .json({ error: "prompt_orders must be an array" });
       }
 
       // Update each prompt's display order
@@ -209,111 +218,123 @@ async function getAuthenticatedUser(req: Request) {
     return null;
   }
   const token = authHeader.substring(7);
-  const { data: { user }, error } = await supabaseAdmin.auth.getUser(token);
+  const {
+    data: { user },
+    error,
+  } = await supabaseAdmin.auth.getUser(token);
   if (error || !user) return null;
   return user;
 }
 
 // POST - Create or update a reflection response
-therapistPromptsRouter.post("/reflection-responses", async (req: Request, res: Response) => {
-  try {
-    // Authenticate user
-    const user = await getAuthenticatedUser(req);
-    if (!user) {
-      return res.status(401).json({ error: "Unauthorized" });
-    }
+therapistPromptsRouter.post(
+  "/reflection-responses",
+  async (req: Request, res: Response) => {
+    try {
+      // Authenticate user
+      const user = await getAuthenticatedUser(req);
+      if (!user) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
 
-    const { prompt_id, response_text, is_shared_with_partner } = req.body;
+      const { prompt_id, response_text, is_shared_with_partner } = req.body;
 
-    // Validate required fields
-    if (!prompt_id || typeof prompt_id !== "string") {
-      return res.status(400).json({ error: "prompt_id is required" });
-    }
-    if (!response_text || typeof response_text !== "string" || response_text.trim().length === 0) {
-      return res.status(400).json({ error: "response_text is required" });
-    }
+      // Validate required fields
+      if (!prompt_id || typeof prompt_id !== "string") {
+        return res.status(400).json({ error: "prompt_id is required" });
+      }
+      if (
+        !response_text ||
+        typeof response_text !== "string" ||
+        response_text.trim().length === 0
+      ) {
+        return res.status(400).json({ error: "response_text is required" });
+      }
 
-    // Get user's profile to verify couple_id
-    const { data: profile, error: profileError } = await supabaseAdmin
-      .from("Couples_profiles")
-      .select("id, couple_id")
-      .eq("id", user.id)
-      .single();
-
-    if (profileError || !profile?.couple_id) {
-      return res.status(403).json({ error: "User is not part of a couple" });
-    }
-
-    // Verify the prompt exists and belongs to the user's couple
-    const { data: prompt, error: promptError } = await supabaseAdmin
-      .from("Couples_therapist_prompts")
-      .select("id, couple_id, target_user_id")
-      .eq("id", prompt_id)
-      .single();
-
-    if (promptError || !prompt) {
-      return res.status(404).json({ error: "Prompt not found" });
-    }
-
-    if (prompt.couple_id !== profile.couple_id) {
-      return res.status(403).json({ error: "Prompt does not belong to your couple" });
-    }
-
-    // Check if prompt is targeted to a specific user
-    if (prompt.target_user_id && prompt.target_user_id !== user.id) {
-      return res.status(403).json({ error: "This prompt is not for you" });
-    }
-
-    // Check if a response already exists for this prompt and user
-    const { data: existing } = await supabaseAdmin
-      .from("Couples_reflection_responses")
-      .select("id")
-      .eq("prompt_id", prompt_id)
-      .eq("responder_id", user.id)
-      .single();
-
-    let data;
-    let error;
-
-    if (existing) {
-      // Update existing response
-      const result = await supabaseAdmin
-        .from("Couples_reflection_responses")
-        .update({
-          response_text: response_text.trim(),
-          is_shared_with_partner: is_shared_with_partner === true,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", existing.id)
-        .select()
+      // Get user's profile to verify couple_id
+      const { data: profile, error: profileError } = await supabaseAdmin
+        .from("Couples_profiles")
+        .select("id, couple_id")
+        .eq("id", user.id)
         .single();
-      data = result.data;
-      error = result.error;
-    } else {
-      // Create new response
-      const result = await supabaseAdmin
-        .from("Couples_reflection_responses")
-        .insert({
-          prompt_id,
-          couple_id: profile.couple_id,
-          responder_id: user.id,
-          response_text: response_text.trim(),
-          is_shared_with_partner: is_shared_with_partner === true,
-        })
-        .select()
+
+      if (profileError || !profile?.couple_id) {
+        return res.status(403).json({ error: "User is not part of a couple" });
+      }
+
+      // Verify the prompt exists and belongs to the user's couple
+      const { data: prompt, error: promptError } = await supabaseAdmin
+        .from("Couples_therapist_prompts")
+        .select("id, couple_id, target_user_id")
+        .eq("id", prompt_id)
         .single();
-      data = result.data;
-      error = result.error;
+
+      if (promptError || !prompt) {
+        return res.status(404).json({ error: "Prompt not found" });
+      }
+
+      if (prompt.couple_id !== profile.couple_id) {
+        return res
+          .status(403)
+          .json({ error: "Prompt does not belong to your couple" });
+      }
+
+      // Check if prompt is targeted to a specific user
+      if (prompt.target_user_id && prompt.target_user_id !== user.id) {
+        return res.status(403).json({ error: "This prompt is not for you" });
+      }
+
+      // Check if a response already exists for this prompt and user
+      const { data: existing } = await supabaseAdmin
+        .from("Couples_reflection_responses")
+        .select("id")
+        .eq("prompt_id", prompt_id)
+        .eq("responder_id", user.id)
+        .single();
+
+      let data;
+      let error;
+
+      if (existing) {
+        // Update existing response
+        const result = await supabaseAdmin
+          .from("Couples_reflection_responses")
+          .update({
+            response_text: response_text.trim(),
+            is_shared_with_partner: is_shared_with_partner === true,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", existing.id)
+          .select()
+          .single();
+        data = result.data;
+        error = result.error;
+      } else {
+        // Create new response
+        const result = await supabaseAdmin
+          .from("Couples_reflection_responses")
+          .insert({
+            prompt_id,
+            couple_id: profile.couple_id,
+            responder_id: user.id,
+            response_text: response_text.trim(),
+            is_shared_with_partner: is_shared_with_partner === true,
+          })
+          .select()
+          .single();
+        data = result.data;
+        error = result.error;
+      }
+
+      if (error) throw error;
+
+      res.status(201).json(data);
+    } catch (error) {
+      console.error("Error saving reflection response:", error);
+      res.status(500).json({ error: "Failed to save response" });
     }
-
-    if (error) throw error;
-
-    res.status(201).json(data);
-  } catch (error) {
-    console.error("Error saving reflection response:", error);
-    res.status(500).json({ error: "Failed to save response" });
-  }
-});
+  },
+);
 
 // GET - Fetch responses for a prompt (couple view - only shows partner's if shared)
 therapistPromptsRouter.get(
@@ -402,7 +423,9 @@ therapistPromptsRouter.get(
         .single();
 
       if (!profile || profile.role !== "therapist") {
-        return res.status(403).json({ error: "Only therapists can view all responses" });
+        return res
+          .status(403)
+          .json({ error: "Only therapists can view all responses" });
       }
 
       const { coupleId } = req.params;
@@ -445,7 +468,9 @@ therapistPromptsRouter.patch(
         .single();
 
       if (!response || response.responder_id !== user.id) {
-        return res.status(403).json({ error: "You can only share your own responses" });
+        return res
+          .status(403)
+          .json({ error: "You can only share your own responses" });
       }
 
       const { data, error } = await supabaseAdmin

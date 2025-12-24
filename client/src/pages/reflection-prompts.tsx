@@ -6,7 +6,13 @@ import { authenticatedFetchJson } from "@/lib/authenticated-fetch";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
 import type { Couple, Profile } from "@shared/schema";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
@@ -88,7 +94,7 @@ function ReflectionPromptCard({
     queryKey: ["/api/therapist-prompts/reflection-responses/prompt", prompt.id],
     queryFn: async () => {
       const response = await authenticatedFetchJson(
-        `/api/therapist-prompts/reflection-responses/prompt/${prompt.id}`
+        `/api/therapist-prompts/reflection-responses/prompt/${prompt.id}`,
       );
       return response as ResponseData;
     },
@@ -97,20 +103,26 @@ function ReflectionPromptCard({
 
   const submitMutation = useMutation({
     mutationFn: async (text: string) => {
-      return authenticatedFetchJson("/api/therapist-prompts/reflection-responses", {
-        method: "POST",
-        body: JSON.stringify({
-          prompt_id: prompt.id,
-          response_text: text,
-        }),
-      });
+      return authenticatedFetchJson(
+        "/api/therapist-prompts/reflection-responses",
+        {
+          method: "POST",
+          body: JSON.stringify({
+            prompt_id: prompt.id,
+            response_text: text,
+          }),
+        },
+      );
     },
     onSuccess: () => {
       toast({ title: "Response saved" });
       setResponseText("");
       setIsEditing(false);
       queryClient.invalidateQueries({
-        queryKey: ["/api/therapist-prompts/reflection-responses/prompt", prompt.id],
+        queryKey: [
+          "/api/therapist-prompts/reflection-responses/prompt",
+          prompt.id,
+        ],
       });
     },
     onError: (error: any) => {
@@ -124,17 +136,25 @@ function ReflectionPromptCard({
 
   const shareMutation = useMutation({
     mutationFn: async ({ id, share }: { id: string; share: boolean }) => {
-      return authenticatedFetchJson(`/api/therapist-prompts/reflection-responses/${id}/share`, {
-        method: "PATCH",
-        body: JSON.stringify({ is_shared_with_partner: share }),
-      });
+      return authenticatedFetchJson(
+        `/api/therapist-prompts/reflection-responses/${id}/share`,
+        {
+          method: "PATCH",
+          body: JSON.stringify({ is_shared_with_partner: share }),
+        },
+      );
     },
     onSuccess: (_, variables) => {
       toast({
-        title: variables.share ? "Response shared with partner" : "Response is now private",
+        title: variables.share
+          ? "Response shared with partner"
+          : "Response is now private",
       });
       queryClient.invalidateQueries({
-        queryKey: ["/api/therapist-prompts/reflection-responses/prompt", prompt.id],
+        queryKey: [
+          "/api/therapist-prompts/reflection-responses/prompt",
+          prompt.id,
+        ],
       });
     },
     onError: (error: any) => {
@@ -151,7 +171,10 @@ function ReflectionPromptCard({
   const hasResponded = !!ownResponse;
 
   return (
-    <Card className="overflow-hidden" data-testid={`reflection-prompt-${prompt.id}`}>
+    <Card
+      className="overflow-hidden"
+      data-testid={`reflection-prompt-${prompt.id}`}
+    >
       <div className="bg-gradient-to-r from-violet-500/10 to-purple-500/10 dark:from-violet-500/20 dark:to-purple-500/20">
         <CardHeader className="pb-3">
           <div className="flex items-start justify-between gap-2">
@@ -161,7 +184,9 @@ function ReflectionPromptCard({
                 <CardTitle className="text-base">{prompt.title}</CardTitle>
               </div>
               {prompt.description && (
-                <CardDescription className="text-sm">{prompt.description}</CardDescription>
+                <CardDescription className="text-sm">
+                  {prompt.description}
+                </CardDescription>
               )}
             </div>
             <div className="flex items-center gap-2">
@@ -189,10 +214,15 @@ function ReflectionPromptCard({
 
       <CardContent className="pt-4 space-y-4">
         <div className="p-4 rounded-lg bg-muted/50 border-l-4 border-l-violet-500">
-          <p className="text-sm italic text-foreground/80">{prompt.suggested_action}</p>
+          <p className="text-sm italic text-foreground/80">
+            {prompt.suggested_action}
+          </p>
           <p className="text-xs text-muted-foreground mt-2 flex items-center gap-1">
             <Clock className="h-3 w-3" />
-            Asked {formatDistanceToNow(new Date(prompt.created_at), { addSuffix: true })}
+            Asked{" "}
+            {formatDistanceToNow(new Date(prompt.created_at), {
+              addSuffix: true,
+            })}
           </p>
         </div>
 
@@ -200,10 +230,15 @@ function ReflectionPromptCard({
           <div className="space-y-4">
             <div className="p-4 rounded-lg bg-primary/5 border">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-medium text-muted-foreground">Your Response</span>
+                <span className="text-xs font-medium text-muted-foreground">
+                  Your Response
+                </span>
                 <div className="flex items-center gap-3">
                   <div className="flex items-center gap-2">
-                    <Label htmlFor={`share-${prompt.id}`} className="text-xs text-muted-foreground">
+                    <Label
+                      htmlFor={`share-${prompt.id}`}
+                      className="text-xs text-muted-foreground"
+                    >
                       {ownResponse.is_shared_with_partner ? (
                         <span className="flex items-center gap-1">
                           <Eye className="h-3 w-3" /> Shared
@@ -218,7 +253,10 @@ function ReflectionPromptCard({
                       id={`share-${prompt.id}`}
                       checked={ownResponse.is_shared_with_partner}
                       onCheckedChange={(checked) =>
-                        shareMutation.mutate({ id: ownResponse.id, share: checked })
+                        shareMutation.mutate({
+                          id: ownResponse.id,
+                          share: checked,
+                        })
                       }
                       disabled={shareMutation.isPending}
                       data-testid={`switch-share-${prompt.id}`}
@@ -237,9 +275,14 @@ function ReflectionPromptCard({
                   </Button>
                 </div>
               </div>
-              <p className="text-sm whitespace-pre-wrap">{ownResponse.response_text}</p>
+              <p className="text-sm whitespace-pre-wrap">
+                {ownResponse.response_text}
+              </p>
               <p className="text-xs text-muted-foreground mt-2">
-                {format(new Date(ownResponse.updated_at), "MMM d, yyyy 'at' h:mm a")}
+                {format(
+                  new Date(ownResponse.updated_at),
+                  "MMM d, yyyy 'at' h:mm a",
+                )}
               </p>
             </div>
 
@@ -247,17 +290,26 @@ function ReflectionPromptCard({
               <div className="p-4 rounded-lg bg-accent/30 border">
                 <div className="flex items-center gap-2 mb-2">
                   <Avatar className="h-6 w-6">
-                    <AvatarFallback className="text-xs">{getInitials(partnerName)}</AvatarFallback>
+                    <AvatarFallback className="text-xs">
+                      {getInitials(partnerName)}
+                    </AvatarFallback>
                   </Avatar>
-                  <span className="text-xs font-medium">{partnerName}'s Response</span>
+                  <span className="text-xs font-medium">
+                    {partnerName}'s Response
+                  </span>
                   <Badge variant="secondary" className="text-xs ml-auto">
                     <Heart className="h-3 w-3 mr-1" />
                     Shared with you
                   </Badge>
                 </div>
-                <p className="text-sm whitespace-pre-wrap">{partnerResponse.response_text}</p>
+                <p className="text-sm whitespace-pre-wrap">
+                  {partnerResponse.response_text}
+                </p>
                 <p className="text-xs text-muted-foreground mt-2">
-                  {format(new Date(partnerResponse.updated_at), "MMM d, yyyy 'at' h:mm a")}
+                  {format(
+                    new Date(partnerResponse.updated_at),
+                    "MMM d, yyyy 'at' h:mm a",
+                  )}
                 </p>
               </div>
             )}
@@ -273,7 +325,8 @@ function ReflectionPromptCard({
             />
             <div className="flex items-center justify-between">
               <p className="text-xs text-muted-foreground">
-                Your response will be private by default. You can share it with your partner later.
+                Your response will be private by default. You can share it with
+                your partner later.
               </p>
               <div className="flex items-center gap-2">
                 {isEditing && (
@@ -326,11 +379,13 @@ export default function ReflectionPromptsPage() {
       if (!profile?.couple_id) return null;
       const { data, error } = await supabase
         .from("Couples_couples")
-        .select(`
+        .select(
+          `
           *,
           partner1:Couples_profiles!Couples_couples_partner1_id_fkey(*),
           partner2:Couples_profiles!Couples_couples_partner2_id_fkey(*)
-        `)
+        `,
+        )
         .eq("id", profile.couple_id)
         .single();
 
@@ -361,9 +416,10 @@ export default function ReflectionPromptsPage() {
     enabled: !!profile?.couple_id && !!profile?.id,
   });
 
-  const partnerName = couple?.partner1?.id === profile?.id
-    ? couple?.partner2?.full_name || "Partner"
-    : couple?.partner1?.full_name || "Partner";
+  const partnerName =
+    couple?.partner1?.id === profile?.id
+      ? couple?.partner2?.full_name || "Partner"
+      : couple?.partner1?.full_name || "Partner";
 
   if (!profile || coupleQuery.isLoading) {
     return (
@@ -387,7 +443,8 @@ export default function ReflectionPromptsPage() {
               Reflection Prompts
             </h1>
             <p className="text-muted-foreground">
-              Guided questions from your therapist to help deepen your connection
+              Guided questions from your therapist to help deepen your
+              connection
             </p>
           </div>
         </div>
@@ -401,9 +458,12 @@ export default function ReflectionPromptsPage() {
         <Card className="text-center py-12">
           <CardContent>
             <MessageSquare className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
-            <h3 className="text-lg font-medium mb-2">No Reflection Prompts Yet</h3>
+            <h3 className="text-lg font-medium mb-2">
+              No Reflection Prompts Yet
+            </h3>
             <p className="text-muted-foreground max-w-md mx-auto">
-              Your therapist hasn't sent any reflection questions yet. Check back later for new prompts to explore together.
+              Your therapist hasn't sent any reflection questions yet. Check
+              back later for new prompts to explore together.
             </p>
           </CardContent>
         </Card>

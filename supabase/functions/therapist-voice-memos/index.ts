@@ -40,10 +40,13 @@ Deno.serve(async (req) => {
       const coupleId = url.searchParams.get("couple_id");
 
       if (!coupleId) {
-        return new Response(JSON.stringify({ error: "couple_id is required" }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-          status: 400,
-        });
+        return new Response(
+          JSON.stringify({ error: "couple_id is required" }),
+          {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+            status: 400,
+          },
+        );
       }
 
       const coupleExists = await verifyCoupleExists(coupleId);
@@ -56,7 +59,9 @@ Deno.serve(async (req) => {
 
       const { data: memos, error: memosError } = await supabaseAdmin
         .from("Couples_voice_memos")
-        .select("id, sender_id, recipient_id, duration_secs, is_listened, created_at")
+        .select(
+          "id, sender_id, recipient_id, duration_secs, is_listened, created_at",
+        )
         .eq("couple_id", coupleId)
         .order("created_at", { ascending: false });
 
@@ -73,7 +78,7 @@ Deno.serve(async (req) => {
         new Set([
           ...memos.map((m: any) => m.sender_id),
           ...memos.map((m: any) => m.recipient_id),
-        ])
+        ]),
       );
 
       const { data: profiles } = await supabaseAdmin
@@ -81,7 +86,9 @@ Deno.serve(async (req) => {
         .select("id, full_name")
         .in("id", userIds);
 
-      const profileMap = new Map(profiles?.map((p: any) => [p.id, p.full_name]) || []);
+      const profileMap = new Map(
+        profiles?.map((p: any) => [p.id, p.full_name]) || [],
+      );
 
       const metadata: VoiceMemoMetadata[] = memos.map((memo: any) => ({
         id: memo.id,
@@ -108,7 +115,7 @@ Deno.serve(async (req) => {
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 500,
-      }
+      },
     );
   }
 });

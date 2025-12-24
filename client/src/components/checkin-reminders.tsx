@@ -1,6 +1,12 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -63,7 +69,8 @@ export function CheckinReminders({ couple }: CheckinRemindersProps) {
     day_of_week: 0,
     time_of_day: "18:00",
     notification_title: "Weekly Check-In Time",
-    notification_body: "Take a few minutes to reflect on your relationship this week.",
+    notification_body:
+      "Take a few minutes to reflect on your relationship this week.",
   });
 
   const { data: schedules, isLoading } = useQuery<CheckinSchedule[]>({
@@ -83,20 +90,24 @@ export function CheckinReminders({ couple }: CheckinRemindersProps) {
   const createScheduleMutation = useMutation({
     mutationFn: async () => {
       if (!user) throw new Error("Not authenticated");
-      const { error } = await supabase.from("Couples_checkin_schedules").insert({
-        id: crypto.randomUUID(),
-        couple_id: couple.id,
-        therapist_id: user.id,
-        day_of_week: newSchedule.day_of_week,
-        time_of_day: newSchedule.time_of_day,
-        notification_title: newSchedule.notification_title,
-        notification_body: newSchedule.notification_body,
-        is_active: true,
-      });
+      const { error } = await supabase
+        .from("Couples_checkin_schedules")
+        .insert({
+          id: crypto.randomUUID(),
+          couple_id: couple.id,
+          therapist_id: user.id,
+          day_of_week: newSchedule.day_of_week,
+          time_of_day: newSchedule.time_of_day,
+          notification_title: newSchedule.notification_title,
+          notification_body: newSchedule.notification_body,
+          is_active: true,
+        });
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/checkin-schedules", couple.id] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/checkin-schedules", couple.id],
+      });
       toast({
         title: "Reminder Created",
         description: "Weekly check-in reminder has been scheduled.",
@@ -105,7 +116,8 @@ export function CheckinReminders({ couple }: CheckinRemindersProps) {
         day_of_week: 0,
         time_of_day: "18:00",
         notification_title: "Weekly Check-In Time",
-        notification_body: "Take a few minutes to reflect on your relationship this week.",
+        notification_body:
+          "Take a few minutes to reflect on your relationship this week.",
       });
     },
     onError: () => {
@@ -118,7 +130,13 @@ export function CheckinReminders({ couple }: CheckinRemindersProps) {
   });
 
   const toggleScheduleMutation = useMutation({
-    mutationFn: async ({ id, is_active }: { id: string; is_active: boolean }) => {
+    mutationFn: async ({
+      id,
+      is_active,
+    }: {
+      id: string;
+      is_active: boolean;
+    }) => {
       const { error } = await supabase
         .from("Couples_checkin_schedules")
         .update({ is_active })
@@ -126,7 +144,9 @@ export function CheckinReminders({ couple }: CheckinRemindersProps) {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/checkin-schedules", couple.id] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/checkin-schedules", couple.id],
+      });
     },
     onError: () => {
       toast({
@@ -146,7 +166,9 @@ export function CheckinReminders({ couple }: CheckinRemindersProps) {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/checkin-schedules", couple.id] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/checkin-schedules", couple.id],
+      });
       toast({
         title: "Reminder Deleted",
         description: "The check-in reminder has been removed.",
@@ -169,7 +191,8 @@ export function CheckinReminders({ couple }: CheckinRemindersProps) {
           Weekly Check-In Reminders
         </CardTitle>
         <CardDescription>
-          Schedule automated reminders for this couple to complete their weekly check-ins.
+          Schedule automated reminders for this couple to complete their weekly
+          check-ins.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -192,14 +215,20 @@ export function CheckinReminders({ couple }: CheckinRemindersProps) {
                       <div className="flex items-center gap-2">
                         <Calendar className="h-4 w-4 text-muted-foreground" />
                         <span className="font-medium">
-                          {DAYS_OF_WEEK.find((d) => d.value === schedule.day_of_week)?.label}
+                          {
+                            DAYS_OF_WEEK.find(
+                              (d) => d.value === schedule.day_of_week,
+                            )?.label
+                          }
                         </span>
                       </div>
                       <div className="flex items-center gap-2">
                         <Clock className="h-4 w-4 text-muted-foreground" />
                         <span>{schedule.time_of_day} EST</span>
                       </div>
-                      <Badge variant={schedule.is_active ? "default" : "secondary"}>
+                      <Badge
+                        variant={schedule.is_active ? "default" : "secondary"}
+                      >
                         {schedule.is_active ? "Active" : "Paused"}
                       </Badge>
                     </div>
@@ -207,14 +236,19 @@ export function CheckinReminders({ couple }: CheckinRemindersProps) {
                       <Switch
                         checked={schedule.is_active}
                         onCheckedChange={(checked) =>
-                          toggleScheduleMutation.mutate({ id: schedule.id, is_active: checked })
+                          toggleScheduleMutation.mutate({
+                            id: schedule.id,
+                            is_active: checked,
+                          })
                         }
                         data-testid={`toggle-schedule-${schedule.id}`}
                       />
                       <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => deleteScheduleMutation.mutate(schedule.id)}
+                        onClick={() =>
+                          deleteScheduleMutation.mutate(schedule.id)
+                        }
                         disabled={deleteScheduleMutation.isPending}
                         data-testid={`delete-schedule-${schedule.id}`}
                       >
@@ -239,7 +273,10 @@ export function CheckinReminders({ couple }: CheckinRemindersProps) {
                   <Select
                     value={newSchedule.day_of_week.toString()}
                     onValueChange={(value) =>
-                      setNewSchedule({ ...newSchedule, day_of_week: parseInt(value) })
+                      setNewSchedule({
+                        ...newSchedule,
+                        day_of_week: parseInt(value),
+                      })
                     }
                   >
                     <SelectTrigger data-testid="select-day">
@@ -247,7 +284,10 @@ export function CheckinReminders({ couple }: CheckinRemindersProps) {
                     </SelectTrigger>
                     <SelectContent>
                       {DAYS_OF_WEEK.map((day) => (
-                        <SelectItem key={day.value} value={day.value.toString()}>
+                        <SelectItem
+                          key={day.value}
+                          value={day.value.toString()}
+                        >
                           {day.label}
                         </SelectItem>
                       ))}
@@ -261,7 +301,10 @@ export function CheckinReminders({ couple }: CheckinRemindersProps) {
                     type="time"
                     value={newSchedule.time_of_day}
                     onChange={(e) =>
-                      setNewSchedule({ ...newSchedule, time_of_day: e.target.value })
+                      setNewSchedule({
+                        ...newSchedule,
+                        time_of_day: e.target.value,
+                      })
                     }
                     data-testid="input-time"
                   />
@@ -273,7 +316,10 @@ export function CheckinReminders({ couple }: CheckinRemindersProps) {
                   id="title"
                   value={newSchedule.notification_title}
                   onChange={(e) =>
-                    setNewSchedule({ ...newSchedule, notification_title: e.target.value })
+                    setNewSchedule({
+                      ...newSchedule,
+                      notification_title: e.target.value,
+                    })
                   }
                   placeholder="Weekly Check-In Time"
                   data-testid="input-notification-title"
@@ -285,7 +331,10 @@ export function CheckinReminders({ couple }: CheckinRemindersProps) {
                   id="body"
                   value={newSchedule.notification_body}
                   onChange={(e) =>
-                    setNewSchedule({ ...newSchedule, notification_body: e.target.value })
+                    setNewSchedule({
+                      ...newSchedule,
+                      notification_body: e.target.value,
+                    })
                   }
                   placeholder="Take a few minutes to reflect..."
                   data-testid="input-notification-body"

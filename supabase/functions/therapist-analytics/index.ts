@@ -67,13 +67,13 @@ Deno.serve(async (req) => {
         } as TherapistAnalytics),
         {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+        },
       );
     }
 
     const coupleIds = couples.map((c: any) => c.id);
     const thirtyDaysAgo = new Date(
-      Date.now() - 30 * 24 * 60 * 60 * 1000
+      Date.now() - 30 * 24 * 60 * 60 * 1000,
     ).toISOString();
 
     const { data: profiles } = await supabaseAdmin
@@ -132,10 +132,10 @@ Deno.serve(async (req) => {
 
       const currentDate = new Date();
       const fourWeeksAgo = new Date(
-        currentDate.getTime() - 28 * 24 * 60 * 60 * 1000
+        currentDate.getTime() - 28 * 24 * 60 * 60 * 1000,
       );
       const recentCheckins = checkins.filter(
-        (c: any) => new Date(c.created_at) >= fourWeeksAgo
+        (c: any) => new Date(c.created_at) >= fourWeeksAgo,
       );
 
       const weekGroups = recentCheckins.reduce(
@@ -145,7 +145,7 @@ Deno.serve(async (req) => {
           acc[key].add(c.user_id);
           return acc;
         },
-        {} as Record<string, Set<string>>
+        {} as Record<string, Set<string>>,
       );
 
       const distinctWeeks = Object.keys(weekGroups).length;
@@ -155,7 +155,7 @@ Deno.serve(async (req) => {
       const denominator = Math.max(distinctWeeks, 1);
       const checkinCompletionRate = Math.min(
         Math.round((weeksWithBothPartners / denominator) * 100),
-        100
+        100,
       );
 
       const connectednessScores = checkins
@@ -169,7 +169,7 @@ Deno.serve(async (req) => {
           ? Math.round(
               (connectednessScores.reduce((a: number, b: number) => a + b, 0) /
                 connectednessScores.length) *
-                10
+                10,
             ) / 10
           : 0;
       const avgConflict =
@@ -177,7 +177,7 @@ Deno.serve(async (req) => {
           ? Math.round(
               (conflictScores.reduce((a: number, b: number) => a + b, 0) /
                 conflictScores.length) *
-                10
+                10,
             ) / 10
           : 0;
 
@@ -189,28 +189,33 @@ Deno.serve(async (req) => {
       const lastActivityDate =
         allDates.length > 0
           ? allDates.sort(
-              (a, b) => new Date(b).getTime() - new Date(a).getTime()
+              (a, b) => new Date(b).getTime() - new Date(a).getTime(),
             )[0]
           : null;
 
       const recentActivityCount = [
         ...checkins.filter(
-          (c: any) => new Date(c.created_at) >= new Date(thirtyDaysAgo)
+          (c: any) => new Date(c.created_at) >= new Date(thirtyDaysAgo),
         ),
         ...gratitude.filter(
-          (g: any) => new Date(g.created_at) >= new Date(thirtyDaysAgo)
+          (g: any) => new Date(g.created_at) >= new Date(thirtyDaysAgo),
         ),
         ...conversations.filter(
-          (c: any) => new Date(c.created_at) >= new Date(thirtyDaysAgo)
+          (c: any) => new Date(c.created_at) >= new Date(thirtyDaysAgo),
         ),
       ].length;
-      const engagementScore = Math.min(Math.round(recentActivityCount * 10), 100);
+      const engagementScore = Math.min(
+        Math.round(recentActivityCount * 10),
+        100,
+      );
 
       const currentMonth = new Date().getMonth();
       const currentYear = new Date().getFullYear();
       const checkinsThisMonth = checkins.filter((c: any) => {
         const date = new Date(c.created_at);
-        return date.getMonth() === currentMonth && date.getFullYear() === currentYear;
+        return (
+          date.getMonth() === currentMonth && date.getFullYear() === currentYear
+        );
       }).length;
 
       return {
@@ -235,14 +240,17 @@ Deno.serve(async (req) => {
     const activeThreshold = new Date(thirtyDaysAgo);
     const activeCouples = coupleAnalytics.filter(
       (c) =>
-        c.last_activity_date && new Date(c.last_activity_date) >= activeThreshold
+        c.last_activity_date &&
+        new Date(c.last_activity_date) >= activeThreshold,
     ).length;
 
     const totalCheckinRate =
       coupleAnalytics.length > 0
         ? Math.round(
-            coupleAnalytics.reduce((sum, c) => sum + c.checkin_completion_rate, 0) /
-              coupleAnalytics.length
+            coupleAnalytics.reduce(
+              (sum, c) => sum + c.checkin_completion_rate,
+              0,
+            ) / coupleAnalytics.length,
           )
         : 0;
 
@@ -266,7 +274,7 @@ Deno.serve(async (req) => {
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 500,
-      }
+      },
     );
   }
 });

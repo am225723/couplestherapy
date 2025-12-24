@@ -87,7 +87,11 @@ const INSIGHT_SECTIONS = [
 const TOOL_SECTIONS = [
   { id: "notes", label: "Session Notes", icon: FileText },
   { id: "prompts", label: "Send Prompts", icon: PenLine, highlight: true },
-  { id: "reflection-responses", label: "Reflection Responses", icon: MessageSquare },
+  {
+    id: "reflection-responses",
+    label: "Reflection Responses",
+    icon: MessageSquare,
+  },
   { id: "messages", label: "Messages", icon: MessageSquare },
   { id: "echo", label: "Echo & Empathy", icon: Users },
   { id: "conversations", label: "Hold Me Tight", icon: Heart },
@@ -101,7 +105,11 @@ const TOOL_SECTIONS = [
 ];
 
 const CUSTOMIZE_SECTIONS = [
-  { id: "dashboard-customization", label: "Dashboard Layout", icon: LayoutDashboard },
+  {
+    id: "dashboard-customization",
+    label: "Dashboard Layout",
+    icon: LayoutDashboard,
+  },
   { id: "reminders", label: "Reminders", icon: Calendar },
   { id: "therapist-thoughts", label: "Therapist Thoughts", icon: Lightbulb },
 ];
@@ -258,11 +266,13 @@ export function AdminNavigation({
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
-
       </div>
 
       <div className="flex items-center gap-2 px-4 py-2 border-b">
-        <Badge variant="secondary" className="gap-1 whitespace-nowrap text-xs sm:text-sm">
+        <Badge
+          variant="secondary"
+          className="gap-1 whitespace-nowrap text-xs sm:text-sm"
+        >
           <Users className="h-3 w-3" />
           {couples.length} couples
         </Badge>
@@ -326,7 +336,9 @@ export function AdminNavigation({
                     size="sm"
                     className={cn(
                       "gap-1.5",
-                      isHighlighted && currentSection !== section.id && "bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300"
+                      isHighlighted &&
+                        currentSection !== section.id &&
+                        "bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300",
                     )}
                     onClick={() => onSelectSection(section.id)}
                     data-testid={`button-section-${section.id}`}
@@ -368,7 +380,9 @@ export function AdminNavigation({
                   data-testid="button-toggle-sidebar"
                 >
                   <PanelLeft className="h-3.5 w-3.5" />
-                  <span className="hidden sm:inline">{sidebarOpen ? "Hide" : "Show"} Sidebar</span>
+                  <span className="hidden sm:inline">
+                    {sidebarOpen ? "Hide" : "Show"} Sidebar
+                  </span>
                 </Button>
               )}
             </div>

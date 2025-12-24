@@ -247,16 +247,13 @@ async function fetchFromSupabase(
   table: string,
   query: string,
 ): Promise<any[]> {
-  const response = await fetch(
-    `${supabaseUrl}/rest/v1/${table}?${query}`,
-    {
-      headers: {
-        apikey: supabaseServiceKey,
-        Authorization: `Bearer ${supabaseServiceKey}`,
-        "Content-Type": "application/json",
-      },
+  const response = await fetch(`${supabaseUrl}/rest/v1/${table}?${query}`, {
+    headers: {
+      apikey: supabaseServiceKey,
+      Authorization: `Bearer ${supabaseServiceKey}`,
+      "Content-Type": "application/json",
     },
-  );
+  });
 
   if (!response.ok) {
     console.error(`Failed to fetch from ${table}:`, response.statusText);
@@ -278,7 +275,7 @@ Deno.serve(async (req) => {
     // Support both query params (GET) and body (POST) for couple_id
     const url = new URL(req.url);
     let coupleId = url.searchParams.get("couple_id");
-    
+
     // If not in query params, try to get from request body
     if (!coupleId && req.method === "POST") {
       try {
@@ -457,9 +454,9 @@ Deno.serve(async (req) => {
 
     // Track which data sources have content
     const dataSources: string[] = [];
-    
+
     // Check if we have ANY data at all
-    const hasAnyData = 
+    const hasAnyData =
       checkins.length > 0 ||
       loveLanguages.length > 0 ||
       attachmentStyles.length > 0 ||
@@ -472,7 +469,8 @@ Deno.serve(async (req) => {
     if (!hasAnyData) {
       return new Response(
         JSON.stringify({
-          error: "No data available for this couple. Clients need to complete at least one activity or assessment to generate insights.",
+          error:
+            "No data available for this couple. Clients need to complete at least one activity or assessment to generate insights.",
         }),
         {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -511,7 +509,7 @@ Deno.serve(async (req) => {
     if (checkins.length > 0) {
       dataSources.push("Weekly Check-ins");
       userPrompt += `=== WEEKLY CHECK-INS (Last 12 weeks) ===\n`;
-      
+
       const weeklyData: Record<string, any[]> = {};
       checkins.forEach((checkin: WeeklyCheckIn) => {
         const weekKey = `${checkin.year}-W${checkin.week_number}`;
@@ -529,14 +527,17 @@ Deno.serve(async (req) => {
         });
       });
 
-      Object.keys(weeklyData).sort().forEach((weekKey) => {
-        userPrompt += `\n${weekKey}:\n`;
-        weeklyData[weekKey].forEach((c) => {
-          userPrompt += `Partner ${c.partnerId}: Connectedness ${c.connectedness}/10, Conflict ${c.conflict}/10\n`;
-          if (c.appreciation) userPrompt += `  Appreciation: "${c.appreciation}"\n`;
-          if (c.need) userPrompt += `  Need: "${c.need}"\n`;
+      Object.keys(weeklyData)
+        .sort()
+        .forEach((weekKey) => {
+          userPrompt += `\n${weekKey}:\n`;
+          weeklyData[weekKey].forEach((c) => {
+            userPrompt += `Partner ${c.partnerId}: Connectedness ${c.connectedness}/10, Conflict ${c.conflict}/10\n`;
+            if (c.appreciation)
+              userPrompt += `  Appreciation: "${c.appreciation}"\n`;
+            if (c.need) userPrompt += `  Need: "${c.need}"\n`;
+          });
         });
-      });
       userPrompt += "\n";
     }
 
@@ -659,13 +660,25 @@ Format your response with clear sections:
 
       if (lowerLine.includes("**summary**") || lowerLine.includes("summary:")) {
         currentSection = "summary";
-      } else if (lowerLine.includes("**discrepanc") || lowerLine.includes("discrepancies:")) {
+      } else if (
+        lowerLine.includes("**discrepanc") ||
+        lowerLine.includes("discrepancies:")
+      ) {
         currentSection = "discrepancies";
-      } else if (lowerLine.includes("**pattern") || lowerLine.includes("patterns:")) {
+      } else if (
+        lowerLine.includes("**pattern") ||
+        lowerLine.includes("patterns:")
+      ) {
         currentSection = "patterns";
-      } else if (lowerLine.includes("**strength") || lowerLine.includes("strengths:")) {
+      } else if (
+        lowerLine.includes("**strength") ||
+        lowerLine.includes("strengths:")
+      ) {
         currentSection = "strengths";
-      } else if (lowerLine.includes("**recommendation") || lowerLine.includes("recommendations:")) {
+      } else if (
+        lowerLine.includes("**recommendation") ||
+        lowerLine.includes("recommendations:")
+      ) {
         currentSection = "recommendations";
       } else if (trimmedLine.match(/^[\d\-\*•]/)) {
         const cleanedLine = trimmedLine.replace(/^[\d\-\*•.)\s]+/, "").trim();
@@ -680,7 +693,11 @@ Format your response with clear sections:
             recommendations.push(cleanedLine);
           }
         }
-      } else if (currentSection === "summary" && trimmedLine && !trimmedLine.startsWith("**")) {
+      } else if (
+        currentSection === "summary" &&
+        trimmedLine &&
+        !trimmedLine.startsWith("**")
+      ) {
         summary += trimmedLine + " ";
       }
     });

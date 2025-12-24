@@ -420,9 +420,7 @@ therapistRouter.get("/all-couples", async (req: Request, res: Response) => {
       .filter(Boolean);
 
     // Also get therapist profiles for display
-    const therapistIds = couples
-      .map((c) => c.therapist_id)
-      .filter(Boolean);
+    const therapistIds = couples.map((c) => c.therapist_id).filter(Boolean);
 
     const { data: profiles, error: profilesError } = await supabaseAdmin
       .from("Couples_profiles")

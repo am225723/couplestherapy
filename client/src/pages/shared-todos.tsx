@@ -74,7 +74,8 @@ interface ProfileWithCouple {
 
 const PRIORITY_COLORS = {
   low: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100",
-  medium: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100",
+  medium:
+    "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100",
   high: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100",
 };
 
@@ -96,7 +97,7 @@ export default function SharedTodosPage() {
   const [showCompleted, setShowCompleted] = useState(false);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingTodo, setEditingTodo] = useState<SharedTodo | null>(null);
-  
+
   // Form state
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -107,7 +108,9 @@ export default function SharedTodosPage() {
 
   // Fetch todos
   const { data: todos, isLoading } = useQuery<SharedTodo[]>({
-    queryKey: [`/api/shared-todos/couple/${coupleId}?showCompleted=${showCompleted}`],
+    queryKey: [
+      `/api/shared-todos/couple/${coupleId}?showCompleted=${showCompleted}`,
+    ],
     enabled: !!coupleId,
   });
 
@@ -117,13 +120,19 @@ export default function SharedTodosPage() {
       return apiRequest("POST", "/api/shared-todos", data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/shared-todos/couple", coupleId] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/shared-todos/couple", coupleId],
+      });
       toast({ title: "Success", description: "Task created successfully" });
       resetForm();
       setIsAddDialogOpen(false);
     },
     onError: () => {
-      toast({ title: "Error", description: "Failed to create task", variant: "destructive" });
+      toast({
+        title: "Error",
+        description: "Failed to create task",
+        variant: "destructive",
+      });
     },
   });
 
@@ -133,23 +142,39 @@ export default function SharedTodosPage() {
       return apiRequest("PATCH", `/api/shared-todos/${id}`, data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/shared-todos/couple", coupleId] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/shared-todos/couple", coupleId],
+      });
       toast({ title: "Success", description: "Task updated successfully" });
       setEditingTodo(null);
       resetForm();
     },
     onError: () => {
-      toast({ title: "Error", description: "Failed to update task", variant: "destructive" });
+      toast({
+        title: "Error",
+        description: "Failed to update task",
+        variant: "destructive",
+      });
     },
   });
 
   // Toggle completion
   const toggleMutation = useMutation({
-    mutationFn: async ({ id, is_completed }: { id: string; is_completed: boolean }) => {
-      return apiRequest("PATCH", `/api/shared-todos/${id}/complete`, { is_completed });
+    mutationFn: async ({
+      id,
+      is_completed,
+    }: {
+      id: string;
+      is_completed: boolean;
+    }) => {
+      return apiRequest("PATCH", `/api/shared-todos/${id}/complete`, {
+        is_completed,
+      });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/shared-todos/couple", coupleId] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/shared-todos/couple", coupleId],
+      });
     },
   });
 
@@ -159,7 +184,9 @@ export default function SharedTodosPage() {
       return apiRequest("DELETE", `/api/shared-todos/${id}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/shared-todos/couple", coupleId] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/shared-todos/couple", coupleId],
+      });
       toast({ title: "Success", description: "Task deleted" });
     },
   });
@@ -175,7 +202,11 @@ export default function SharedTodosPage() {
 
   const handleSubmit = () => {
     if (!title.trim()) {
-      toast({ title: "Error", description: "Title is required", variant: "destructive" });
+      toast({
+        title: "Error",
+        description: "Title is required",
+        variant: "destructive",
+      });
       return;
     }
 
@@ -237,13 +268,16 @@ export default function SharedTodosPage() {
             Tasks and assignments for you and your partner
           </p>
         </div>
-        <Dialog open={isAddDialogOpen} onOpenChange={(open) => {
-          setIsAddDialogOpen(open);
-          if (!open) {
-            setEditingTodo(null);
-            resetForm();
-          }
-        }}>
+        <Dialog
+          open={isAddDialogOpen}
+          onOpenChange={(open) => {
+            setIsAddDialogOpen(open);
+            if (!open) {
+              setEditingTodo(null);
+              resetForm();
+            }
+          }}
+        >
           <DialogTrigger asChild>
             <Button className="gap-2" data-testid="button-add-todo">
               <Plus className="w-4 h-4" />
@@ -252,9 +286,13 @@ export default function SharedTodosPage() {
           </DialogTrigger>
           <DialogContent className="w-full max-w-md">
             <DialogHeader>
-              <DialogTitle>{editingTodo ? "Edit Task" : "Add New Task"}</DialogTitle>
+              <DialogTitle>
+                {editingTodo ? "Edit Task" : "Add New Task"}
+              </DialogTitle>
               <DialogDescription>
-                {editingTodo ? "Update task details" : "Create a new task for you or your partner"}
+                {editingTodo
+                  ? "Update task details"
+                  : "Create a new task for you or your partner"}
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
@@ -294,7 +332,10 @@ export default function SharedTodosPage() {
                 </div>
                 <div>
                   <Label htmlFor="priority">Priority</Label>
-                  <Select value={priority} onValueChange={(v) => setPriority(v as any)}>
+                  <Select
+                    value={priority}
+                    onValueChange={(v) => setPriority(v as any)}
+                  >
                     <SelectTrigger data-testid="select-priority">
                       <SelectValue />
                     </SelectTrigger>
@@ -377,19 +418,31 @@ export default function SharedTodosPage() {
       ) : (
         <div className="space-y-3">
           {pendingTodos.map((todo) => (
-            <Card key={todo.id} className="hover-elevate" data-testid={`card-todo-${todo.id}`}>
+            <Card
+              key={todo.id}
+              className="hover-elevate"
+              data-testid={`card-todo-${todo.id}`}
+            >
               <CardContent className="py-4">
                 <div className="flex items-start gap-3">
                   <button
                     type="button"
                     className="p-2 -m-2 touch-manipulation"
-                    onClick={() => toggleMutation.mutate({ id: todo.id, is_completed: !todo.is_completed })}
+                    onClick={() =>
+                      toggleMutation.mutate({
+                        id: todo.id,
+                        is_completed: !todo.is_completed,
+                      })
+                    }
                     data-testid={`checkbox-wrapper-${todo.id}`}
                   >
                     <Checkbox
                       checked={todo.is_completed}
                       onCheckedChange={(checked) => {
-                        toggleMutation.mutate({ id: todo.id, is_completed: !!checked });
+                        toggleMutation.mutate({
+                          id: todo.id,
+                          is_completed: !!checked,
+                        });
                       }}
                       className="h-5 w-5"
                       data-testid={`checkbox-todo-${todo.id}`}
@@ -458,19 +511,31 @@ export default function SharedTodosPage() {
         <div className="space-y-3">
           <h3 className="font-semibold text-muted-foreground">Completed</h3>
           {completedTodos.map((todo) => (
-            <Card key={todo.id} className="opacity-60" data-testid={`card-todo-completed-${todo.id}`}>
+            <Card
+              key={todo.id}
+              className="opacity-60"
+              data-testid={`card-todo-completed-${todo.id}`}
+            >
               <CardContent className="py-4">
                 <div className="flex items-start gap-3">
                   <button
                     type="button"
                     className="p-2 -m-2 touch-manipulation"
-                    onClick={() => toggleMutation.mutate({ id: todo.id, is_completed: !todo.is_completed })}
+                    onClick={() =>
+                      toggleMutation.mutate({
+                        id: todo.id,
+                        is_completed: !todo.is_completed,
+                      })
+                    }
                     data-testid={`checkbox-wrapper-completed-${todo.id}`}
                   >
                     <Checkbox
                       checked={todo.is_completed}
                       onCheckedChange={(checked) => {
-                        toggleMutation.mutate({ id: todo.id, is_completed: !!checked });
+                        toggleMutation.mutate({
+                          id: todo.id,
+                          is_completed: !!checked,
+                        });
                       }}
                       className="h-5 w-5"
                       data-testid={`checkbox-todo-completed-${todo.id}`}
@@ -479,7 +544,9 @@ export default function SharedTodosPage() {
                   <div className="flex-1 min-w-0">
                     <h3 className="font-medium line-through">{todo.title}</h3>
                     <p className="text-xs text-muted-foreground mt-1">
-                      Completed {todo.completed_at && new Date(todo.completed_at).toLocaleDateString()}
+                      Completed{" "}
+                      {todo.completed_at &&
+                        new Date(todo.completed_at).toLocaleDateString()}
                     </p>
                   </div>
                   <Button

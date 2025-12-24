@@ -30,20 +30,22 @@ async function initStripe() {
 
     // Set up managed webhook
     const domains = process.env.REPLIT_DOMAINS?.split(",") || [];
-    const webhookBaseUrl = domains.length > 0 ? `https://${domains[0]}` : "http://localhost:5000";
-    
+    const webhookBaseUrl =
+      domains.length > 0 ? `https://${domains[0]}` : "http://localhost:5000";
+
     console.log("Setting up managed webhook...");
     const { webhook, uuid } = await stripeSync.findOrCreateManagedWebhook(
       `${webhookBaseUrl}/api/stripe/webhook`,
       {
         enabled_events: ["*"],
         description: "ALEIC module subscriptions webhook",
-      }
+      },
     );
     console.log(`Webhook configured: ${webhook.url} (UUID: ${uuid})`);
 
     // Sync Stripe data in background
-    stripeSync.syncBackfill()
+    stripeSync
+      .syncBackfill()
       .then(() => console.log("Stripe data synced"))
       .catch((err: any) => console.error("Stripe sync error:", err));
   } catch (error) {
@@ -73,7 +75,7 @@ app.post(
       console.error("Webhook error:", error.message);
       res.status(400).json({ error: "Webhook processing error" });
     }
-  }
+  },
 );
 
 // Now apply JSON middleware for all other routes

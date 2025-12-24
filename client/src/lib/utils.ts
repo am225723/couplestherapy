@@ -7,14 +7,14 @@ export function cn(...inputs: ClassValue[]) {
 
 export function formatAIText(text: string): string {
   if (!text) return "";
-  
+
   let formatted = text
     .replace(/\[\d+\]/g, "")
     .replace(/\*\*([^*]+)\*\*/g, "$1")
     .replace(/\s+([.,!?;:])/g, "$1")
     .replace(/\n{3,}/g, "\n\n")
     .trim();
-  
+
   return formatted;
 }
 
@@ -25,11 +25,11 @@ export interface TextPart {
 
 export function parseFormattedText(text: string): TextPart[] {
   if (!text) return [];
-  
+
   const cleaned = formatAIText(text);
   const boldPattern = /(\*\*[^*]+\*\*)/g;
   const parts = cleaned.split(boldPattern);
-  
+
   return parts
     .filter((part) => part.length > 0)
     .map((part) => {

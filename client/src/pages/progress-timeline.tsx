@@ -81,7 +81,14 @@ export default function ProgressTimelinePage() {
       const getPartnerName = (id: string) =>
         profiles?.find((p) => p.id === id)?.full_name || "Partner";
 
-      const [loveLanguages, attachments, enneagrams, checkins, goals, gratitude] = await Promise.all([
+      const [
+        loveLanguages,
+        attachments,
+        enneagrams,
+        checkins,
+        goals,
+        gratitude,
+      ] = await Promise.all([
         supabase
           .from("Couples_love_languages")
           .select("id, user_id, primary_language, created_at")
@@ -216,7 +223,9 @@ export default function ProgressTimelinePage() {
         });
       }
 
-      events.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      events.sort(
+        (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+      );
 
       return events;
     },
@@ -243,7 +252,8 @@ export default function ProgressTimelinePage() {
         <Alert>
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>
-            No timeline events yet. Complete assessments and activities to see your progress.
+            No timeline events yet. Complete assessments and activities to see
+            your progress.
           </AlertDescription>
         </Alert>
       </div>
@@ -275,19 +285,25 @@ export default function ProgressTimelinePage() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <Card data-testid="card-stat-events">
             <CardContent className="p-4 text-center">
-              <div className="text-3xl font-bold text-primary">{events.length}</div>
+              <div className="text-3xl font-bold text-primary">
+                {events.length}
+              </div>
               <div className="text-sm text-muted-foreground">Total Events</div>
             </CardContent>
           </Card>
           <Card data-testid="card-stat-assessments">
             <CardContent className="p-4 text-center">
-              <div className="text-3xl font-bold text-blue-500">{assessmentEvents.length}</div>
+              <div className="text-3xl font-bold text-blue-500">
+                {assessmentEvents.length}
+              </div>
               <div className="text-sm text-muted-foreground">Assessments</div>
             </CardContent>
           </Card>
           <Card data-testid="card-stat-milestones">
             <CardContent className="p-4 text-center">
-              <div className="text-3xl font-bold text-amber-500">{milestoneEvents.length}</div>
+              <div className="text-3xl font-bold text-amber-500">
+                {milestoneEvents.length}
+              </div>
               <div className="text-sm text-muted-foreground">Milestones</div>
             </CardContent>
           </Card>
@@ -296,8 +312,9 @@ export default function ProgressTimelinePage() {
               <div className="text-3xl font-bold text-green-500">
                 {events.length > 0
                   ? Math.ceil(
-                      (Date.now() - new Date(events[events.length - 1].date).getTime()) /
-                        (1000 * 60 * 60 * 24)
+                      (Date.now() -
+                        new Date(events[events.length - 1].date).getTime()) /
+                        (1000 * 60 * 60 * 24),
                     )
                   : 0}
               </div>
@@ -312,7 +329,9 @@ export default function ProgressTimelinePage() {
               <TrendingUp className="w-5 h-5 text-primary" />
               Progress Timeline
             </CardTitle>
-            <CardDescription>Your relationship milestones and achievements</CardDescription>
+            <CardDescription>
+              Your relationship milestones and achievements
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="relative">
@@ -335,7 +354,9 @@ export default function ProgressTimelinePage() {
                       <div className="flex items-start justify-between gap-2 flex-wrap">
                         <div>
                           <h3 className="font-semibold">{event.title}</h3>
-                          <p className="text-sm text-muted-foreground">{event.description}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {event.description}
+                          </p>
                         </div>
                         <div className="flex items-center gap-2">
                           <Badge variant="outline" className="text-xs">

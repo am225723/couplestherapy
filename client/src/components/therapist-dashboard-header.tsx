@@ -101,9 +101,12 @@ export function TherapistDashboardHeader({
                     </div>
                     <div className="flex flex-col flex-1 min-w-0">
                       <span className="font-semibold text-base text-left">
-                        {selectedCouple.partner1?.full_name || "Partner 1"} & {selectedCouple.partner2?.full_name || "Partner 2"}
+                        {selectedCouple.partner1?.full_name || "Partner 1"} &{" "}
+                        {selectedCouple.partner2?.full_name || "Partner 2"}
                       </span>
-                      <span className="text-xs text-muted-foreground">Currently viewing</span>
+                      <span className="text-xs text-muted-foreground">
+                        Currently viewing
+                      </span>
                     </div>
                     <ChevronDown className="h-4 w-4 opacity-50 shrink-0" />
                   </>
@@ -133,7 +136,7 @@ export function TherapistDashboardHeader({
                     onClick={() => onSelectCouple(couple.id)}
                     className={cn(
                       "gap-2 cursor-pointer py-2",
-                      couple.id === selectedCouple?.id && "bg-primary/10"
+                      couple.id === selectedCouple?.id && "bg-primary/10",
                     )}
                     data-testid={`menu-item-couple-${couple.id}`}
                   >
@@ -150,7 +153,9 @@ export function TherapistDashboardHeader({
                       </Avatar>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <span className="font-medium">{getCoupleDisplayName(couple)}</span>
+                      <span className="font-medium">
+                        {getCoupleDisplayName(couple)}
+                      </span>
                     </div>
                   </DropdownMenuItem>
                 ))}
@@ -175,8 +180,8 @@ export function TherapistDashboardHeader({
 
         {selectedCouple && (
           <div className="flex items-center gap-2 ml-auto shrink-0">
-            <Badge 
-              variant="secondary" 
+            <Badge
+              variant="secondary"
               className="gap-1 bg-primary/10 text-primary border-primary/20 whitespace-nowrap hidden sm:flex"
             >
               <Users className="h-3 w-3" />
@@ -203,7 +208,6 @@ export function TherapistDashboardHeader({
           </div>
         )}
       </div>
-
     </div>
   );
 }

@@ -115,8 +115,7 @@ export default function MoodTracker() {
     enabled: !!coupleId && !!user,
   });
 
-  const daysToFetch =
-    timeRange === "7d" ? 7 : timeRange === "30d" ? 30 : 90;
+  const daysToFetch = timeRange === "7d" ? 7 : timeRange === "30d" ? 30 : 90;
 
   const { data: myMoodEntries, isLoading: isLoadingMyMoods } = useQuery<
     MoodEntry[]
@@ -279,7 +278,7 @@ export default function MoodTracker() {
 
     const averageMood = totalLevel / myMoodEntries.length;
     const mostFrequent = Object.entries(emotionCounts).sort(
-      ([, a], [, b]) => b - a
+      ([, a], [, b]) => b - a,
     )[0]?.[0];
 
     return {
@@ -361,7 +360,7 @@ export default function MoodTracker() {
                   <div className="flex items-center gap-4">
                     {(() => {
                       const config = getEmotionConfig(
-                        todaysMood.emotion_primary || ""
+                        todaysMood.emotion_primary || "",
                       );
                       const IconComponent = config.icon;
                       return (
@@ -496,7 +495,7 @@ export default function MoodTracker() {
                   <div className="space-y-3">
                     {getRecentMoods().map((entry) => {
                       const config = getEmotionConfig(
-                        entry.emotion_primary || ""
+                        entry.emotion_primary || "",
                       );
                       const IconComponent = config.icon;
                       return (
@@ -527,7 +526,7 @@ export default function MoodTracker() {
                           <span className="text-sm text-muted-foreground">
                             {format(
                               new Date(entry.created_at!),
-                              "MMM d, h:mm a"
+                              "MMM d, h:mm a",
                             )}
                           </span>
                         </div>
@@ -837,7 +836,7 @@ export default function MoodTracker() {
                         .reverse()
                         .map((entry) => {
                           const config = getEmotionConfig(
-                            entry.emotion_primary || ""
+                            entry.emotion_primary || "",
                           );
                           const IconComponent = config.icon;
                           return (
@@ -887,7 +886,7 @@ export default function MoodTracker() {
                         .reverse()
                         .map((entry) => {
                           const config = getEmotionConfig(
-                            entry.emotion_primary || ""
+                            entry.emotion_primary || "",
                           );
                           const IconComponent = config.icon;
                           return (

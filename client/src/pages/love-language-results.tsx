@@ -156,85 +156,181 @@ const loveLanguageDetails: Record<
   },
 };
 
-const compatibilityInsights: Record<string, { harmony: string; growth: string; rituals: string[] }> = {
+const compatibilityInsights: Record<
+  string,
+  { harmony: string; growth: string; rituals: string[] }
+> = {
   "Acts of Service-Acts of Service": {
-    harmony: "You both show love through actions. Your home runs smoothly as you both naturally help each other.",
-    growth: "Don't keep score of who does what. Remember to occasionally express love in other ways too.",
-    rituals: ["Alternating breakfast in bed", "Weekend chore partnerships", "Surprise task completion"],
+    harmony:
+      "You both show love through actions. Your home runs smoothly as you both naturally help each other.",
+    growth:
+      "Don't keep score of who does what. Remember to occasionally express love in other ways too.",
+    rituals: [
+      "Alternating breakfast in bed",
+      "Weekend chore partnerships",
+      "Surprise task completion",
+    ],
   },
   "Acts of Service-Physical Touch": {
-    harmony: "Caring actions paired with physical affection show complete love. A massage after a long day combines both languages.",
-    growth: "The Acts partner should remember that sometimes just sitting close matters more than doing. The Touch partner can show love through helpful actions.",
-    rituals: ["Pampering spa nights", "Cooking together with lots of hugs", "Physical affection after acts of service"],
+    harmony:
+      "Caring actions paired with physical affection show complete love. A massage after a long day combines both languages.",
+    growth:
+      "The Acts partner should remember that sometimes just sitting close matters more than doing. The Touch partner can show love through helpful actions.",
+    rituals: [
+      "Pampering spa nights",
+      "Cooking together with lots of hugs",
+      "Physical affection after acts of service",
+    ],
   },
   "Acts of Service-Quality Time": {
-    harmony: "Doing tasks together becomes quality time. The Acts partner shows love through shared activities and projects.",
-    growth: "The Acts partner should sometimes just sit and be present without 'doing.' The Quality Time partner can show love by helping with tasks.",
-    rituals: ["Cooking meals together", "Weekend projects as dates", "Morning routines shared"],
+    harmony:
+      "Doing tasks together becomes quality time. The Acts partner shows love through shared activities and projects.",
+    growth:
+      "The Acts partner should sometimes just sit and be present without 'doing.' The Quality Time partner can show love by helping with tasks.",
+    rituals: [
+      "Cooking meals together",
+      "Weekend projects as dates",
+      "Morning routines shared",
+    ],
   },
   "Acts of Service-Receiving Gifts": {
-    harmony: "Gifts of service (like handling a dreaded task) can be incredibly meaningful. Practical gifts that help are doubly loved.",
-    growth: "The Gifts partner should sometimes give the gift of doing. The Acts partner should occasionally add a thoughtful token to their service.",
-    rituals: ["Gifts that make life easier", "Service surprises with a bow", "Practical presents with love notes"],
+    harmony:
+      "Gifts of service (like handling a dreaded task) can be incredibly meaningful. Practical gifts that help are doubly loved.",
+    growth:
+      "The Gifts partner should sometimes give the gift of doing. The Acts partner should occasionally add a thoughtful token to their service.",
+    rituals: [
+      "Gifts that make life easier",
+      "Service surprises with a bow",
+      "Practical presents with love notes",
+    ],
   },
   "Acts of Service-Words of Affirmation": {
-    harmony: "One shows love through helpful actions, the other through verbal appreciation. The Acts partner's efforts can be deeply acknowledged.",
-    growth: "The Acts partner should practice saying 'I love you' more. The Words partner should occasionally show love through helpful actions.",
-    rituals: ["Thank-you rituals for daily tasks", "Verbal appreciation before bed", "Weekly acts of service with love notes"],
+    harmony:
+      "One shows love through helpful actions, the other through verbal appreciation. The Acts partner's efforts can be deeply acknowledged.",
+    growth:
+      "The Acts partner should practice saying 'I love you' more. The Words partner should occasionally show love through helpful actions.",
+    rituals: [
+      "Thank-you rituals for daily tasks",
+      "Verbal appreciation before bed",
+      "Weekly acts of service with love notes",
+    ],
   },
   "Physical Touch-Physical Touch": {
-    harmony: "You both feel most loved through physical connection. Your relationship is naturally affectionate and warm.",
-    growth: "Make sure to communicate verbally too. Physical touch should enhance, not replace, emotional intimacy.",
-    rituals: ["Morning and evening cuddle time", "Frequent hand-holding", "Daily massage exchanges"],
+    harmony:
+      "You both feel most loved through physical connection. Your relationship is naturally affectionate and warm.",
+    growth:
+      "Make sure to communicate verbally too. Physical touch should enhance, not replace, emotional intimacy.",
+    rituals: [
+      "Morning and evening cuddle time",
+      "Frequent hand-holding",
+      "Daily massage exchanges",
+    ],
   },
   "Physical Touch-Quality Time": {
-    harmony: "Being together with physical closeness is the ultimate combination. Cuddling while talking creates deep intimacy.",
-    growth: "Make sure quality time includes meaningful conversation, not just physical presence. Balance active dates with cozy togetherness.",
-    rituals: ["Evening cuddle and chat time", "Walking hand in hand", "Physical affection during all activities together"],
+    harmony:
+      "Being together with physical closeness is the ultimate combination. Cuddling while talking creates deep intimacy.",
+    growth:
+      "Make sure quality time includes meaningful conversation, not just physical presence. Balance active dates with cozy togetherness.",
+    rituals: [
+      "Evening cuddle and chat time",
+      "Walking hand in hand",
+      "Physical affection during all activities together",
+    ],
   },
   "Physical Touch-Receiving Gifts": {
-    harmony: "Thoughtful gifts combined with physical affection create powerful moments. A gift given with a hug means twice as much.",
-    growth: "Remember that presence and touch can be as valuable as any gift. Sometimes the best present is simply being held.",
-    rituals: ["Gifts presented with kisses", "Surprise treats with cuddle time", "Physical affection as the main gift"],
+    harmony:
+      "Thoughtful gifts combined with physical affection create powerful moments. A gift given with a hug means twice as much.",
+    growth:
+      "Remember that presence and touch can be as valuable as any gift. Sometimes the best present is simply being held.",
+    rituals: [
+      "Gifts presented with kisses",
+      "Surprise treats with cuddle time",
+      "Physical affection as the main gift",
+    ],
   },
   "Physical Touch-Words of Affirmation": {
-    harmony: "Combining affectionate words with physical closeness creates powerful moments of connection.",
-    growth: "The Touch partner should practice verbalizing feelings during intimate moments. The Words partner should initiate more physical affection.",
-    rituals: ["Hugs with spoken affirmations", "Holding hands while sharing appreciation", "Cuddle time with meaningful conversation"],
+    harmony:
+      "Combining affectionate words with physical closeness creates powerful moments of connection.",
+    growth:
+      "The Touch partner should practice verbalizing feelings during intimate moments. The Words partner should initiate more physical affection.",
+    rituals: [
+      "Hugs with spoken affirmations",
+      "Holding hands while sharing appreciation",
+      "Cuddle time with meaningful conversation",
+    ],
   },
   "Quality Time-Quality Time": {
-    harmony: "You both prioritize presence and undivided attention. Your shared need for togetherness creates deep connection.",
-    growth: "Be mindful of becoming too dependent on constant togetherness. Maintain individual interests while cherishing your time together.",
-    rituals: ["Daily device-free time", "Weekly adventure dates", "Evening wind-down rituals together"],
+    harmony:
+      "You both prioritize presence and undivided attention. Your shared need for togetherness creates deep connection.",
+    growth:
+      "Be mindful of becoming too dependent on constant togetherness. Maintain individual interests while cherishing your time together.",
+    rituals: [
+      "Daily device-free time",
+      "Weekly adventure dates",
+      "Evening wind-down rituals together",
+    ],
   },
   "Quality Time-Receiving Gifts": {
-    harmony: "The Gifts partner can plan meaningful experiences as gifts. The Quality Time partner values the thought and planning behind special outings.",
-    growth: "Quality Time partner should occasionally surprise with thoughtful tokens. Gifts partner should focus on experiences over material items.",
-    rituals: ["Monthly experience gifts", "Surprise date planning", "Memory-making adventures"],
+    harmony:
+      "The Gifts partner can plan meaningful experiences as gifts. The Quality Time partner values the thought and planning behind special outings.",
+    growth:
+      "Quality Time partner should occasionally surprise with thoughtful tokens. Gifts partner should focus on experiences over material items.",
+    rituals: [
+      "Monthly experience gifts",
+      "Surprise date planning",
+      "Memory-making adventures",
+    ],
   },
   "Quality Time-Words of Affirmation": {
-    harmony: "One of you fills up through words, the other through presence. Together you create deeply meaningful conversations.",
-    growth: "The Quality Time partner should practice verbalizing their feelings more. The Words partner should put down distractions and be fully present.",
-    rituals: ["Daily check-ins with compliments", "Weekly uninterrupted date nights", "Morning coffee conversations"],
+    harmony:
+      "One of you fills up through words, the other through presence. Together you create deeply meaningful conversations.",
+    growth:
+      "The Quality Time partner should practice verbalizing their feelings more. The Words partner should put down distractions and be fully present.",
+    rituals: [
+      "Daily check-ins with compliments",
+      "Weekly uninterrupted date nights",
+      "Morning coffee conversations",
+    ],
   },
   "Receiving Gifts-Receiving Gifts": {
-    harmony: "You both appreciate thoughtful tokens of love. Gift-giving becomes a joyful exchange of affection.",
-    growth: "Be careful not to make love feel transactional. Focus on thoughtfulness over expense or frequency.",
-    rituals: ["Monthly surprise exchange", "Meaningful occasion celebrations", "Just-because gift traditions"],
+    harmony:
+      "You both appreciate thoughtful tokens of love. Gift-giving becomes a joyful exchange of affection.",
+    growth:
+      "Be careful not to make love feel transactional. Focus on thoughtfulness over expense or frequency.",
+    rituals: [
+      "Monthly surprise exchange",
+      "Meaningful occasion celebrations",
+      "Just-because gift traditions",
+    ],
   },
   "Receiving Gifts-Words of Affirmation": {
-    harmony: "Thoughtful notes with gifts can be incredibly meaningful. Words partner can write meaningful cards; Gifts partner shows love through tokens of affection.",
-    growth: "Remember that words without thoughtful gestures may feel empty to one, while gifts without verbal appreciation may feel hollow to the other.",
-    rituals: ["Love notes with small surprises", "Anniversary letters with meaningful gifts", "Verbal thanks for every gift given"],
+    harmony:
+      "Thoughtful notes with gifts can be incredibly meaningful. Words partner can write meaningful cards; Gifts partner shows love through tokens of affection.",
+    growth:
+      "Remember that words without thoughtful gestures may feel empty to one, while gifts without verbal appreciation may feel hollow to the other.",
+    rituals: [
+      "Love notes with small surprises",
+      "Anniversary letters with meaningful gifts",
+      "Verbal thanks for every gift given",
+    ],
   },
   "Words of Affirmation-Words of Affirmation": {
-    harmony: "You both thrive on verbal expressions of love. Your shared language makes communication natural and affirming.",
-    growth: "Be careful not to rely only on words - sometimes actions need to back them up. Practice expressing love in other ways too.",
-    rituals: ["Daily appreciation sharing", "Weekly love letter exchange", "Morning affirmation rituals"],
+    harmony:
+      "You both thrive on verbal expressions of love. Your shared language makes communication natural and affirming.",
+    growth:
+      "Be careful not to rely only on words - sometimes actions need to back them up. Practice expressing love in other ways too.",
+    rituals: [
+      "Daily appreciation sharing",
+      "Weekly love letter exchange",
+      "Morning affirmation rituals",
+    ],
   },
 };
 
-function getCompatibilityKey(lang1: LoveLanguageType, lang2: LoveLanguageType): string {
+function getCompatibilityKey(
+  lang1: LoveLanguageType,
+  lang2: LoveLanguageType,
+): string {
   const sorted = [lang1, lang2].sort();
   return `${sorted[0]}-${sorted[1]}`;
 }
@@ -249,26 +345,29 @@ export default function LoveLanguageResults() {
     queryKey: ["/api/partner-profile", coupleId],
     queryFn: async () => {
       if (!coupleId || !user) return null;
-      
+
       // First get the couple to find partner ID
       const { data: couple, error: coupleError } = await supabase
         .from("Couples_couples")
         .select("partner1_id, partner2_id")
         .eq("id", coupleId)
         .single();
-      
+
       if (coupleError || !couple) return null;
-      
-      const partnerId = couple.partner1_id === user.id ? couple.partner2_id : couple.partner1_id;
+
+      const partnerId =
+        couple.partner1_id === user.id
+          ? couple.partner2_id
+          : couple.partner1_id;
       if (!partnerId) return null;
-      
+
       // Get partner's profile
       const { data: partner, error: partnerError } = await supabase
         .from("Couples_profiles")
         .select("id, full_name")
         .eq("id", partnerId)
         .single();
-      
+
       if (partnerError) return null;
       return partner;
     },
@@ -277,20 +376,25 @@ export default function LoveLanguageResults() {
 
   // Get both partners' love language results
   const { data: allResults, isLoading } = useQuery<LoveLanguage[]>({
-    queryKey: ["/api/love-languages/couple", coupleId, user?.id, partnerProfile?.id],
+    queryKey: [
+      "/api/love-languages/couple",
+      coupleId,
+      user?.id,
+      partnerProfile?.id,
+    ],
     queryFn: async () => {
       if (!user) {
         console.log("No user found for love language results query");
         return [];
       }
-      
+
       const userIds = [user.id];
       if (partnerProfile?.id) {
         userIds.push(partnerProfile.id);
       }
-      
+
       console.log("Fetching love language results for userIds:", userIds);
-      
+
       // Get results for users (no created_at column in Supabase, so just fetch all)
       const { data, error } = await supabase
         .from("Couples_love_languages")
@@ -300,25 +404,30 @@ export default function LoveLanguageResults() {
       console.log("Love language query result:", { data, error });
 
       if (error) throw error;
-      
+
       // Get the latest result for each user (by id if multiple exist)
       const latestByUser: Record<string, LoveLanguage> = {};
-      for (const result of (data || [])) {
+      for (const result of data || []) {
         // If we already have a result for this user, keep the one with the larger id (more recent)
-        if (!latestByUser[result.user_id] || result.id > latestByUser[result.user_id].id) {
+        if (
+          !latestByUser[result.user_id] ||
+          result.id > latestByUser[result.user_id].id
+        ) {
           latestByUser[result.user_id] = result;
         }
       }
-      
+
       console.log("Latest results by user:", latestByUser);
-      
+
       return Object.values(latestByUser);
     },
     enabled: !!user,
   });
 
-  const myResult = allResults?.find(r => r.user_id === user?.id);
-  const partnerResult = allResults?.find(r => r.user_id === partnerProfile?.id);
+  const myResult = allResults?.find((r) => r.user_id === user?.id);
+  const partnerResult = allResults?.find(
+    (r) => r.user_id === partnerProfile?.id,
+  );
 
   if (isLoading) {
     return (
@@ -364,13 +473,20 @@ export default function LoveLanguageResults() {
       percentage: Math.round((score / myTotalAnswers) * 100),
     }));
 
-  const partnerPrimary = partnerResult?.primary_language as LoveLanguageType | undefined;
-  const partnerSecondary = partnerResult?.secondary_language as LoveLanguageType | undefined;
-  const partnerDetails = partnerPrimary ? loveLanguageDetails[partnerPrimary] : null;
-  const partnerName = (partnerProfile as ProfileWithCouple)?.full_name || "Your Partner";
+  const partnerPrimary = partnerResult?.primary_language as
+    | LoveLanguageType
+    | undefined;
+  const partnerSecondary = partnerResult?.secondary_language as
+    | LoveLanguageType
+    | undefined;
+  const partnerDetails = partnerPrimary
+    ? loveLanguageDetails[partnerPrimary]
+    : null;
+  const partnerName =
+    (partnerProfile as ProfileWithCouple)?.full_name || "Your Partner";
 
-  const compatibility = partnerPrimary 
-    ? compatibilityInsights[getCompatibilityKey(myPrimary, partnerPrimary)] 
+  const compatibility = partnerPrimary
+    ? compatibilityInsights[getCompatibilityKey(myPrimary, partnerPrimary)]
     : null;
 
   return (
@@ -411,7 +527,9 @@ export default function LoveLanguageResults() {
                   <myDetails.icon className={`h-6 w-6 ${myDetails.color}`} />
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground uppercase tracking-wide">Your Primary</p>
+                  <p className="text-xs text-muted-foreground uppercase tracking-wide">
+                    Your Primary
+                  </p>
                   <h2 className="text-xl font-bold">{myPrimary}</h2>
                 </div>
               </div>
@@ -420,7 +538,9 @@ export default function LoveLanguageResults() {
               </Badge>
             </div>
             <CardContent className="pt-4">
-              <p className="text-sm text-muted-foreground">{myDetails.description}</p>
+              <p className="text-sm text-muted-foreground">
+                {myDetails.description}
+              </p>
             </CardContent>
           </Card>
 
@@ -430,10 +550,14 @@ export default function LoveLanguageResults() {
               <div className={`${partnerDetails.bgColor} p-6`}>
                 <div className="flex items-center gap-3 mb-3">
                   <div className="p-2 rounded-full bg-background/80">
-                    <partnerDetails.icon className={`h-6 w-6 ${partnerDetails.color}`} />
+                    <partnerDetails.icon
+                      className={`h-6 w-6 ${partnerDetails.color}`}
+                    />
                   </div>
                   <div>
-                    <p className="text-xs text-muted-foreground uppercase tracking-wide">{partnerName}'s Primary</p>
+                    <p className="text-xs text-muted-foreground uppercase tracking-wide">
+                      {partnerName}'s Primary
+                    </p>
                     <h2 className="text-xl font-bold">{partnerPrimary}</h2>
                   </div>
                 </div>
@@ -442,18 +566,29 @@ export default function LoveLanguageResults() {
                 </Badge>
               </div>
               <CardContent className="pt-4">
-                <p className="text-sm text-muted-foreground">{partnerDetails.description}</p>
+                <p className="text-sm text-muted-foreground">
+                  {partnerDetails.description}
+                </p>
               </CardContent>
             </Card>
           ) : (
-            <Card className="overflow-hidden border-dashed" data-testid="card-partner-pending">
+            <Card
+              className="overflow-hidden border-dashed"
+              data-testid="card-partner-pending"
+            >
               <CardContent className="flex flex-col items-center justify-center h-full py-12 text-center">
                 <Users className="h-12 w-12 text-muted-foreground/50 mb-4" />
                 <h3 className="font-semibold mb-2">Waiting for Partner</h3>
                 <p className="text-sm text-muted-foreground mb-4">
-                  Ask your partner to take the Love Language quiz to see your compatibility.
+                  Ask your partner to take the Love Language quiz to see your
+                  compatibility.
                 </p>
-                <Button variant="outline" size="sm" className="gap-2" data-testid="button-invite-partner">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-2"
+                  data-testid="button-invite-partner"
+                >
                   <Send className="h-4 w-4" />
                   Invite Partner
                 </Button>
@@ -464,7 +599,10 @@ export default function LoveLanguageResults() {
 
         {/* Compatibility Section */}
         {compatibility && partnerResult && (
-          <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-accent/5" data-testid="card-compatibility">
+          <Card
+            className="border-primary/20 bg-gradient-to-br from-primary/5 to-accent/5"
+            data-testid="card-compatibility"
+          >
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <HeartHandshake className="h-5 w-5 text-primary" />
@@ -480,21 +618,25 @@ export default function LoveLanguageResults() {
                   <Sparkles className="h-4 w-4" />
                   Your Harmony
                 </h4>
-                <p className="text-sm text-muted-foreground">{compatibility.harmony}</p>
+                <p className="text-sm text-muted-foreground">
+                  {compatibility.harmony}
+                </p>
               </div>
-              
+
               <Separator />
-              
+
               <div>
                 <h4 className="font-semibold text-sm text-amber-600 dark:text-amber-400 mb-2 flex items-center gap-2">
                   <Lightbulb className="h-4 w-4" />
                   Growth Opportunity
                 </h4>
-                <p className="text-sm text-muted-foreground">{compatibility.growth}</p>
+                <p className="text-sm text-muted-foreground">
+                  {compatibility.growth}
+                </p>
               </div>
-              
+
               <Separator />
-              
+
               <div>
                 <h4 className="font-semibold text-sm text-primary mb-3 flex items-center gap-2">
                   <Heart className="h-4 w-4" />
@@ -534,21 +676,28 @@ export default function LoveLanguageResults() {
                   </li>
                 ))}
               </ul>
-              
+
               {partnerSecondary && (
                 <>
                   <Separator />
                   <div>
                     <h4 className="font-semibold text-sm mb-3 flex items-center gap-2">
-                      <Badge variant="secondary">Secondary: {partnerSecondary}</Badge>
+                      <Badge variant="secondary">
+                        Secondary: {partnerSecondary}
+                      </Badge>
                     </h4>
                     <ul className="space-y-2">
-                      {loveLanguageDetails[partnerSecondary].howToGive.slice(0, 3).map((tip, index) => (
-                        <li key={index} className="flex items-start gap-3 text-sm text-muted-foreground">
-                          <span className="text-primary">-</span>
-                          <span>{tip}</span>
-                        </li>
-                      ))}
+                      {loveLanguageDetails[partnerSecondary].howToGive
+                        .slice(0, 3)
+                        .map((tip, index) => (
+                          <li
+                            key={index}
+                            className="flex items-start gap-3 text-sm text-muted-foreground"
+                          >
+                            <span className="text-primary">-</span>
+                            <span>{tip}</span>
+                          </li>
+                        ))}
                     </ul>
                   </div>
                 </>
@@ -565,7 +714,8 @@ export default function LoveLanguageResults() {
               How {partnerResult ? partnerName : "Your Partner"} Can Love You
             </CardTitle>
             <CardDescription>
-              Share this with your partner so they know how to best express love to you
+              Share this with your partner so they know how to best express love
+              to you
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -583,17 +733,25 @@ export default function LoveLanguageResults() {
                 ))}
               </ul>
             </div>
-            
+
             <Separator />
-            
+
             <div>
               <h4 className="font-semibold text-sm mb-3 flex items-center gap-2">
-                <mySecondaryDetails.icon className={`h-4 w-4 ${mySecondaryDetails.color}`} />
-                {mySecondary} <Badge variant="secondary" className="text-xs ml-1">Secondary</Badge>
+                <mySecondaryDetails.icon
+                  className={`h-4 w-4 ${mySecondaryDetails.color}`}
+                />
+                {mySecondary}{" "}
+                <Badge variant="secondary" className="text-xs ml-1">
+                  Secondary
+                </Badge>
               </h4>
               <ul className="space-y-2">
                 {mySecondaryDetails.howToGive.slice(0, 3).map((tip, index) => (
-                  <li key={index} className="flex items-start gap-3 text-sm text-muted-foreground">
+                  <li
+                    key={index}
+                    className="flex items-start gap-3 text-sm text-muted-foreground"
+                  >
                     <span className="text-secondary font-bold">-</span>
                     <span>{tip}</span>
                   </li>
@@ -684,7 +842,9 @@ export default function LoveLanguageResults() {
             <Card data-testid="card-partner-activities">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-lg">
-                  <partnerDetails.icon className={`h-5 w-5 ${partnerDetails.color}`} />
+                  <partnerDetails.icon
+                    className={`h-5 w-5 ${partnerDetails.color}`}
+                  />
                   {partnerPrimary} Activities
                 </CardTitle>
                 <CardDescription>
@@ -720,9 +880,10 @@ export default function LoveLanguageResults() {
                     Strengthen Your Connection
                   </h3>
                   <p className="text-sm text-muted-foreground">
-                    Understanding love languages is just the first step. Ask your
-                    partner to take the quiz too so you can see how your love languages
-                    work together and discover personalized ways to love each other better.
+                    Understanding love languages is just the first step. Ask
+                    your partner to take the quiz too so you can see how your
+                    love languages work together and discover personalized ways
+                    to love each other better.
                   </p>
                 </div>
               </div>

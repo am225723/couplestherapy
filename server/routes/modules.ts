@@ -3,7 +3,10 @@
 
 import { Router, Request, Response } from "express";
 import { createClient } from "@supabase/supabase-js";
-import { getUncachableStripeClient, getStripePublishableKey } from "../stripeClient.js";
+import {
+  getUncachableStripeClient,
+  getStripePublishableKey,
+} from "../stripeClient.js";
 import { supabaseAdmin } from "../supabase.js";
 import crypto from "crypto";
 
@@ -11,7 +14,8 @@ const router = Router();
 
 // Client-side Supabase for user auth verification
 const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
+const supabaseAnonKey =
+  process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
 
 const supabase = createClient(supabaseUrl!, supabaseAnonKey!);
 
@@ -22,7 +26,10 @@ async function getUserFromRequest(req: Request) {
     return null;
   }
   const token = authHeader.substring(7);
-  const { data: { user }, error } = await supabase.auth.getUser(token);
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser(token);
   if (error || !user) return null;
   return user;
 }
@@ -31,7 +38,7 @@ async function getUserFromRequest(req: Request) {
 router.get("/", async (req: Request, res: Response) => {
   try {
     const user = await getUserFromRequest(req);
-    
+
     // Get all active modules
     const { data: modules, error: modulesError } = await supabaseAdmin
       .from("Couples_modules")
@@ -62,10 +69,14 @@ router.get("/", async (req: Request, res: Response) => {
 
     // Build response with subscription status and pricing
     const modulesWithStatus = (modules || []).map((mod: any) => {
-      const subscription = userSubscriptions.find(s => s.module_id === mod.id);
-      const product = products.data.find(p => p.metadata?.module_slug === mod.slug);
-      const modulesPrices = product 
-        ? prices.data.filter(p => p.product === product.id)
+      const subscription = userSubscriptions.find(
+        (s) => s.module_id === mod.id,
+      );
+      const product = products.data.find(
+        (p) => p.metadata?.module_slug === mod.slug,
+      );
+      const modulesPrices = product
+        ? prices.data.filter((p) => p.product === product.id)
         : [];
 
       return {
@@ -75,11 +86,11 @@ router.get("/", async (req: Request, res: Response) => {
         subscription_ends_at: subscription?.current_period_end || null,
         cancel_at_period_end: subscription?.cancel_at_period_end || false,
         stripe_product_id: product?.id || null,
-        prices: modulesPrices.map(p => ({
+        prices: modulesPrices.map((p) => ({
           id: p.id,
           unit_amount: p.unit_amount,
           currency: p.currency,
-          interval: p.recurring?.interval || 'one_time',
+          interval: p.recurring?.interval || "one_time",
         })),
       };
     });
@@ -139,14 +150,18 @@ router.post("/:moduleSlug/checkout", async (req: Request, res: Response) => {
       .limit(1);
 
     if (existingSub && existingSub.length > 0) {
-      return res.status(400).json({ error: "You already have an active subscription for this module" });
+      return res
+        .status(400)
+        .json({
+          error: "You already have an active subscription for this module",
+        });
     }
 
     const stripe = await getUncachableStripeClient();
 
     // Get or create Stripe customer
     let stripeCustomerId: string | undefined;
-    
+
     // Check if user has existing subscription with customer ID
     const { data: existingCustomer } = await supabaseAdmin
       .from("Couples_module_subscriptions")
@@ -155,7 +170,11 @@ router.post("/:moduleSlug/checkout", async (req: Request, res: Response) => {
       .not("stripe_customer_id", "is", null)
       .limit(1);
 
-    if (existingCustomer && existingCustomer.length > 0 && existingCustomer[0].stripe_customer_id) {
+    if (
+      existingCustomer &&
+      existingCustomer.length > 0 &&
+      existingCustomer[0].stripe_customer_id
+    ) {
       stripeCustomerId = existingCustomer[0].stripe_customer_id;
     } else {
       // Create new customer
@@ -217,7 +236,8 @@ router.get("/subscriptions", async (req: Request, res: Response) => {
 
     const { data: subscriptions, error } = await supabaseAdmin
       .from("Couples_module_subscriptions")
-      .select(`
+      .select(
+        `
         id,
         status,
         current_period_start,
@@ -232,7 +252,8 @@ router.get("/subscriptions", async (req: Request, res: Response) => {
           icon,
           app_url
         )
-      `)
+      `,
+      )
       .eq("user_id", user.id)
       .order("created_at", { ascending: false });
 
@@ -277,12 +298,16 @@ router.post("/:moduleSlug/portal", async (req: Request, res: Response) => {
       .not("stripe_customer_id", "is", null)
       .limit(1);
 
-    if (!customerResult || customerResult.length === 0 || !customerResult[0].stripe_customer_id) {
+    if (
+      !customerResult ||
+      customerResult.length === 0 ||
+      !customerResult[0].stripe_customer_id
+    ) {
       return res.status(404).json({ error: "No billing information found" });
     }
 
     const stripe = await getUncachableStripeClient();
-    
+
     const host = req.headers.host || "localhost:5000";
     const protocol = host.includes("localhost") ? "http" : "https";
     const returnUrl = `${protocol}://${host}/modules`;
@@ -331,7 +356,9 @@ router.post("/:moduleSlug/launch", async (req: Request, res: Response) => {
       .limit(1);
 
     if (!subResult || subResult.length === 0) {
-      return res.status(403).json({ error: "No active subscription for this module" });
+      return res
+        .status(403)
+        .json({ error: "No active subscription for this module" });
     }
 
     // Generate short-lived access token (15 minutes)

@@ -394,7 +394,9 @@ export default function DailyTips() {
                     })}
                   </span>
                 </div>
-                <p className="text-sm leading-relaxed">{formatAIText(tip.tip_text)}</p>
+                <p className="text-sm leading-relaxed">
+                  {formatAIText(tip.tip_text)}
+                </p>
               </div>
             ))}
           </CardContent>

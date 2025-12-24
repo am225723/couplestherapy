@@ -59,26 +59,30 @@ interface CompatibilityInsight {
   category: "love-language" | "attachment" | "enneagram" | "general";
 }
 
-const ATTACHMENT_INFO: Record<string, { description: string; color: string }> = {
-  secure: {
-    description: "Comfortable with intimacy and independence",
-    color: "text-green-600 dark:text-green-400",
-  },
-  anxious: {
-    description: "Seeks closeness and reassurance",
-    color: "text-blue-600 dark:text-blue-400",
-  },
-  avoidant: {
-    description: "Values independence and self-reliance",
-    color: "text-amber-600 dark:text-amber-400",
-  },
-  disorganized: {
-    description: "Mixed patterns of closeness and distance",
-    color: "text-purple-600 dark:text-purple-400",
-  },
-};
+const ATTACHMENT_INFO: Record<string, { description: string; color: string }> =
+  {
+    secure: {
+      description: "Comfortable with intimacy and independence",
+      color: "text-green-600 dark:text-green-400",
+    },
+    anxious: {
+      description: "Seeks closeness and reassurance",
+      color: "text-blue-600 dark:text-blue-400",
+    },
+    avoidant: {
+      description: "Values independence and self-reliance",
+      color: "text-amber-600 dark:text-amber-400",
+    },
+    disorganized: {
+      description: "Mixed patterns of closeness and distance",
+      color: "text-purple-600 dark:text-purple-400",
+    },
+  };
 
-const LOVE_LANGUAGE_INFO: Record<string, { description: string; icon: typeof Heart }> = {
+const LOVE_LANGUAGE_INFO: Record<
+  string,
+  { description: string; icon: typeof Heart }
+> = {
   "Quality Time": {
     description: "Feels loved through undivided attention",
     icon: Users,
@@ -135,26 +139,27 @@ export default function CoupleCompatibility() {
 
       if (!couple) return null;
 
-      const [profilesRes, languagesRes, attachmentsRes, enneagramsRes] = await Promise.all([
-        supabase
-          .from("Couples_profiles")
-          .select("id, full_name")
-          .in("id", [couple.partner1_id, couple.partner2_id]),
-        supabase
-          .from("Couples_love_languages")
-          .select("user_id, primary_language, secondary_language")
-          .in("user_id", [couple.partner1_id, couple.partner2_id]),
-        supabase
-          .from("Couples_attachment_results")
-          .select("user_id, attachment_style")
-          .in("user_id", [couple.partner1_id, couple.partner2_id])
-          .order("created_at", { ascending: false }),
-        supabase
-          .from("Couples_enneagram_results")
-          .select("user_id, dominant_type, secondary_type")
-          .in("user_id", [couple.partner1_id, couple.partner2_id])
-          .order("created_at", { ascending: false }),
-      ]);
+      const [profilesRes, languagesRes, attachmentsRes, enneagramsRes] =
+        await Promise.all([
+          supabase
+            .from("Couples_profiles")
+            .select("id, full_name")
+            .in("id", [couple.partner1_id, couple.partner2_id]),
+          supabase
+            .from("Couples_love_languages")
+            .select("user_id, primary_language, secondary_language")
+            .in("user_id", [couple.partner1_id, couple.partner2_id]),
+          supabase
+            .from("Couples_attachment_results")
+            .select("user_id, attachment_style")
+            .in("user_id", [couple.partner1_id, couple.partner2_id])
+            .order("created_at", { ascending: false }),
+          supabase
+            .from("Couples_enneagram_results")
+            .select("user_id, dominant_type, secondary_type")
+            .in("user_id", [couple.partner1_id, couple.partner2_id])
+            .order("created_at", { ascending: false }),
+        ]);
 
       const profiles = profilesRes.data;
       const languages = languagesRes.data;
@@ -165,8 +170,14 @@ export default function CoupleCompatibility() {
       const p2 = profiles?.find((p) => p.id === couple.partner2_id);
 
       const data: AssessmentData = {
-        partner1: { id: couple.partner1_id, name: p1?.full_name || "Partner 1" },
-        partner2: { id: couple.partner2_id, name: p2?.full_name || "Partner 2" },
+        partner1: {
+          id: couple.partner1_id,
+          name: p1?.full_name || "Partner 1",
+        },
+        partner2: {
+          id: couple.partner2_id,
+          name: p2?.full_name || "Partner 2",
+        },
       };
 
       if (languages) {
@@ -213,8 +224,12 @@ export default function CoupleCompatibility() {
     staleTime: 1000 * 60 * 5,
   });
 
-  const tabOrder = ["insights", assessmentsQuery.data?.partner1?.id, assessmentsQuery.data?.partner2?.id].filter(Boolean) as string[];
-  
+  const tabOrder = [
+    "insights",
+    assessmentsQuery.data?.partner1?.id,
+    assessmentsQuery.data?.partner2?.id,
+  ].filter(Boolean) as string[];
+
   const handleTabChange = (direction: "left" | "right") => {
     const currentIndex = tabOrder.indexOf(activeTab);
     if (direction === "left" && currentIndex > 0) {
@@ -233,7 +248,10 @@ export default function CoupleCompatibility() {
     const insights: CompatibilityInsight[] = [];
 
     if (data.partner1.loveLanguage && data.partner2.loveLanguage) {
-      if (data.partner1.loveLanguage.primary === data.partner2.loveLanguage.primary) {
+      if (
+        data.partner1.loveLanguage.primary ===
+        data.partner2.loveLanguage.primary
+      ) {
         insights.push({
           title: "Shared Love Language",
           description: `You both value ${data.partner1.loveLanguage.primary}. This natural alignment means you're likely already expressing love in ways your partner appreciates.`,
@@ -257,7 +275,8 @@ export default function CoupleCompatibility() {
         if (data.partner1.attachmentStyle === "secure") {
           insights.push({
             title: "Secure Foundation",
-            description: "You both have secure attachment styles, providing a stable foundation for your relationship.",
+            description:
+              "You both have secure attachment styles, providing a stable foundation for your relationship.",
             icon: Link2,
             type: "strength",
             category: "attachment",
@@ -265,18 +284,22 @@ export default function CoupleCompatibility() {
         } else {
           insights.push({
             title: "Similar Attachment Patterns",
-            description: "You share similar attachment patterns. Understanding your shared triggers helps you support each other.",
+            description:
+              "You share similar attachment patterns. Understanding your shared triggers helps you support each other.",
             icon: Scale,
             type: "growth",
             category: "attachment",
           });
         }
       } else {
-        const hasSecure = data.partner1.attachmentStyle === "secure" || data.partner2.attachmentStyle === "secure";
+        const hasSecure =
+          data.partner1.attachmentStyle === "secure" ||
+          data.partner2.attachmentStyle === "secure";
         if (hasSecure) {
           insights.push({
             title: "Stabilizing Presence",
-            description: "One partner's secure attachment provides grounding for the relationship, offering stability and reassurance.",
+            description:
+              "One partner's secure attachment provides grounding for the relationship, offering stability and reassurance.",
             icon: Link2,
             type: "strength",
             category: "attachment",
@@ -284,7 +307,8 @@ export default function CoupleCompatibility() {
         } else {
           insights.push({
             title: "Complementary Attachment Styles",
-            description: "Your different attachment styles create balance. Understanding these differences strengthens your bond.",
+            description:
+              "Your different attachment styles create balance. Understanding these differences strengthens your bond.",
             icon: Scale,
             type: "growth",
             category: "attachment",
@@ -323,7 +347,9 @@ export default function CoupleCompatibility() {
       <div className="flex items-center justify-center h-[60vh]">
         <div className="text-center space-y-4">
           <Loader2 className="w-12 h-12 animate-spin mx-auto text-primary" />
-          <p className="text-muted-foreground">Loading compatibility insights...</p>
+          <p className="text-muted-foreground">
+            Loading compatibility insights...
+          </p>
         </div>
       </div>
     );
@@ -348,7 +374,8 @@ export default function CoupleCompatibility() {
   const insights = generateInsights(assessments);
   const completedAssessments = [
     assessments.partner1.loveLanguage || assessments.partner2.loveLanguage,
-    assessments.partner1.attachmentStyle || assessments.partner2.attachmentStyle,
+    assessments.partner1.attachmentStyle ||
+      assessments.partner2.attachmentStyle,
     assessments.partner1.enneagramType || assessments.partner2.enneagramType,
   ].filter(Boolean).length;
 
@@ -366,7 +393,8 @@ export default function CoupleCompatibility() {
               </h1>
             </div>
             <p className="text-lg text-muted-foreground max-w-2xl">
-              Discover how you and your partner complement each other based on your assessments
+              Discover how you and your partner complement each other based on
+              your assessments
             </p>
           </div>
         </div>
@@ -395,7 +423,11 @@ export default function CoupleCompatibility() {
           <PartnerSummaryCard partner={assessments.partner2} />
         </div>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <Tabs
+          value={activeTab}
+          onValueChange={setActiveTab}
+          className="space-y-6"
+        >
           <div className="flex items-center gap-2">
             <Button
               variant="ghost"
@@ -411,10 +443,16 @@ export default function CoupleCompatibility() {
               <TabsTrigger value="insights" data-testid="tab-insights">
                 Insights
               </TabsTrigger>
-              <TabsTrigger value={assessments.partner1.id} data-testid="tab-partner1">
+              <TabsTrigger
+                value={assessments.partner1.id}
+                data-testid="tab-partner1"
+              >
                 {assessments.partner1.name}
               </TabsTrigger>
-              <TabsTrigger value={assessments.partner2.id} data-testid="tab-partner2">
+              <TabsTrigger
+                value={assessments.partner2.id}
+                data-testid="tab-partner2"
+              >
                 {assessments.partner2.name}
               </TabsTrigger>
             </TabsList>
@@ -431,93 +469,113 @@ export default function CoupleCompatibility() {
           </div>
 
           <div {...swipeHandlers} className="touch-pan-y">
-          <TabsContent value="insights" className="space-y-4">
-            {insights.length === 0 ? (
-              <Card>
-                <CardContent className="p-8 text-center">
-                  <Lightbulb className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-                  <h3 className="font-semibold text-lg mb-2">More Assessments Needed</h3>
-                  <p className="text-muted-foreground mb-4">
-                    Complete assessments to unlock personalized compatibility insights
-                  </p>
-                  <div className="flex flex-wrap justify-center gap-2">
-                    <Link href="/quiz">
-                      <Button variant="outline" data-testid="button-take-love-language">
-                        <Heart className="w-4 h-4 mr-2" />
-                        Love Language Quiz
-                      </Button>
-                    </Link>
-                    <Link href="/attachment-assessment">
-                      <Button variant="outline" data-testid="button-take-attachment">
-                        <Link2 className="w-4 h-4 mr-2" />
-                        Attachment Assessment
-                      </Button>
-                    </Link>
-                    <Link href="/enneagram-assessment">
-                      <Button variant="outline" data-testid="button-take-enneagram">
-                        <Compass className="w-4 h-4 mr-2" />
-                        Enneagram Assessment
-                      </Button>
-                    </Link>
-                  </div>
-                </CardContent>
-              </Card>
-            ) : (
-              <div className="grid gap-4">
-                {insights.map((insight, idx) => (
-                  <Card
-                    key={idx}
-                    className={`border-l-4 ${
-                      insight.type === "strength"
-                        ? "border-l-green-500"
-                        : "border-l-amber-500"
-                    }`}
-                    data-testid={`card-insight-${idx}`}
-                  >
-                    <CardHeader className="pb-2">
-                      <CardTitle className="flex items-center gap-3 text-lg">
-                        <div
-                          className={`p-2 rounded-lg ${
-                            insight.type === "strength"
-                              ? "bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400"
-                              : "bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400"
-                          }`}
+            <TabsContent value="insights" className="space-y-4">
+              {insights.length === 0 ? (
+                <Card>
+                  <CardContent className="p-8 text-center">
+                    <Lightbulb className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+                    <h3 className="font-semibold text-lg mb-2">
+                      More Assessments Needed
+                    </h3>
+                    <p className="text-muted-foreground mb-4">
+                      Complete assessments to unlock personalized compatibility
+                      insights
+                    </p>
+                    <div className="flex flex-wrap justify-center gap-2">
+                      <Link href="/quiz">
+                        <Button
+                          variant="outline"
+                          data-testid="button-take-love-language"
                         >
-                          <insight.icon className="w-5 h-5" />
-                        </div>
-                        {insight.title}
-                        <Badge
-                          variant={insight.type === "strength" ? "default" : "secondary"}
-                          className="ml-auto"
+                          <Heart className="w-4 h-4 mr-2" />
+                          Love Language Quiz
+                        </Button>
+                      </Link>
+                      <Link href="/attachment-assessment">
+                        <Button
+                          variant="outline"
+                          data-testid="button-take-attachment"
                         >
-                          {insight.type === "strength" ? "Strength" : "Growth Area"}
-                        </Badge>
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-muted-foreground">{insight.description}</p>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            )}
-          </TabsContent>
+                          <Link2 className="w-4 h-4 mr-2" />
+                          Attachment Assessment
+                        </Button>
+                      </Link>
+                      <Link href="/enneagram-assessment">
+                        <Button
+                          variant="outline"
+                          data-testid="button-take-enneagram"
+                        >
+                          <Compass className="w-4 h-4 mr-2" />
+                          Enneagram Assessment
+                        </Button>
+                      </Link>
+                    </div>
+                  </CardContent>
+                </Card>
+              ) : (
+                <div className="grid gap-4">
+                  {insights.map((insight, idx) => (
+                    <Card
+                      key={idx}
+                      className={`border-l-4 ${
+                        insight.type === "strength"
+                          ? "border-l-green-500"
+                          : "border-l-amber-500"
+                      }`}
+                      data-testid={`card-insight-${idx}`}
+                    >
+                      <CardHeader className="pb-2">
+                        <CardTitle className="flex items-center gap-3 text-lg">
+                          <div
+                            className={`p-2 rounded-lg ${
+                              insight.type === "strength"
+                                ? "bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400"
+                                : "bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400"
+                            }`}
+                          >
+                            <insight.icon className="w-5 h-5" />
+                          </div>
+                          {insight.title}
+                          <Badge
+                            variant={
+                              insight.type === "strength"
+                                ? "default"
+                                : "secondary"
+                            }
+                            className="ml-auto"
+                          >
+                            {insight.type === "strength"
+                              ? "Strength"
+                              : "Growth Area"}
+                          </Badge>
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-muted-foreground">
+                          {insight.description}
+                        </p>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </TabsContent>
 
-          <TabsContent value={assessments.partner1.id} className="space-y-6">
-            <PartnerDetailCard partner={assessments.partner1} />
-            <SuggestionsCard
-              partner={assessments.partner1}
-              otherPartner={assessments.partner2}
-            />
-          </TabsContent>
+            <TabsContent value={assessments.partner1.id} className="space-y-6">
+              <PartnerDetailCard partner={assessments.partner1} />
+              <SuggestionsCard
+                partner={assessments.partner1}
+                otherPartner={assessments.partner2}
+              />
+            </TabsContent>
 
-          <TabsContent value={assessments.partner2.id} className="space-y-6">
-            <PartnerDetailCard partner={assessments.partner2} />
-            <SuggestionsCard
-              partner={assessments.partner2}
-              otherPartner={assessments.partner1}
-            />
-          </TabsContent>
+            <TabsContent value={assessments.partner2.id} className="space-y-6">
+              <PartnerDetailCard partner={assessments.partner2} />
+              <SuggestionsCard
+                partner={assessments.partner2}
+                otherPartner={assessments.partner1}
+              />
+            </TabsContent>
           </div>
         </Tabs>
       </div>
@@ -525,11 +583,19 @@ export default function CoupleCompatibility() {
   );
 }
 
-function PartnerSummaryCard({ partner }: { partner: AssessmentData["partner1"] }) {
-  const hasData = partner.loveLanguage || partner.attachmentStyle || partner.enneagramType;
+function PartnerSummaryCard({
+  partner,
+}: {
+  partner: AssessmentData["partner1"];
+}) {
+  const hasData =
+    partner.loveLanguage || partner.attachmentStyle || partner.enneagramType;
 
   return (
-    <Card className="hover-elevate" data-testid={`card-partner-summary-${partner.id}`}>
+    <Card
+      className="hover-elevate"
+      data-testid={`card-partner-summary-${partner.id}`}
+    >
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Users className="w-5 h-5 text-primary" />
@@ -539,7 +605,9 @@ function PartnerSummaryCard({ partner }: { partner: AssessmentData["partner1"] }
       </CardHeader>
       <CardContent className="space-y-4">
         {!hasData ? (
-          <p className="text-sm text-muted-foreground">No assessments completed yet</p>
+          <p className="text-sm text-muted-foreground">
+            No assessments completed yet
+          </p>
         ) : (
           <>
             {partner.loveLanguage && (
@@ -582,7 +650,11 @@ function PartnerSummaryCard({ partner }: { partner: AssessmentData["partner1"] }
   );
 }
 
-function PartnerDetailCard({ partner }: { partner: AssessmentData["partner1"] }) {
+function PartnerDetailCard({
+  partner,
+}: {
+  partner: AssessmentData["partner1"];
+}) {
   return (
     <Card data-testid={`card-partner-detail-${partner.id}`}>
       <CardHeader>
@@ -609,8 +681,12 @@ function PartnerDetailCard({ partner }: { partner: AssessmentData["partner1"] })
               </p>
               {partner.loveLanguage.secondary && (
                 <div className="flex items-center gap-2">
-                  <Badge variant="outline">{partner.loveLanguage.secondary}</Badge>
-                  <span className="text-sm text-muted-foreground">Secondary</span>
+                  <Badge variant="outline">
+                    {partner.loveLanguage.secondary}
+                  </Badge>
+                  <span className="text-sm text-muted-foreground">
+                    Secondary
+                  </span>
                 </div>
               )}
             </div>
@@ -626,12 +702,17 @@ function PartnerDetailCard({ partner }: { partner: AssessmentData["partner1"] })
             <div className="pl-6 space-y-2">
               <Badge
                 variant="outline"
-                className={ATTACHMENT_INFO[partner.attachmentStyle.toLowerCase()]?.color}
+                className={
+                  ATTACHMENT_INFO[partner.attachmentStyle.toLowerCase()]?.color
+                }
               >
                 {partner.attachmentStyle}
               </Badge>
               <p className="text-sm text-muted-foreground">
-                {ATTACHMENT_INFO[partner.attachmentStyle.toLowerCase()]?.description}
+                {
+                  ATTACHMENT_INFO[partner.attachmentStyle.toLowerCase()]
+                    ?.description
+                }
               </p>
             </div>
           </div>
@@ -646,7 +727,8 @@ function PartnerDetailCard({ partner }: { partner: AssessmentData["partner1"] })
             <div className="pl-6 space-y-2">
               <div className="flex items-center gap-2">
                 <Badge variant="outline">
-                  Type {partner.enneagramType.primary} - {ENNEAGRAM_NAMES[partner.enneagramType.primary]}
+                  Type {partner.enneagramType.primary} -{" "}
+                  {ENNEAGRAM_NAMES[partner.enneagramType.primary]}
                 </Badge>
               </div>
               {partner.enneagramType.secondary && (
@@ -660,11 +742,14 @@ function PartnerDetailCard({ partner }: { partner: AssessmentData["partner1"] })
           </div>
         )}
 
-        {!partner.loveLanguage && !partner.attachmentStyle && !partner.enneagramType && (
-          <p className="text-muted-foreground text-center py-4">
-            No assessments completed yet. Complete assessments to see detailed profile.
-          </p>
-        )}
+        {!partner.loveLanguage &&
+          !partner.attachmentStyle &&
+          !partner.enneagramType && (
+            <p className="text-muted-foreground text-center py-4">
+              No assessments completed yet. Complete assessments to see detailed
+              profile.
+            </p>
+          )}
       </CardContent>
     </Card>
   );

@@ -11,7 +11,15 @@ import { Progress } from "@/components/ui/progress";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Compass, ArrowLeft, ArrowRight, Check, Loader2, RotateCcw, Save } from "lucide-react";
+import {
+  Compass,
+  ArrowLeft,
+  ArrowRight,
+  Check,
+  Loader2,
+  RotateCcw,
+  Save,
+} from "lucide-react";
 import {
   enneagramQuestions,
   calculateEnneagramType,
@@ -48,7 +56,7 @@ export default function EnneagramAssessmentPage() {
 
   const { loadDraft, clearDraft, hasDraft } = useAutoSave(
     { responses, currentPage },
-    { key: `enneagram_assessment_${user?.id || "anon"}`, debounceMs: 500 }
+    { key: `enneagram_assessment_${user?.id || "anon"}`, debounceMs: 500 },
   );
 
   useEffect(() => {
@@ -78,13 +86,18 @@ export default function EnneagramAssessmentPage() {
   const totalPages = Math.ceil(enneagramQuestions.length / QUESTIONS_PER_PAGE);
 
   const saveResultsMutation = useMutation({
-    mutationFn: async (results: { dominantType: number; scores: Record<number, number> }) => {
+    mutationFn: async (results: {
+      dominantType: number;
+      scores: Record<number, number>;
+    }) => {
       if (!user || !coupleId) throw new Error("Not authenticated");
-      
-      const sortedScores = Object.entries(results.scores)
-        .sort((a, b) => Number(b[1]) - Number(a[1]));
-      const secondaryType = sortedScores.length > 1 ? parseInt(sortedScores[1][0]) : null;
-      
+
+      const sortedScores = Object.entries(results.scores).sort(
+        (a, b) => Number(b[1]) - Number(a[1]),
+      );
+      const secondaryType =
+        sortedScores.length > 1 ? parseInt(sortedScores[1][0]) : null;
+
       return apiRequest("POST", "/api/enneagram/assessments", {
         primary_type: results.dominantType,
         secondary_type: secondaryType,
@@ -93,7 +106,9 @@ export default function EnneagramAssessmentPage() {
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/enneagram/assessments/couple"] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/enneagram/assessments/couple"],
+      });
       toast({
         title: "Assessment Saved",
         description: "Your Enneagram results have been saved.",
@@ -103,7 +118,8 @@ export default function EnneagramAssessmentPage() {
       console.error("Failed to save enneagram results:", error);
       toast({
         title: "Error Saving Results",
-        description: "Your results are shown but could not be saved. Please try again.",
+        description:
+          "Your results are shown but could not be saved. Please try again.",
         variant: "destructive",
       });
     },
@@ -133,7 +149,8 @@ export default function EnneagramAssessmentPage() {
       } else {
         toast({
           title: "Unable to Save",
-          description: "Your results are displayed but couldn't be saved. Please ensure you're logged in and linked to a couple.",
+          description:
+            "Your results are displayed but couldn't be saved. Please ensure you're logged in and linked to a couple.",
           variant: "destructive",
         });
       }
@@ -327,11 +344,20 @@ export default function EnneagramAssessmentPage() {
             <AlertDescription className="flex items-center justify-between flex-wrap gap-3">
               <span>You have unsaved progress from a previous session.</span>
               <div className="flex gap-2">
-                <Button size="sm" onClick={handleRestoreDraft} data-testid="button-restore-draft">
+                <Button
+                  size="sm"
+                  onClick={handleRestoreDraft}
+                  data-testid="button-restore-draft"
+                >
                   <RotateCcw className="h-4 w-4 mr-1" />
                   Restore
                 </Button>
-                <Button size="sm" variant="outline" onClick={handleDiscardDraft} data-testid="button-discard-draft">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handleDiscardDraft}
+                  data-testid="button-discard-draft"
+                >
                   Start Fresh
                 </Button>
               </div>

@@ -272,54 +272,114 @@ const compatibilityInsights: Record<
   { harmony: string; growth: string; tips: string[] }
 > = {
   "1-1": {
-    harmony: "You share high standards and a commitment to improvement. Your shared values create a principled partnership.",
-    growth: "Avoid criticizing each other. Practice acceptance and celebrate imperfections.",
-    tips: ["Share appreciation daily", "Allow room for mistakes", "Balance improvement with acceptance"],
+    harmony:
+      "You share high standards and a commitment to improvement. Your shared values create a principled partnership.",
+    growth:
+      "Avoid criticizing each other. Practice acceptance and celebrate imperfections.",
+    tips: [
+      "Share appreciation daily",
+      "Allow room for mistakes",
+      "Balance improvement with acceptance",
+    ],
   },
   "1-2": {
-    harmony: "The Helper's warmth softens the Reformer's rigidity, while the Reformer provides structure the Helper appreciates.",
-    growth: "Type 1 should appreciate Type 2's giving nature; Type 2 should respect Type 1's need for order.",
-    tips: ["Express gratitude openly", "Balance giving with standards", "Support each other's needs"],
+    harmony:
+      "The Helper's warmth softens the Reformer's rigidity, while the Reformer provides structure the Helper appreciates.",
+    growth:
+      "Type 1 should appreciate Type 2's giving nature; Type 2 should respect Type 1's need for order.",
+    tips: [
+      "Express gratitude openly",
+      "Balance giving with standards",
+      "Support each other's needs",
+    ],
   },
   "2-2": {
-    harmony: "You both speak the language of love and care. Your relationship is filled with warmth and mutual support.",
-    growth: "Make sure to take care of yourselves, not just each other. Avoid competition for being needed.",
-    tips: ["Practice receiving, not just giving", "Set boundaries together", "Appreciate each other's care"],
+    harmony:
+      "You both speak the language of love and care. Your relationship is filled with warmth and mutual support.",
+    growth:
+      "Make sure to take care of yourselves, not just each other. Avoid competition for being needed.",
+    tips: [
+      "Practice receiving, not just giving",
+      "Set boundaries together",
+      "Appreciate each other's care",
+    ],
   },
   "3-3": {
-    harmony: "You're a power couple! Your shared drive and ambition can create an inspiring partnership.",
-    growth: "Make time for real connection beyond achievements. Share vulnerabilities, not just successes.",
-    tips: ["Schedule quality time without goals", "Share feelings, not just achievements", "Celebrate being, not just doing"],
+    harmony:
+      "You're a power couple! Your shared drive and ambition can create an inspiring partnership.",
+    growth:
+      "Make time for real connection beyond achievements. Share vulnerabilities, not just successes.",
+    tips: [
+      "Schedule quality time without goals",
+      "Share feelings, not just achievements",
+      "Celebrate being, not just doing",
+    ],
   },
   "4-4": {
-    harmony: "You understand each other's emotional depth like no one else. Your connection can be profoundly intimate.",
-    growth: "Avoid amplifying each other's emotional lows. Ground yourselves together.",
-    tips: ["Create beauty together", "Balance intensity with stability", "Celebrate your unique connection"],
+    harmony:
+      "You understand each other's emotional depth like no one else. Your connection can be profoundly intimate.",
+    growth:
+      "Avoid amplifying each other's emotional lows. Ground yourselves together.",
+    tips: [
+      "Create beauty together",
+      "Balance intensity with stability",
+      "Celebrate your unique connection",
+    ],
   },
   "5-5": {
-    harmony: "You respect each other's need for space and intellectual pursuits. A meeting of minds.",
-    growth: "Remember to connect emotionally, not just intellectually. Share feelings, not just ideas.",
-    tips: ["Schedule connection time", "Share feelings, not just thoughts", "Create shared experiences"],
+    harmony:
+      "You respect each other's need for space and intellectual pursuits. A meeting of minds.",
+    growth:
+      "Remember to connect emotionally, not just intellectually. Share feelings, not just ideas.",
+    tips: [
+      "Schedule connection time",
+      "Share feelings, not just thoughts",
+      "Create shared experiences",
+    ],
   },
   "6-6": {
-    harmony: "You understand each other's need for security. Together you can build a stable, trustworthy bond.",
-    growth: "Avoid feeding each other's anxieties. Build trust through positive experiences.",
-    tips: ["Reassure each other regularly", "Face fears together", "Celebrate your loyalty"],
+    harmony:
+      "You understand each other's need for security. Together you can build a stable, trustworthy bond.",
+    growth:
+      "Avoid feeding each other's anxieties. Build trust through positive experiences.",
+    tips: [
+      "Reassure each other regularly",
+      "Face fears together",
+      "Celebrate your loyalty",
+    ],
   },
   "7-7": {
-    harmony: "Life is an adventure together! Your shared enthusiasm creates endless fun and possibilities.",
-    growth: "Learn to sit with difficult emotions together. Commitment can be an adventure too.",
-    tips: ["Plan adventures together", "Also plan quiet moments", "Face challenges as a team"],
+    harmony:
+      "Life is an adventure together! Your shared enthusiasm creates endless fun and possibilities.",
+    growth:
+      "Learn to sit with difficult emotions together. Commitment can be an adventure too.",
+    tips: [
+      "Plan adventures together",
+      "Also plan quiet moments",
+      "Face challenges as a team",
+    ],
   },
   "8-8": {
-    harmony: "Two strong personalities who respect each other's power. An intense, honest relationship.",
-    growth: "Take turns leading. Show vulnerability to each other—it's safe here.",
-    tips: ["Practice vulnerability together", "Take turns being in charge", "Protect each other, not from each other"],
+    harmony:
+      "Two strong personalities who respect each other's power. An intense, honest relationship.",
+    growth:
+      "Take turns leading. Show vulnerability to each other—it's safe here.",
+    tips: [
+      "Practice vulnerability together",
+      "Take turns being in charge",
+      "Protect each other, not from each other",
+    ],
   },
   "9-9": {
-    harmony: "A peaceful, harmonious relationship. You create a calm, accepting environment together.",
-    growth: "Push each other gently to express needs and opinions. Avoid merging completely.",
-    tips: ["Express preferences clearly", "Make decisions together", "Maintain individual identities"],
+    harmony:
+      "A peaceful, harmonious relationship. You create a calm, accepting environment together.",
+    growth:
+      "Push each other gently to express needs and opinions. Avoid merging completely.",
+    tips: [
+      "Express preferences clearly",
+      "Make decisions together",
+      "Maintain individual identities",
+    ],
   },
 };
 
@@ -347,7 +407,9 @@ export default function EnneagramResults() {
       if (coupleError || !couple) return null;
 
       const partnerId =
-        couple.partner1_id === user.id ? couple.partner2_id : couple.partner1_id;
+        couple.partner1_id === user.id
+          ? couple.partner2_id
+          : couple.partner1_id;
       if (!partnerId) return null;
 
       const { data: partner, error: partnerError } = await supabase
@@ -363,12 +425,7 @@ export default function EnneagramResults() {
   });
 
   const { data: allResults, isLoading } = useQuery<EnneagramAssessment[]>({
-    queryKey: [
-      "/api/enneagram/couple",
-      coupleId,
-      user?.id,
-      partnerProfile?.id,
-    ],
+    queryKey: ["/api/enneagram/couple", coupleId, user?.id, partnerProfile?.id],
     queryFn: async () => {
       if (!user || !coupleId) return [];
 
@@ -400,7 +457,7 @@ export default function EnneagramResults() {
 
   const myResult = allResults?.find((r) => r.user_id === user?.id);
   const partnerResult = allResults?.find(
-    (r) => r.user_id === partnerProfile?.id
+    (r) => r.user_id === partnerProfile?.id,
   );
 
   if (isLoading) {
@@ -445,10 +502,9 @@ export default function EnneagramResults() {
   const partnerName =
     (partnerProfile as ProfileWithCouple)?.full_name || "Your Partner";
 
-  const compatibility =
-    partnerType
-      ? compatibilityInsights[getCompatibilityKey(myType, partnerType)]
-      : null;
+  const compatibility = partnerType
+    ? compatibilityInsights[getCompatibilityKey(myType, partnerType)]
+    : null;
 
   return (
     <div className="min-h-screen p-4 md:p-8 bg-gradient-to-br from-background to-accent/10">
@@ -529,7 +585,9 @@ export default function EnneagramResults() {
                     <p className="text-xs text-muted-foreground uppercase tracking-wide">
                       {partnerName}'s Type
                     </p>
-                    <h2 className="text-xl font-bold">{partnerDetails.title}</h2>
+                    <h2 className="text-xl font-bold">
+                      {partnerDetails.title}
+                    </h2>
                   </div>
                 </div>
                 <div className="flex gap-2">

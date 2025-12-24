@@ -63,33 +63,36 @@ interface TherapistDashboardEditorProps {
   coupleName?: string;
 }
 
-const widgetVariants: Record<string, "default" | "primary" | "accent" | "success" | "warning"> = {
+const widgetVariants: Record<
+  string,
+  "default" | "primary" | "accent" | "success" | "warning"
+> = {
   "weekly-checkin": "primary",
   "love-languages": "accent",
-  "gratitude": "success",
+  gratitude: "success",
   "shared-goals": "primary",
   "voice-memos": "default",
-  "calendar": "primary",
-  "rituals": "accent",
-  "conversations": "success",
+  calendar: "primary",
+  rituals: "accent",
+  conversations: "success",
   "love-map": "warning",
   "therapist-thoughts": "accent",
   "therapist-card": "accent",
-  "compatibility": "accent",
+  compatibility: "accent",
   "progress-timeline": "primary",
   "growth-plan": "warning",
-  "attachment": "primary",
-  "enneagram": "accent",
-  "messages": "primary",
+  attachment: "primary",
+  enneagram: "accent",
+  messages: "primary",
   "echo-empathy": "success",
-  "conflict": "warning",
-  "pause": "default",
-  "journal": "success",
-  "mood": "warning",
-  "ifs": "accent",
-  "chores": "success",
-  "todos": "default",
-  "financial": "success",
+  conflict: "warning",
+  pause: "default",
+  journal: "success",
+  mood: "warning",
+  ifs: "accent",
+  chores: "success",
+  todos: "default",
+  financial: "success",
   "daily-tips": "warning",
   "daily-suggestion": "success",
   "ai-suggestions": "warning",
@@ -99,7 +102,12 @@ const widgetVariants: Record<string, "default" | "primary" | "accent" | "success
 };
 
 type WidgetSize = { cols: 1 | 2 | 3; rows: 1 | 2 };
-type WidgetType = "standard" | "therapist" | "suggestion" | "ai" | "love-results";
+type WidgetType =
+  | "standard"
+  | "therapist"
+  | "suggestion"
+  | "ai"
+  | "love-results";
 
 const SIZE_OPTIONS: Array<{ cols: 1 | 2 | 3; rows: 1 | 2; label: string }> = [
   { cols: 1, rows: 1, label: "1×1" },
@@ -108,7 +116,10 @@ const SIZE_OPTIONS: Array<{ cols: 1 | 2 | 3; rows: 1 | 2; label: string }> = [
   { cols: 2, rows: 2, label: "2×2" },
 ];
 
-export function TherapistDashboardEditor({ coupleId, coupleName }: TherapistDashboardEditorProps) {
+export function TherapistDashboardEditor({
+  coupleId,
+  coupleName,
+}: TherapistDashboardEditorProps) {
   const { toast } = useToast();
   const [localWidgetOrder, setLocalWidgetOrder] = useState<string[]>([]);
   const [isSaving, setIsSaving] = useState(false);
@@ -176,38 +187,266 @@ export function TherapistDashboardEditor({ coupleId, coupleName }: TherapistDash
     size: "sm" | "md" | "lg" | "xl";
     type?: WidgetType;
   }> = [
-    { widgetId: "therapist-card", title: "From Your Therapist", description: "Messages and tasks from your therapist", icon: MessageCircle, path: "/therapist-thoughts", size: "lg", type: "therapist" },
-    { widgetId: "daily-suggestion", title: "Today's Suggestion", description: "Your daily activity", icon: Sparkles, path: "/daily-suggestion", size: "md", type: "suggestion" },
-    { widgetId: "ai-suggestions", title: "Suggested For You", description: "AI-powered recommendations", icon: Sparkles, path: "#", size: "md", type: "ai" },
-    { widgetId: "date-night", title: "Date Night", description: "Plan meaningful dates with AI", icon: Sparkles, path: "/date-night", size: "lg" },
-    { widgetId: "checkin-history", title: "Check-In History", description: "Review your weekly progress", icon: TrendingUp, path: "/checkin-history", size: "lg" },
-    { widgetId: "love-results", title: "Your Love Languages", description: "How you give and receive love", icon: Heart, path: "/quiz", size: "lg", type: "love-results" },
-    { widgetId: "weekly-checkin", title: "Weekly Check-In", description: "Reflect on your week together", icon: ClipboardList, path: "/weekly-checkin", size: "sm" },
-    { widgetId: "love-languages", title: "Love Languages", description: "Discover how you give and receive love", icon: Heart, path: "/quiz", size: "sm" },
-    { widgetId: "gratitude", title: "Gratitude Log", description: "Share appreciation for each other", icon: Coffee, path: "/gratitude", size: "sm" },
-    { widgetId: "shared-goals", title: "Shared Goals", description: "Set and track goals together", icon: Target, path: "/goals", size: "sm" },
-    { widgetId: "voice-memos", title: "Voice Memos", description: "Send loving voice messages", icon: Mic, path: "/voice-memos", size: "sm" },
-    { widgetId: "calendar", title: "Shared Calendar", description: "Stay in sync", icon: Calendar, path: "/calendar", size: "sm" },
-    { widgetId: "rituals", title: "Rituals", description: "Build meaningful traditions", icon: BookOpen, path: "/rituals", size: "sm" },
-    { widgetId: "conversations", title: "Hold Me Tight", description: "Deepen emotional bonds", icon: Activity, path: "/conversation", size: "sm" },
-    { widgetId: "love-map", title: "Love Map Quiz", description: "Know each other deeply", icon: Compass, path: "/love-map", size: "sm" },
-    { widgetId: "therapist-thoughts", title: "Therapist Notes", description: "Messages from your therapist", icon: MessageSquare, path: "/therapist-thoughts", size: "sm" },
-    { widgetId: "compatibility", title: "Compatibility", description: "View compatibility insights", icon: Heart, path: "/couple-compatibility", size: "sm" },
-    { widgetId: "progress-timeline", title: "Progress", description: "Your relationship journey", icon: Clock, path: "/progress-timeline", size: "sm" },
-    { widgetId: "growth-plan", title: "Growth Plan", description: "AI-powered exercises", icon: Zap, path: "/growth-plan", size: "sm" },
-    { widgetId: "attachment", title: "Attachment", description: "Understand your patterns", icon: Link2, path: "/attachment-assessment", size: "sm" },
-    { widgetId: "enneagram", title: "Enneagram", description: "Personality insights", icon: Compass, path: "/enneagram-assessment", size: "sm" },
-    { widgetId: "messages", title: "Messages", description: "Secure messaging", icon: MessageCircle, path: "/messages", size: "sm" },
-    { widgetId: "echo-empathy", title: "Echo & Empathy", description: "Practice listening", icon: Users, path: "/echo-empathy", size: "sm" },
-    { widgetId: "conflict", title: "Conflict Tools", description: "Resolve with I-Statements", icon: Scale, path: "/conflict-resolution", size: "sm" },
-    { widgetId: "pause", title: "Pause", description: "Take a mindful break", icon: Pause, path: "/pause", size: "sm" },
-    { widgetId: "journal", title: "Journal", description: "Write together", icon: BookMarked, path: "/couple-journal", size: "sm" },
-    { widgetId: "mood", title: "Mood", description: "Track wellbeing", icon: Smile, path: "/mood-tracker", size: "sm" },
-    { widgetId: "ifs", title: "IFS", description: "Internal Family Systems", icon: Brain, path: "/ifs-intro", size: "sm" },
-    { widgetId: "chores", title: "Chores", description: "Task management", icon: CheckSquare, path: "/chores", size: "sm" },
-    { widgetId: "todos", title: "To-Dos", description: "Shared tasks", icon: ListTodo, path: "/shared-todos", size: "sm" },
-    { widgetId: "financial", title: "Financial", description: "Money tools", icon: DollarSign, path: "/financial-toolkit", size: "sm" },
-    { widgetId: "daily-tips", title: "Daily Tips", description: "Relationship tips", icon: Lightbulb, path: "/daily-tips", size: "sm" },
+    {
+      widgetId: "therapist-card",
+      title: "From Your Therapist",
+      description: "Messages and tasks from your therapist",
+      icon: MessageCircle,
+      path: "/therapist-thoughts",
+      size: "lg",
+      type: "therapist",
+    },
+    {
+      widgetId: "daily-suggestion",
+      title: "Today's Suggestion",
+      description: "Your daily activity",
+      icon: Sparkles,
+      path: "/daily-suggestion",
+      size: "md",
+      type: "suggestion",
+    },
+    {
+      widgetId: "ai-suggestions",
+      title: "Suggested For You",
+      description: "AI-powered recommendations",
+      icon: Sparkles,
+      path: "#",
+      size: "md",
+      type: "ai",
+    },
+    {
+      widgetId: "date-night",
+      title: "Date Night",
+      description: "Plan meaningful dates with AI",
+      icon: Sparkles,
+      path: "/date-night",
+      size: "lg",
+    },
+    {
+      widgetId: "checkin-history",
+      title: "Check-In History",
+      description: "Review your weekly progress",
+      icon: TrendingUp,
+      path: "/checkin-history",
+      size: "lg",
+    },
+    {
+      widgetId: "love-results",
+      title: "Your Love Languages",
+      description: "How you give and receive love",
+      icon: Heart,
+      path: "/quiz",
+      size: "lg",
+      type: "love-results",
+    },
+    {
+      widgetId: "weekly-checkin",
+      title: "Weekly Check-In",
+      description: "Reflect on your week together",
+      icon: ClipboardList,
+      path: "/weekly-checkin",
+      size: "sm",
+    },
+    {
+      widgetId: "love-languages",
+      title: "Love Languages",
+      description: "Discover how you give and receive love",
+      icon: Heart,
+      path: "/quiz",
+      size: "sm",
+    },
+    {
+      widgetId: "gratitude",
+      title: "Gratitude Log",
+      description: "Share appreciation for each other",
+      icon: Coffee,
+      path: "/gratitude",
+      size: "sm",
+    },
+    {
+      widgetId: "shared-goals",
+      title: "Shared Goals",
+      description: "Set and track goals together",
+      icon: Target,
+      path: "/goals",
+      size: "sm",
+    },
+    {
+      widgetId: "voice-memos",
+      title: "Voice Memos",
+      description: "Send loving voice messages",
+      icon: Mic,
+      path: "/voice-memos",
+      size: "sm",
+    },
+    {
+      widgetId: "calendar",
+      title: "Shared Calendar",
+      description: "Stay in sync",
+      icon: Calendar,
+      path: "/calendar",
+      size: "sm",
+    },
+    {
+      widgetId: "rituals",
+      title: "Rituals",
+      description: "Build meaningful traditions",
+      icon: BookOpen,
+      path: "/rituals",
+      size: "sm",
+    },
+    {
+      widgetId: "conversations",
+      title: "Hold Me Tight",
+      description: "Deepen emotional bonds",
+      icon: Activity,
+      path: "/conversation",
+      size: "sm",
+    },
+    {
+      widgetId: "love-map",
+      title: "Love Map Quiz",
+      description: "Know each other deeply",
+      icon: Compass,
+      path: "/love-map",
+      size: "sm",
+    },
+    {
+      widgetId: "therapist-thoughts",
+      title: "Therapist Notes",
+      description: "Messages from your therapist",
+      icon: MessageSquare,
+      path: "/therapist-thoughts",
+      size: "sm",
+    },
+    {
+      widgetId: "compatibility",
+      title: "Compatibility",
+      description: "View compatibility insights",
+      icon: Heart,
+      path: "/couple-compatibility",
+      size: "sm",
+    },
+    {
+      widgetId: "progress-timeline",
+      title: "Progress",
+      description: "Your relationship journey",
+      icon: Clock,
+      path: "/progress-timeline",
+      size: "sm",
+    },
+    {
+      widgetId: "growth-plan",
+      title: "Growth Plan",
+      description: "AI-powered exercises",
+      icon: Zap,
+      path: "/growth-plan",
+      size: "sm",
+    },
+    {
+      widgetId: "attachment",
+      title: "Attachment",
+      description: "Understand your patterns",
+      icon: Link2,
+      path: "/attachment-assessment",
+      size: "sm",
+    },
+    {
+      widgetId: "enneagram",
+      title: "Enneagram",
+      description: "Personality insights",
+      icon: Compass,
+      path: "/enneagram-assessment",
+      size: "sm",
+    },
+    {
+      widgetId: "messages",
+      title: "Messages",
+      description: "Secure messaging",
+      icon: MessageCircle,
+      path: "/messages",
+      size: "sm",
+    },
+    {
+      widgetId: "echo-empathy",
+      title: "Echo & Empathy",
+      description: "Practice listening",
+      icon: Users,
+      path: "/echo-empathy",
+      size: "sm",
+    },
+    {
+      widgetId: "conflict",
+      title: "Conflict Tools",
+      description: "Resolve with I-Statements",
+      icon: Scale,
+      path: "/conflict-resolution",
+      size: "sm",
+    },
+    {
+      widgetId: "pause",
+      title: "Pause",
+      description: "Take a mindful break",
+      icon: Pause,
+      path: "/pause",
+      size: "sm",
+    },
+    {
+      widgetId: "journal",
+      title: "Journal",
+      description: "Write together",
+      icon: BookMarked,
+      path: "/couple-journal",
+      size: "sm",
+    },
+    {
+      widgetId: "mood",
+      title: "Mood",
+      description: "Track wellbeing",
+      icon: Smile,
+      path: "/mood-tracker",
+      size: "sm",
+    },
+    {
+      widgetId: "ifs",
+      title: "IFS",
+      description: "Internal Family Systems",
+      icon: Brain,
+      path: "/ifs-intro",
+      size: "sm",
+    },
+    {
+      widgetId: "chores",
+      title: "Chores",
+      description: "Task management",
+      icon: CheckSquare,
+      path: "/chores",
+      size: "sm",
+    },
+    {
+      widgetId: "todos",
+      title: "To-Dos",
+      description: "Shared tasks",
+      icon: ListTodo,
+      path: "/shared-todos",
+      size: "sm",
+    },
+    {
+      widgetId: "financial",
+      title: "Financial",
+      description: "Money tools",
+      icon: DollarSign,
+      path: "/financial-toolkit",
+      size: "sm",
+    },
+    {
+      widgetId: "daily-tips",
+      title: "Daily Tips",
+      description: "Relationship tips",
+      icon: Lightbulb,
+      path: "/daily-tips",
+      size: "sm",
+    },
   ];
 
   const normalizeWidgetSize = (raw: unknown): WidgetSize => {
@@ -234,28 +473,44 @@ export function TherapistDashboardEditor({ coupleId, coupleName }: TherapistDash
     return customization.enabled_widgets[widgetId] !== false;
   };
 
-  const toggleWidget = useCallback(async (widgetId: string) => {
-    const currentEnabled = isWidgetEnabled(widgetId);
-    const newEnabled = { ...customizationQuery.data?.enabled_widgets, [widgetId]: !currentEnabled };
-    
-    setIsSaving(true);
-    try {
-      await invokeDashboardCustomization(coupleId, "PATCH", {
-        enabled_widgets: newEnabled,
-      });
-      queryClient.invalidateQueries({ queryKey: [`/api/dashboard-customization/couple/${coupleId}`] });
-      toast({ 
-        title: currentEnabled ? "Widget hidden" : "Widget shown", 
-        description: `Widget visibility updated` 
-      });
-    } catch (error) {
-      toast({ title: "Error", description: "Failed to update widget visibility", variant: "destructive" });
-    } finally {
-      setIsSaving(false);
-    }
-  }, [customizationQuery.data, coupleId, toast]);
+  const toggleWidget = useCallback(
+    async (widgetId: string) => {
+      const currentEnabled = isWidgetEnabled(widgetId);
+      const newEnabled = {
+        ...customizationQuery.data?.enabled_widgets,
+        [widgetId]: !currentEnabled,
+      };
 
-  const updateWidgetSize = async (widgetId: string, cols: 1 | 2 | 3, rows: 1 | 2) => {
+      setIsSaving(true);
+      try {
+        await invokeDashboardCustomization(coupleId, "PATCH", {
+          enabled_widgets: newEnabled,
+        });
+        queryClient.invalidateQueries({
+          queryKey: [`/api/dashboard-customization/couple/${coupleId}`],
+        });
+        toast({
+          title: currentEnabled ? "Widget hidden" : "Widget shown",
+          description: `Widget visibility updated`,
+        });
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "Failed to update widget visibility",
+          variant: "destructive",
+        });
+      } finally {
+        setIsSaving(false);
+      }
+    },
+    [customizationQuery.data, coupleId, toast],
+  );
+
+  const updateWidgetSize = async (
+    widgetId: string,
+    cols: 1 | 2 | 3,
+    rows: 1 | 2,
+  ) => {
     const currentSizes = customizationQuery.data?.widget_sizes || {};
     const newSizes = { ...currentSizes, [widgetId]: { cols, rows } };
 
@@ -264,39 +519,63 @@ export function TherapistDashboardEditor({ coupleId, coupleName }: TherapistDash
       await invokeDashboardCustomization(coupleId, "PATCH", {
         widget_sizes: newSizes,
       });
-      queryClient.invalidateQueries({ queryKey: [`/api/dashboard-customization/couple/${coupleId}`] });
+      queryClient.invalidateQueries({
+        queryKey: [`/api/dashboard-customization/couple/${coupleId}`],
+      });
       toast({ title: "Widget resized", description: `Layout updated` });
     } catch (error) {
-      toast({ title: "Error", description: "Failed to resize widget", variant: "destructive" });
+      toast({
+        title: "Error",
+        description: "Failed to resize widget",
+        variant: "destructive",
+      });
     } finally {
       setIsSaving(false);
     }
   };
 
-  const handleDragEnd = useCallback(async (result: DropResult) => {
-    if (!result.destination) return;
-    const items = Array.from(localWidgetOrder.length > 0 ? localWidgetOrder : allWidgets.map(a => a.widgetId));
-    const [reorderedItem] = items.splice(result.source.index, 1);
-    items.splice(result.destination.index, 0, reorderedItem);
-    setLocalWidgetOrder(items);
+  const handleDragEnd = useCallback(
+    async (result: DropResult) => {
+      if (!result.destination) return;
+      const items = Array.from(
+        localWidgetOrder.length > 0
+          ? localWidgetOrder
+          : allWidgets.map((a) => a.widgetId),
+      );
+      const [reorderedItem] = items.splice(result.source.index, 1);
+      items.splice(result.destination.index, 0, reorderedItem);
+      setLocalWidgetOrder(items);
 
-    setIsSaving(true);
-    try {
-      await invokeDashboardCustomization(coupleId, "PATCH", {
-        widget_order: items,
-      });
-      queryClient.invalidateQueries({ queryKey: [`/api/dashboard-customization/couple/${coupleId}`] });
-      toast({ title: "Order saved", description: `Widget order updated` });
-    } catch (error) {
-      toast({ title: "Error", description: "Failed to save order", variant: "destructive" });
-    } finally {
-      setIsSaving(false);
-    }
-  }, [localWidgetOrder, allWidgets, coupleId, toast]);
+      setIsSaving(true);
+      try {
+        await invokeDashboardCustomization(coupleId, "PATCH", {
+          widget_order: items,
+        });
+        queryClient.invalidateQueries({
+          queryKey: [`/api/dashboard-customization/couple/${coupleId}`],
+        });
+        toast({ title: "Order saved", description: `Widget order updated` });
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "Failed to save order",
+          variant: "destructive",
+        });
+      } finally {
+        setIsSaving(false);
+      }
+    },
+    [localWidgetOrder, allWidgets, coupleId, toast],
+  );
 
   const orderedWidgets = (() => {
-    const order = localWidgetOrder.length > 0 ? localWidgetOrder : customizationQuery.data?.widget_order || [];
-    const enabledWidgets = allWidgets.filter((a) => isWidgetEnabled(a.widgetId));
+    const order =
+      localWidgetOrder.length > 0
+        ? localWidgetOrder
+        : customizationQuery.data?.widget_order || [];
+    const enabledWidgets = allWidgets.filter((a) =>
+      isWidgetEnabled(a.widgetId),
+    );
     if (order.length === 0) return enabledWidgets;
     return enabledWidgets.sort((a, b) => {
       const indexA = order.indexOf(a.widgetId);
@@ -309,11 +588,16 @@ export function TherapistDashboardEditor({ coupleId, coupleName }: TherapistDash
 
   const hiddenWidgets = allWidgets.filter((w) => !isWidgetEnabled(w.widgetId));
 
-  const renderSpecialWidget = (widget: typeof allWidgets[0]) => {
+  const renderSpecialWidget = (widget: (typeof allWidgets)[0]) => {
     if (widget.type === "therapist") {
-      const hasData = therapistThoughtsQuery.isSuccess && therapistThoughtsQuery.data?.length > 0;
+      const hasData =
+        therapistThoughtsQuery.isSuccess &&
+        therapistThoughtsQuery.data?.length > 0;
       return (
-        <Card className="glass-card border-none overflow-hidden h-full" data-testid="card-therapist-preview">
+        <Card
+          className="glass-card border-none overflow-hidden h-full"
+          data-testid="card-therapist-preview"
+        >
           <div className="gradient-animate" />
           <CardHeader className="relative z-10 pb-2">
             <div className="flex items-center justify-between flex-wrap gap-2">
@@ -321,7 +605,12 @@ export function TherapistDashboardEditor({ coupleId, coupleName }: TherapistDash
                 <MessageCircle className="h-4 w-4 text-primary" />
                 From Your Therapist
               </CardTitle>
-              <Button variant="ghost" size="sm" className="text-xs h-7" disabled>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-xs h-7"
+                disabled
+              >
                 View <ArrowRight className="ml-1 h-3 w-3" />
               </Button>
             </div>
@@ -333,7 +622,10 @@ export function TherapistDashboardEditor({ coupleId, coupleName }: TherapistDash
               </div>
             ) : hasData ? (
               therapistThoughtsQuery.data.slice(0, 2).map((thought: any) => (
-                <div key={thought.id} className="p-2 rounded-lg bg-background/60 backdrop-blur-sm border border-border/30">
+                <div
+                  key={thought.id}
+                  className="p-2 rounded-lg bg-background/60 backdrop-blur-sm border border-border/30"
+                >
                   <div className="flex items-start gap-2">
                     <div className="mt-0.5">
                       {thought.thought_type === "todo" ? (
@@ -342,12 +634,16 @@ export function TherapistDashboardEditor({ coupleId, coupleName }: TherapistDash
                         <MessageCircle className="h-3 w-3 text-primary" />
                       )}
                     </div>
-                    <p className="text-xs line-clamp-1">{thought.title || thought.content}</p>
+                    <p className="text-xs line-clamp-1">
+                      {thought.title || thought.content}
+                    </p>
                   </div>
                 </div>
               ))
             ) : (
-              <p className="text-xs text-muted-foreground text-center py-2">No messages yet</p>
+              <p className="text-xs text-muted-foreground text-center py-2">
+                No messages yet
+              </p>
             )}
           </CardContent>
         </Card>
@@ -357,7 +653,10 @@ export function TherapistDashboardEditor({ coupleId, coupleName }: TherapistDash
     if (widget.type === "suggestion") {
       const hasData = dailyTipsQuery.isSuccess && dailyTipsQuery.data?.tip_text;
       return (
-        <Card className="glass-card border-none overflow-hidden h-full luxury-widget" data-testid="card-suggestion-preview">
+        <Card
+          className="glass-card border-none overflow-hidden h-full luxury-widget"
+          data-testid="card-suggestion-preview"
+        >
           <div className="gradient-animate bg-gradient-to-br from-emerald-500/10 to-teal-500/8" />
           <CardHeader className="relative z-10 pb-2">
             <div className="flex items-center justify-between flex-wrap gap-2">
@@ -379,9 +678,13 @@ export function TherapistDashboardEditor({ coupleId, coupleName }: TherapistDash
                 <div className="h-3 bg-muted rounded w-1/2" />
               </div>
             ) : hasData ? (
-              <p className="text-sm line-clamp-3">{dailyTipsQuery.data.tip_text}</p>
+              <p className="text-sm line-clamp-3">
+                {dailyTipsQuery.data.tip_text}
+              </p>
             ) : (
-              <p className="text-xs text-muted-foreground text-center py-2">Check back tomorrow</p>
+              <p className="text-xs text-muted-foreground text-center py-2">
+                Check back tomorrow
+              </p>
             )}
           </CardContent>
         </Card>
@@ -390,7 +693,10 @@ export function TherapistDashboardEditor({ coupleId, coupleName }: TherapistDash
 
     if (widget.type === "ai") {
       return (
-        <Card className="glass-card border-none overflow-hidden h-full" data-testid="card-ai-preview">
+        <Card
+          className="glass-card border-none overflow-hidden h-full"
+          data-testid="card-ai-preview"
+        >
           <div className="gradient-animate bg-gradient-to-br from-amber-500/10 to-orange-500/8" />
           <CardHeader className="relative z-10 pb-2">
             <CardTitle className="text-sm flex items-center gap-2">
@@ -401,7 +707,9 @@ export function TherapistDashboardEditor({ coupleId, coupleName }: TherapistDash
           <CardContent className="relative z-10 space-y-2">
             <div className="p-2 rounded-lg bg-background/60 backdrop-blur-sm border border-border/30">
               <p className="font-medium text-xs">AI Recommendations</p>
-              <p className="text-xs text-muted-foreground line-clamp-1">Based on couple's activity</p>
+              <p className="text-xs text-muted-foreground line-clamp-1">
+                Based on couple's activity
+              </p>
             </div>
           </CardContent>
         </Card>
@@ -411,7 +719,10 @@ export function TherapistDashboardEditor({ coupleId, coupleName }: TherapistDash
     if (widget.type === "love-results") {
       const hasData = loveLanguages.length > 0;
       return (
-        <Card className="glass-card border-none overflow-hidden h-full luxury-widget" data-testid="card-love-preview">
+        <Card
+          className="glass-card border-none overflow-hidden h-full luxury-widget"
+          data-testid="card-love-preview"
+        >
           <div className="gradient-animate bg-gradient-to-br from-rose-500/8 to-pink-500/6" />
           <CardHeader className="relative z-10 pb-2">
             <CardTitle className="flex items-center gap-2 text-sm">
@@ -423,14 +734,21 @@ export function TherapistDashboardEditor({ coupleId, coupleName }: TherapistDash
             {hasData ? (
               <div className="grid grid-cols-2 gap-2">
                 {loveLanguages.slice(0, 2).map((lang, idx) => (
-                  <div key={lang.id || idx} className="p-2 rounded-lg bg-background/60 backdrop-blur-sm border border-border/30">
+                  <div
+                    key={lang.id || idx}
+                    className="p-2 rounded-lg bg-background/60 backdrop-blur-sm border border-border/30"
+                  >
                     <p className="text-xs font-medium">Partner {idx + 1}</p>
-                    <p className="text-xs text-muted-foreground">{lang.primary_language}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {lang.primary_language}
+                    </p>
                   </div>
                 ))}
               </div>
             ) : (
-              <p className="text-xs text-muted-foreground text-center py-2">No love language data yet</p>
+              <p className="text-xs text-muted-foreground text-center py-2">
+                No love language data yet
+              </p>
             )}
           </CardContent>
         </Card>
@@ -480,7 +798,8 @@ export function TherapistDashboardEditor({ coupleId, coupleName }: TherapistDash
 
       <div className="bg-gradient-to-br from-background via-background to-primary/5 p-4 rounded-xl border">
         <p className="text-xs text-muted-foreground mb-4">
-          This is exactly how the client sees their dashboard. Drag widgets to reorder, use buttons to resize or hide.
+          This is exactly how the client sees their dashboard. Drag widgets to
+          reorder, use buttons to resize or hide.
         </p>
 
         <DragDropContext onDragEnd={handleDragEnd}>
@@ -496,9 +815,12 @@ export function TherapistDashboardEditor({ coupleId, coupleName }: TherapistDash
                   const variant = widgetVariants[widget.widgetId] || "default";
                   const widgetSize = getWidgetSize(widget.widgetId);
                   const colSpanClass = widgetSize.cols >= 2 ? "col-span-2" : "";
-                  const rowSpanClass = widgetSize.rows === 2 ? "row-span-2" : "";
+                  const rowSpanClass =
+                    widgetSize.rows === 2 ? "row-span-2" : "";
 
-                  const specialContent = widget.type ? renderSpecialWidget(widget) : null;
+                  const specialContent = widget.type
+                    ? renderSpecialWidget(widget)
+                    : null;
 
                   return (
                     <Draggable
@@ -514,7 +836,8 @@ export function TherapistDashboardEditor({ coupleId, coupleName }: TherapistDash
                             colSpanClass,
                             rowSpanClass,
                             "relative group transition-all duration-200",
-                            snapshot.isDragging && "z-50 scale-[1.02] shadow-xl"
+                            snapshot.isDragging &&
+                              "z-50 scale-[1.02] shadow-xl",
                           )}
                         >
                           <div
@@ -535,15 +858,29 @@ export function TherapistDashboardEditor({ coupleId, coupleName }: TherapistDash
                                   {widgetSize.cols}×{widgetSize.rows}
                                 </Button>
                               </PopoverTrigger>
-                              <PopoverContent className="w-auto p-2" align="end">
+                              <PopoverContent
+                                className="w-auto p-2"
+                                align="end"
+                              >
                                 <div className="grid grid-cols-3 gap-1">
                                   {SIZE_OPTIONS.map((opt) => (
                                     <Button
                                       key={opt.label}
                                       size="sm"
-                                      variant={widgetSize.cols === opt.cols && widgetSize.rows === opt.rows ? "default" : "ghost"}
+                                      variant={
+                                        widgetSize.cols === opt.cols &&
+                                        widgetSize.rows === opt.rows
+                                          ? "default"
+                                          : "ghost"
+                                      }
                                       className="h-8 text-xs"
-                                      onClick={() => updateWidgetSize(widget.widgetId, opt.cols, opt.rows)}
+                                      onClick={() =>
+                                        updateWidgetSize(
+                                          widget.widgetId,
+                                          opt.cols,
+                                          opt.rows,
+                                        )
+                                      }
                                       data-testid={`size-${widget.widgetId}-${opt.label}`}
                                     >
                                       {opt.label}
@@ -564,7 +901,9 @@ export function TherapistDashboardEditor({ coupleId, coupleName }: TherapistDash
                               <EyeOff className="h-3 w-3" />
                             </button>
                           </div>
-                          {widget.type ? specialContent : (
+                          {widget.type ? (
+                            specialContent
+                          ) : (
                             <LuxuryWidget
                               title={widget.title}
                               description={widget.description}

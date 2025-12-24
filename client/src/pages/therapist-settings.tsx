@@ -1,5 +1,11 @@
 import { useAuth } from "@/lib/auth-context";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -23,7 +29,10 @@ export default function TherapistSettings() {
 
   return (
     <div className="max-w-2xl mx-auto p-4 md:p-8">
-      <Link href="/admin/couple" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6">
+      <Link
+        href="/admin/couple"
+        className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6"
+      >
         <ArrowLeft className="h-4 w-4" />
         Back to Dashboard
       </Link>
@@ -31,19 +40,30 @@ export default function TherapistSettings() {
       <div className="space-y-6">
         <div>
           <h1 className="text-3xl font-bold">Settings</h1>
-          <p className="text-muted-foreground mt-2">Manage your preferences and account settings</p>
+          <p className="text-muted-foreground mt-2">
+            Manage your preferences and account settings
+          </p>
         </div>
 
         <Card>
           <CardHeader>
             <CardTitle>Notifications</CardTitle>
-            <CardDescription>Control how you receive notifications</CardDescription>
+            <CardDescription>
+              Control how you receive notifications
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="flex items-center justify-between py-2">
               <div className="space-y-0.5">
-                <Label htmlFor="notifications" className="text-base font-medium">Enable Notifications</Label>
-                <p className="text-sm text-muted-foreground">Receive push notifications for important updates</p>
+                <Label
+                  htmlFor="notifications"
+                  className="text-base font-medium"
+                >
+                  Enable Notifications
+                </Label>
+                <p className="text-sm text-muted-foreground">
+                  Receive push notifications for important updates
+                </p>
               </div>
               <Switch
                 id="notifications"
@@ -55,8 +75,15 @@ export default function TherapistSettings() {
 
             <div className="flex items-center justify-between py-2 border-t pt-4">
               <div className="space-y-0.5">
-                <Label htmlFor="emailReminders" className="text-base font-medium">Email Reminders</Label>
-                <p className="text-sm text-muted-foreground">Receive email reminders for therapy sessions</p>
+                <Label
+                  htmlFor="emailReminders"
+                  className="text-base font-medium"
+                >
+                  Email Reminders
+                </Label>
+                <p className="text-sm text-muted-foreground">
+                  Receive email reminders for therapy sessions
+                </p>
               </div>
               <Switch
                 id="emailReminders"
@@ -76,8 +103,12 @@ export default function TherapistSettings() {
           <CardContent className="space-y-6">
             <div className="flex items-center justify-between py-2">
               <div className="space-y-0.5">
-                <Label htmlFor="darkMode" className="text-base font-medium">Dark Mode</Label>
-                <p className="text-sm text-muted-foreground">Enable dark theme for easier viewing</p>
+                <Label htmlFor="darkMode" className="text-base font-medium">
+                  Dark Mode
+                </Label>
+                <p className="text-sm text-muted-foreground">
+                  Enable dark theme for easier viewing
+                </p>
               </div>
               <Switch
                 id="darkMode"
@@ -95,10 +126,18 @@ export default function TherapistSettings() {
             <CardDescription>Manage your account security</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <Button variant="outline" className="w-full" data-testid="button-change-password">
+            <Button
+              variant="outline"
+              className="w-full"
+              data-testid="button-change-password"
+            >
               Change Password
             </Button>
-            <Button variant="outline" className="w-full" data-testid="button-sessions">
+            <Button
+              variant="outline"
+              className="w-full"
+              data-testid="button-sessions"
+            >
               Active Sessions
             </Button>
           </CardContent>

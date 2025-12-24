@@ -279,7 +279,7 @@ const compatibilityInsights: Record<
 
 function getCompatibilityKey(
   style1: AttachmentStyle,
-  style2: AttachmentStyle
+  style2: AttachmentStyle,
 ): string {
   const sorted = [style1, style2].sort();
   return `${sorted[0]}-${sorted[1]}`;
@@ -304,7 +304,9 @@ export default function AttachmentResults() {
       if (coupleError || !couple) return null;
 
       const partnerId =
-        couple.partner1_id === user.id ? couple.partner2_id : couple.partner1_id;
+        couple.partner1_id === user.id
+          ? couple.partner2_id
+          : couple.partner1_id;
       if (!partnerId) return null;
 
       const { data: partner, error: partnerError } = await supabase
@@ -357,7 +359,7 @@ export default function AttachmentResults() {
 
   const myResult = allResults?.find((r) => r.user_id === user?.id);
   const partnerResult = allResults?.find(
-    (r) => r.user_id === partnerProfile?.id
+    (r) => r.user_id === partnerProfile?.id,
   );
 
   if (isLoading) {
@@ -405,10 +407,9 @@ export default function AttachmentResults() {
   const partnerName =
     (partnerProfile as ProfileWithCouple)?.full_name || "Your Partner";
 
-  const compatibility =
-    partnerStyle
-      ? compatibilityInsights[getCompatibilityKey(myStyle, partnerStyle)]
-      : null;
+  const compatibility = partnerStyle
+    ? compatibilityInsights[getCompatibilityKey(myStyle, partnerStyle)]
+    : null;
 
   return (
     <div className="min-h-screen p-4 md:p-8 bg-gradient-to-br from-background to-accent/10">
@@ -478,7 +479,9 @@ export default function AttachmentResults() {
                     <p className="text-xs text-muted-foreground uppercase tracking-wide">
                       {partnerName}'s Style
                     </p>
-                    <h2 className="text-xl font-bold">{partnerDetails.title}</h2>
+                    <h2 className="text-xl font-bold">
+                      {partnerDetails.title}
+                    </h2>
                   </div>
                 </div>
                 {partnerResult.score && (
@@ -502,8 +505,8 @@ export default function AttachmentResults() {
                 <Users className="h-12 w-12 text-muted-foreground/50 mb-4" />
                 <h3 className="font-semibold mb-2">Waiting for Partner</h3>
                 <p className="text-sm text-muted-foreground mb-4">
-                  Ask your partner to take the Attachment assessment to see
-                  your compatibility.
+                  Ask your partner to take the Attachment assessment to see your
+                  compatibility.
                 </p>
                 <Button
                   variant="outline"

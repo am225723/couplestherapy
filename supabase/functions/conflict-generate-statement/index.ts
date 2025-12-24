@@ -169,13 +169,24 @@ Deno.serve(async (req) => {
 
     // Parse request body
     const body: GenerateRequest = await req.json();
-    const { feeling, situation, because, request, firmness = 50, mode = "structured", free_text } = body;
+    const {
+      feeling,
+      situation,
+      because,
+      request,
+      firmness = 50,
+      mode = "structured",
+      free_text,
+    } = body;
 
     // Validate based on mode
     if (mode === "express") {
       if (!free_text || free_text.trim().length < 10) {
         return new Response(
-          JSON.stringify({ error: "Please express what you want to say (at least 10 characters)" }),
+          JSON.stringify({
+            error:
+              "Please express what you want to say (at least 10 characters)",
+          }),
           {
             headers: { ...corsHeaders, "Content-Type": "application/json" },
             status: 400,
@@ -185,7 +196,10 @@ Deno.serve(async (req) => {
     } else {
       if (!feeling || !situation || !because || !request) {
         return new Response(
-          JSON.stringify({ error: "Missing required fields: feeling, situation, because, request" }),
+          JSON.stringify({
+            error:
+              "Missing required fields: feeling, situation, because, request",
+          }),
           {
             headers: { ...corsHeaders, "Content-Type": "application/json" },
             status: 400,
@@ -276,9 +290,10 @@ Return ONLY the JSON, no additional text.`;
     await supabaseAdmin.from("Couples_conflict_ai_events").insert({
       user_id: userId,
       request_type: "generate_statement",
-      prompt_payload: mode === "express" 
-        ? { mode, free_text, firmness }
-        : { mode, feeling, situation, because, request, firmness },
+      prompt_payload:
+        mode === "express"
+          ? { mode, free_text, firmness }
+          : { mode, feeling, situation, because, request, firmness },
       response_text: result.content,
       response_parsed: parsed,
       error_message: parsed ? null : "Failed to parse AI response",
@@ -293,14 +308,16 @@ Return ONLY the JSON, no additional text.`;
         const truncatedContext = free_text.slice(0, 100);
         fallbackStatement = `I'm feeling something important that I need to express about: "${truncatedContext}..." Could we talk about this together so I can share what's on my mind?`;
       } else if (feeling && situation) {
-        fallbackStatement = `I feel ${feeling} when ${situation}${because ? `, because ${because}` : ''}. ${request ? `Could we ${request}?` : 'Can we talk about this?'}`;
+        fallbackStatement = `I feel ${feeling} when ${situation}${because ? `, because ${because}` : ""}. ${request ? `Could we ${request}?` : "Can we talk about this?"}`;
       } else {
-        fallbackStatement = "I have something important I'd like to discuss with you. Could we find a good time to talk?";
+        fallbackStatement =
+          "I have something important I'd like to discuss with you. Could we find a good time to talk?";
       }
       return new Response(
         JSON.stringify({
           enhanced_statement: fallbackStatement,
-          impact_preview: "This I-statement focuses on expressing your feelings without blame, opening the door for constructive dialogue.",
+          impact_preview:
+            "This I-statement focuses on expressing your feelings without blame, opening the door for constructive dialogue.",
           tone_description: toneDescription,
         }),
         {

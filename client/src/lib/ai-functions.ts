@@ -119,7 +119,12 @@ export interface GrowthExercise {
   id: string;
   title: string;
   description: string;
-  category: "communication" | "intimacy" | "conflict" | "appreciation" | "goals";
+  category:
+    | "communication"
+    | "intimacy"
+    | "conflict"
+    | "appreciation"
+    | "goals";
   duration_minutes: number;
   frequency: "daily" | "weekly" | "bi-weekly";
   rationale: string;
@@ -338,8 +343,8 @@ async function invokeFunctionWithParams<T>(
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
   const params = new URLSearchParams(queryParams);
   const queryString = params.toString();
-  const url = queryString 
-    ? `${supabaseUrl}/functions/v1/${functionName}?${queryString}` 
+  const url = queryString
+    ? `${supabaseUrl}/functions/v1/${functionName}?${queryString}`
     : `${supabaseUrl}/functions/v1/${functionName}`;
 
   const response = await fetch(url, {
@@ -355,7 +360,9 @@ async function invokeFunctionWithParams<T>(
       throw new Error("Session expired. Please log in again.");
     }
     if (response.status === 403) {
-      throw new Error("Access denied. You do not have permission to perform this action.");
+      throw new Error(
+        "Access denied. You do not have permission to perform this action.",
+      );
     }
     const errorData = await response.json().catch(() => ({}));
     throw new Error(errorData.error || `Failed to call ${functionName}`);
@@ -436,7 +443,10 @@ export const aiFunctions = {
    * Get therapist analytics for all couples (Therapist-only, cross-therapist access)
    */
   async getTherapistAnalytics(): Promise<TherapistAnalyticsResponse> {
-    return invokeFunctionWithParams<TherapistAnalyticsResponse>("therapist-analytics", {});
+    return invokeFunctionWithParams<TherapistAnalyticsResponse>(
+      "therapist-analytics",
+      {},
+    );
   },
 
   /**
@@ -456,7 +466,11 @@ export const aiFunctions = {
   async createTherapistThought(
     input: TherapistThoughtInput,
   ): Promise<TherapistThought> {
-    return invokeFunction<TherapistThought>("therapist-thoughts", input, "POST");
+    return invokeFunction<TherapistThought>(
+      "therapist-thoughts",
+      input,
+      "POST",
+    );
   },
 
   /**
@@ -468,20 +482,30 @@ export const aiFunctions = {
     thoughtId: string,
     updates: Partial<TherapistThoughtInput & { is_completed: boolean }>,
   ): Promise<TherapistThought> {
-    return invokeFunction<TherapistThought>("therapist-thoughts", {
-      thought_id: thoughtId,
-      ...updates,
-    }, "PATCH");
+    return invokeFunction<TherapistThought>(
+      "therapist-thoughts",
+      {
+        thought_id: thoughtId,
+        ...updates,
+      },
+      "PATCH",
+    );
   },
 
   /**
    * Delete a therapist thought (Therapist-only, only own thoughts)
    * @param thoughtId - The thought ID to delete
    */
-  async deleteTherapistThought(thoughtId: string): Promise<{ success: boolean }> {
-    return invokeFunction<{ success: boolean }>("therapist-thoughts", {
-      thought_id: thoughtId,
-    }, "DELETE");
+  async deleteTherapistThought(
+    thoughtId: string,
+  ): Promise<{ success: boolean }> {
+    return invokeFunction<{ success: boolean }>(
+      "therapist-thoughts",
+      {
+        thought_id: thoughtId,
+      },
+      "DELETE",
+    );
   },
 
   /**
@@ -500,10 +524,14 @@ export const aiFunctions = {
    * @param messageText - The message content
    */
   async sendMessage(coupleId: string, messageText: string): Promise<Message> {
-    return invokeFunction<Message>("therapist-messages", {
-      couple_id: coupleId,
-      message_text: messageText,
-    }, "POST");
+    return invokeFunction<Message>(
+      "therapist-messages",
+      {
+        couple_id: coupleId,
+        message_text: messageText,
+      },
+      "POST",
+    );
   },
 
   /**
@@ -511,9 +539,13 @@ export const aiFunctions = {
    * @param messageId - The message ID to mark as read
    */
   async markMessageRead(messageId: string): Promise<{ success: boolean }> {
-    return invokeFunction<{ success: boolean }>("therapist-messages", {
-      message_id: messageId,
-    }, "PUT");
+    return invokeFunction<{ success: boolean }>(
+      "therapist-messages",
+      {
+        message_id: messageId,
+      },
+      "PUT",
+    );
   },
 
   // ========================================
@@ -526,9 +558,12 @@ export const aiFunctions = {
    * @param coupleId - The couple ID to get voice memos for
    */
   async getTherapistVoiceMemos(coupleId: string): Promise<VoiceMemoMetadata[]> {
-    return invokeFunctionWithParams<VoiceMemoMetadata[]>("therapist-voice-memos", {
-      couple_id: coupleId,
-    });
+    return invokeFunctionWithParams<VoiceMemoMetadata[]>(
+      "therapist-voice-memos",
+      {
+        couple_id: coupleId,
+      },
+    );
   },
 
   /**
@@ -536,7 +571,10 @@ export const aiFunctions = {
    * Returns a personalized tip if assessments are completed, generic tip otherwise
    */
   async getPersonalizedDailyTip(): Promise<PersonalizedTipResponse> {
-    return invokeFunctionWithParams<PersonalizedTipResponse>("ai-personalized-daily-tip", {});
+    return invokeFunctionWithParams<PersonalizedTipResponse>(
+      "ai-personalized-daily-tip",
+      {},
+    );
   },
 
   // ========================================
@@ -547,16 +585,26 @@ export const aiFunctions = {
    * Generate an enhanced I-statement with AI assistance
    * @param payload - The I-statement components and firmness level
    */
-  async generateConflictStatement(payload: ConflictStatementRequest): Promise<ConflictStatementResponse> {
-    return invokeFunction<ConflictStatementResponse>("conflict-generate-statement", payload);
+  async generateConflictStatement(
+    payload: ConflictStatementRequest,
+  ): Promise<ConflictStatementResponse> {
+    return invokeFunction<ConflictStatementResponse>(
+      "conflict-generate-statement",
+      payload,
+    );
   },
 
   /**
    * Get AI-powered suggestions for conflict resolution
    * @param payload - The conflict context
    */
-  async generateConflictSuggestions(payload: ConflictSuggestionsRequest): Promise<ConflictSuggestionsResponse> {
-    return invokeFunction<ConflictSuggestionsResponse>("conflict-generate-suggestions", payload);
+  async generateConflictSuggestions(
+    payload: ConflictSuggestionsRequest,
+  ): Promise<ConflictSuggestionsResponse> {
+    return invokeFunction<ConflictSuggestionsResponse>(
+      "conflict-generate-suggestions",
+      payload,
+    );
   },
 
   // ========================================

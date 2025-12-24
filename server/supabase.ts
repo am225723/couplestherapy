@@ -10,7 +10,9 @@ if (!supabaseUrl || !supabaseServiceKey) {
     hasUrl: !!supabaseUrl,
     hasServiceKey: !!supabaseServiceKey,
   });
-  throw new Error("Missing Supabase environment variables: SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are required");
+  throw new Error(
+    "Missing Supabase environment variables: SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are required",
+  );
 }
 
 export const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {

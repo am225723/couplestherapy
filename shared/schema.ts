@@ -62,7 +62,9 @@ export type Couple = typeof couplesCouples.$inferSelect;
 
 // 3. LOVE LANGUAGES TABLE
 export const couplesLoveLanguages = pgTable("Couples_love_languages", {
-  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: uuid("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   couple_id: uuid("couple_id"), // Optional - may not exist in all Supabase instances
   user_id: uuid("user_id").notNull(),
   primary_language: text("primary_language"),
@@ -524,8 +526,12 @@ export const couplesNotificationPreferences = pgTable(
     tips_enabled: boolean("tips_enabled").default(true),
     tips_frequency: text("tips_frequency").default("daily"), // 'daily', 'weekly'
     tips_time: text("tips_time").default("08:00:00"),
-    push_notifications_enabled: boolean("push_notifications_enabled").default(true),
-    email_notifications_enabled: boolean("email_notifications_enabled").default(false),
+    push_notifications_enabled: boolean("push_notifications_enabled").default(
+      true,
+    ),
+    email_notifications_enabled: boolean("email_notifications_enabled").default(
+      false,
+    ),
     created_at: timestamp("created_at").defaultNow(),
     updated_at: timestamp("updated_at").defaultNow(),
   },
@@ -1110,16 +1116,21 @@ export type InsertTherapistPrompt = z.infer<typeof insertTherapistPromptSchema>;
 export type TherapistPrompt = typeof couplesTherapistPrompts.$inferSelect;
 
 // 29b. REFLECTION RESPONSES - Couple responses to therapist-initiated reflection prompts
-export const couplesReflectionResponses = pgTable("Couples_reflection_responses", {
-  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
-  prompt_id: uuid("prompt_id").notNull(), // FK to Couples_therapist_prompts
-  couple_id: uuid("couple_id").notNull(),
-  responder_id: uuid("responder_id").notNull(), // FK to Couples_profiles (which partner responded)
-  response_text: text("response_text").notNull(),
-  is_shared_with_partner: boolean("is_shared_with_partner").default(false),
-  created_at: timestamp("created_at").defaultNow(),
-  updated_at: timestamp("updated_at").defaultNow(),
-});
+export const couplesReflectionResponses = pgTable(
+  "Couples_reflection_responses",
+  {
+    id: uuid("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    prompt_id: uuid("prompt_id").notNull(), // FK to Couples_therapist_prompts
+    couple_id: uuid("couple_id").notNull(),
+    responder_id: uuid("responder_id").notNull(), // FK to Couples_profiles (which partner responded)
+    response_text: text("response_text").notNull(),
+    is_shared_with_partner: boolean("is_shared_with_partner").default(false),
+    created_at: timestamp("created_at").defaultNow(),
+    updated_at: timestamp("updated_at").defaultNow(),
+  },
+);
 
 export const insertReflectionResponseSchema = createInsertSchema(
   couplesReflectionResponses,
@@ -1128,14 +1139,18 @@ export const insertReflectionResponseSchema = createInsertSchema(
   created_at: true,
   updated_at: true,
 });
-export type InsertReflectionResponse = z.infer<typeof insertReflectionResponseSchema>;
+export type InsertReflectionResponse = z.infer<
+  typeof insertReflectionResponseSchema
+>;
 export type ReflectionResponse = typeof couplesReflectionResponses.$inferSelect;
 
 // ============ MODULE SUBSCRIPTIONS ============
 
 // 30. AVAILABLE MODULES - Registry of purchasable modules
 export const couplesModules = pgTable("Couples_modules", {
-  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: uuid("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   slug: text("slug").notNull().unique(), // 'chores', 'ifs', 'conflict-resolution'
   name: text("name").notNull(),
   description: text("description"),
@@ -1157,19 +1172,24 @@ export type Module = typeof couplesModules.$inferSelect;
 // - price metadata: { interval: 'month' | 'year' }
 
 // 31. USER MODULE SUBSCRIPTIONS - Per-user access to modules
-export const couplesModuleSubscriptions = pgTable("Couples_module_subscriptions", {
-  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
-  user_id: uuid("user_id").notNull(), // Per-user, not per-couple
-  module_id: uuid("module_id").notNull(),
-  stripe_subscription_id: text("stripe_subscription_id"),
-  stripe_customer_id: text("stripe_customer_id"),
-  status: text("status").notNull().default("active"), // 'active', 'canceled', 'past_due', 'trialing'
-  current_period_start: timestamp("current_period_start"),
-  current_period_end: timestamp("current_period_end"),
-  cancel_at_period_end: boolean("cancel_at_period_end").default(false),
-  created_at: timestamp("created_at").defaultNow(),
-  updated_at: timestamp("updated_at").defaultNow(),
-});
+export const couplesModuleSubscriptions = pgTable(
+  "Couples_module_subscriptions",
+  {
+    id: uuid("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    user_id: uuid("user_id").notNull(), // Per-user, not per-couple
+    module_id: uuid("module_id").notNull(),
+    stripe_subscription_id: text("stripe_subscription_id"),
+    stripe_customer_id: text("stripe_customer_id"),
+    status: text("status").notNull().default("active"), // 'active', 'canceled', 'past_due', 'trialing'
+    current_period_start: timestamp("current_period_start"),
+    current_period_end: timestamp("current_period_end"),
+    cancel_at_period_end: boolean("cancel_at_period_end").default(false),
+    created_at: timestamp("created_at").defaultNow(),
+    updated_at: timestamp("updated_at").defaultNow(),
+  },
+);
 
 export const insertModuleSubscriptionSchema = createInsertSchema(
   couplesModuleSubscriptions,
@@ -1178,18 +1198,25 @@ export const insertModuleSubscriptionSchema = createInsertSchema(
   created_at: true,
   updated_at: true,
 });
-export type InsertModuleSubscription = z.infer<typeof insertModuleSubscriptionSchema>;
+export type InsertModuleSubscription = z.infer<
+  typeof insertModuleSubscriptionSchema
+>;
 export type ModuleSubscription = typeof couplesModuleSubscriptions.$inferSelect;
 
 // 32. MODULE ACCESS TOKENS - Short-lived tokens for secure module access
-export const couplesModuleAccessTokens = pgTable("Couples_module_access_tokens", {
-  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
-  user_id: uuid("user_id").notNull(),
-  module_id: uuid("module_id").notNull(),
-  token_hash: text("token_hash").notNull(),
-  expires_at: timestamp("expires_at").notNull(),
-  created_at: timestamp("created_at").defaultNow(),
-});
+export const couplesModuleAccessTokens = pgTable(
+  "Couples_module_access_tokens",
+  {
+    id: uuid("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    user_id: uuid("user_id").notNull(),
+    module_id: uuid("module_id").notNull(),
+    token_hash: text("token_hash").notNull(),
+    expires_at: timestamp("expires_at").notNull(),
+    created_at: timestamp("created_at").defaultNow(),
+  },
+);
 
 export type ModuleAccessToken = typeof couplesModuleAccessTokens.$inferSelect;
 
@@ -1201,26 +1228,28 @@ export type ModuleSlug = (typeof MODULE_SLUGS)[number];
 
 // 33. CONFLICT SESSIONS - Saved I-Statement sessions
 export const couplesConflictSessions = pgTable("Couples_conflict_sessions", {
-  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: uuid("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   user_id: uuid("user_id").notNull(),
   couple_id: uuid("couple_id").notNull(),
-  
+
   // Input mode and free-form text
   input_mode: text("input_mode").default("structured"), // "express" or "structured"
   free_text: text("free_text"), // For Express Freely mode
-  
+
   // I-Statement components (for structured mode)
   feeling: text("feeling").notNull().default(""),
   situation: text("situation").notNull().default(""),
   because: text("because").notNull().default(""),
   request: text("request").notNull().default(""),
-  
+
   // Generated content
   firmness: integer("firmness").notNull().default(50),
   enhanced_statement: text("enhanced_statement"),
   impact_preview: text("impact_preview"),
   ai_suggestions: jsonb("ai_suggestions").default([]),
-  
+
   // Metadata
   title: text("title"),
   is_favorite: boolean("is_favorite").default(false),
@@ -1230,25 +1259,33 @@ export const couplesConflictSessions = pgTable("Couples_conflict_sessions", {
 
 export const insertConflictSessionSchema = createInsertSchema(
   couplesConflictSessions,
-).omit({
-  id: true,
-  created_at: true,
-  updated_at: true,
-}).extend({
-  input_mode: z.enum(["express", "structured"]).optional(),
-  free_text: z.string().nullable().optional(),
-  ai_suggestions: z.array(z.object({
-    title: z.string(),
-    content: z.string(),
-    category: z.string(),
-  })).optional(),
-});
+)
+  .omit({
+    id: true,
+    created_at: true,
+    updated_at: true,
+  })
+  .extend({
+    input_mode: z.enum(["express", "structured"]).optional(),
+    free_text: z.string().nullable().optional(),
+    ai_suggestions: z
+      .array(
+        z.object({
+          title: z.string(),
+          content: z.string(),
+          category: z.string(),
+        }),
+      )
+      .optional(),
+  });
 export type InsertConflictSession = z.infer<typeof insertConflictSessionSchema>;
 export type ConflictSession = typeof couplesConflictSessions.$inferSelect;
 
 // 34. CONFLICT AI EVENTS - Audit log for AI interactions
 export const couplesConflictAiEvents = pgTable("Couples_conflict_ai_events", {
-  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: uuid("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   session_id: uuid("session_id"),
   user_id: uuid("user_id").notNull(),
   request_type: text("request_type").notNull(), // 'generate_statement' | 'generate_suggestions'
@@ -1266,7 +1303,9 @@ export type ConflictAiEvent = typeof couplesConflictAiEvents.$inferSelect;
 
 // 35. SHARED TO-DOS - Tasks shared between couples and therapists
 export const couplesSharedTodos = pgTable("Couples_shared_todos", {
-  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: uuid("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   couple_id: uuid("couple_id").notNull(),
   title: text("title").notNull(),
   description: text("description"),
@@ -1284,17 +1323,19 @@ export const couplesSharedTodos = pgTable("Couples_shared_todos", {
   updated_at: timestamp("updated_at").defaultNow(),
 });
 
-export const insertSharedTodoSchema = createInsertSchema(couplesSharedTodos).omit({
-  id: true,
-  created_at: true,
-  updated_at: true,
-  completed_at: true,
-  completed_by: true,
-}).extend({
-  title: z.string().min(1, "Title is required"),
-  priority: z.enum(["low", "medium", "high"]).optional(),
-  category: z.string().optional(),
-});
+export const insertSharedTodoSchema = createInsertSchema(couplesSharedTodos)
+  .omit({
+    id: true,
+    created_at: true,
+    updated_at: true,
+    completed_at: true,
+    completed_by: true,
+  })
+  .extend({
+    title: z.string().min(1, "Title is required"),
+    priority: z.enum(["low", "medium", "high"]).optional(),
+    category: z.string().optional(),
+  });
 export type InsertSharedTodo = z.infer<typeof insertSharedTodoSchema>;
 export type SharedTodo = typeof couplesSharedTodos.$inferSelect;
 
@@ -1302,7 +1343,9 @@ export type SharedTodo = typeof couplesSharedTodos.$inferSelect;
 
 // 36. LAYOUT TEMPLATES - Therapist-created dashboard layout templates
 export const couplesLayoutTemplates = pgTable("Couples_layout_templates", {
-  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: uuid("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   therapist_id: uuid("therapist_id").notNull(),
   name: text("name").notNull(),
   description: text("description"),
@@ -1316,46 +1359,62 @@ export const couplesLayoutTemplates = pgTable("Couples_layout_templates", {
   updated_at: timestamp("updated_at").defaultNow(),
 });
 
-export const insertLayoutTemplateSchema = createInsertSchema(couplesLayoutTemplates).omit({
-  id: true,
-  created_at: true,
-  updated_at: true,
-  usage_count: true,
-}).extend({
-  name: z.string().min(1, "Template name is required"),
-  widget_order: z.array(z.string()),
-  enabled_widgets: z.record(z.boolean()),
-  widget_sizes: z.record(z.string()),
-  widget_content_overrides: z.record(z.any()).optional(),
-});
+export const insertLayoutTemplateSchema = createInsertSchema(
+  couplesLayoutTemplates,
+)
+  .omit({
+    id: true,
+    created_at: true,
+    updated_at: true,
+    usage_count: true,
+  })
+  .extend({
+    name: z.string().min(1, "Template name is required"),
+    widget_order: z.array(z.string()),
+    enabled_widgets: z.record(z.boolean()),
+    widget_sizes: z.record(z.string()),
+    widget_content_overrides: z.record(z.any()).optional(),
+  });
 export type InsertLayoutTemplate = z.infer<typeof insertLayoutTemplateSchema>;
 export type LayoutTemplate = typeof couplesLayoutTemplates.$inferSelect;
 
 // ============ INDIVIDUAL LAYOUT PREFERENCES ============
 
 // 37. INDIVIDUAL LAYOUT PREFERENCES - Per-user dashboard customization that overrides couple defaults
-export const couplesIndividualLayoutPreferences = pgTable("Couples_individual_layout_preferences", {
-  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
-  user_id: uuid("user_id").notNull().unique(),
-  couple_id: uuid("couple_id").notNull(),
-  use_personal_layout: boolean("use_personal_layout").default(false),
-  widget_order: jsonb("widget_order"),
-  enabled_widgets: jsonb("enabled_widgets"),
-  widget_sizes: jsonb("widget_sizes"),
-  hidden_widgets: jsonb("hidden_widgets").default("[]"),
-  created_at: timestamp("created_at").defaultNow(),
-  updated_at: timestamp("updated_at").defaultNow(),
-});
+export const couplesIndividualLayoutPreferences = pgTable(
+  "Couples_individual_layout_preferences",
+  {
+    id: uuid("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    user_id: uuid("user_id").notNull().unique(),
+    couple_id: uuid("couple_id").notNull(),
+    use_personal_layout: boolean("use_personal_layout").default(false),
+    widget_order: jsonb("widget_order"),
+    enabled_widgets: jsonb("enabled_widgets"),
+    widget_sizes: jsonb("widget_sizes"),
+    hidden_widgets: jsonb("hidden_widgets").default("[]"),
+    created_at: timestamp("created_at").defaultNow(),
+    updated_at: timestamp("updated_at").defaultNow(),
+  },
+);
 
-export const insertIndividualLayoutPreferenceSchema = createInsertSchema(couplesIndividualLayoutPreferences).omit({
-  id: true,
-  created_at: true,
-  updated_at: true,
-}).extend({
-  widget_order: z.array(z.string()).optional(),
-  enabled_widgets: z.record(z.boolean()).optional(),
-  widget_sizes: z.record(z.string()).optional(),
-  hidden_widgets: z.array(z.string()).optional(),
-});
-export type InsertIndividualLayoutPreference = z.infer<typeof insertIndividualLayoutPreferenceSchema>;
-export type IndividualLayoutPreference = typeof couplesIndividualLayoutPreferences.$inferSelect;
+export const insertIndividualLayoutPreferenceSchema = createInsertSchema(
+  couplesIndividualLayoutPreferences,
+)
+  .omit({
+    id: true,
+    created_at: true,
+    updated_at: true,
+  })
+  .extend({
+    widget_order: z.array(z.string()).optional(),
+    enabled_widgets: z.record(z.boolean()).optional(),
+    widget_sizes: z.record(z.string()).optional(),
+    hidden_widgets: z.array(z.string()).optional(),
+  });
+export type InsertIndividualLayoutPreference = z.infer<
+  typeof insertIndividualLayoutPreferenceSchema
+>;
+export type IndividualLayoutPreference =
+  typeof couplesIndividualLayoutPreferences.$inferSelect;

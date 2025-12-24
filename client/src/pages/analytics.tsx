@@ -313,8 +313,8 @@ function AIInsightsDialog({
           <Alert>
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
-              No insights available. Please ensure at least one activity or 
-              assessment has been completed (Love Languages, Weekly Check-ins, 
+              No insights available. Please ensure at least one activity or
+              assessment has been completed (Love Languages, Weekly Check-ins,
               Gratitude Logs, etc.) to generate meaningful insights.
             </AlertDescription>
           </Alert>
@@ -435,7 +435,11 @@ function AIInsightsDialog({
                 <CardContent>
                   <div className="flex flex-wrap gap-2">
                     {insights.data_sources.map((source, index) => (
-                      <Badge key={index} variant="secondary" className="text-xs">
+                      <Badge
+                        key={index}
+                        variant="secondary"
+                        className="text-xs"
+                      >
                         {source}
                       </Badge>
                     ))}

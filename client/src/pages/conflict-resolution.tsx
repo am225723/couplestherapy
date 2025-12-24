@@ -1,6 +1,12 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -51,25 +57,29 @@ export default function ConflictResolution() {
   const { profile, user } = useAuth();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("builder");
-  
+
   // Input mode: "express" (free-form) or "structured"
-  const [inputMode, setInputMode] = useState<"express" | "structured">("express");
-  
+  const [inputMode, setInputMode] = useState<"express" | "structured">(
+    "express",
+  );
+
   // Free-form text for Express Freely mode
   const [freeText, setFreeText] = useState("");
-  
+
   // Structured form state
   const [feeling, setFeeling] = useState("");
   const [situation, setSituation] = useState("");
   const [because, setBecause] = useState("");
   const [request, setRequest] = useState("");
   const [firmness, setFirmness] = useState([30]); // Default to gentle
-  
+
   // Results state
   const [statement, setStatement] = useState("");
   const [impactPreview, setImpactPreview] = useState("");
   const [toneDescription, setToneDescription] = useState("");
-  const [suggestions, setSuggestions] = useState<Array<{ title: string; content: string; category: string }>>([]);
+  const [suggestions, setSuggestions] = useState<
+    Array<{ title: string; content: string; category: string }>
+  >([]);
 
   // Get tone label from firmness value
   const getToneLabel = (value: number) => {
@@ -160,7 +170,7 @@ export default function ConflictResolution() {
       if (!profile?.couple_id) {
         throw new Error("Please log in to save");
       }
-      
+
       const response = await apiRequest("POST", "/api/conflict/sessions", {
         feeling: inputMode === "structured" ? feeling : "",
         situation: inputMode === "structured" ? situation : "",
@@ -173,7 +183,7 @@ export default function ConflictResolution() {
         free_text: inputMode === "express" ? freeText : null,
         input_mode: inputMode,
       });
-      
+
       return response;
     },
     onSuccess: () => {
@@ -195,7 +205,10 @@ export default function ConflictResolution() {
   // Delete session mutation using API route
   const deleteMutation = useMutation({
     mutationFn: async (sessionId: string) => {
-      const response = await apiRequest("DELETE", `/api/conflict/sessions/${sessionId}`);
+      const response = await apiRequest(
+        "DELETE",
+        `/api/conflict/sessions/${sessionId}`,
+      );
       return response;
     },
     onSuccess: () => {
@@ -221,7 +234,7 @@ export default function ConflictResolution() {
     setSituation("");
     setBecause("");
     setRequest("");
-    
+
     // Then load the appropriate mode's data
     if (session.input_mode === "express" && session.free_text) {
       setInputMode("express");
@@ -244,12 +257,16 @@ export default function ConflictResolution() {
     const content = `I-Statement Session
 Generated: ${new Date().toLocaleDateString()}
 
-${inputMode === "express" ? `RAW EXPRESSION:
-${freeText}` : `INPUTS:
+${
+  inputMode === "express"
+    ? `RAW EXPRESSION:
+${freeText}`
+    : `INPUTS:
 - I feel: ${feeling}
 - When: ${situation}
 - Because: ${because}
-- Could we: ${request}`}
+- Could we: ${request}`
+}
 
 - Tone: ${getToneLabel(firmness[0])}
 
@@ -262,7 +279,7 @@ ${impactPreview}
 AI SUGGESTIONS:
 ${suggestions.map((s, i) => `${i + 1}. ${s.title}: ${s.content}`).join("\n\n")}
 `;
-    
+
     const blob = new Blob([content], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -270,46 +287,61 @@ ${suggestions.map((s, i) => `${i + 1}. ${s.title}: ${s.content}`).join("\n\n")}
     a.download = `i-statement-${new Date().toISOString().split("T")[0]}.txt`;
     a.click();
     URL.revokeObjectURL(url);
-    
+
     toast({
       title: "Exported",
       description: "Your session has been downloaded",
     });
   };
 
-  const canGenerate = inputMode === "express" 
-    ? freeText.trim().length > 10 
-    : (feeling && situation && because && request);
+  const canGenerate =
+    inputMode === "express"
+      ? freeText.trim().length > 10
+      : feeling && situation && because && request;
   const isLoading = generateMutation.isPending || suggestionsMutation.isPending;
 
   const getCategoryIcon = (category: string) => {
     switch (category) {
-      case "timing": return <Clock className="w-4 h-4" />;
-      case "understanding": return <Users className="w-4 h-4" />;
-      case "follow-up": return <Heart className="w-4 h-4" />;
-      default: return <Lightbulb className="w-4 h-4" />;
+      case "timing":
+        return <Clock className="w-4 h-4" />;
+      case "understanding":
+        return <Users className="w-4 h-4" />;
+      case "follow-up":
+        return <Heart className="w-4 h-4" />;
+      default:
+        return <Lightbulb className="w-4 h-4" />;
     }
   };
 
   const getCategoryColor = (category: string) => {
     switch (category) {
-      case "timing": return "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300";
-      case "understanding": return "bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300";
-      case "follow-up": return "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300";
-      default: return "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300";
+      case "timing":
+        return "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300";
+      case "understanding":
+        return "bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300";
+      case "follow-up":
+        return "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300";
+      default:
+        return "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300";
     }
   };
 
   return (
     <div className="h-full flex flex-col">
       <div className="p-4 md:p-6 border-b">
-        <h1 className="text-2xl font-bold" data-testid="text-page-title">Conflict Resolution</h1>
+        <h1 className="text-2xl font-bold" data-testid="text-page-title">
+          Conflict Resolution
+        </h1>
         <p className="text-muted-foreground mt-1">
           Build effective I-statements with AI-powered guidance
         </p>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
+      <Tabs
+        value={activeTab}
+        onValueChange={setActiveTab}
+        className="flex-1 flex flex-col"
+      >
         <div className="px-4 md:px-6 border-b">
           <TabsList className="w-full justify-start">
             <TabsTrigger value="builder" data-testid="tab-builder">
@@ -336,7 +368,10 @@ ${suggestions.map((s, i) => `${i + 1}. ${s.title}: ${s.content}`).join("\n\n")}
                 </CardHeader>
                 <CardContent className="space-y-5">
                   {/* Mode Toggle */}
-                  <div className="flex rounded-lg border bg-muted/30 p-1" data-testid="mode-toggle">
+                  <div
+                    className="flex rounded-lg border bg-muted/30 p-1"
+                    data-testid="mode-toggle"
+                  >
                     <button
                       onClick={() => setInputMode("express")}
                       className={`flex-1 py-2.5 px-4 rounded-md text-sm font-medium transition-all ${
@@ -383,7 +418,9 @@ ${suggestions.map((s, i) => `${i + 1}. ${s.title}: ${s.content}`).join("\n\n")}
                             data-testid="input-freetext"
                           />
                           <p className="text-xs text-muted-foreground mt-2">
-                            This is a safe space. Express yourself honestly - the AI will help transform it into a healthy I-Statement.
+                            This is a safe space. Express yourself honestly -
+                            the AI will help transform it into a healthy
+                            I-Statement.
                           </p>
                         </div>
                       </motion.div>
@@ -397,7 +434,9 @@ ${suggestions.map((s, i) => `${i + 1}. ${s.title}: ${s.content}`).join("\n\n")}
                         className="space-y-4"
                       >
                         <div>
-                          <label className="block text-sm font-medium mb-2">I feel...</label>
+                          <label className="block text-sm font-medium mb-2">
+                            I feel...
+                          </label>
                           <Input
                             value={feeling}
                             onChange={(e) => setFeeling(e.target.value)}
@@ -405,9 +444,11 @@ ${suggestions.map((s, i) => `${i + 1}. ${s.title}: ${s.content}`).join("\n\n")}
                             data-testid="input-feeling"
                           />
                         </div>
-                        
+
                         <div>
-                          <label className="block text-sm font-medium mb-2">When...</label>
+                          <label className="block text-sm font-medium mb-2">
+                            When...
+                          </label>
                           <Textarea
                             value={situation}
                             onChange={(e) => setSituation(e.target.value)}
@@ -416,9 +457,11 @@ ${suggestions.map((s, i) => `${i + 1}. ${s.title}: ${s.content}`).join("\n\n")}
                             data-testid="input-situation"
                           />
                         </div>
-                        
+
                         <div>
-                          <label className="block text-sm font-medium mb-2">Because...</label>
+                          <label className="block text-sm font-medium mb-2">
+                            Because...
+                          </label>
                           <Textarea
                             value={because}
                             onChange={(e) => setBecause(e.target.value)}
@@ -427,9 +470,11 @@ ${suggestions.map((s, i) => `${i + 1}. ${s.title}: ${s.content}`).join("\n\n")}
                             data-testid="input-because"
                           />
                         </div>
-                        
+
                         <div>
-                          <label className="block text-sm font-medium mb-2">Could we...</label>
+                          <label className="block text-sm font-medium mb-2">
+                            Could we...
+                          </label>
                           <Input
                             value={request}
                             onChange={(e) => setRequest(e.target.value)}
@@ -440,17 +485,21 @@ ${suggestions.map((s, i) => `${i + 1}. ${s.title}: ${s.content}`).join("\n\n")}
                       </motion.div>
                     )}
                   </AnimatePresence>
-                  
+
                   {/* Tone Slider - styled with gradient */}
                   <div className="pt-2">
                     <label className="block text-sm font-medium mb-3">
-                      Tone: <span className="text-primary">{getToneLabel(firmness[0])}</span>
+                      Tone:{" "}
+                      <span className="text-primary">
+                        {getToneLabel(firmness[0])}
+                      </span>
                     </label>
                     <div className="relative">
-                      <div 
+                      <div
                         className="absolute inset-0 h-2 rounded-full top-1/2 -translate-y-1/2 pointer-events-none"
                         style={{
-                          background: "linear-gradient(to right, #f97316, #ec4899, #8b5cf6)"
+                          background:
+                            "linear-gradient(to right, #f97316, #ec4899, #8b5cf6)",
                         }}
                       />
                       <Slider
@@ -468,16 +517,17 @@ ${suggestions.map((s, i) => `${i + 1}. ${s.title}: ${s.content}`).join("\n\n")}
                       <span>Assertive</span>
                     </div>
                   </div>
-                  
+
                   {/* Generate Button - styled with gradient */}
                   <Button
                     onClick={handleGenerate}
                     disabled={!canGenerate || isLoading}
                     className="w-full h-12 text-base font-medium"
                     style={{
-                      background: canGenerate && !isLoading 
-                        ? "linear-gradient(135deg, #f97316, #ec4899)" 
-                        : undefined
+                      background:
+                        canGenerate && !isLoading
+                          ? "linear-gradient(135deg, #f97316, #ec4899)"
+                          : undefined,
                     }}
                     data-testid="button-generate"
                   >
@@ -493,12 +543,16 @@ ${suggestions.map((s, i) => `${i + 1}. ${s.title}: ${s.content}`).join("\n\n")}
 
               {/* Results Card - Teal themed header */}
               <div className="space-y-0">
-                <div 
+                <div
                   className="flex items-center gap-3 px-5 py-4 rounded-t-lg"
-                  style={{ background: "linear-gradient(135deg, #0d9488, #14b8a6)" }}
+                  style={{
+                    background: "linear-gradient(135deg, #0d9488, #14b8a6)",
+                  }}
                 >
                   <Bot className="w-5 h-5 text-white" />
-                  <h2 className="text-lg font-semibold text-white">Your I-Statement</h2>
+                  <h2 className="text-lg font-semibold text-white">
+                    Your I-Statement
+                  </h2>
                 </div>
                 <Card className="rounded-t-none border-t-0">
                   <CardContent className="pt-6 space-y-4 min-h-[300px]">
@@ -512,20 +566,30 @@ ${suggestions.map((s, i) => `${i + 1}. ${s.title}: ${s.content}`).join("\n\n")}
                           className="space-y-4"
                         >
                           <div className="p-4 rounded-lg bg-teal-50 dark:bg-teal-900/20 border border-teal-200 dark:border-teal-800">
-                            <p className="font-medium leading-relaxed text-foreground" data-testid="text-statement">
+                            <p
+                              className="font-medium leading-relaxed text-foreground"
+                              data-testid="text-statement"
+                            >
                               "{statement}"
                             </p>
                           </div>
-                          
+
                           {impactPreview && (
                             <div className="p-3 rounded-lg bg-muted/50 border text-sm">
-                              <strong className="text-foreground">How this might feel to hear:</strong>
-                              <p className="text-muted-foreground mt-1">{impactPreview}</p>
+                              <strong className="text-foreground">
+                                How this might feel to hear:
+                              </strong>
+                              <p className="text-muted-foreground mt-1">
+                                {impactPreview}
+                              </p>
                             </div>
                           )}
-                          
+
                           {toneDescription && (
-                            <Badge variant="secondary" className="bg-teal-100 dark:bg-teal-900/40 text-teal-700 dark:text-teal-300">
+                            <Badge
+                              variant="secondary"
+                              className="bg-teal-100 dark:bg-teal-900/40 text-teal-700 dark:text-teal-300"
+                            >
                               Tone: {toneDescription}
                             </Badge>
                           )}
@@ -547,11 +611,15 @@ ${suggestions.map((s, i) => `${i + 1}. ${s.title}: ${s.content}`).join("\n\n")}
                                     className="p-3 rounded-lg border bg-card"
                                   >
                                     <div className="flex items-start gap-2">
-                                      <div className={`p-1.5 rounded ${getCategoryColor(suggestion.category)}`}>
+                                      <div
+                                        className={`p-1.5 rounded ${getCategoryColor(suggestion.category)}`}
+                                      >
                                         {getCategoryIcon(suggestion.category)}
                                       </div>
                                       <div className="flex-1 min-w-0">
-                                        <p className="font-medium text-sm">{suggestion.title}</p>
+                                        <p className="font-medium text-sm">
+                                          {suggestion.title}
+                                        </p>
                                         <p className="text-sm text-muted-foreground mt-1">
                                           {suggestion.content}
                                         </p>
@@ -597,7 +665,9 @@ ${suggestions.map((s, i) => `${i + 1}. ${s.title}: ${s.content}`).join("\n\n")}
                           className="flex flex-col items-center justify-center py-12 text-muted-foreground"
                         >
                           <Loader2 className="w-10 h-10 animate-spin mb-3 text-teal-500" />
-                          <p className="font-medium">AI is crafting your statement...</p>
+                          <p className="font-medium">
+                            AI is crafting your statement...
+                          </p>
                           <p className="text-sm mt-1">This may take a moment</p>
                         </motion.div>
                       ) : (
@@ -611,9 +681,12 @@ ${suggestions.map((s, i) => `${i + 1}. ${s.title}: ${s.content}`).join("\n\n")}
                           <div className="w-16 h-16 rounded-full bg-muted/50 flex items-center justify-center mb-4">
                             <Bot className="w-8 h-8 opacity-40" />
                           </div>
-                          <p className="font-medium text-lg">Fill in the form and generate</p>
+                          <p className="font-medium text-lg">
+                            Fill in the form and generate
+                          </p>
                           <p className="text-sm mt-1 text-center max-w-xs">
-                            Your AI-enhanced I-Statement will appear here, and you can refine it through conversation
+                            Your AI-enhanced I-Statement will appear here, and
+                            you can refine it through conversation
                           </p>
                         </motion.div>
                       )}
@@ -631,29 +704,40 @@ ${suggestions.map((s, i) => `${i + 1}. ${s.title}: ${s.content}`).join("\n\n")}
                   <Loader2 className="w-6 h-6 animate-spin" />
                 </div>
               )}
-              
+
               {sessionsQuery.data?.length === 0 && (
                 <div className="text-center py-12 text-muted-foreground">
                   <BookOpen className="w-12 h-12 mx-auto mb-3 opacity-50" />
                   <p>No saved sessions yet</p>
-                  <p className="text-sm mt-1">Create and save your first I-statement</p>
+                  <p className="text-sm mt-1">
+                    Create and save your first I-statement
+                  </p>
                 </div>
               )}
-              
+
               <div className="grid gap-4 md:grid-cols-2">
                 {sessionsQuery.data?.map((session) => (
-                  <Card key={session.id} className="hover-elevate cursor-pointer">
+                  <Card
+                    key={session.id}
+                    className="hover-elevate cursor-pointer"
+                  >
                     <CardContent className="pt-4">
                       <div className="flex items-start justify-between gap-2">
-                        <div className="flex-1 min-w-0" onClick={() => loadSession(session)}>
+                        <div
+                          className="flex-1 min-w-0"
+                          onClick={() => loadSession(session)}
+                        >
                           <p className="font-medium line-clamp-2">
-                            {session.enhanced_statement || "No statement generated"}
+                            {session.enhanced_statement ||
+                              "No statement generated"}
                           </p>
                           <div className="flex items-center gap-2 mt-2 text-sm text-muted-foreground">
                             <Clock className="w-3.5 h-3.5" />
                             {new Date(session.created_at).toLocaleDateString()}
                             <Badge variant="outline" className="text-xs">
-                              {session.input_mode === "express" ? "Free-form" : "Structured"}
+                              {session.input_mode === "express"
+                                ? "Free-form"
+                                : "Structured"}
                             </Badge>
                           </div>
                         </div>

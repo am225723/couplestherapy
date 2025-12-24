@@ -2,7 +2,12 @@ import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
 import { useAuth } from "@/lib/auth-context";
-import { aiFunctions, GrowthPlanResponse, GrowthExercise, GrowthGoal } from "@/lib/ai-functions";
+import {
+  aiFunctions,
+  GrowthPlanResponse,
+  GrowthExercise,
+  GrowthGoal,
+} from "@/lib/ai-functions";
 import {
   Card,
   CardContent,
@@ -67,7 +72,10 @@ function ExerciseCard({ exercise }: { exercise: GrowthExercise }) {
   const colorClass = categoryColors[exercise.category] || "text-primary";
 
   return (
-    <Card className="hover-elevate" data-testid={`card-exercise-${exercise.id}`}>
+    <Card
+      className="hover-elevate"
+      data-testid={`card-exercise-${exercise.id}`}
+    >
       <CardContent className="p-5">
         <div className="flex items-start gap-4">
           <div className={`p-2 rounded-lg bg-muted ${colorClass}`}>
@@ -105,9 +113,10 @@ function GoalCard({ goal }: { goal: GrowthGoal }) {
   const Icon = categoryIcons[goal.category] || Target;
   const colorClass = categoryColors[goal.category] || "text-primary";
   const completedMilestones = 0;
-  const progress = goal.milestones.length > 0 
-    ? (completedMilestones / goal.milestones.length) * 100 
-    : 0;
+  const progress =
+    goal.milestones.length > 0
+      ? (completedMilestones / goal.milestones.length) * 100
+      : 0;
 
   return (
     <Card className="hover-elevate" data-testid={`card-goal-${goal.id}`}>
@@ -145,7 +154,9 @@ function GoalCard({ goal }: { goal: GrowthGoal }) {
                       data-testid={`milestone-${goal.id}-${idx}`}
                     >
                       <div className="w-5 h-5 rounded-full border-2 border-muted flex items-center justify-center">
-                        <span className="text-xs text-muted-foreground">{idx + 1}</span>
+                        <span className="text-xs text-muted-foreground">
+                          {idx + 1}
+                        </span>
                       </div>
                       <span className="text-muted-foreground">{milestone}</span>
                     </li>
@@ -176,7 +187,9 @@ export default function GrowthPlanPage() {
   const regenerateMutation = useMutation({
     mutationFn: () => aiFunctions.getGrowthPlan(),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/growth-plan", coupleId] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/growth-plan", coupleId],
+      });
     },
   });
 
@@ -198,8 +211,12 @@ export default function GrowthPlanPage() {
       <div className="flex items-center justify-center h-[60vh]">
         <div className="text-center space-y-4">
           <Loader2 className="w-12 h-12 animate-spin mx-auto text-primary" />
-          <p className="text-muted-foreground">Creating your personalized growth plan...</p>
-          <p className="text-xs text-muted-foreground">This may take a moment</p>
+          <p className="text-muted-foreground">
+            Creating your personalized growth plan...
+          </p>
+          <p className="text-xs text-muted-foreground">
+            This may take a moment
+          </p>
         </div>
       </div>
     );
@@ -300,7 +317,9 @@ export default function GrowthPlanPage() {
           </CardHeader>
           <CardContent>
             <div className="flex flex-wrap gap-2">
-              <span className="text-sm text-muted-foreground mr-2">Focus areas:</span>
+              <span className="text-sm text-muted-foreground mr-2">
+                Focus areas:
+              </span>
               {(plan.focus_areas || []).map((area, idx) => (
                 <Badge key={idx} variant="secondary">
                   {area}
@@ -308,24 +327,40 @@ export default function GrowthPlanPage() {
               ))}
             </div>
 
-            {(context.love_languages || context.attachment_styles || context.enneagram_types) && (
+            {(context.love_languages ||
+              context.attachment_styles ||
+              context.enneagram_types) && (
               <div className="mt-4 pt-4 border-t">
-                <p className="text-xs text-muted-foreground mb-2">Based on your assessments:</p>
+                <p className="text-xs text-muted-foreground mb-2">
+                  Based on your assessments:
+                </p>
                 <div className="flex flex-wrap gap-2">
                   {context.love_languages?.map((ll, idx) => (
-                    <Badge key={`ll-${idx}`} variant="outline" className="text-xs">
+                    <Badge
+                      key={`ll-${idx}`}
+                      variant="outline"
+                      className="text-xs"
+                    >
                       <Heart className="w-3 h-3 mr-1 text-pink-500" />
                       {ll}
                     </Badge>
                   ))}
                   {context.attachment_styles?.map((as, idx) => (
-                    <Badge key={`as-${idx}`} variant="outline" className="text-xs">
+                    <Badge
+                      key={`as-${idx}`}
+                      variant="outline"
+                      className="text-xs"
+                    >
                       <Users className="w-3 h-3 mr-1 text-blue-500" />
                       {as}
                     </Badge>
                   ))}
                   {context.enneagram_types?.map((et, idx) => (
-                    <Badge key={`et-${idx}`} variant="outline" className="text-xs">
+                    <Badge
+                      key={`et-${idx}`}
+                      variant="outline"
+                      className="text-xs"
+                    >
                       <Target className="w-3 h-3 mr-1 text-purple-500" />
                       {et}
                     </Badge>

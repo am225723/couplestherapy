@@ -81,7 +81,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use("/api/session-notes", sessionNotesRouter);
   app.use("/api/daily-suggestion", dailySuggestionRouter);
   app.use("/api/layout-templates", layoutTemplatesRouter);
-  app.use("/api/individual-layout-preferences", individualLayoutPreferencesRouter);
+  app.use(
+    "/api/individual-layout-preferences",
+    individualLayoutPreferencesRouter,
+  );
 
   // Create and return the HTTP server
   const httpServer = createServer(app);

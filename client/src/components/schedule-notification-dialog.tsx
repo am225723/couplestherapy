@@ -65,9 +65,12 @@ export function ScheduleNotificationDialog({
       }
 
       // Use Supabase Edge Function
-      const { data, error } = await supabase.functions.invoke("schedule-notification", {
-        body: payload,
-      });
+      const { data, error } = await supabase.functions.invoke(
+        "schedule-notification",
+        {
+          body: payload,
+        },
+      );
 
       if (error) {
         console.error("Edge Function error:", error);

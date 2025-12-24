@@ -24,7 +24,9 @@ async function seedModules() {
 
   // If the RPC doesn't exist, try direct SQL
   if (createTableError) {
-    console.log("RPC not available, trying direct table creation via Supabase...");
+    console.log(
+      "RPC not available, trying direct table creation via Supabase...",
+    );
   }
 
   // Try to insert modules, checking if they exist first
@@ -32,7 +34,8 @@ async function seedModules() {
     {
       slug: "chores",
       name: "Chores App",
-      description: "Track and manage household chores together. Assign tasks, set schedules, and celebrate when chores are done.",
+      description:
+        "Track and manage household chores together. Assign tasks, set schedules, and celebrate when chores are done.",
       icon: "list-todo",
       app_url: null,
       is_active: true,
@@ -40,7 +43,8 @@ async function seedModules() {
     {
       slug: "ifs",
       name: "IFS App",
-      description: "Internal Family Systems exercises for deeper self-understanding and partner connection.",
+      description:
+        "Internal Family Systems exercises for deeper self-understanding and partner connection.",
       icon: "user",
       app_url: null,
       is_active: true,
@@ -48,7 +52,8 @@ async function seedModules() {
     {
       slug: "conflict-resolution",
       name: "Conflict Resolution",
-      description: "Guided tools and exercises for navigating disagreements constructively.",
+      description:
+        "Guided tools and exercises for navigating disagreements constructively.",
       icon: "message-square",
       app_url: null,
       is_active: true,
@@ -73,7 +78,10 @@ async function seedModules() {
         .insert(module);
 
       if (insertError) {
-        console.error(`  Failed to insert "${module.name}":`, insertError.message);
+        console.error(
+          `  Failed to insert "${module.name}":`,
+          insertError.message,
+        );
       } else {
         console.log(`  Created module "${module.name}"`);
       }

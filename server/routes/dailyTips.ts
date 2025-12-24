@@ -73,7 +73,10 @@ async function generateAiTip(category: string): Promise<string> {
 }
 
 // Helper to verify access (either couple member or therapist)
-async function verifyAccessToCouple(userId: string, coupleId: string): Promise<boolean> {
+async function verifyAccessToCouple(
+  userId: string,
+  coupleId: string,
+): Promise<boolean> {
   // Check if user is a partner in the couple
   const { data: couple } = await supabaseAdmin
     .from("Couples_couples")

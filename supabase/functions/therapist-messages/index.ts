@@ -26,10 +26,13 @@ Deno.serve(async (req) => {
       const coupleId = url.searchParams.get("couple_id");
 
       if (!coupleId) {
-        return new Response(JSON.stringify({ error: "couple_id is required" }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-          status: 400,
-        });
+        return new Response(
+          JSON.stringify({ error: "couple_id is required" }),
+          {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+            status: 400,
+          },
+        );
       }
 
       const coupleExists = await verifyCoupleExists(coupleId);
@@ -49,7 +52,7 @@ Deno.serve(async (req) => {
       if (messagesError) throw messagesError;
 
       const senderIds = Array.from(
-        new Set(messages?.map((m: any) => m.sender_id) || [])
+        new Set(messages?.map((m: any) => m.sender_id) || []),
       );
 
       const { data: senders } = await supabaseAdmin
@@ -83,7 +86,7 @@ Deno.serve(async (req) => {
           {
             headers: { ...corsHeaders, "Content-Type": "application/json" },
             status: 400,
-          }
+          },
         );
       }
 
@@ -125,7 +128,7 @@ Deno.serve(async (req) => {
         {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
           status: 201,
-        }
+        },
       );
     }
 
@@ -134,10 +137,13 @@ Deno.serve(async (req) => {
       const { message_id } = body;
 
       if (!message_id) {
-        return new Response(JSON.stringify({ error: "message_id is required" }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-          status: 400,
-        });
+        return new Response(
+          JSON.stringify({ error: "message_id is required" }),
+          {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+            status: 400,
+          },
+        );
       }
 
       const { data: message, error: messageError } = await supabaseAdmin
@@ -184,7 +190,7 @@ Deno.serve(async (req) => {
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 500,
-      }
+      },
     );
   }
 });

@@ -1,5 +1,11 @@
 import { useAuth } from "@/lib/auth-context";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,7 +20,14 @@ import {
 } from "@/components/ui/dialog";
 import { Slider } from "@/components/ui/slider";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2, ArrowLeft, Upload, AlertCircle, Calendar, CheckCircle2 } from "lucide-react";
+import {
+  Loader2,
+  ArrowLeft,
+  Upload,
+  AlertCircle,
+  Calendar,
+  CheckCircle2,
+} from "lucide-react";
 import { Link } from "wouter";
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/lib/supabase";
@@ -36,7 +49,10 @@ interface CropArea {
   height: number;
 }
 
-async function getCroppedImg(imageSrc: string, pixelCrop: CropArea): Promise<Blob> {
+async function getCroppedImg(
+  imageSrc: string,
+  pixelCrop: CropArea,
+): Promise<Blob> {
   const image = new Image();
   image.src = imageSrc;
 
@@ -92,8 +108,12 @@ export default function TherapistProfile() {
   const [imageSrc, setImageSrc] = useState<string | null>(null);
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
-  const [croppedAreaPixels, setCroppedAreaPixels] = useState<CropArea | null>(null);
-  const [fileValidationError, setFileValidationError] = useState<string | null>(null);
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState<CropArea | null>(
+    null,
+  );
+  const [fileValidationError, setFileValidationError] = useState<string | null>(
+    null,
+  );
   const [googleCalendarConnected, setGoogleCalendarConnected] = useState(false);
   const [appleCalendarConnected, setAppleCalendarConnected] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -139,7 +159,9 @@ export default function TherapistProfile() {
 
     // Validate file type
     if (!file.type.startsWith("image/")) {
-      setFileValidationError("Please select a valid image file (JPG, PNG, GIF, etc.)");
+      setFileValidationError(
+        "Please select a valid image file (JPG, PNG, GIF, etc.)",
+      );
       return;
     }
 
@@ -164,7 +186,10 @@ export default function TherapistProfile() {
     reader.readAsDataURL(file);
   };
 
-  const handleCropComplete = (croppedArea: CropArea, croppedAreaPixels: CropArea) => {
+  const handleCropComplete = (
+    croppedArea: CropArea,
+    croppedAreaPixels: CropArea,
+  ) => {
     setCroppedAreaPixels(croppedAreaPixels);
   };
 
@@ -211,7 +236,9 @@ export default function TherapistProfile() {
       }
 
       // Get public URL
-      const { data } = supabase.storage.from("therapist-avatars").getPublicUrl(fileName);
+      const { data } = supabase.storage
+        .from("therapist-avatars")
+        .getPublicUrl(fileName);
 
       const newAvatarUrl = data.publicUrl;
 
@@ -232,7 +259,8 @@ export default function TherapistProfile() {
         description: "Profile photo updated successfully",
       });
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Failed to upload photo";
+      const errorMessage =
+        error instanceof Error ? error.message : "Failed to upload photo";
       console.error("Error uploading photo:", error);
 
       setFileValidationError(errorMessage);
@@ -270,7 +298,9 @@ export default function TherapistProfile() {
       <div className="space-y-6">
         <div>
           <h1 className="text-3xl font-bold">Profile</h1>
-          <p className="text-muted-foreground mt-2">Manage your therapist profile information</p>
+          <p className="text-muted-foreground mt-2">
+            Manage your therapist profile information
+          </p>
         </div>
 
         {fileValidationError && (
@@ -283,14 +313,21 @@ export default function TherapistProfile() {
         <Card>
           <CardHeader>
             <CardTitle>Personal Information</CardTitle>
-            <CardDescription>View and update your profile details</CardDescription>
+            <CardDescription>
+              View and update your profile details
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="space-y-4">
               <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
                 <div className="flex flex-col items-center gap-4">
                   <Avatar className="h-24 w-24 border-2 border-primary/20">
-                    {avatarUrl && <AvatarImage src={avatarUrl} alt={profile.full_name || "Profile"} />}
+                    {avatarUrl && (
+                      <AvatarImage
+                        src={avatarUrl}
+                        alt={profile.full_name || "Profile"}
+                      />
+                    )}
                     <AvatarFallback className="bg-primary/10 text-primary text-lg font-semibold">
                       {getInitials(profile.full_name || "T")}
                     </AvatarFallback>
@@ -317,7 +354,9 @@ export default function TherapistProfile() {
                       {isUploading ? "Uploading..." : "Change Photo"}
                     </Button>
                   </div>
-                  <p className="text-xs text-muted-foreground text-center">Max 5MB • JPG, PNG, GIF</p>
+                  <p className="text-xs text-muted-foreground text-center">
+                    Max 5MB • JPG, PNG, GIF
+                  </p>
                 </div>
 
                 <div className="flex-1 space-y-4">
@@ -363,7 +402,10 @@ export default function TherapistProfile() {
                   </div>
 
                   {isEditing && (
-                    <Button className="w-full" data-testid="button-save-profile">
+                    <Button
+                      className="w-full"
+                      data-testid="button-save-profile"
+                    >
                       Save Changes
                     </Button>
                   )}
@@ -379,7 +421,9 @@ export default function TherapistProfile() {
               <Calendar className="h-5 w-5" />
               Calendar Integrations
             </CardTitle>
-            <CardDescription>Connect your calendar for scheduling and availability management</CardDescription>
+            <CardDescription>
+              Connect your calendar for scheduling and availability management
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -387,14 +431,20 @@ export default function TherapistProfile() {
                 <div className="flex items-center justify-between">
                   <div>
                     <h3 className="font-semibold">Google Calendar</h3>
-                    <p className="text-sm text-muted-foreground">Sync your Google Calendar</p>
+                    <p className="text-sm text-muted-foreground">
+                      Sync your Google Calendar
+                    </p>
                   </div>
-                  {googleCalendarConnected && <CheckCircle2 className="h-5 w-5 text-green-600" />}
+                  {googleCalendarConnected && (
+                    <CheckCircle2 className="h-5 w-5 text-green-600" />
+                  )}
                 </div>
                 <Button
                   variant={googleCalendarConnected ? "secondary" : "outline"}
                   className="w-full"
-                  onClick={() => setGoogleCalendarConnected(!googleCalendarConnected)}
+                  onClick={() =>
+                    setGoogleCalendarConnected(!googleCalendarConnected)
+                  }
                   data-testid="button-google-calendar"
                 >
                   {googleCalendarConnected ? "Disconnect" : "Connect"}
@@ -405,14 +455,20 @@ export default function TherapistProfile() {
                 <div className="flex items-center justify-between">
                   <div>
                     <h3 className="font-semibold">Apple Calendar</h3>
-                    <p className="text-sm text-muted-foreground">Sync your Apple Calendar</p>
+                    <p className="text-sm text-muted-foreground">
+                      Sync your Apple Calendar
+                    </p>
                   </div>
-                  {appleCalendarConnected && <CheckCircle2 className="h-5 w-5 text-green-600" />}
+                  {appleCalendarConnected && (
+                    <CheckCircle2 className="h-5 w-5 text-green-600" />
+                  )}
                 </div>
                 <Button
                   variant={appleCalendarConnected ? "secondary" : "outline"}
                   className="w-full"
-                  onClick={() => setAppleCalendarConnected(!appleCalendarConnected)}
+                  onClick={() =>
+                    setAppleCalendarConnected(!appleCalendarConnected)
+                  }
                   data-testid="button-apple-calendar"
                 >
                   {appleCalendarConnected ? "Disconnect" : "Connect"}
@@ -421,7 +477,8 @@ export default function TherapistProfile() {
             </div>
 
             <p className="text-xs text-muted-foreground mt-4">
-              Connected calendars will sync your availability and help coordinate sessions with clients.
+              Connected calendars will sync your availability and help
+              coordinate sessions with clients.
             </p>
           </CardContent>
         </Card>
@@ -432,7 +489,9 @@ export default function TherapistProfile() {
         <DialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle>Crop Profile Photo</DialogTitle>
-            <DialogDescription>Adjust and crop your profile photo before uploading</DialogDescription>
+            <DialogDescription>
+              Adjust and crop your profile photo before uploading
+            </DialogDescription>
           </DialogHeader>
 
           {imageSrc && (

@@ -39,8 +39,7 @@ Deno.serve(async (req) => {
     const userId = decoded.sub;
 
     const body: ScheduleRequest = await req.json();
-    const { couple_id, user_id, title, body: messageBody, scheduled_at } =
-      body;
+    const { couple_id, user_id, title, body: messageBody, scheduled_at } = body;
 
     if (!couple_id || !title || !messageBody || !scheduled_at) {
       return new Response(
@@ -48,13 +47,13 @@ Deno.serve(async (req) => {
         {
           status: 400,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+        },
       );
     }
 
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
 
     // Verify couple exists
@@ -79,7 +78,7 @@ Deno.serve(async (req) => {
         {
           status: 400,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+        },
       );
     }
 
@@ -107,7 +106,7 @@ Deno.serve(async (req) => {
         {
           status: 500,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+        },
       );
     }
 

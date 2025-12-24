@@ -3,7 +3,13 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { authenticatedFetch } from "@/lib/authenticated-fetch";
 import { useToast } from "@/hooks/use-toast";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -68,7 +74,10 @@ interface SessionNotesPanelProps {
   therapistId: string;
 }
 
-const emptyNote: Omit<SessionNote, "id" | "couple_id" | "therapist_id" | "created_at" | "updated_at"> = {
+const emptyNote: Omit<
+  SessionNote,
+  "id" | "couple_id" | "therapist_id" | "created_at" | "updated_at"
+> = {
   session_date: new Date().toISOString().split("T")[0],
   title: "",
   summary: "",
@@ -80,7 +89,10 @@ const emptyNote: Omit<SessionNote, "id" | "couple_id" | "therapist_id" | "create
   is_private: false,
 };
 
-export function SessionNotesPanel({ coupleId, therapistId }: SessionNotesPanelProps) {
+export function SessionNotesPanel({
+  coupleId,
+  therapistId,
+}: SessionNotesPanelProps) {
   const { toast } = useToast();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [selectedNote, setSelectedNote] = useState<SessionNote | null>(null);
@@ -91,7 +103,9 @@ export function SessionNotesPanel({ coupleId, therapistId }: SessionNotesPanelPr
   const notesQuery = useQuery({
     queryKey: ["/api/session-notes/couple", coupleId],
     queryFn: async () => {
-      const res = await authenticatedFetch(`/api/session-notes/couple/${coupleId}`);
+      const res = await authenticatedFetch(
+        `/api/session-notes/couple/${coupleId}`,
+      );
       if (!res.ok) throw new Error("Failed to fetch notes");
       return res.json() as Promise<SessionNote[]>;
     },
@@ -103,12 +117,20 @@ export function SessionNotesPanel({ coupleId, therapistId }: SessionNotesPanelPr
       return apiRequest("POST", "/api/session-notes", {
         ...data,
         couple_id: coupleId,
-        key_themes: themesInput.split(",").map((t) => t.trim()).filter(Boolean),
-        interventions_used: interventionsInput.split(",").map((i) => i.trim()).filter(Boolean),
+        key_themes: themesInput
+          .split(",")
+          .map((t) => t.trim())
+          .filter(Boolean),
+        interventions_used: interventionsInput
+          .split(",")
+          .map((i) => i.trim())
+          .filter(Boolean),
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/session-notes/couple", coupleId] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/session-notes/couple", coupleId],
+      });
       setIsCreateOpen(false);
       setFormData(emptyNote);
       setThemesInput("");
@@ -116,7 +138,11 @@ export function SessionNotesPanel({ coupleId, therapistId }: SessionNotesPanelPr
       toast({ title: "Success", description: "Session note created" });
     },
     onError: () => {
-      toast({ title: "Error", description: "Failed to create session note", variant: "destructive" });
+      toast({
+        title: "Error",
+        description: "Failed to create session note",
+        variant: "destructive",
+      });
     },
   });
 
@@ -125,12 +151,20 @@ export function SessionNotesPanel({ coupleId, therapistId }: SessionNotesPanelPr
       if (!selectedNote) return;
       return apiRequest("PATCH", `/api/session-notes/${selectedNote.id}`, {
         ...data,
-        key_themes: themesInput.split(",").map((t) => t.trim()).filter(Boolean),
-        interventions_used: interventionsInput.split(",").map((i) => i.trim()).filter(Boolean),
+        key_themes: themesInput
+          .split(",")
+          .map((t) => t.trim())
+          .filter(Boolean),
+        interventions_used: interventionsInput
+          .split(",")
+          .map((i) => i.trim())
+          .filter(Boolean),
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/session-notes/couple", coupleId] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/session-notes/couple", coupleId],
+      });
       setSelectedNote(null);
       setFormData(emptyNote);
       setThemesInput("");
@@ -138,7 +172,11 @@ export function SessionNotesPanel({ coupleId, therapistId }: SessionNotesPanelPr
       toast({ title: "Success", description: "Session note updated" });
     },
     onError: () => {
-      toast({ title: "Error", description: "Failed to update session note", variant: "destructive" });
+      toast({
+        title: "Error",
+        description: "Failed to update session note",
+        variant: "destructive",
+      });
     },
   });
 
@@ -147,12 +185,18 @@ export function SessionNotesPanel({ coupleId, therapistId }: SessionNotesPanelPr
       return apiRequest("DELETE", `/api/session-notes/${id}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/session-notes/couple", coupleId] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/session-notes/couple", coupleId],
+      });
       setSelectedNote(null);
       toast({ title: "Success", description: "Session note deleted" });
     },
     onError: () => {
-      toast({ title: "Error", description: "Failed to delete session note", variant: "destructive" });
+      toast({
+        title: "Error",
+        description: "Failed to delete session note",
+        variant: "destructive",
+      });
     },
   });
 
@@ -189,7 +233,11 @@ export function SessionNotesPanel({ coupleId, therapistId }: SessionNotesPanelPr
         </div>
         <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
           <DialogTrigger asChild>
-            <Button size="sm" className="rounded-xl" data-testid="button-add-session-note">
+            <Button
+              size="sm"
+              className="rounded-xl"
+              data-testid="button-add-session-note"
+            >
               <Plus className="h-4 w-4 mr-2" />
               Add Note
             </Button>
@@ -197,7 +245,9 @@ export function SessionNotesPanel({ coupleId, therapistId }: SessionNotesPanelPr
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>New Session Note</DialogTitle>
-              <DialogDescription>Record details from your therapy session</DialogDescription>
+              <DialogDescription>
+                Record details from your therapy session
+              </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">
               <div className="grid grid-cols-2 gap-4">
@@ -206,7 +256,9 @@ export function SessionNotesPanel({ coupleId, therapistId }: SessionNotesPanelPr
                   <Input
                     type="date"
                     value={formData.session_date}
-                    onChange={(e) => setFormData({ ...formData, session_date: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, session_date: e.target.value })
+                    }
                     data-testid="input-session-date"
                   />
                 </div>
@@ -215,7 +267,9 @@ export function SessionNotesPanel({ coupleId, therapistId }: SessionNotesPanelPr
                   <Input
                     placeholder="e.g., Initial Assessment"
                     value={formData.title}
-                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, title: e.target.value })
+                    }
                     data-testid="input-session-title"
                   />
                 </div>
@@ -225,7 +279,9 @@ export function SessionNotesPanel({ coupleId, therapistId }: SessionNotesPanelPr
                 <Textarea
                   placeholder="Brief overview of the session..."
                   value={formData.summary}
-                  onChange={(e) => setFormData({ ...formData, summary: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, summary: e.target.value })
+                  }
                   rows={3}
                   data-testid="input-session-summary"
                 />
@@ -253,7 +309,12 @@ export function SessionNotesPanel({ coupleId, therapistId }: SessionNotesPanelPr
                 <Textarea
                   placeholder="Tasks or exercises for the couple..."
                   value={formData.homework_assigned}
-                  onChange={(e) => setFormData({ ...formData, homework_assigned: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      homework_assigned: e.target.value,
+                    })
+                  }
                   rows={2}
                   data-testid="input-homework"
                 />
@@ -263,7 +324,9 @@ export function SessionNotesPanel({ coupleId, therapistId }: SessionNotesPanelPr
                 <Textarea
                   placeholder="Observations and progress..."
                   value={formData.progress_notes}
-                  onChange={(e) => setFormData({ ...formData, progress_notes: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, progress_notes: e.target.value })
+                  }
                   rows={3}
                   data-testid="input-progress-notes"
                 />
@@ -273,7 +336,12 @@ export function SessionNotesPanel({ coupleId, therapistId }: SessionNotesPanelPr
                 <Textarea
                   placeholder="Focus areas for the next meeting..."
                   value={formData.next_session_goals}
-                  onChange={(e) => setFormData({ ...formData, next_session_goals: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      next_session_goals: e.target.value,
+                    })
+                  }
                   rows={2}
                   data-testid="input-next-goals"
                 />
@@ -288,7 +356,9 @@ export function SessionNotesPanel({ coupleId, therapistId }: SessionNotesPanelPr
                 disabled={!formData.title || createMutation.isPending}
                 data-testid="button-save-session-note"
               >
-                {createMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                {createMutation.isPending && (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                )}
                 Save Note
               </Button>
             </DialogFooter>
@@ -305,7 +375,9 @@ export function SessionNotesPanel({ coupleId, therapistId }: SessionNotesPanelPr
           <CardContent className="py-8 text-center">
             <FileText className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
             <p className="text-muted-foreground">No session notes yet</p>
-            <p className="text-sm text-muted-foreground mt-1">Click "Add Note" to record your first session</p>
+            <p className="text-sm text-muted-foreground mt-1">
+              Click "Add Note" to record your first session
+            </p>
           </CardContent>
         </Card>
       ) : (
@@ -323,19 +395,27 @@ export function SessionNotesPanel({ coupleId, therapistId }: SessionNotesPanelPr
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
                         <h4 className="font-medium truncate">{note.title}</h4>
-                        {note.is_private && <Lock className="h-3 w-3 text-muted-foreground" />}
+                        {note.is_private && (
+                          <Lock className="h-3 w-3 text-muted-foreground" />
+                        )}
                       </div>
                       <div className="flex items-center gap-2 text-xs text-muted-foreground">
                         <Calendar className="h-3 w-3" />
                         {format(new Date(note.session_date), "MMM d, yyyy")}
                       </div>
                       {note.summary && (
-                        <p className="text-sm text-muted-foreground mt-2 line-clamp-2">{note.summary}</p>
+                        <p className="text-sm text-muted-foreground mt-2 line-clamp-2">
+                          {note.summary}
+                        </p>
                       )}
                       {(note.key_themes?.length || 0) > 0 && (
                         <div className="flex flex-wrap gap-1 mt-2">
                           {note.key_themes?.slice(0, 3).map((theme, idx) => (
-                            <Badge key={idx} variant="secondary" className="text-xs">
+                            <Badge
+                              key={idx}
+                              variant="secondary"
+                              className="text-xs"
+                            >
                               {theme}
                             </Badge>
                           ))}
@@ -356,7 +436,10 @@ export function SessionNotesPanel({ coupleId, therapistId }: SessionNotesPanelPr
         </ScrollArea>
       )}
 
-      <Dialog open={!!selectedNote} onOpenChange={(open) => !open && setSelectedNote(null)}>
+      <Dialog
+        open={!!selectedNote}
+        onOpenChange={(open) => !open && setSelectedNote(null)}
+      >
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
@@ -364,7 +447,8 @@ export function SessionNotesPanel({ coupleId, therapistId }: SessionNotesPanelPr
               Edit Session Note
             </DialogTitle>
             <DialogDescription>
-              {selectedNote && format(new Date(selectedNote.session_date), "MMMM d, yyyy")}
+              {selectedNote &&
+                format(new Date(selectedNote.session_date), "MMMM d, yyyy")}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
@@ -374,14 +458,18 @@ export function SessionNotesPanel({ coupleId, therapistId }: SessionNotesPanelPr
                 <Input
                   type="date"
                   value={formData.session_date}
-                  onChange={(e) => setFormData({ ...formData, session_date: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, session_date: e.target.value })
+                  }
                 />
               </div>
               <div className="space-y-2">
                 <Label>Title</Label>
                 <Input
                   value={formData.title}
-                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, title: e.target.value })
+                  }
                 />
               </div>
             </div>
@@ -392,7 +480,9 @@ export function SessionNotesPanel({ coupleId, therapistId }: SessionNotesPanelPr
               </Label>
               <Textarea
                 value={formData.summary}
-                onChange={(e) => setFormData({ ...formData, summary: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, summary: e.target.value })
+                }
                 rows={3}
               />
             </div>
@@ -425,7 +515,12 @@ export function SessionNotesPanel({ coupleId, therapistId }: SessionNotesPanelPr
               </Label>
               <Textarea
                 value={formData.homework_assigned}
-                onChange={(e) => setFormData({ ...formData, homework_assigned: e.target.value })}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    homework_assigned: e.target.value,
+                  })
+                }
                 rows={2}
               />
             </div>
@@ -433,7 +528,9 @@ export function SessionNotesPanel({ coupleId, therapistId }: SessionNotesPanelPr
               <Label>Progress Notes</Label>
               <Textarea
                 value={formData.progress_notes}
-                onChange={(e) => setFormData({ ...formData, progress_notes: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, progress_notes: e.target.value })
+                }
                 rows={3}
               />
             </div>
@@ -441,7 +538,12 @@ export function SessionNotesPanel({ coupleId, therapistId }: SessionNotesPanelPr
               <Label>Goals for Next Session</Label>
               <Textarea
                 value={formData.next_session_goals}
-                onChange={(e) => setFormData({ ...formData, next_session_goals: e.target.value })}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    next_session_goals: e.target.value,
+                  })
+                }
                 rows={2}
               />
             </div>
@@ -449,7 +551,11 @@ export function SessionNotesPanel({ coupleId, therapistId }: SessionNotesPanelPr
           <DialogFooter className="flex-col sm:flex-row gap-2">
             <AlertDialog>
               <AlertDialogTrigger asChild>
-                <Button variant="destructive" size="sm" className="w-full sm:w-auto">
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  className="w-full sm:w-auto"
+                >
                   <Trash2 className="h-4 w-4 mr-2" />
                   Delete
                 </Button>
@@ -458,13 +564,16 @@ export function SessionNotesPanel({ coupleId, therapistId }: SessionNotesPanelPr
                 <AlertDialogHeader>
                   <AlertDialogTitle>Delete Session Note?</AlertDialogTitle>
                   <AlertDialogDescription>
-                    This action cannot be undone. The session note will be permanently deleted.
+                    This action cannot be undone. The session note will be
+                    permanently deleted.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                   <AlertDialogCancel>Cancel</AlertDialogCancel>
                   <AlertDialogAction
-                    onClick={() => selectedNote && deleteMutation.mutate(selectedNote.id)}
+                    onClick={() =>
+                      selectedNote && deleteMutation.mutate(selectedNote.id)
+                    }
                     className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                   >
                     Delete
@@ -473,7 +582,11 @@ export function SessionNotesPanel({ coupleId, therapistId }: SessionNotesPanelPr
               </AlertDialogContent>
             </AlertDialog>
             <div className="flex gap-2 w-full sm:w-auto">
-              <Button variant="outline" onClick={() => setSelectedNote(null)} className="flex-1 sm:flex-none">
+              <Button
+                variant="outline"
+                onClick={() => setSelectedNote(null)}
+                className="flex-1 sm:flex-none"
+              >
                 Cancel
               </Button>
               <Button
@@ -481,7 +594,9 @@ export function SessionNotesPanel({ coupleId, therapistId }: SessionNotesPanelPr
                 disabled={!formData.title || updateMutation.isPending}
                 className="flex-1 sm:flex-none"
               >
-                {updateMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                {updateMutation.isPending && (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                )}
                 Save Changes
               </Button>
             </div>

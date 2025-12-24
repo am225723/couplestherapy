@@ -45,13 +45,13 @@ interface PerplexityResponse {
 // ========================================
 function cleanAIResponse(text: string): string {
   // Remove Perplexity citation numbers like [1], [2][3], etc.
-  return text.replace(/\[\d+\]/g, '').trim();
+  return text.replace(/\[\d+\]/g, "").trim();
 }
 
 function safeJsonParse(text: string): any {
   // Clean citations first
   const cleaned = cleanAIResponse(text);
-  
+
   // Try direct parse first
   try {
     return JSON.parse(cleaned);
@@ -65,7 +65,7 @@ function safeJsonParse(text: string): any {
         // Continue to next attempt
       }
     }
-    
+
     // Try to find JSON object in the text
     const objectMatch = cleaned.match(/\{[\s\S]*\}/);
     if (objectMatch) {
@@ -75,15 +75,18 @@ function safeJsonParse(text: string): any {
         // Continue to fallback
       }
     }
-    
+
     // Return a default structure if all parsing fails
     return {
-      recommendations: [{
-        tool_name: "Weekly Check-ins",
-        rationale: "A quick way to stay in sync with each other.",
-        suggested_action: "Take 5 minutes to share your highs and lows from the week."
-      }],
-      parse_error: true
+      recommendations: [
+        {
+          tool_name: "Weekly Check-ins",
+          rationale: "A quick way to stay in sync with each other.",
+          suggested_action:
+            "Take 5 minutes to share your highs and lows from the week.",
+        },
+      ],
+      parse_error: true,
     };
   }
 }
@@ -156,11 +159,11 @@ Deno.serve(async (req) => {
     }
 
     const token = authHeader.replace("Bearer ", "");
-    
+
     // Validate JWT using Supabase Auth endpoint
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
-    
+
     const userResponse = await fetch(`${supabaseUrl}/auth/v1/user`, {
       headers: {
         apikey: supabaseAnonKey,
@@ -185,7 +188,7 @@ Deno.serve(async (req) => {
 
     // Get couple_id for this user using service role REST API
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    
+
     const profileResponse = await fetch(
       `${supabaseUrl}/rest/v1/Couples_profiles?id=eq.${user.id}&select=*`,
       {
@@ -288,7 +291,7 @@ Deno.serve(async (req) => {
 
       try {
         let query = `${supabaseUrl}/rest/v1/${tableName}?select=*`;
-        
+
         if (column === "couple_id") {
           query += `&couple_id=eq.${couple_id}`;
         } else {

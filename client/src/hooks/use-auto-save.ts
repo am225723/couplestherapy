@@ -8,7 +8,7 @@ interface AutoSaveOptions {
 
 export function useAutoSave<T>(
   data: T,
-  options: AutoSaveOptions
+  options: AutoSaveOptions,
 ): {
   loadDraft: () => T | null;
   clearDraft: () => void;
@@ -27,17 +27,18 @@ export function useAutoSave<T>(
 
     timeoutRef.current = setTimeout(() => {
       try {
-        const hasData = typeof data === "object" 
-          ? Object.keys(data as object).length > 0 
-          : Boolean(data);
-        
+        const hasData =
+          typeof data === "object"
+            ? Object.keys(data as object).length > 0
+            : Boolean(data);
+
         if (hasData) {
           localStorage.setItem(
             storageKey,
             JSON.stringify({
               data,
               savedAt: Date.now(),
-            })
+            }),
           );
         }
       } catch (error) {
@@ -59,7 +60,7 @@ export function useAutoSave<T>(
 
       const parsed = JSON.parse(saved);
       const oneDayAgo = Date.now() - 24 * 60 * 60 * 1000;
-      
+
       if (parsed.savedAt && parsed.savedAt < oneDayAgo) {
         localStorage.removeItem(storageKey);
         return null;
@@ -82,15 +83,16 @@ export function useAutoSave<T>(
 
       const parsed = JSON.parse(saved);
       const oneDayAgo = Date.now() - 24 * 60 * 60 * 1000;
-      
+
       if (parsed.savedAt && parsed.savedAt < oneDayAgo) {
         localStorage.removeItem(storageKey);
         return false;
       }
 
-      const hasData = typeof parsed.data === "object"
-        ? Object.keys(parsed.data).length > 0
-        : Boolean(parsed.data);
+      const hasData =
+        typeof parsed.data === "object"
+          ? Object.keys(parsed.data).length > 0
+          : Boolean(parsed.data);
 
       return hasData;
     } catch {

@@ -8,22 +8,22 @@ This guide covers the SQL migrations and Edge Functions needed for ALEIC. Most c
 
 These are the newest features that may need deployment:
 
-| Item | Type | Status Check |
-|------|------|--------------|
-| `supabase-push-notifications-migration.sql` | SQL | Check if `Couples_scheduled_notifications` table exists |
-| `supabase-therapist-thoughts-migration.sql` | SQL | Check if `Couples_therapist_thoughts` table exists |
-| `supabase-new-features-migration.sql` | SQL | Check if attachment/enneagram/journal tables exist |
-| `send-scheduled-notifications` | Edge Function | Deploy for push notifications |
-| `ai-exercise-recommendations` | Edge Function | Redeploy (503 error fix) |
+| Item                                        | Type          | Status Check                                            |
+| ------------------------------------------- | ------------- | ------------------------------------------------------- |
+| `supabase-push-notifications-migration.sql` | SQL           | Check if `Couples_scheduled_notifications` table exists |
+| `supabase-therapist-thoughts-migration.sql` | SQL           | Check if `Couples_therapist_thoughts` table exists      |
+| `supabase-new-features-migration.sql`       | SQL           | Check if attachment/enneagram/journal tables exist      |
+| `send-scheduled-notifications`              | Edge Function | Deploy for push notifications                           |
+| `ai-exercise-recommendations`               | Edge Function | Redeploy (503 error fix)                                |
 
 ### Verify Existing Tables
 
 Run this query in Supabase SQL Editor to check which tables exist:
 
 ```sql
-SELECT table_name 
-FROM information_schema.tables 
-WHERE table_schema = 'public' 
+SELECT table_name
+FROM information_schema.tables
+WHERE table_schema = 'public'
 AND table_name LIKE 'Couples_%'
 ORDER BY table_name;
 ```
@@ -31,6 +31,7 @@ ORDER BY table_name;
 ### Verify Edge Functions
 
 In Supabase Dashboard > Edge Functions, you should see:
+
 - ai-date-night
 - ai-echo-coaching
 - ai-empathy-prompt
@@ -47,12 +48,13 @@ In Supabase Dashboard > Edge Functions, you should see:
 ### 1. Push Notifications
 
 **SQL Migration:**
+
 ```sql
 -- Run in Supabase SQL Editor
 -- File: supabase-push-notifications-migration.sql
 
 -- Add token columns to profiles
-ALTER TABLE "Couples_profiles" 
+ALTER TABLE "Couples_profiles"
 ADD COLUMN IF NOT EXISTS expo_push_token TEXT,
 ADD COLUMN IF NOT EXISTS fcm_token TEXT;
 
@@ -87,6 +89,7 @@ USING (
 ```
 
 **Edge Function Deployment:**
+
 ```bash
 supabase functions deploy send-scheduled-notifications
 ```
@@ -112,6 +115,7 @@ Verify `PERPLEXITY_API_KEY` is set in Supabase Dashboard > Project Settings > Ed
 ### 3. Therapist Thoughts
 
 **SQL Migration:**
+
 ```sql
 -- Run in Supabase SQL Editor if table doesn't exist
 -- File: supabase-therapist-thoughts-migration.sql
@@ -145,11 +149,13 @@ USING (therapist_id = auth.uid());
 Run these in order if setting up from scratch:
 
 ### Core (Required)
+
 1. `supabase-setup.sql` - Base tables, profiles, couples
 2. `supabase-storage-setup.sql` - Storage buckets
 3. `supabase-invitation-codes.sql` - Couple linking system
 
 ### Features
+
 4. `supabase-love-map-migration.sql`
 5. `supabase-love-map-questions-seed.sql`
 6. `supabase-echo-empathy-migration.sql`
@@ -166,6 +172,7 @@ Run these in order if setting up from scratch:
 17. `supabase-journal-storage-setup.sql`
 
 ### Optional Features
+
 - `supabase-mood-tracker-migration.sql`
 - `supabase-daily-tips-migration.sql`
 - `supabase-parenting-partners-migration.sql`
@@ -181,18 +188,19 @@ Run these in order if setting up from scratch:
 
 All Edge Functions require `PERPLEXITY_API_KEY` except `send-scheduled-notifications` which requires `EXPO_ACCESS_TOKEN`.
 
-| Function | Purpose |
-|----------|---------|
-| `ai-exercise-recommendations` | Suggests therapy exercises based on couple data |
-| `ai-insights` | Therapist analytics and pattern detection |
-| `ai-date-night` | Personalized date night recommendations |
-| `ai-echo-coaching` | Real-time coaching for Echo & Empathy sessions |
-| `ai-empathy-prompt` | Generates empathy-building prompts |
-| `ai-session-prep` | Prepares session summaries for therapists |
-| `ai-voice-memo-sentiment` | Analyzes voice memo emotional content |
-| `send-scheduled-notifications` | Sends push notifications via Expo |
+| Function                       | Purpose                                         |
+| ------------------------------ | ----------------------------------------------- |
+| `ai-exercise-recommendations`  | Suggests therapy exercises based on couple data |
+| `ai-insights`                  | Therapist analytics and pattern detection       |
+| `ai-date-night`                | Personalized date night recommendations         |
+| `ai-echo-coaching`             | Real-time coaching for Echo & Empathy sessions  |
+| `ai-empathy-prompt`            | Generates empathy-building prompts              |
+| `ai-session-prep`              | Prepares session summaries for therapists       |
+| `ai-voice-memo-sentiment`      | Analyzes voice memo emotional content           |
+| `send-scheduled-notifications` | Sends push notifications via Expo               |
 
 **Deploy all at once:**
+
 ```bash
 supabase functions deploy ai-exercise-recommendations
 supabase functions deploy ai-insights
@@ -210,25 +218,28 @@ supabase functions deploy send-scheduled-notifications
 
 In Supabase Dashboard > Project Settings > Edge Functions, ensure these secrets exist:
 
-| Secret | Required For |
-|--------|--------------|
-| `PERPLEXITY_API_KEY` | All AI features |
-| `EXPO_ACCESS_TOKEN` | Push notifications |
+| Secret               | Required For       |
+| -------------------- | ------------------ |
+| `PERPLEXITY_API_KEY` | All AI features    |
+| `EXPO_ACCESS_TOKEN`  | Push notifications |
 
 ---
 
 ## Troubleshooting
 
 ### 503 Error on AI Features
+
 - Verify `PERPLEXITY_API_KEY` is set correctly
 - Redeploy the affected Edge Function
 - Check Edge Function logs in Supabase Dashboard
 
 ### Push Notifications Not Working
+
 - Verify `EXPO_ACCESS_TOKEN` is set
 - Check that `expo_push_token` column exists in `Couples_profiles`
 - Verify the `Couples_scheduled_notifications` table exists
 
 ### Table Not Found Errors
+
 - Run the corresponding SQL migration file
 - Refresh your Supabase schema cache (sometimes needed after new tables)

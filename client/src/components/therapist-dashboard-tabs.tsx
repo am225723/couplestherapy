@@ -60,7 +60,10 @@ export function TherapistDashboardTabs({
   return (
     <div className="sticky top-[120px] z-30 bg-background/95 backdrop-blur-sm border-b">
       <div className="px-4 py-2">
-        <Tabs value={activeTab} onValueChange={(v) => onTabChange(v as TabCategory)}>
+        <Tabs
+          value={activeTab}
+          onValueChange={(v) => onTabChange(v as TabCategory)}
+        >
           <TabsList className="h-auto w-full justify-start bg-transparent p-0 gap-1 flex-wrap">
             {TABS.map((tab) => {
               const Icon = tab.icon;
@@ -74,11 +77,16 @@ export function TherapistDashboardTabs({
                     "data-[state=active]:shadow-none",
                     isActive
                       ? `${tab.bgColor} ${tab.textColor} border-2 ${tab.borderColor}`
-                      : "border-2 border-transparent hover:bg-muted/50"
+                      : "border-2 border-transparent hover:bg-muted/50",
                   )}
                   data-testid={`tab-${tab.id}`}
                 >
-                  <Icon className={cn("h-4 w-4 flex-shrink-0", isActive && tab.textColor)} />
+                  <Icon
+                    className={cn(
+                      "h-4 w-4 flex-shrink-0",
+                      isActive && tab.textColor,
+                    )}
+                  />
                   <span className="font-medium text-sm">{tab.label}</span>
                 </TabsTrigger>
               );

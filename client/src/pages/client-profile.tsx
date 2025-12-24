@@ -1,5 +1,11 @@
 import { useAuth } from "@/lib/auth-context";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -36,7 +42,10 @@ interface CropArea {
   height: number;
 }
 
-async function getCroppedImg(imageSrc: string, pixelCrop: CropArea): Promise<Blob> {
+async function getCroppedImg(
+  imageSrc: string,
+  pixelCrop: CropArea,
+): Promise<Blob> {
   const image = new Image();
   image.src = imageSrc;
 
@@ -92,8 +101,12 @@ export default function ClientProfile() {
   const [imageSrc, setImageSrc] = useState<string | null>(null);
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
-  const [croppedAreaPixels, setCroppedAreaPixels] = useState<CropArea | null>(null);
-  const [fileValidationError, setFileValidationError] = useState<string | null>(null);
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState<CropArea | null>(
+    null,
+  );
+  const [fileValidationError, setFileValidationError] = useState<string | null>(
+    null,
+  );
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -134,7 +147,9 @@ export default function ClientProfile() {
     if (!file) return;
 
     if (!file.type.startsWith("image/")) {
-      setFileValidationError("Please select a valid image file (JPG, PNG, GIF, etc.)");
+      setFileValidationError(
+        "Please select a valid image file (JPG, PNG, GIF, etc.)",
+      );
       return;
     }
 
@@ -157,7 +172,10 @@ export default function ClientProfile() {
     reader.readAsDataURL(file);
   };
 
-  const handleCropComplete = (croppedArea: CropArea, croppedAreaPixels: CropArea) => {
+  const handleCropComplete = (
+    croppedArea: CropArea,
+    croppedAreaPixels: CropArea,
+  ) => {
     setCroppedAreaPixels(croppedAreaPixels);
   };
 
@@ -199,7 +217,9 @@ export default function ClientProfile() {
         throw uploadError;
       }
 
-      const { data } = supabase.storage.from("client-avatars").getPublicUrl(fileName);
+      const { data } = supabase.storage
+        .from("client-avatars")
+        .getPublicUrl(fileName);
 
       const newAvatarUrl = data.publicUrl;
 
@@ -219,7 +239,8 @@ export default function ClientProfile() {
         description: "Profile photo updated successfully",
       });
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Failed to upload photo";
+      const errorMessage =
+        error instanceof Error ? error.message : "Failed to upload photo";
       console.error("Error uploading photo:", error);
 
       setFileValidationError(errorMessage);
@@ -257,7 +278,9 @@ export default function ClientProfile() {
       <div className="space-y-6">
         <div>
           <h1 className="text-3xl font-bold">Profile</h1>
-          <p className="text-muted-foreground mt-2">Manage your profile information</p>
+          <p className="text-muted-foreground mt-2">
+            Manage your profile information
+          </p>
         </div>
 
         {fileValidationError && (
@@ -270,14 +293,21 @@ export default function ClientProfile() {
         <Card>
           <CardHeader>
             <CardTitle>Personal Information</CardTitle>
-            <CardDescription>View and update your profile details</CardDescription>
+            <CardDescription>
+              View and update your profile details
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="space-y-4">
               <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
                 <div className="flex flex-col items-center gap-4">
                   <Avatar className="h-24 w-24 border-2 border-primary/20">
-                    {avatarUrl && <AvatarImage src={avatarUrl} alt={profile.full_name || "Profile"} />}
+                    {avatarUrl && (
+                      <AvatarImage
+                        src={avatarUrl}
+                        alt={profile.full_name || "Profile"}
+                      />
+                    )}
                     <AvatarFallback className="bg-primary/10 text-primary text-lg font-semibold">
                       {getInitials(profile.full_name || "U")}
                     </AvatarFallback>
@@ -304,7 +334,9 @@ export default function ClientProfile() {
                       {isUploading ? "Uploading..." : "Change Photo"}
                     </Button>
                   </div>
-                  <p className="text-xs text-muted-foreground text-center">Max 5MB</p>
+                  <p className="text-xs text-muted-foreground text-center">
+                    Max 5MB
+                  </p>
                 </div>
 
                 <div className="flex-1 space-y-4">
@@ -340,7 +372,10 @@ export default function ClientProfile() {
                   </div>
 
                   {isEditing && (
-                    <Button className="w-full" data-testid="button-save-profile">
+                    <Button
+                      className="w-full"
+                      data-testid="button-save-profile"
+                    >
                       Save Changes
                     </Button>
                   )}
@@ -362,7 +397,9 @@ export default function ClientProfile() {
             </div>
             <div className="flex justify-between items-center py-2">
               <span className="text-muted-foreground">Couple Status</span>
-              <span className="font-medium">{profile.couple_id ? "Connected" : "Not Connected"}</span>
+              <span className="font-medium">
+                {profile.couple_id ? "Connected" : "Not Connected"}
+              </span>
             </div>
           </CardContent>
         </Card>
@@ -372,7 +409,9 @@ export default function ClientProfile() {
         <DialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle>Crop Profile Photo</DialogTitle>
-            <DialogDescription>Adjust and crop your profile photo before uploading</DialogDescription>
+            <DialogDescription>
+              Adjust and crop your profile photo before uploading
+            </DialogDescription>
           </DialogHeader>
 
           {imageSrc && (

@@ -11,7 +11,15 @@ import { Progress } from "@/components/ui/progress";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Heart, ArrowLeft, ArrowRight, Check, Loader2, RotateCcw, Save } from "lucide-react";
+import {
+  Heart,
+  ArrowLeft,
+  ArrowRight,
+  Check,
+  Loader2,
+  RotateCcw,
+  Save,
+} from "lucide-react";
 import {
   attachmentQuestions,
   calculateAttachmentStyle,
@@ -47,7 +55,7 @@ export default function AttachmentAssessmentPage() {
 
   const { loadDraft, clearDraft, hasDraft } = useAutoSave(
     { responses, currentPage },
-    { key: `attachment_assessment_${user?.id || "anon"}`, debounceMs: 500 }
+    { key: `attachment_assessment_${user?.id || "anon"}`, debounceMs: 500 },
   );
 
   useEffect(() => {
@@ -77,16 +85,21 @@ export default function AttachmentAssessmentPage() {
   const totalPages = Math.ceil(attachmentQuestions.length / QUESTIONS_PER_PAGE);
 
   const saveResultsMutation = useMutation({
-    mutationFn: async (results: { primaryStyle: string; scores: Record<string, number> }) => {
+    mutationFn: async (results: {
+      primaryStyle: string;
+      scores: Record<string, number>;
+    }) => {
       if (!user || !coupleId) throw new Error("Not authenticated");
-      
+
       return apiRequest("POST", "/api/attachment/assessments", {
         attachment_style: results.primaryStyle,
         score: results.scores[results.primaryStyle],
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/attachment/assessments/couple"] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/attachment/assessments/couple"],
+      });
       toast({
         title: "Assessment Saved",
         description: "Your attachment style results have been saved.",
@@ -96,7 +109,8 @@ export default function AttachmentAssessmentPage() {
       console.error("Failed to save attachment results:", error);
       toast({
         title: "Error Saving Results",
-        description: "Your results are shown but could not be saved. Please try again.",
+        description:
+          "Your results are shown but could not be saved. Please try again.",
         variant: "destructive",
       });
     },
@@ -126,7 +140,8 @@ export default function AttachmentAssessmentPage() {
       } else {
         toast({
           title: "Unable to Save",
-          description: "Your results are displayed but couldn't be saved. Please ensure you're logged in and linked to a couple.",
+          description:
+            "Your results are displayed but couldn't be saved. Please ensure you're logged in and linked to a couple.",
           variant: "destructive",
         });
       }
@@ -211,7 +226,8 @@ export default function AttachmentAssessmentPage() {
       },
     };
 
-    const info = styleDescriptions[primaryStyle as keyof typeof styleDescriptions];
+    const info =
+      styleDescriptions[primaryStyle as keyof typeof styleDescriptions];
 
     return (
       <div className="min-h-screen bg-background p-6">
@@ -364,11 +380,20 @@ export default function AttachmentAssessmentPage() {
             <AlertDescription className="flex items-center justify-between flex-wrap gap-3">
               <span>You have unsaved progress from a previous session.</span>
               <div className="flex gap-2">
-                <Button size="sm" onClick={handleRestoreDraft} data-testid="button-restore-draft">
+                <Button
+                  size="sm"
+                  onClick={handleRestoreDraft}
+                  data-testid="button-restore-draft"
+                >
                   <RotateCcw className="h-4 w-4 mr-1" />
                   Restore
                 </Button>
-                <Button size="sm" variant="outline" onClick={handleDiscardDraft} data-testid="button-discard-draft">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handleDiscardDraft}
+                  data-testid="button-discard-draft"
+                >
                   Start Fresh
                 </Button>
               </div>

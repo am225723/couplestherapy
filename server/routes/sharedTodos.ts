@@ -40,7 +40,10 @@ async function checkIfTherapist(userId: string): Promise<boolean> {
 }
 
 // Helper function to verify user belongs to the couple
-async function verifyCoupleMembership(userId: string, coupleId: string): Promise<boolean> {
+async function verifyCoupleMembership(
+  userId: string,
+  coupleId: string,
+): Promise<boolean> {
   const { data } = await supabaseAdmin
     .from("Couples_profiles")
     .select("couple_id")
@@ -51,7 +54,11 @@ async function verifyCoupleMembership(userId: string, coupleId: string): Promise
 }
 
 // Helper function to get the todo and verify ownership
-async function getTodoWithOwnership(todoId: string, userId: string, isTherapist: boolean): Promise<{ todo: any; hasAccess: boolean }> {
+async function getTodoWithOwnership(
+  todoId: string,
+  userId: string,
+  isTherapist: boolean,
+): Promise<{ todo: any; hasAccess: boolean }> {
   const { data: todo, error } = await supabaseAdmin
     .from("Couples_shared_todos")
     .select("*")
@@ -86,9 +93,14 @@ router.get("/couple/:coupleId", async (req: Request, res: Response) => {
     // Verify user belongs to this couple or is a therapist
     const isTherapist = await checkIfTherapist(authResult.userId);
     if (!isTherapist) {
-      const isMember = await verifyCoupleMembership(authResult.userId, coupleId);
+      const isMember = await verifyCoupleMembership(
+        authResult.userId,
+        coupleId,
+      );
       if (!isMember) {
-        return res.status(403).json({ error: "You don't have access to this couple's todos" });
+        return res
+          .status(403)
+          .json({ error: "You don't have access to this couple's todos" });
       }
     }
 
@@ -133,17 +145,35 @@ router.post("/", async (req: Request, res: Response) => {
     // Validate request body
     const parseResult = createTodoSchema.safeParse(req.body);
     if (!parseResult.success) {
-      return res.status(400).json({ error: parseResult.error.errors[0].message });
+      return res
+        .status(400)
+        .json({ error: parseResult.error.errors[0].message });
     }
 
-    const { couple_id, title, description, assigned_to, due_date, priority, category, therapist_notes } = parseResult.data;
+    const {
+      couple_id,
+      title,
+      description,
+      assigned_to,
+      due_date,
+      priority,
+      category,
+      therapist_notes,
+    } = parseResult.data;
 
     // Verify user belongs to this couple or is a therapist
     const isTherapist = await checkIfTherapist(authResult.userId);
     if (!isTherapist) {
-      const isMember = await verifyCoupleMembership(authResult.userId, couple_id);
+      const isMember = await verifyCoupleMembership(
+        authResult.userId,
+        couple_id,
+      );
       if (!isMember) {
-        return res.status(403).json({ error: "You don't have access to create todos for this couple" });
+        return res
+          .status(403)
+          .json({
+            error: "You don't have access to create todos for this couple",
+          });
       }
     }
 
@@ -185,18 +215,26 @@ router.patch("/:id", async (req: Request, res: Response) => {
     // Validate request body
     const parseResult = updateTodoSchema.safeParse(req.body);
     if (!parseResult.success) {
-      return res.status(400).json({ error: parseResult.error.errors[0].message });
+      return res
+        .status(400)
+        .json({ error: parseResult.error.errors[0].message });
     }
 
     const isTherapist = await checkIfTherapist(authResult.userId);
-    
+
     // Verify access to this todo
-    const { todo, hasAccess } = await getTodoWithOwnership(id, authResult.userId, isTherapist);
+    const { todo, hasAccess } = await getTodoWithOwnership(
+      id,
+      authResult.userId,
+      isTherapist,
+    );
     if (!todo) {
       return res.status(404).json({ error: "Todo not found" });
     }
     if (!hasAccess) {
-      return res.status(403).json({ error: "You don't have access to update this todo" });
+      return res
+        .status(403)
+        .json({ error: "You don't have access to update this todo" });
     }
 
     const updates = { ...parseResult.data };
@@ -239,12 +277,18 @@ router.patch("/:id/complete", async (req: Request, res: Response) => {
     const isTherapist = await checkIfTherapist(authResult.userId);
 
     // Verify access to this todo
-    const { todo, hasAccess } = await getTodoWithOwnership(id, authResult.userId, isTherapist);
+    const { todo, hasAccess } = await getTodoWithOwnership(
+      id,
+      authResult.userId,
+      isTherapist,
+    );
     if (!todo) {
       return res.status(404).json({ error: "Todo not found" });
     }
     if (!hasAccess) {
-      return res.status(403).json({ error: "You don't have access to update this todo" });
+      return res
+        .status(403)
+        .json({ error: "You don't have access to update this todo" });
     }
 
     const updateData: any = {
@@ -286,17 +330,32 @@ router.delete("/:id", async (req: Request, res: Response) => {
     const isTherapist = await checkIfTherapist(authResult.userId);
 
     // Verify access to this todo
-    const { todo, hasAccess } = await getTodoWithOwnership(id, authResult.userId, isTherapist);
+    const { todo, hasAccess } = await getTodoWithOwnership(
+      id,
+      authResult.userId,
+      isTherapist,
+    );
     if (!todo) {
       return res.status(404).json({ error: "Todo not found" });
     }
     if (!hasAccess) {
-      return res.status(403).json({ error: "You don't have access to delete this todo" });
+      return res
+        .status(403)
+        .json({ error: "You don't have access to delete this todo" });
     }
 
     // Regular users can only delete todos they created, or that are assigned to them
-    if (!isTherapist && todo.assigned_by !== authResult.userId && todo.assigned_to !== authResult.userId) {
-      return res.status(403).json({ error: "You can only delete todos you created or that are assigned to you" });
+    if (
+      !isTherapist &&
+      todo.assigned_by !== authResult.userId &&
+      todo.assigned_to !== authResult.userId
+    ) {
+      return res
+        .status(403)
+        .json({
+          error:
+            "You can only delete todos you created or that are assigned to you",
+        });
     }
 
     const { error } = await supabaseAdmin
@@ -326,14 +385,16 @@ router.get("/therapist/all", async (req: Request, res: Response) => {
 
     let query = supabaseAdmin
       .from("Couples_shared_todos")
-      .select(`
+      .select(
+        `
         *,
         couple:couple_id (
           id,
           partner1_id,
           partner2_id
         )
-      `)
+      `,
+      )
       .order("is_completed", { ascending: true })
       .order("due_date", { ascending: true, nullsFirst: false })
       .order("created_at", { ascending: false });

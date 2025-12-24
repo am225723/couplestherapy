@@ -46,8 +46,16 @@ export function DashboardEditControls({
 
   const sections = [
     { key: "header", title: "Header Section", widgets: groupedWidgets.header },
-    { key: "featured", title: "Featured Cards", widgets: groupedWidgets.featured },
-    { key: "activities", title: "Activity Widgets", widgets: groupedWidgets.activities },
+    {
+      key: "featured",
+      title: "Featured Cards",
+      widgets: groupedWidgets.featured,
+    },
+    {
+      key: "activities",
+      title: "Activity Widgets",
+      widgets: groupedWidgets.activities,
+    },
   ] as const;
 
   return (
@@ -100,20 +108,24 @@ export function DashboardEditControls({
                         className={cn(
                           "flex items-center justify-between p-3 rounded-lg",
                           "border border-border/50 bg-card transition-luxury",
-                          !widget.enabled && "opacity-50"
+                          !widget.enabled && "opacity-50",
                         )}
                       >
                         <div className="flex items-center gap-3">
                           <GripVertical className="h-4 w-4 text-muted-foreground cursor-grab" />
-                          <span className="text-sm font-medium">{widget.title}</span>
+                          <span className="text-sm font-medium">
+                            {widget.title}
+                          </span>
                         </div>
                         <button
-                          onClick={() => onToggleWidget(widget.id, !widget.enabled)}
+                          onClick={() =>
+                            onToggleWidget(widget.id, !widget.enabled)
+                          }
                           className={cn(
                             "p-2 rounded-lg transition-colors",
                             widget.enabled
                               ? "text-primary hover:bg-primary/10"
-                              : "text-muted-foreground hover:bg-muted"
+                              : "text-muted-foreground hover:bg-muted",
                           )}
                           data-testid={`toggle-widget-${widget.id}`}
                         >
@@ -158,7 +170,7 @@ export function WidgetVisibilityBadge({
         "visibility-toggle p-1.5 rounded-lg",
         "bg-background/80 backdrop-blur-sm border border-border/50",
         "hover:bg-muted transition-colors",
-        className
+        className,
       )}
       data-testid="button-toggle-visibility"
     >

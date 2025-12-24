@@ -14,7 +14,7 @@ export interface DashboardCustomization {
 export const invokeDashboardCustomization = async (
   coupleId: string,
   method: "GET" | "POST" | "PATCH",
-  body?: any
+  body?: any,
 ): Promise<DashboardCustomization> => {
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 
@@ -27,7 +27,9 @@ export const invokeDashboardCustomization = async (
   const token = session.data.session?.access_token;
 
   if (!token) {
-    console.error("[Dashboard API] No auth token available - user may not be logged in");
+    console.error(
+      "[Dashboard API] No auth token available - user may not be logged in",
+    );
     throw new Error("Not authenticated");
   }
 
@@ -51,10 +53,16 @@ export const invokeDashboardCustomization = async (
     console.log("[Dashboard API] Response status:", response.status);
 
     const responseText = await response.text();
-    
+
     if (!response.ok) {
-      console.error("[Dashboard API] Error response:", response.status, responseText);
-      throw new Error(`${response.status}: ${responseText || "Failed to update dashboard"}`);
+      console.error(
+        "[Dashboard API] Error response:",
+        response.status,
+        responseText,
+      );
+      throw new Error(
+        `${response.status}: ${responseText || "Failed to update dashboard"}`,
+      );
     }
 
     try {
@@ -62,7 +70,10 @@ export const invokeDashboardCustomization = async (
       console.log("[Dashboard API] Success response:", data);
       return data;
     } catch {
-      console.error("[Dashboard API] Failed to parse response as JSON:", responseText);
+      console.error(
+        "[Dashboard API] Failed to parse response as JSON:",
+        responseText,
+      );
       throw new Error("Invalid response from server");
     }
   } catch (error: any) {

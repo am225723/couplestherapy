@@ -1756,7 +1756,10 @@ Be warm, creative, and encouraging. Emphasize connection, fun, and breaking rout
 });
 
 // AI PERSONALIZED DAILY TIP (Based on couple's assessment results)
-const dailyTipCache = new Map<string, { data: any; timestamp: number; date: string }>();
+const dailyTipCache = new Map<
+  string,
+  { data: any; timestamp: number; date: string }
+>();
 const DAILY_TIP_CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
 
 aiRouter.get("/personalized-daily-tip", async (req, res) => {
@@ -1773,7 +1776,11 @@ aiRouter.get("/personalized-daily-tip", async (req, res) => {
     // Check cache first - tips are cached per couple per day
     const cacheKey = `daily-tip:${coupleId}:${today}`;
     const cached = dailyTipCache.get(cacheKey);
-    if (cached && cached.date === today && Date.now() - cached.timestamp < DAILY_TIP_CACHE_TTL_MS) {
+    if (
+      cached &&
+      cached.date === today &&
+      Date.now() - cached.timestamp < DAILY_TIP_CACHE_TTL_MS
+    ) {
       return res.json(cached.data);
     }
 
@@ -1836,8 +1843,10 @@ aiRouter.get("/personalized-daily-tip", async (req, res) => {
       const genericTip = {
         category: "connection",
         title: "Start Your Journey",
-        description: "Take an assessment together to get personalized relationship tips tailored to your unique dynamic.",
-        action_prompt: "Complete the Attachment Style or Love Language assessment today",
+        description:
+          "Take an assessment together to get personalized relationship tips tailored to your unique dynamic.",
+        action_prompt:
+          "Complete the Attachment Style or Love Language assessment today",
         is_personalized: false,
       };
       return res.json(genericTip);
@@ -1884,7 +1893,11 @@ Return ONLY the JSON, no additional text or markdown formatting.`;
         throw new Error("Invalid AI response structure");
       }
     } catch (parseError: any) {
-      console.error("Failed to parse AI daily tip:", parseError.message, aiFullResponse);
+      console.error(
+        "Failed to parse AI daily tip:",
+        parseError.message,
+        aiFullResponse,
+      );
       return res.status(500).json({
         error: "Failed to generate personalized tip. Please try again.",
         details: parseError.message,
@@ -1951,7 +1964,11 @@ aiRouter.get("/growth-plan", async (req, res) => {
     const cacheKey = `growth-plan:${coupleId}`;
     const forceRefresh = req.query.refresh === "true";
     const cached = growthPlanCache.get(cacheKey);
-    if (!forceRefresh && cached && Date.now() - cached.timestamp < GROWTH_PLAN_CACHE_TTL_MS) {
+    if (
+      !forceRefresh &&
+      cached &&
+      Date.now() - cached.timestamp < GROWTH_PLAN_CACHE_TTL_MS
+    ) {
       return res.json(cached.data);
     }
 
@@ -1969,60 +1986,71 @@ aiRouter.get("/growth-plan", async (req, res) => {
     const partnerIds = [couple.partner1_id, couple.partner2_id];
 
     // Fetch all assessment data in parallel
-    const [loveLanguages, attachments, enneagrams, checkins, goals] = await Promise.all([
-      supabaseAdmin
-        .from("Couples_love_languages")
-        .select("user_id, primary_language, secondary_language")
-        .in("user_id", partnerIds),
-      supabaseAdmin
-        .from("Couples_attachment_results")
-        .select("user_id, attachment_style, scores")
-        .in("user_id", partnerIds),
-      supabaseAdmin
-        .from("Couples_enneagram_results")
-        .select("user_id, dominant_type, wing")
-        .in("user_id", partnerIds),
-      supabaseAdmin
-        .from("Couples_weekly_checkins")
-        .select("user_id, overall_satisfaction, communication_rating, created_at")
-        .in("user_id", partnerIds)
-        .order("created_at", { ascending: false })
-        .limit(10),
-      supabaseAdmin
-        .from("Couples_shared_goals")
-        .select("title, status, category")
-        .eq("couple_id", coupleId)
-        .limit(10),
-    ]);
+    const [loveLanguages, attachments, enneagrams, checkins, goals] =
+      await Promise.all([
+        supabaseAdmin
+          .from("Couples_love_languages")
+          .select("user_id, primary_language, secondary_language")
+          .in("user_id", partnerIds),
+        supabaseAdmin
+          .from("Couples_attachment_results")
+          .select("user_id, attachment_style, scores")
+          .in("user_id", partnerIds),
+        supabaseAdmin
+          .from("Couples_enneagram_results")
+          .select("user_id, dominant_type, wing")
+          .in("user_id", partnerIds),
+        supabaseAdmin
+          .from("Couples_weekly_checkins")
+          .select(
+            "user_id, overall_satisfaction, communication_rating, created_at",
+          )
+          .in("user_id", partnerIds)
+          .order("created_at", { ascending: false })
+          .limit(10),
+        supabaseAdmin
+          .from("Couples_shared_goals")
+          .select("title, status, category")
+          .eq("couple_id", coupleId)
+          .limit(10),
+      ]);
 
     // Build personalization context
     const personalizationContext: any = {};
 
     if (loveLanguages.data?.length) {
       personalizationContext.love_languages = loveLanguages.data.map(
-        (ll) => `${ll.primary_language}${ll.secondary_language ? ` (secondary: ${ll.secondary_language})` : ""}`
+        (ll) =>
+          `${ll.primary_language}${ll.secondary_language ? ` (secondary: ${ll.secondary_language})` : ""}`,
       );
     }
 
     if (attachments.data?.length) {
-      personalizationContext.attachment_styles = attachments.data.map((a) => a.attachment_style);
+      personalizationContext.attachment_styles = attachments.data.map(
+        (a) => a.attachment_style,
+      );
     }
 
     if (enneagrams.data?.length) {
       personalizationContext.enneagram_types = enneagrams.data.map(
-        (e) => `Type ${e.dominant_type}${e.wing ? `w${e.wing}` : ""}`
+        (e) => `Type ${e.dominant_type}${e.wing ? `w${e.wing}` : ""}`,
       );
     }
 
     if (checkins.data?.length) {
       const avgSatisfaction =
-        checkins.data.reduce((sum, c) => sum + (c.overall_satisfaction || 0), 0) /
-        checkins.data.length;
-      personalizationContext.recent_satisfaction = Math.round(avgSatisfaction * 10) / 10;
+        checkins.data.reduce(
+          (sum, c) => sum + (c.overall_satisfaction || 0),
+          0,
+        ) / checkins.data.length;
+      personalizationContext.recent_satisfaction =
+        Math.round(avgSatisfaction * 10) / 10;
     }
 
     if (goals.data?.length) {
-      personalizationContext.goal_areas = [...new Set(goals.data.map((g) => g.category).filter(Boolean))];
+      personalizationContext.goal_areas = [
+        ...new Set(goals.data.map((g) => g.category).filter(Boolean)),
+      ];
     }
 
     // Check if we have any assessment data
@@ -2094,7 +2122,11 @@ Generate 4-6 exercises and 3-4 goals. Return ONLY the JSON, no additional text.`
         throw new Error("Invalid AI response structure");
       }
     } catch (parseError: any) {
-      console.error("Failed to parse AI growth plan:", parseError.message, aiFullResponse);
+      console.error(
+        "Failed to parse AI growth plan:",
+        parseError.message,
+        aiFullResponse,
+      );
       // Return a default plan
       parsed = getDefaultGrowthPlan();
     }
@@ -2105,8 +2137,11 @@ Generate 4-6 exercises and 3-4 goals. Return ONLY the JSON, no additional text.`
       generated_at: new Date().toISOString(),
       exercises: parsed.exercises || [],
       goals: parsed.goals || [],
-      personalization_summary: parsed.personalization_summary || "General relationship growth plan",
-      personalization_context: hasPersonalization ? personalizationContext : null,
+      personalization_summary:
+        parsed.personalization_summary || "General relationship growth plan",
+      personalization_context: hasPersonalization
+        ? personalizationContext
+        : null,
     };
 
     // Cache the result
@@ -2130,50 +2165,71 @@ function getDefaultGrowthPlan() {
       {
         id: "exercise-1",
         title: "Daily Appreciation Share",
-        description: "Take turns sharing one thing you appreciate about each other. Be specific about actions, qualities, or moments that made an impact.",
+        description:
+          "Take turns sharing one thing you appreciate about each other. Be specific about actions, qualities, or moments that made an impact.",
         category: "appreciation",
         duration_minutes: 10,
         frequency: "daily",
-        rationale: "Regular appreciation builds emotional connection and reinforces positive behaviors.",
+        rationale:
+          "Regular appreciation builds emotional connection and reinforces positive behaviors.",
       },
       {
         id: "exercise-2",
         title: "Stress-Reducing Conversation",
-        description: "Spend 20 minutes discussing each other's day. Focus on listening without offering solutions unless asked.",
+        description:
+          "Spend 20 minutes discussing each other's day. Focus on listening without offering solutions unless asked.",
         category: "communication",
         duration_minutes: 20,
         frequency: "daily",
-        rationale: "Daily check-ins reduce emotional distance and build understanding.",
+        rationale:
+          "Daily check-ins reduce emotional distance and build understanding.",
       },
       {
         id: "exercise-3",
         title: "Weekly Dream Sharing",
-        description: "Share a dream, hope, or aspiration with your partner. Ask curious questions to understand their inner world better.",
+        description:
+          "Share a dream, hope, or aspiration with your partner. Ask curious questions to understand their inner world better.",
         category: "intimacy",
         duration_minutes: 30,
         frequency: "weekly",
-        rationale: "Understanding each other's dreams deepens emotional intimacy.",
+        rationale:
+          "Understanding each other's dreams deepens emotional intimacy.",
       },
       {
         id: "exercise-4",
         title: "Repair Conversation Practice",
-        description: "Practice using 'I feel' statements and making repair attempts after minor disagreements.",
+        description:
+          "Practice using 'I feel' statements and making repair attempts after minor disagreements.",
         category: "conflict",
         duration_minutes: 15,
         frequency: "weekly",
-        rationale: "Building repair skills prevents negative cycles from escalating.",
+        rationale:
+          "Building repair skills prevents negative cycles from escalating.",
       },
     ],
     goals: [
       {
         id: "goal-1",
         title: "Establish Daily Connection Ritual",
-        description: "Create a consistent daily practice of meaningful connection.",
+        description:
+          "Create a consistent daily practice of meaningful connection.",
         category: "communication",
         milestones: [
-          { id: "m1", title: "Choose a ritual", description: "Decide on a daily connection activity together" },
-          { id: "m2", title: "Practice for one week", description: "Complete the ritual every day for 7 days" },
-          { id: "m3", title: "Reflect and adjust", description: "Discuss what's working and refine the ritual" },
+          {
+            id: "m1",
+            title: "Choose a ritual",
+            description: "Decide on a daily connection activity together",
+          },
+          {
+            id: "m2",
+            title: "Practice for one week",
+            description: "Complete the ritual every day for 7 days",
+          },
+          {
+            id: "m3",
+            title: "Reflect and adjust",
+            description: "Discuss what's working and refine the ritual",
+          },
         ],
         timeline_weeks: 4,
       },
@@ -2183,26 +2239,54 @@ function getDefaultGrowthPlan() {
         description: "Develop healthier patterns for handling disagreements.",
         category: "conflict",
         milestones: [
-          { id: "m1", title: "Identify triggers", description: "Each partner identifies their top 3 conflict triggers" },
-          { id: "m2", title: "Create a repair toolkit", description: "Develop 3-5 repair attempts that work for you both" },
-          { id: "m3", title: "Practice during low-stakes moments", description: "Use repair attempts in minor disagreements" },
+          {
+            id: "m1",
+            title: "Identify triggers",
+            description:
+              "Each partner identifies their top 3 conflict triggers",
+          },
+          {
+            id: "m2",
+            title: "Create a repair toolkit",
+            description: "Develop 3-5 repair attempts that work for you both",
+          },
+          {
+            id: "m3",
+            title: "Practice during low-stakes moments",
+            description: "Use repair attempts in minor disagreements",
+          },
         ],
         timeline_weeks: 6,
       },
       {
         id: "goal-3",
         title: "Deepen Emotional Intimacy",
-        description: "Build a stronger emotional bond through vulnerability and understanding.",
+        description:
+          "Build a stronger emotional bond through vulnerability and understanding.",
         category: "intimacy",
         milestones: [
-          { id: "m1", title: "Share childhood memories", description: "Each share 3 formative childhood experiences" },
-          { id: "m2", title: "Discuss fears and dreams", description: "Have a deep conversation about hopes and fears" },
-          { id: "m3", title: "Create shared meaning", description: "Identify values and traditions that matter to you both" },
+          {
+            id: "m1",
+            title: "Share childhood memories",
+            description: "Each share 3 formative childhood experiences",
+          },
+          {
+            id: "m2",
+            title: "Discuss fears and dreams",
+            description: "Have a deep conversation about hopes and fears",
+          },
+          {
+            id: "m3",
+            title: "Create shared meaning",
+            description:
+              "Identify values and traditions that matter to you both",
+          },
         ],
         timeline_weeks: 8,
       },
     ],
-    personalization_summary: "This general growth plan focuses on building connection, improving communication, and deepening intimacy.",
+    personalization_summary:
+      "This general growth plan focuses on building connection, improving communication, and deepening intimacy.",
   };
 }
 

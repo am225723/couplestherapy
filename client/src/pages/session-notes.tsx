@@ -132,24 +132,37 @@ export default function SessionNotes() {
             <FileText className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
             <h2 className="text-xl font-semibold mb-2">No Session Notes Yet</h2>
             <p className="text-muted-foreground max-w-md mx-auto">
-              Your therapist will share session summaries and homework here after your appointments.
+              Your therapist will share session summaries and homework here
+              after your appointments.
             </p>
           </Card>
         ) : (
           <div className="space-y-6">
             {groupNotesByMonth(notes).map(([month, monthNotes]) => (
               <div key={month}>
-                <h2 className="text-lg font-semibold text-muted-foreground mb-3">{month}</h2>
+                <h2 className="text-lg font-semibold text-muted-foreground mb-3">
+                  {month}
+                </h2>
                 <Accordion type="single" collapsible className="space-y-2">
                   {monthNotes.map((note) => (
-                    <AccordionItem key={note.id} value={note.id} className="border rounded-lg px-4">
-                      <AccordionTrigger className="hover:no-underline py-4" data-testid={`session-note-${note.id}`}>
+                    <AccordionItem
+                      key={note.id}
+                      value={note.id}
+                      className="border rounded-lg px-4"
+                    >
+                      <AccordionTrigger
+                        className="hover:no-underline py-4"
+                        data-testid={`session-note-${note.id}`}
+                      >
                         <div className="flex items-center gap-3 text-left">
                           <Calendar className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                           <div>
                             <p className="font-medium">{note.title}</p>
                             <p className="text-sm text-muted-foreground">
-                              {format(new Date(note.session_date), "EEEE, MMMM d, yyyy")}
+                              {format(
+                                new Date(note.session_date),
+                                "EEEE, MMMM d, yyyy",
+                              )}
                             </p>
                           </div>
                         </div>
@@ -162,7 +175,9 @@ export default function SessionNotes() {
                                 <BookOpen className="h-4 w-4 text-primary" />
                                 <h4 className="font-medium">Summary</h4>
                               </div>
-                              <p className="text-sm text-muted-foreground">{note.summary}</p>
+                              <p className="text-sm text-muted-foreground">
+                                {note.summary}
+                              </p>
                             </div>
                           )}
 
@@ -170,11 +185,15 @@ export default function SessionNotes() {
                             <div>
                               <div className="flex items-center gap-2 mb-2">
                                 <Lightbulb className="h-4 w-4 text-amber-500" />
-                                <h4 className="font-medium text-sm">Key Themes</h4>
+                                <h4 className="font-medium text-sm">
+                                  Key Themes
+                                </h4>
                               </div>
                               <div className="flex flex-wrap gap-2">
                                 {note.key_themes.map((theme, idx) => (
-                                  <Badge key={idx} variant="secondary">{theme}</Badge>
+                                  <Badge key={idx} variant="secondary">
+                                    {theme}
+                                  </Badge>
                                 ))}
                               </div>
                             </div>
@@ -186,7 +205,9 @@ export default function SessionNotes() {
                                 <ClipboardList className="h-4 w-4 text-primary" />
                                 <h4 className="font-medium">Homework</h4>
                               </div>
-                              <p className="text-sm">{note.homework_assigned}</p>
+                              <p className="text-sm">
+                                {note.homework_assigned}
+                              </p>
                             </div>
                           )}
 
@@ -194,9 +215,13 @@ export default function SessionNotes() {
                             <div>
                               <div className="flex items-center gap-2 mb-2">
                                 <Target className="h-4 w-4 text-emerald-500" />
-                                <h4 className="font-medium text-sm">Goals for Next Session</h4>
+                                <h4 className="font-medium text-sm">
+                                  Goals for Next Session
+                                </h4>
                               </div>
-                              <p className="text-sm text-muted-foreground">{note.next_session_goals}</p>
+                              <p className="text-sm text-muted-foreground">
+                                {note.next_session_goals}
+                              </p>
                             </div>
                           )}
                         </div>

@@ -1,5 +1,11 @@
 import { useAuth } from "@/lib/auth-context";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -26,7 +32,10 @@ export default function ClientSettings() {
 
   return (
     <div className="max-w-2xl mx-auto p-4 md:p-8">
-      <Link href="/dashboard" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6">
+      <Link
+        href="/dashboard"
+        className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6"
+      >
         <ArrowLeft className="h-4 w-4" />
         Back to Dashboard
       </Link>
@@ -34,19 +43,30 @@ export default function ClientSettings() {
       <div className="space-y-6">
         <div>
           <h1 className="text-3xl font-bold">Settings</h1>
-          <p className="text-muted-foreground mt-2">Manage your preferences and account settings</p>
+          <p className="text-muted-foreground mt-2">
+            Manage your preferences and account settings
+          </p>
         </div>
 
         <Card>
           <CardHeader>
             <CardTitle>Notifications</CardTitle>
-            <CardDescription>Control how you receive notifications</CardDescription>
+            <CardDescription>
+              Control how you receive notifications
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="flex items-center justify-between py-2">
               <div className="space-y-0.5">
-                <Label htmlFor="notifications" className="text-base font-medium">Push Notifications</Label>
-                <p className="text-sm text-muted-foreground">Receive push notifications for important updates</p>
+                <Label
+                  htmlFor="notifications"
+                  className="text-base font-medium"
+                >
+                  Push Notifications
+                </Label>
+                <p className="text-sm text-muted-foreground">
+                  Receive push notifications for important updates
+                </p>
               </div>
               <Switch
                 id="notifications"
@@ -58,8 +78,15 @@ export default function ClientSettings() {
 
             <div className="flex items-center justify-between py-2 border-t pt-4">
               <div className="space-y-0.5">
-                <Label htmlFor="emailReminders" className="text-base font-medium">Email Reminders</Label>
-                <p className="text-sm text-muted-foreground">Receive email reminders for check-ins and activities</p>
+                <Label
+                  htmlFor="emailReminders"
+                  className="text-base font-medium"
+                >
+                  Email Reminders
+                </Label>
+                <p className="text-sm text-muted-foreground">
+                  Receive email reminders for check-ins and activities
+                </p>
               </div>
               <Switch
                 id="emailReminders"
@@ -71,8 +98,12 @@ export default function ClientSettings() {
 
             <div className="flex items-center justify-between py-2 border-t pt-4">
               <div className="space-y-0.5">
-                <Label htmlFor="dailyTips" className="text-base font-medium">Daily Tips</Label>
-                <p className="text-sm text-muted-foreground">Receive daily relationship tips and suggestions</p>
+                <Label htmlFor="dailyTips" className="text-base font-medium">
+                  Daily Tips
+                </Label>
+                <p className="text-sm text-muted-foreground">
+                  Receive daily relationship tips and suggestions
+                </p>
               </div>
               <Switch
                 id="dailyTips"
@@ -84,8 +115,15 @@ export default function ClientSettings() {
 
             <div className="flex items-center justify-between py-2 border-t pt-4">
               <div className="space-y-0.5">
-                <Label htmlFor="partnerActivity" className="text-base font-medium">Partner Activity</Label>
-                <p className="text-sm text-muted-foreground">Get notified when your partner completes activities</p>
+                <Label
+                  htmlFor="partnerActivity"
+                  className="text-base font-medium"
+                >
+                  Partner Activity
+                </Label>
+                <p className="text-sm text-muted-foreground">
+                  Get notified when your partner completes activities
+                </p>
               </div>
               <Switch
                 id="partnerActivity"
@@ -103,10 +141,18 @@ export default function ClientSettings() {
             <CardDescription>Manage your privacy preferences</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <Button variant="outline" className="w-full" data-testid="button-privacy-settings">
+            <Button
+              variant="outline"
+              className="w-full"
+              data-testid="button-privacy-settings"
+            >
               Privacy Settings
             </Button>
-            <Button variant="outline" className="w-full" data-testid="button-data-export">
+            <Button
+              variant="outline"
+              className="w-full"
+              data-testid="button-data-export"
+            >
               Export My Data
             </Button>
           </CardContent>
@@ -118,7 +164,9 @@ export default function ClientSettings() {
               <Calendar className="h-5 w-5" />
               Calendar Integrations
             </CardTitle>
-            <CardDescription>Connect your calendar to sync events and reminders</CardDescription>
+            <CardDescription>
+              Connect your calendar to sync events and reminders
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -126,14 +174,20 @@ export default function ClientSettings() {
                 <div className="flex items-center justify-between">
                   <div>
                     <h3 className="font-semibold">Google Calendar</h3>
-                    <p className="text-sm text-muted-foreground">Sync your Google Calendar</p>
+                    <p className="text-sm text-muted-foreground">
+                      Sync your Google Calendar
+                    </p>
                   </div>
-                  {googleCalendarConnected && <CheckCircle2 className="h-5 w-5 text-green-600" />}
+                  {googleCalendarConnected && (
+                    <CheckCircle2 className="h-5 w-5 text-green-600" />
+                  )}
                 </div>
                 <Button
                   variant={googleCalendarConnected ? "secondary" : "outline"}
                   className="w-full"
-                  onClick={() => setGoogleCalendarConnected(!googleCalendarConnected)}
+                  onClick={() =>
+                    setGoogleCalendarConnected(!googleCalendarConnected)
+                  }
                   data-testid="button-google-calendar"
                 >
                   {googleCalendarConnected ? "Disconnect" : "Connect"}
@@ -144,14 +198,20 @@ export default function ClientSettings() {
                 <div className="flex items-center justify-between">
                   <div>
                     <h3 className="font-semibold">Apple Calendar</h3>
-                    <p className="text-sm text-muted-foreground">Sync your Apple Calendar</p>
+                    <p className="text-sm text-muted-foreground">
+                      Sync your Apple Calendar
+                    </p>
                   </div>
-                  {appleCalendarConnected && <CheckCircle2 className="h-5 w-5 text-green-600" />}
+                  {appleCalendarConnected && (
+                    <CheckCircle2 className="h-5 w-5 text-green-600" />
+                  )}
                 </div>
                 <Button
                   variant={appleCalendarConnected ? "secondary" : "outline"}
                   className="w-full"
-                  onClick={() => setAppleCalendarConnected(!appleCalendarConnected)}
+                  onClick={() =>
+                    setAppleCalendarConnected(!appleCalendarConnected)
+                  }
                   data-testid="button-apple-calendar"
                 >
                   {appleCalendarConnected ? "Disconnect" : "Connect"}
@@ -160,7 +220,8 @@ export default function ClientSettings() {
             </div>
 
             <p className="text-xs text-muted-foreground mt-4">
-              Connected calendars will help you keep track of couple activities and shared events.
+              Connected calendars will help you keep track of couple activities
+              and shared events.
             </p>
           </CardContent>
         </Card>
@@ -171,10 +232,18 @@ export default function ClientSettings() {
             <CardDescription>Manage your account security</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <Button variant="outline" className="w-full" data-testid="button-change-password">
+            <Button
+              variant="outline"
+              className="w-full"
+              data-testid="button-change-password"
+            >
               Change Password
             </Button>
-            <Button variant="outline" className="w-full" data-testid="button-sessions">
+            <Button
+              variant="outline"
+              className="w-full"
+              data-testid="button-sessions"
+            >
               Active Sessions
             </Button>
           </CardContent>
