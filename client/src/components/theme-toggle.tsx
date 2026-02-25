@@ -7,9 +7,10 @@ export function ThemeToggle() {
 
   return (
     <Button
-      variant="ghost"
+      variant="outline"
       size="icon"
       onClick={toggleTheme}
+      className="rounded-full"
       data-testid="button-theme-toggle"
     >
       {theme === "light" ? (

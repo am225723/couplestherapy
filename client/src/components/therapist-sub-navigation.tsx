@@ -192,9 +192,9 @@ const TAB_COLORS: Record<
   },
   session: {
     active:
-      "bg-violet-100 dark:bg-violet-900/40 text-violet-700 dark:text-violet-300 border-violet-300 dark:border-violet-700",
-    hover: "hover:bg-violet-50 dark:hover:bg-violet-900/20",
-    icon: "text-violet-600 dark:text-violet-400",
+      "bg-orange-100 dark:bg-orange-900/40 text-orange-700 dark:text-orange-300 border-orange-300 dark:border-orange-700",
+    hover: "hover:bg-orange-50 dark:hover:bg-orange-900/20",
+    icon: "text-orange-600 dark:text-orange-400",
   },
   client: {
     active:

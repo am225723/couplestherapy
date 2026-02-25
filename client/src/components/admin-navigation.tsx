@@ -338,7 +338,7 @@ export function AdminNavigation({
                       "gap-1.5",
                       isHighlighted &&
                         currentSection !== section.id &&
-                        "bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300",
+                        "bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300",
                     )}
                     onClick={() => onSelectSection(section.id)}
                     data-testid={`button-section-${section.id}`}

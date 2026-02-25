@@ -1311,12 +1311,12 @@ export default function ClientDashboard() {
 
         {reflectionPrompts.length > 0 && (
           <section className="mb-4" data-testid="section-reflection-prompts">
-            <Card className="glass-card border-l-4 border-l-purple-500/60 overflow-hidden">
-              <div className="gradient-animate rounded-xl bg-gradient-to-br from-purple-500/15 to-pink-500/10 dark:from-purple-500/25 dark:to-pink-500/15" />
+            <Card className="glass-card border-l-4 border-l-amber-500/60 overflow-hidden">
+              <div className="gradient-animate rounded-xl bg-gradient-to-br from-amber-500/15 to-pink-500/10 dark:from-amber-500/25 dark:to-pink-500/15" />
               <CardHeader className="relative z-10 pb-2">
                 <CardTitle className="flex items-center gap-2 text-base">
-                  <div className="p-2 rounded-lg bg-purple-500/15">
-                    <Lightbulb className="h-5 w-5 text-purple-500" />
+                  <div className="p-2 rounded-lg bg-amber-500/15">
+                    <Lightbulb className="h-5 w-5 text-amber-500" />
                   </div>
                   Reflection Questions from Your Therapist
                 </CardTitle>
@@ -1783,12 +1783,12 @@ export default function ClientDashboard() {
                           enneagramQuery.data &&
                           enneagramQuery.data.length > 0;
                         const enneagramCard = (
-                          <div className="rounded-2xl p-4 relative cursor-pointer h-full flex flex-col border-l-4 border-l-purple-500 shadow-lg glass-card overflow-hidden">
-                            <div className="gradient-animate rounded-2xl bg-gradient-to-br from-purple-500/15 to-violet-500/12 dark:from-purple-500/30 dark:to-violet-500/22" />
+                          <div className="rounded-2xl p-4 relative cursor-pointer h-full flex flex-col border-l-4 border-l-amber-500 shadow-lg glass-card overflow-hidden">
+                            <div className="gradient-animate rounded-2xl bg-gradient-to-br from-amber-500/15 to-orange-500/12 dark:from-amber-500/30 dark:to-orange-500/22" />
                             <div className="relative z-10 flex flex-col h-full">
                               <div className="flex-shrink-0 flex items-start justify-between mb-3">
-                                <div className="p-2.5 rounded-xl bg-purple-500/15 flex-shrink-0">
-                                  <Compass className="h-6 w-6 text-purple-500" />
+                                <div className="p-2.5 rounded-xl bg-amber-500/15 flex-shrink-0">
+                                  <Compass className="h-6 w-6 text-amber-500" />
                                 </div>
                               </div>
                               <h3 className="font-bold text-base text-foreground leading-tight mb-2">
@@ -1866,8 +1866,8 @@ export default function ClientDashboard() {
                             <div className="gradient-animate rounded-2xl bg-gradient-to-br from-slate-500/15 to-gray-500/12 dark:from-slate-500/30 dark:to-gray-500/22" />
                             <div className="relative z-10 flex flex-col h-full">
                               <div className="flex-shrink-0 flex items-start justify-between mb-3">
-                                <div className="p-2.5 rounded-xl bg-slate-500/15 flex-shrink-0">
-                                  <ListTodo className="h-6 w-6 text-slate-500" />
+                                <div className="p-2.5 rounded-xl bg-muted/60 flex-shrink-0">
+                                  <ListTodo className="h-6 w-6 text-muted-foreground" />
                                 </div>
                                 {incompleteTodos.length > 0 && (
                                   <Badge
@@ -2640,8 +2640,8 @@ export default function ClientDashboard() {
                             <div className="gradient-animate rounded-2xl bg-gradient-to-br from-slate-500/15 to-gray-500/12 dark:from-slate-500/30 dark:to-gray-500/22" />
                             <div className="relative z-10 flex flex-col h-full">
                               <div className="flex-shrink-0 flex items-start justify-between mb-3">
-                                <div className="p-2.5 rounded-xl bg-slate-500/15 flex-shrink-0">
-                                  <Mic className="h-6 w-6 text-slate-500" />
+                                <div className="p-2.5 rounded-xl bg-muted/60 flex-shrink-0">
+                                  <Mic className="h-6 w-6 text-muted-foreground" />
                                 </div>
                                 {unlistenedCount > 0 && (
                                   <Badge
@@ -2768,12 +2768,12 @@ export default function ClientDashboard() {
                         const latestRitual = rituals[0];
                         return (
                           <Link href="/rituals" className="block h-full">
-                            <div className="rounded-2xl p-4 relative cursor-pointer h-full flex flex-col border-l-4 border-l-purple-500 shadow-lg glass-card overflow-hidden">
-                              <div className="gradient-animate rounded-2xl bg-gradient-to-br from-purple-500/15 to-pink-500/12 dark:from-purple-500/30 dark:to-pink-500/22" />
+                            <div className="rounded-2xl p-4 relative cursor-pointer h-full flex flex-col border-l-4 border-l-amber-500 shadow-lg glass-card overflow-hidden">
+                              <div className="gradient-animate rounded-2xl bg-gradient-to-br from-amber-500/15 to-pink-500/12 dark:from-amber-500/30 dark:to-pink-500/22" />
                               <div className="relative z-10 flex flex-col h-full">
                                 <div className="flex-shrink-0 flex items-start justify-between mb-3">
-                                  <div className="p-2.5 rounded-xl bg-purple-500/15 flex-shrink-0">
-                                    <BookOpen className="h-6 w-6 text-purple-500" />
+                                  <div className="p-2.5 rounded-xl bg-amber-500/15 flex-shrink-0">
+                                    <BookOpen className="h-6 w-6 text-amber-500" />
                                   </div>
                                   {ritualCount > 0 && (
                                     <Badge
@@ -2926,12 +2926,12 @@ export default function ClientDashboard() {
                             href="/couple-compatibility"
                             className="block h-full"
                           >
-                            <div className="rounded-2xl p-4 relative cursor-pointer h-full flex flex-col border-l-4 border-l-purple-500 shadow-lg glass-card overflow-hidden">
-                              <div className="gradient-animate rounded-2xl bg-gradient-to-br from-purple-500/15 to-pink-500/12 dark:from-purple-500/30 dark:to-pink-500/22" />
+                            <div className="rounded-2xl p-4 relative cursor-pointer h-full flex flex-col border-l-4 border-l-amber-500 shadow-lg glass-card overflow-hidden">
+                              <div className="gradient-animate rounded-2xl bg-gradient-to-br from-amber-500/15 to-pink-500/12 dark:from-amber-500/30 dark:to-pink-500/22" />
                               <div className="relative z-10 flex flex-col h-full">
                                 <div className="flex-shrink-0 flex items-start justify-between mb-3">
-                                  <div className="p-2.5 rounded-xl bg-purple-500/15 flex-shrink-0">
-                                    <Heart className="h-6 w-6 text-purple-500" />
+                                  <div className="p-2.5 rounded-xl bg-amber-500/15 flex-shrink-0">
+                                    <Heart className="h-6 w-6 text-amber-500" />
                                   </div>
                                 </div>
                                 <h3 className="font-bold text-base text-foreground leading-tight mb-2">
@@ -2947,7 +2947,7 @@ export default function ClientDashboard() {
                                             key={idx}
                                             className="flex items-center gap-2"
                                           >
-                                            <div className="w-1.5 h-1.5 rounded-full bg-purple-500 flex-shrink-0" />
+                                            <div className="w-1.5 h-1.5 rounded-full bg-amber-500 flex-shrink-0" />
                                             <span className="truncate text-xs">
                                               {insight}
                                             </span>
@@ -3148,8 +3148,8 @@ export default function ClientDashboard() {
                             <div className="gradient-animate rounded-2xl bg-gradient-to-br from-slate-500/15 to-gray-500/12 dark:from-slate-500/30 dark:to-gray-500/22" />
                             <div className="relative z-10 flex flex-col h-full">
                               <div className="flex-shrink-0 flex items-start justify-between mb-3">
-                                <div className="p-2.5 rounded-xl bg-slate-500/15 flex-shrink-0">
-                                  <Pause className="h-6 w-6 text-slate-500" />
+                                <div className="p-2.5 rounded-xl bg-muted/60 flex-shrink-0">
+                                  <Pause className="h-6 w-6 text-muted-foreground" />
                                 </div>
                               </div>
                               <h3 className="font-bold text-base text-foreground leading-tight mb-2">
@@ -3230,12 +3230,12 @@ export default function ClientDashboard() {
                       if (widget.type === "ifs") {
                         return (
                           <Link href="/ifs-intro" className="block h-full">
-                            <div className="rounded-2xl p-4 relative cursor-pointer h-full flex flex-col border-l-4 border-l-purple-500 shadow-lg glass-card overflow-hidden">
-                              <div className="gradient-animate rounded-2xl bg-gradient-to-br from-purple-500/15 to-pink-500/12 dark:from-purple-500/30 dark:to-pink-500/22" />
+                            <div className="rounded-2xl p-4 relative cursor-pointer h-full flex flex-col border-l-4 border-l-amber-500 shadow-lg glass-card overflow-hidden">
+                              <div className="gradient-animate rounded-2xl bg-gradient-to-br from-amber-500/15 to-pink-500/12 dark:from-amber-500/30 dark:to-pink-500/22" />
                               <div className="relative z-10 flex flex-col h-full">
                                 <div className="flex-shrink-0 flex items-start justify-between mb-3">
-                                  <div className="p-2.5 rounded-xl bg-purple-500/15 flex-shrink-0">
-                                    <Brain className="h-6 w-6 text-purple-500" />
+                                  <div className="p-2.5 rounded-xl bg-amber-500/15 flex-shrink-0">
+                                    <Brain className="h-6 w-6 text-amber-500" />
                                   </div>
                                 </div>
                                 <h3 className="font-bold text-base text-foreground leading-tight mb-2">

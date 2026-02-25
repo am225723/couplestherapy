@@ -75,7 +75,7 @@ const ATTACHMENT_INFO: Record<string, { description: string; color: string }> =
     },
     disorganized: {
       description: "Mixed patterns of closeness and distance",
-      color: "text-purple-600 dark:text-purple-400",
+      color: "text-amber-600 dark:text-amber-400",
     },
   };
 
@@ -634,7 +634,7 @@ function PartnerSummaryCard({
             )}
             {partner.enneagramType && (
               <div className="flex items-center gap-3">
-                <Compass className="w-4 h-4 text-purple-500" />
+                <Compass className="w-4 h-4 text-amber-500" />
                 <div>
                   <span className="text-sm font-medium">Enneagram:</span>
                   <span className="text-sm text-muted-foreground ml-2">
@@ -721,7 +721,7 @@ function PartnerDetailCard({
         {partner.enneagramType && (
           <div className="space-y-2">
             <h4 className="font-semibold flex items-center gap-2">
-              <Compass className="w-4 h-4 text-purple-500" />
+              <Compass className="w-4 h-4 text-amber-500" />
               Enneagram Type
             </h4>
             <div className="pl-6 space-y-2">

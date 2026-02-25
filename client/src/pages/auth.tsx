@@ -110,11 +110,10 @@ export default function AuthPage() {
   };
 
   return (
-    <div className="min-h-screen relative overflow-hidden">
-      {/* Vibrant gradient background with multiple layers */}
-      <div className="absolute inset-0 bg-gradient-to-br from-primary via-accent to-secondary" />
-      <div className="absolute inset-0 bg-gradient-to-tr from-tertiary/40 via-transparent to-accent/40" />
-      <div className="absolute inset-0 bg-gradient-to-bl from-transparent via-primary/20 to-secondary/30" />
+    <div className="aleic-ambient relative min-h-screen overflow-hidden">
+      <div className="absolute inset-0 bg-gradient-to-br from-background via-background/95 to-secondary/70" />
+      <div className="absolute inset-0 bg-gradient-to-tr from-primary/15 via-transparent to-accent/20" />
+      <div className="absolute inset-0 bg-gradient-to-bl from-transparent via-tertiary/10 to-primary/15" />
 
       {/* Couple line art background - elegant and subtle */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none flex items-center justify-center">
@@ -144,7 +143,7 @@ export default function AuthPage() {
         >
           {/* Ornate ALEIC logo */}
           <div className="relative mb-6">
-            <div className="absolute inset-0 bg-white/20 blur-3xl rounded-full" />
+            <div className="absolute inset-0 rounded-full bg-primary/20 blur-3xl" />
             <img
               src={aleicLogo}
               alt="ALEIC"
@@ -166,22 +165,22 @@ export default function AuthPage() {
               { delay: 0.3, duration: 0.6 },
               { duration: 0 },
             )}
-            className="text-base md:text-lg text-white/95 font-medium max-w-2xl mx-auto leading-relaxed"
+            className="mx-auto max-w-2xl text-base font-medium leading-relaxed text-foreground/95 md:text-lg"
           >
-            <span className="text-xl md:text-2xl font-bold text-white">A</span>
+            <span className="text-xl font-bold text-primary md:text-2xl">A</span>
             ssisted{" "}
-            <span className="text-xl md:text-2xl font-bold text-white">L</span>
+            <span className="text-xl font-bold text-primary md:text-2xl">L</span>
             earning for{" "}
-            <span className="text-xl md:text-2xl font-bold text-white">E</span>
+            <span className="text-xl font-bold text-primary md:text-2xl">E</span>
             mpathetic and{" "}
-            <span className="text-xl md:text-2xl font-bold text-white">I</span>
+            <span className="text-xl font-bold text-primary md:text-2xl">I</span>
             nsightful{" "}
-            <span className="text-xl md:text-2xl font-bold text-white">C</span>
+            <span className="text-xl font-bold text-primary md:text-2xl">C</span>
             ouples
           </motion.p>
         </motion.div>
 
-        {/* Auth card with elegant white design */}
+        {/* Auth card */}
         <motion.div
           initial={motionVariant(
             reducedMotion,
@@ -196,7 +195,7 @@ export default function AuthPage() {
           )}
           className="w-full max-w-md"
         >
-          <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/60 p-8 md:p-10">
+          <div className="aleic-frost-panel rounded-3xl border border-border/70 p-8 shadow-2xl md:p-10">
             {/* Dynamic headline */}
             <div className="text-center mb-8">
               <motion.h2
@@ -212,7 +211,7 @@ export default function AuthPage() {
               >
                 {isSignUp ? "Begin Your Journey" : "Welcome Back"}
               </motion.h2>
-              <p className="text-gray-600 text-sm">
+              <p className="text-sm text-muted-foreground">
                 {isSignUp
                   ? "Create your account to strengthen your relationship"
                   : "Continue your path to connection"}

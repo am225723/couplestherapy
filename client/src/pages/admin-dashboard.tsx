@@ -858,7 +858,7 @@ export default function AdminDashboard() {
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Sparkles className="h-5 w-5 text-violet-500" />
+              <Sparkles className="h-5 w-5 text-orange-500" />
               AI Session Preparation Summary
             </DialogTitle>
             <DialogDescription>
@@ -1093,19 +1093,19 @@ export default function AdminDashboard() {
                     </CardContent>
                   </Card>
 
-                  <Card className="relative overflow-hidden border-0 bg-gradient-to-br from-violet-500/10 to-purple-500/10 dark:from-violet-500/20 dark:to-purple-500/20 hover-elevate">
-                    <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-violet-500/20 to-transparent rounded-bl-full" />
+                  <Card className="relative overflow-hidden border-0 bg-gradient-to-br from-orange-500/10 to-amber-500/10 dark:from-orange-500/20 dark:to-amber-500/20 hover-elevate">
+                    <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-orange-500/20 to-transparent rounded-bl-full" />
                     <CardHeader className="pb-2">
-                      <CardTitle className="text-sm font-medium flex items-center gap-2 text-violet-700 dark:text-violet-300">
+                      <CardTitle className="text-sm font-medium flex items-center gap-2 text-orange-700 dark:text-orange-300">
                         <Activity className="h-4 w-4" />
                         Activities
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <div className="text-4xl font-bold text-violet-600 dark:text-violet-400">
+                      <div className="text-4xl font-bold text-orange-600 dark:text-orange-400">
                         {activities.length}
                       </div>
-                      <p className="text-xs text-violet-600/70 dark:text-violet-400/70">
+                      <p className="text-xs text-orange-600/70 dark:text-orange-400/70">
                         Recent activities
                       </p>
                     </CardContent>
@@ -1188,10 +1188,10 @@ export default function AdminDashboard() {
 
               <TabsContent value="checkins" className="space-y-6">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <div className="p-2 rounded-lg bg-gradient-to-br from-violet-500 to-purple-500">
+                  <div className="p-2 rounded-lg bg-gradient-to-br from-orange-500 to-amber-500">
                     <CheckCircle className="h-5 w-5 text-white" />
                   </div>
-                  <h3 className="text-xl font-semibold bg-gradient-to-r from-violet-600 to-purple-600 dark:from-violet-400 dark:to-purple-400 bg-clip-text text-transparent">
+                  <h3 className="text-xl font-semibold bg-gradient-to-r from-orange-600 to-amber-600 dark:from-orange-400 dark:to-amber-400 bg-clip-text text-transparent">
                     Weekly Check-Ins
                   </h3>
                 </div>
@@ -1766,10 +1766,10 @@ export default function AdminDashboard() {
 
               <TabsContent value="notes" className="space-y-4">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <div className="p-2 rounded-lg bg-gradient-to-br from-violet-500 to-purple-500">
+                  <div className="p-2 rounded-lg bg-gradient-to-br from-orange-500 to-amber-500">
                     <FileText className="h-5 w-5 text-white" />
                   </div>
-                  <h3 className="text-xl font-semibold bg-gradient-to-r from-violet-600 to-purple-600 dark:from-violet-400 dark:to-purple-400 bg-clip-text text-transparent">
+                  <h3 className="text-xl font-semibold bg-gradient-to-r from-orange-600 to-amber-600 dark:from-orange-400 dark:to-amber-400 bg-clip-text text-transparent">
                     Session Notes
                   </h3>
                 </div>
@@ -5033,7 +5033,7 @@ function ReflectionResponsesTab({
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <MessageSquare className="h-5 w-5 text-violet-600 dark:text-violet-400" />
+            <MessageSquare className="h-5 w-5 text-orange-600 dark:text-orange-400" />
             Reflection Prompt Responses
           </CardTitle>
           <CardDescription>

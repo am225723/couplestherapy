@@ -51,8 +51,8 @@ const enneagramTypeInfo: Record<
 > = {
   1: {
     title: "The Reformer",
-    color: "text-slate-600",
-    bgColor: "bg-slate-500/10",
+    color: "text-muted-foreground",
+    bgColor: "bg-muted/40",
     description:
       "Principled, purposeful, self-controlled, and perfectionistic. You strive to be right, improve everything, and fear being corrupt or defective.",
     strengths: [
@@ -123,8 +123,8 @@ const enneagramTypeInfo: Record<
   },
   4: {
     title: "The Individualist",
-    color: "text-purple-500",
-    bgColor: "bg-purple-500/10",
+    color: "text-amber-500",
+    bgColor: "bg-amber-500/10",
     description:
       "Expressive, dramatic, self-absorbed, and temperamental. You want to be unique, authentic, and deeply understood.",
     strengths: [

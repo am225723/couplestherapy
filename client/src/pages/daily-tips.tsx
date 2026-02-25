@@ -63,7 +63,7 @@ const CATEGORY_COLORS: Record<string, string> = {
   gratitude:
     "bg-green-100 text-green-900 dark:bg-green-900 dark:text-green-100",
   connection:
-    "bg-purple-100 text-purple-900 dark:bg-purple-900 dark:text-purple-100",
+    "bg-amber-100 text-amber-900 dark:bg-amber-900 dark:text-amber-100",
   growth:
     "bg-indigo-100 text-indigo-900 dark:bg-indigo-900 dark:text-indigo-100",
 };

@@ -93,8 +93,8 @@ const loveLanguageDetails: Record<
   },
   "Receiving Gifts": {
     icon: Gift,
-    color: "text-purple-500",
-    bgColor: "bg-purple-500/10",
+    color: "text-amber-500",
+    bgColor: "bg-amber-500/10",
     description:
       "Feels most loved through thoughtful gifts that show you were thinking of them. The gift itself matters less than the thought and effort behind it.",
     howToGive: [

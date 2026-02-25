@@ -159,7 +159,7 @@ export default function ProgressTimelinePage() {
           description: `${getPartnerName(enn.user_id)} is Type ${enn.dominant_type}`,
           date: enn.created_at,
           icon: Compass,
-          iconColor: "text-purple-500",
+          iconColor: "text-amber-500",
           user: getPartnerName(enn.user_id),
           category: "assessment",
         });

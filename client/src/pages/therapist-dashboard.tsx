@@ -139,7 +139,7 @@ export default function TherapistDashboard() {
   );
 
   return (
-    <div className="w-full h-full flex flex-col md:flex-row bg-gradient-to-br from-background via-background to-primary/5">
+    <div className="w-full h-full flex flex-col md:flex-row">
       {/* Mobile/Tablet: Drawer Panel */}
       {panelOpen && (
         <div className="fixed inset-0 z-40 md:hidden">
@@ -147,7 +147,7 @@ export default function TherapistDashboard() {
             className="absolute inset-0 bg-black/50 backdrop-blur-sm"
             onClick={() => setPanelOpen(false)}
           />
-          <div className="absolute left-0 top-0 bottom-0 w-80 bg-background/95 backdrop-blur-xl shadow-2xl flex flex-col border-r border-border/50">
+          <div className="aleic-frost-panel absolute bottom-0 left-0 top-0 flex w-80 flex-col border-r border-border/50 shadow-2xl">
             <div className="flex items-center justify-between p-4 border-b border-border/50">
               <h2 className="text-lg font-semibold tracking-tight">
                 My Couples
@@ -399,7 +399,7 @@ function CoupleDetails({
         <div className="flex flex-wrap gap-2">
           <Button
             variant="default"
-            className="h-11 px-4 rounded-xl gap-2 text-sm bg-violet-600 hover:bg-violet-700"
+            className="h-11 px-4 rounded-xl gap-2 text-sm bg-orange-600 hover:bg-orange-700"
             onClick={() => setActiveTab("prompts")}
             data-testid="button-send-prompt"
           >
@@ -460,7 +460,7 @@ function CoupleDetails({
           </TabsTrigger>
           <TabsTrigger
             value="prompts"
-            className="text-xs md:text-sm rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm bg-violet-100 dark:bg-violet-900/30"
+            className="text-xs md:text-sm rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm bg-orange-100 dark:bg-orange-900/30"
           >
             <PenLine className="h-3.5 w-3.5 mr-1.5 hidden sm:inline" />
             Prompts
@@ -606,10 +606,10 @@ function CoupleDetails({
         {/* Tools Tab */}
         <TabsContent value="tools" className="mt-6">
           <Card className="glass-card border-none overflow-hidden">
-            <div className="gradient-animate bg-gradient-to-br from-purple-500/10 to-pink-500/5" />
+            <div className="gradient-animate bg-gradient-to-br from-amber-500/10 to-pink-500/5" />
             <CardHeader className="relative z-10 pb-2">
               <CardTitle className="text-sm flex items-center gap-2">
-                <MessageSquare className="h-4 w-4 text-purple-500" />
+                <MessageSquare className="h-4 w-4 text-amber-500" />
                 Communication Tools
               </CardTitle>
             </CardHeader>
@@ -1044,10 +1044,10 @@ function ReflectionPromptsPanel({
     <div className="space-y-4">
       {/* Create New Prompt */}
       <Card className="glass-card border-none overflow-hidden">
-        <div className="gradient-animate bg-gradient-to-br from-violet-500/10 to-purple-500/5" />
+        <div className="gradient-animate bg-gradient-to-br from-orange-500/10 to-amber-500/5" />
         <CardHeader className="relative z-10 pb-2">
           <CardTitle className="text-base flex items-center gap-2">
-            <PenLine className="h-4 w-4 text-violet-500" />
+            <PenLine className="h-4 w-4 text-orange-500" />
             Send Reflection Prompt
           </CardTitle>
           <CardDescription>
@@ -1119,7 +1119,7 @@ function ReflectionPromptsPanel({
               !newPrompt.suggested_action ||
               createMutation.isPending
             }
-            className="w-full gap-2 bg-violet-600 hover:bg-violet-700"
+            className="w-full gap-2 bg-orange-600 hover:bg-orange-700"
             data-testid="button-send-prompt"
           >
             {createMutation.isPending ? (

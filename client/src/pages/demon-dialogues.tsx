@@ -27,7 +27,7 @@ const DEMON_DIALOGUES = {
   protest_polka: {
     name: "Protest Polka",
     color:
-      "bg-purple-100 dark:bg-purple-900/20 text-purple-800 dark:text-purple-200",
+      "bg-amber-100 dark:bg-amber-900/20 text-amber-800 dark:text-amber-200",
     description: "One partner pursues/criticizes, the other withdraws/defends",
     pattern: "Pursue-withdraw cycle",
   },

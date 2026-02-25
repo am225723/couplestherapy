@@ -316,13 +316,13 @@ ${suggestions.map((s, i) => `${i + 1}. ${s.title}: ${s.content}`).join("\n\n")}
   const getCategoryColor = (category: string) => {
     switch (category) {
       case "timing":
-        return "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300";
+        return "bg-sky-500/15 text-sky-300";
       case "understanding":
-        return "bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300";
+        return "bg-orange-500/15 text-orange-300";
       case "follow-up":
-        return "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300";
+        return "bg-emerald-500/15 text-emerald-300";
       default:
-        return "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300";
+        return "bg-muted/60 text-muted-foreground";
     }
   };
 
@@ -499,7 +499,7 @@ ${suggestions.map((s, i) => `${i + 1}. ${s.title}: ${s.content}`).join("\n\n")}
                         className="absolute inset-0 h-2 rounded-full top-1/2 -translate-y-1/2 pointer-events-none"
                         style={{
                           background:
-                            "linear-gradient(to right, #f97316, #ec4899, #8b5cf6)",
+                            "linear-gradient(to right, #f97316, #e8a59c, #4a90d9)",
                         }}
                       />
                       <Slider
@@ -507,7 +507,7 @@ ${suggestions.map((s, i) => `${i + 1}. ${s.title}: ${s.content}`).join("\n\n")}
                         onValueChange={setFirmness}
                         max={100}
                         step={1}
-                        className="w-full relative [&_[role=slider]]:border-2 [&_[role=slider]]:border-white [&_[role=slider]]:shadow-md [&_[role=slider]]:bg-white [&_.relative]:bg-transparent [&_[data-orientation=horizontal]>.bg-primary]:bg-transparent"
+                        className="w-full relative [&_[role=slider]]:border-2 [&_[role=slider]]:border-card [&_[role=slider]]:shadow-md [&_[role=slider]]:bg-card [&_.relative]:bg-transparent [&_[data-orientation=horizontal]>.bg-primary]:bg-transparent"
                         data-testid="slider-firmness"
                       />
                     </div>

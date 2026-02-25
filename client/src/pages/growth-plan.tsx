@@ -50,7 +50,7 @@ const categoryColors: Record<string, string> = {
   communication: "text-blue-500",
   intimacy: "text-pink-500",
   conflict: "text-orange-500",
-  appreciation: "text-purple-500",
+  appreciation: "text-amber-500",
   goals: "text-green-500",
   trust: "text-teal-500",
 };
@@ -361,7 +361,7 @@ export default function GrowthPlanPage() {
                       variant="outline"
                       className="text-xs"
                     >
-                      <Target className="w-3 h-3 mr-1 text-purple-500" />
+                      <Target className="w-3 h-3 mr-1 text-amber-500" />
                       {et}
                     </Badge>
                   ))}

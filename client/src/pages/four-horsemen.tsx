@@ -19,27 +19,25 @@ import { AlertCircle, ThumbsUp, ThumbsDown, CheckCircle } from "lucide-react";
 const HORSEMEN_CONFIG = {
   criticism: {
     name: "Criticism",
-    color: "bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-200",
+    color: "bg-rose-500/15 text-rose-300",
     description: "Attacking your partner's character",
     antidote: "Gentle Start-Up: Express feelings and needs without blame",
   },
   contempt: {
     name: "Contempt",
-    color:
-      "bg-purple-100 dark:bg-purple-900/20 text-purple-800 dark:text-purple-200",
+    color: "bg-orange-500/15 text-orange-300",
     description: "Treating your partner with disrespect",
     antidote: "Build a Culture of Appreciation: Express gratitude and fondness",
   },
   defensiveness: {
     name: "Defensiveness",
-    color:
-      "bg-orange-100 dark:bg-orange-900/20 text-orange-800 dark:text-orange-200",
+    color: "bg-amber-500/15 text-amber-300",
     description: "Making excuses or playing the victim",
     antidote: "Take Responsibility: Accept your partner's perspective",
   },
   stonewalling: {
     name: "Stonewalling",
-    color: "bg-gray-100 dark:bg-gray-900/20 text-gray-800 dark:text-gray-200",
+    color: "bg-muted/60 text-muted-foreground",
     description: "Withdrawing from the conversation",
     antidote: "Self-Soothing: Take a break and return when calm",
   },

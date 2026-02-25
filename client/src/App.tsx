@@ -1,66 +1,15 @@
-import { useEffect, useState, useMemo } from "react";
-import { Switch, Route, Redirect } from "wouter";
+import { useEffect } from "react";
+import { Redirect, Route, Switch, useLocation } from "wouter";
 import { QueryClientProvider } from "@tanstack/react-query";
+import { Loader2 } from "lucide-react";
 import { queryClient } from "./lib/queryClient";
 import { AuthProvider, useAuth } from "./lib/auth-context";
 import { ThemeProvider } from "./components/theme-provider";
-import { ThemeToggle } from "./components/theme-toggle";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { usePushNotifications } from "@/hooks/use-push-notifications";
-import {
-  SidebarProvider,
-  Sidebar,
-  SidebarContent,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarMenuSub,
-  SidebarMenuSubButton,
-  SidebarMenuSubItem,
-  SidebarTrigger,
-  SidebarHeader,
-} from "@/components/ui/sidebar";
-import { Button } from "./components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "./components/ui/avatar";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  Users,
-  LogOut,
-  Loader2,
-  BarChart3,
-  UserPlus,
-  ChevronDown,
-  User,
-  Settings,
-  Home,
-  Settings2,
-} from "lucide-react";
-import { Link, useLocation } from "wouter";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
-import { clientMenuConfig } from "./config/clientMenuConfig";
-import coupleArt from "@assets/Screenshot_20251109_193551_Chrome Beta_1762734968356.jpg";
-
-function getInitials(fullName: string): string {
-  return fullName
-    .split(" ")
-    .map((name) => name.charAt(0).toUpperCase())
-    .join("")
-    .slice(0, 2);
-}
+import { ClientTabShell } from "@/components/navigation/client-tab-shell";
+import { TherapistTabShell } from "@/components/navigation/therapist-tab-shell";
 
 import AuthPage from "./pages/auth";
 import TherapistSignup from "./pages/therapist-signup";
@@ -94,7 +43,6 @@ import ValuesVisionPage from "./pages/values-vision";
 import ParentingPartnersPage from "./pages/parenting-partners";
 import ClientDashboard from "./pages/client-dashboard";
 import AdminDashboard from "./pages/admin-dashboard";
-import TherapistDashboard from "./pages/therapist-dashboard";
 import AnalyticsPage from "./pages/analytics";
 import InvitationCodesPage from "./pages/invitation-codes";
 import AttachmentAssessmentPage from "./pages/attachment-assessment";
@@ -118,224 +66,59 @@ import ConflictResolution from "./pages/conflict-resolution";
 import ReflectionPromptsPage from "./pages/reflection-prompts";
 import NotFound from "./pages/not-found";
 
-import _998 from "@assets/998.png";
+const CLIENT_ROUTE_PREFIXES = [
+  "/dashboard",
+  "/couple-setup",
+  "/quiz",
+  "/love-language-results",
+  "/attachment-results",
+  "/enneagram-results",
+  "/love-map",
+  "/weekly-checkin",
+  "/checkin-history",
+  "/session-notes",
+  "/gratitude",
+  "/goals",
+  "/rituals",
+  "/conversation",
+  "/voice-memos",
+  "/date-night",
+  "/messages",
+  "/calendar",
+  "/chores",
+  "/echo-empathy",
+  "/ifs-intro",
+  "/pause",
+  "/four-horsemen",
+  "/demon-dialogues",
+  "/meditation-library",
+  "/intimacy-mapping",
+  "/values-vision",
+  "/parenting-partners",
+  "/attachment-assessment",
+  "/enneagram-assessment",
+  "/couple-compatibility",
+  "/couple-journal",
+  "/financial-toolkit",
+  "/mood-tracker",
+  "/daily-tips",
+  "/daily-suggestion",
+  "/therapist-thoughts",
+  "/profile",
+  "/settings",
+  "/modules",
+  "/conflict-resolution",
+  "/reflection-prompts",
+  "/shared-todos",
+  "/progress-timeline",
+  "/growth-plan",
+];
 
-function AppSidebar() {
-  const { profile, signOut } = useAuth();
-  const [location] = useLocation();
-
-  // Manage category open/close state with localStorage persistence
-  const STORAGE_KEY = "aleic-sidebar-categories";
-
-  const [openCategories, setOpenCategories] = useState<Record<string, boolean>>(
-    () => {
-      try {
-        const stored = localStorage.getItem(STORAGE_KEY);
-        if (stored) {
-          return JSON.parse(stored);
-        }
-      } catch (e) {
-        console.error("Failed to load sidebar state:", e);
-      }
-      // Initialize with default states from config
-      return clientMenuConfig.reduce(
-        (acc, category) => {
-          acc[category.id] = category.defaultOpen;
-          return acc;
-        },
-        {} as Record<string, boolean>,
-      );
-    },
-  );
-
-  // Persist category state to localStorage
-  const toggleCategory = (categoryId: string) => {
-    setOpenCategories((prev) => {
-      const updated = { ...prev, [categoryId]: !prev[categoryId] };
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-      } catch (e) {
-        console.error("Failed to save sidebar state:", e);
-      }
-      return updated;
-    });
-  };
-
-  // Auto-expand category if it contains the active route
-  useEffect(() => {
-    clientMenuConfig.forEach((category) => {
-      const hasActiveRoute = category.routes.some(
-        (route) => route.url === location,
-      );
-      if (hasActiveRoute && !openCategories[category.id]) {
-        setOpenCategories((prev) => {
-          const updated = { ...prev, [category.id]: true };
-          try {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-          } catch (e) {
-            console.error("Failed to save sidebar state:", e);
-          }
-          return updated;
-        });
-      }
-    });
-  }, [location]);
-
-  const adminMenuItems = [
-    { title: "Couples", url: "/admin/couple", icon: Users },
-    { title: "Analytics", url: "/admin/analytics", icon: BarChart3 },
-    {
-      title: "Invitation Codes",
-      url: "/admin/invitation-codes",
-      icon: UserPlus,
-    },
-  ];
-
-  const homeUrl =
-    profile?.role === "therapist" ? "/admin/couple" : "/dashboard";
-  const isTherapist = profile?.role === "therapist";
-
+function pathMatches(pathname: string, candidate: string): boolean {
   return (
-    <Sidebar>
-      <SidebarHeader className="p-6 border-b">
-        <Link
-          href={homeUrl}
-          className="flex items-center gap-3 hover-elevate active-elevate-2 p-2 rounded-md -m-2"
-          data-testid="link-home"
-        >
-          <img
-            src={coupleArt}
-            alt="ALEIC - Couple Connection"
-            className="h-10 w-auto"
-            data-testid="img-sidebar-logo"
-          />
-          <span className="text-xl font-bold bg-gradient-to-r from-primary via-accent to-secondary bg-clip-text text-transparent">
-            ALEIC
-          </span>
-        </Link>
-      </SidebarHeader>
-      <SidebarContent>
-        {isTherapist ? (
-          <SidebarGroup>
-            <SidebarGroupLabel>Therapist Portal</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {adminMenuItems.map((item) => (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild isActive={location === item.url}>
-                      <Link
-                        href={item.url}
-                        data-testid={`nav-${item.title.toLowerCase().replace(/\s+/g, "-")}`}
-                      >
-                        <item.icon className="h-4 w-4" />
-                        <span>{item.title}</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        ) : (
-          <>
-            {clientMenuConfig.map((category) => {
-              // Special handling for dashboard - render directly without collapsible
-              if (category.id === "dashboard") {
-                return (
-                  <SidebarGroup key={category.id}>
-                    <SidebarMenu>
-                      {category.routes.map((route) => (
-                        <SidebarMenuItem key={route.url}>
-                          <SidebarMenuButton
-                            asChild
-                            isActive={location === route.url}
-                          >
-                            <Link href={route.url} data-testid={route.testId}>
-                              <route.icon className="h-4 w-4" />
-                              <span>{route.title}</span>
-                            </Link>
-                          </SidebarMenuButton>
-                        </SidebarMenuItem>
-                      ))}
-                    </SidebarMenu>
-                  </SidebarGroup>
-                );
-              }
-
-              // Render collapsible categories for all other groups
-              const isOpen =
-                openCategories[category.id] ?? category.defaultOpen;
-              const hasActiveRoute = category.routes.some(
-                (route) => route.url === location,
-              );
-
-              return (
-                <Collapsible
-                  key={category.id}
-                  open={isOpen}
-                  onOpenChange={() => toggleCategory(category.id)}
-                  className="group/collapsible"
-                >
-                  <SidebarGroup>
-                    <SidebarGroupLabel asChild>
-                      <CollapsibleTrigger className="flex w-full items-center gap-2 hover-elevate active-elevate-2 p-2 rounded-md -m-2">
-                        {category.icon && <category.icon className="h-4 w-4" />}
-                        <span className="flex-1 text-left">
-                          {category.label}
-                        </span>
-                        <ChevronDown
-                          className={`h-4 w-4 transition-transform ${isOpen ? "rotate-180" : ""}`}
-                        />
-                      </CollapsibleTrigger>
-                    </SidebarGroupLabel>
-                    <CollapsibleContent>
-                      <SidebarGroupContent>
-                        <SidebarMenu>
-                          <SidebarMenuSub>
-                            {category.routes.map((route) => (
-                              <SidebarMenuSubItem key={route.url}>
-                                <SidebarMenuSubButton
-                                  asChild
-                                  isActive={location === route.url}
-                                >
-                                  <Link
-                                    href={route.url}
-                                    data-testid={route.testId}
-                                  >
-                                    <route.icon className="h-4 w-4" />
-                                    <span>{route.title}</span>
-                                  </Link>
-                                </SidebarMenuSubButton>
-                              </SidebarMenuSubItem>
-                            ))}
-                          </SidebarMenuSub>
-                        </SidebarMenu>
-                      </SidebarGroupContent>
-                    </CollapsibleContent>
-                  </SidebarGroup>
-                </Collapsible>
-              );
-            })}
-          </>
-        )}
-
-        <SidebarGroup className="mt-auto">
-          <SidebarGroupContent>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  onClick={signOut}
-                  data-testid="button-signout"
-                >
-                  <LogOut className="h-4 w-4" />
-                  <span>Sign Out</span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-      </SidebarContent>
-    </Sidebar>
+    pathname === candidate ||
+    pathname.startsWith(`${candidate}/`) ||
+    pathname.startsWith(`${candidate}?`)
   );
 }
 
@@ -343,72 +126,23 @@ function AuthenticatedApp() {
   const { user, profile, loading, signOut } = useAuth();
   const [location, setLocation] = useLocation();
 
-  // Initialize push notifications for both web and mobile
   usePushNotifications();
 
-  // Redirect users to their appropriate home page on first authentication
-  // This prevents 404 errors when therapists sign in while on client routes (or vice versa)
   useEffect(() => {
     if (!loading && user && profile) {
-      const therapistRoutes = [
-        "/admin",
-        "/admin/couple",
-        "/admin/analytics",
-        "/admin/invitation-codes",
-        "/therapist-thoughts",
-      ];
-      const clientRoutes = [
-        "/dashboard",
-        "/couple-setup",
-        "/quiz",
-        "/love-language-results",
-        "/attachment-results",
-        "/enneagram-results",
-        "/love-map",
-        "/weekly-checkin",
-        "/checkin-history",
-        "/gratitude",
-        "/goals",
-        "/rituals",
-        "/conversation",
-        "/voice-memos",
-        "/date-night",
-        "/messages",
-        "/calendar",
-        "/echo-empathy",
-        "/ifs-intro",
-        "/pause",
-        "/four-horsemen",
-        "/demon-dialogues",
-        "/meditation-library",
-        "/intimacy-mapping",
-        "/values-vision",
-        "/parenting-partners",
-        "/couple-compatibility",
-        "/attachment-assessment",
-        "/enneagram-assessment",
-        "/couple-journal",
-        "/financial-toolkit",
-        "/modules",
-      ];
-
       const isTherapist = profile.role === "therapist";
-      const isOnTherapistRoute = location.startsWith("/admin");
-      const isOnClientRoute = clientRoutes.some((route) =>
-        location.startsWith(route),
+      const isOnTherapistRoute = location.startsWith("/admin") ||
+        location.startsWith("/therapist/");
+      const isOnClientRoute = CLIENT_ROUTE_PREFIXES.some((route) =>
+        pathMatches(location, route),
       );
       const isOnRootRoute = location === "/";
 
-      // If therapist is on a client route, redirect to /admin/couple
-      if (isTherapist && isOnClientRoute) {
+      if (isTherapist && isOnClientRoute && !location.startsWith("/therapist")) {
         setLocation("/admin/couple");
-      }
-      // If client is on a therapist route, redirect based on couple setup status
-      else if (!isTherapist && isOnTherapistRoute) {
+      } else if (!isTherapist && isOnTherapistRoute) {
         setLocation(profile.couple_id ? "/dashboard" : "/couple-setup");
-      }
-      // If on root route, redirect based on role
-      else if (isOnRootRoute) {
+      } else if (isOnRootRoute) {
         if (isTherapist) {
           setLocation("/admin/couple");
         } else {
@@ -420,13 +154,12 @@ function AuthenticatedApp() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="aleic-ambient flex min-h-screen items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
 
-  // Allow public access to signup pages
   if (
     !user &&
     (location === "/auth/therapist-signup" ||
@@ -446,316 +179,115 @@ function AuthenticatedApp() {
 
   if (!profile) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
-          <p>Loading your profile...</p>
+      <div className="aleic-ambient flex min-h-screen items-center justify-center">
+        <div className="space-y-4 text-center">
+          <Loader2 className="mx-auto h-8 w-8 animate-spin text-primary" />
+          <p className="text-muted-foreground">Loading your profile...</p>
         </div>
       </div>
     );
   }
 
-  const style = {
-    "--sidebar-width": "16rem",
-    "--sidebar-width-icon": "3rem",
-  };
-
-  // Therapist layout - no sidebar, signout in header
   if (profile.role === "therapist") {
     return (
-      <div className="flex flex-col h-screen w-full">
-        <header className="flex items-center justify-between p-4 border-b bg-background shrink-0">
-          <Link
-            href="/admin/couple"
-            className="flex items-center gap-3"
-            data-testid="link-therapist-home"
-          >
-            <img src={_998} alt="ALEIC" className="h-8 w-auto" />
-            <span className="text-lg font-bold bg-gradient-to-r from-primary via-accent to-secondary bg-clip-text text-transparent">
-              ALEIC
-            </span>
-          </Link>
-          <div className="flex items-center gap-4">
-            <ThemeToggle />
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={signOut}
-              className="gap-2"
-              data-testid="button-therapist-signout"
-            >
-              <LogOut className="h-4 w-4" />
-              Sign Out
-            </Button>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button
-                  className="rounded-full hover-elevate active-elevate-2"
-                  data-testid="button-therapist-profile"
-                >
-                  <Avatar className="h-10 w-10 border-2 border-primary/20">
-                    {profile.avatar_url && (
-                      <AvatarImage
-                        src={profile.avatar_url}
-                        alt={profile.full_name || "Profile"}
-                      />
-                    )}
-                    <AvatarFallback className="bg-primary/10 text-primary font-semibold">
-                      {profile.full_name ? getInitials(profile.full_name) : "T"}
-                    </AvatarFallback>
-                  </Avatar>
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <div className="px-3 py-2">
-                  <p className="text-sm font-semibold">
-                    {profile.full_name || "Therapist"}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    Licensed Therapist
-                  </p>
-                </div>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link
-                    href="/therapist/profile"
-                    className="gap-2 cursor-pointer flex items-center"
-                    data-testid="menu-item-profile"
-                  >
-                    <User className="h-4 w-4" />
-                    Profile
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link
-                    href="/therapist/settings"
-                    className="gap-2 cursor-pointer flex items-center"
-                    data-testid="menu-item-settings"
-                  >
-                    <Settings className="h-4 w-4" />
-                    Settings
-                  </Link>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </header>
-        <main className="flex-1 overflow-y-auto">
-          <Switch>
-            <Route path="/admin">
-              <Redirect to="/admin/couple" />
-            </Route>
-            <Route path="/admin/couple" component={AdminDashboard} />
-            <Route path="/admin/couple/:id" component={AdminDashboard} />
-            <Route
-              path="/admin/couple/:id/:section"
-              component={AdminDashboard}
-            />
-            <Route path="/admin/analytics" component={AnalyticsPage} />
-            <Route
-              path="/admin/invitation-codes"
-              component={InvitationCodesPage}
-            />
-            <Route path="/therapist-thoughts" component={AdminDashboard} />
-            <Route path="/therapist/profile" component={TherapistProfile} />
-            <Route path="/therapist/settings" component={TherapistSettings} />
-            <Route path="/">
-              <Redirect to="/admin/couple" />
-            </Route>
-            <Route component={NotFound} />
-          </Switch>
-        </main>
-      </div>
+      <TherapistTabShell profile={profile} onSignOut={signOut}>
+        <Switch>
+          <Route path="/admin">
+            <Redirect to="/admin/couple" />
+          </Route>
+          <Route path="/admin/couple" component={AdminDashboard} />
+          <Route path="/admin/couple/:id" component={AdminDashboard} />
+          <Route path="/admin/couple/:id/:section" component={AdminDashboard} />
+          <Route path="/admin/analytics" component={AnalyticsPage} />
+          <Route path="/admin/invitation-codes" component={InvitationCodesPage} />
+          <Route path="/therapist-thoughts" component={AdminDashboard} />
+          <Route path="/therapist/profile" component={TherapistProfile} />
+          <Route path="/therapist/settings" component={TherapistSettings} />
+          <Route path="/">
+            <Redirect to="/admin/couple" />
+          </Route>
+          <Route component={NotFound} />
+        </Switch>
+      </TherapistTabShell>
     );
   }
 
-  // Client layout - sidebar with Menu label
   return (
-    <SidebarProvider style={style as React.CSSProperties} defaultOpen={false}>
-      <div className="flex h-screen w-full">
-        <AppSidebar />
-        <div className="flex flex-col flex-1 overflow-hidden">
-          <header className="flex items-center justify-between p-4 border-b bg-background">
-            <div className="flex items-center gap-2">
-              <SidebarTrigger data-testid="button-sidebar-toggle" />
-              <Link href="/dashboard">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="rounded-xl"
-                  data-testid="button-home"
-                >
-                  <Home className="h-5 w-5" />
-                </Button>
-              </Link>
-            </div>
-            <div className="flex items-center gap-2">
-              <Link href="/dashboard?edit=true">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="rounded-xl"
-                  data-testid="button-edit-dashboard"
-                >
-                  <Settings2 className="h-5 w-5" />
-                </Button>
-              </Link>
-              <ThemeToggle />
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button
-                    className="rounded-full hover-elevate active-elevate-2"
-                    data-testid="button-client-profile"
-                  >
-                    <Avatar className="h-10 w-10 border-2 border-primary/20">
-                      {profile.avatar_url && (
-                        <AvatarImage
-                          src={profile.avatar_url}
-                          alt={profile.full_name || "Profile"}
-                        />
-                      )}
-                      <AvatarFallback className="bg-primary/10 text-primary font-semibold">
-                        {profile.full_name
-                          ? getInitials(profile.full_name)
-                          : "U"}
-                      </AvatarFallback>
-                    </Avatar>
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <div className="px-3 py-2">
-                    <p className="text-sm font-semibold">
-                      {profile.full_name || "User"}
-                    </p>
-                    <p className="text-xs text-muted-foreground">Client</p>
-                  </div>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem asChild>
-                    <Link
-                      href="/profile"
-                      className="gap-2 cursor-pointer flex items-center"
-                      data-testid="menu-item-client-profile"
-                    >
-                      <User className="h-4 w-4" />
-                      Profile
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link
-                      href="/settings"
-                      className="gap-2 cursor-pointer flex items-center"
-                      data-testid="menu-item-client-settings"
-                    >
-                      <Settings className="h-4 w-4" />
-                      Settings
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    onClick={signOut}
-                    className="gap-2 cursor-pointer"
-                    data-testid="menu-item-client-signout"
-                  >
-                    <LogOut className="h-4 w-4" />
-                    Sign Out
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          </header>
-          <main className="flex-1 overflow-y-auto">
-            <Switch>
-              <Route path="/couple-setup" component={CoupleSetup} />
-              <Route path="/dashboard" component={ClientDashboard} />
-              <Route path="/quiz" component={LoveLanguageQuiz} />
-              <Route
-                path="/love-language-results"
-                component={LoveLanguageResults}
-              />
-              <Route path="/attachment-results" component={AttachmentResults} />
-              <Route path="/enneagram-results" component={EnneagramResults} />
-              <Route path="/love-map" component={LoveMapQuiz} />
-              <Route path="/weekly-checkin" component={WeeklyCheckin} />
-              <Route path="/checkin-history" component={CheckinHistory} />
-              <Route path="/session-notes" component={SessionNotes} />
-              <Route path="/gratitude" component={GratitudeLogPage} />
-              <Route path="/goals" component={SharedGoalsPage} />
-              <Route path="/rituals" component={RitualsPage} />
-              <Route path="/conversation" component={HoldMeTightPage} />
-              <Route path="/voice-memos" component={VoiceMemosPage} />
-              <Route path="/date-night" component={DateNightPage} />
-              <Route path="/messages" component={MessagesPage} />
-              <Route path="/calendar" component={CalendarPage} />
-              <Route path="/chores" component={ChoreChart} />
-              <Route path="/echo-empathy" component={EchoEmpathyPage} />
-              <Route path="/ifs-intro" component={IfsIntroPage} />
-              <Route path="/pause" component={PauseButtonPage} />
-              <Route path="/four-horsemen" component={FourHorsemenPage} />
-              <Route path="/demon-dialogues" component={DemonDialoguesPage} />
-              <Route
-                path="/meditation-library"
-                component={MeditationLibraryPage}
-              />
-              <Route path="/intimacy-mapping" component={IntimacyMappingPage} />
-              <Route path="/values-vision" component={ValuesVisionPage} />
-              <Route
-                path="/parenting-partners"
-                component={ParentingPartnersPage}
-              />
-              <Route
-                path="/attachment-assessment"
-                component={AttachmentAssessmentPage}
-              />
-              <Route
-                path="/enneagram-assessment"
-                component={EnneagramAssessmentPage}
-              />
-              <Route
-                path="/couple-compatibility"
-                component={CoupleCompatibility}
-              />
-              <Route path="/couple-journal" component={CoupleJournalPage} />
-              <Route
-                path="/financial-toolkit"
-                component={FinancialToolkitPage}
-              />
-              <Route path="/mood-tracker" component={MoodTrackerPage} />
-              <Route path="/daily-tips" component={DailyTipsPage} />
-              <Route path="/daily-suggestion" component={DailySuggestionPage} />
-              <Route
-                path="/therapist-thoughts"
-                component={TherapistThoughtsPage}
-              />
-              <Route path="/profile" component={ClientProfile} />
-              <Route path="/settings" component={ClientSettings} />
-              <Route path="/modules" component={ModulesPage} />
-              <Route
-                path="/conflict-resolution"
-                component={ConflictResolution}
-              />
-              <Route
-                path="/reflection-prompts"
-                component={ReflectionPromptsPage}
-              />
-              <Route path="/shared-todos" component={SharedTodosPage} />
-              <Route
-                path="/progress-timeline"
-                component={ProgressTimelinePage}
-              />
-              <Route path="/growth-plan" component={GrowthPlanPage} />
-              <Route path="/">
-                {profile.couple_id ? (
-                  <Redirect to="/dashboard" />
-                ) : (
-                  <Redirect to="/couple-setup" />
-                )}
-              </Route>
-              <Route component={NotFound} />
-            </Switch>
-          </main>
-        </div>
-      </div>
-    </SidebarProvider>
+    <ClientTabShell profile={profile} onSignOut={signOut}>
+      <Switch>
+        <Route path="/couple-setup" component={CoupleSetup} />
+        <Route path="/dashboard" component={ClientDashboard} />
+        <Route path="/quiz" component={LoveLanguageQuiz} />
+        <Route
+          path="/love-language-results"
+          component={LoveLanguageResults}
+        />
+        <Route path="/attachment-results" component={AttachmentResults} />
+        <Route path="/enneagram-results" component={EnneagramResults} />
+        <Route path="/love-map" component={LoveMapQuiz} />
+        <Route path="/weekly-checkin" component={WeeklyCheckin} />
+        <Route path="/checkin-history" component={CheckinHistory} />
+        <Route path="/session-notes" component={SessionNotes} />
+        <Route path="/gratitude" component={GratitudeLogPage} />
+        <Route path="/goals" component={SharedGoalsPage} />
+        <Route path="/rituals" component={RitualsPage} />
+        <Route path="/conversation" component={HoldMeTightPage} />
+        <Route path="/voice-memos" component={VoiceMemosPage} />
+        <Route path="/date-night" component={DateNightPage} />
+        <Route path="/messages" component={MessagesPage} />
+        <Route path="/calendar" component={CalendarPage} />
+        <Route path="/chores" component={ChoreChart} />
+        <Route path="/echo-empathy" component={EchoEmpathyPage} />
+        <Route path="/ifs-intro" component={IfsIntroPage} />
+        <Route path="/pause" component={PauseButtonPage} />
+        <Route path="/four-horsemen" component={FourHorsemenPage} />
+        <Route path="/demon-dialogues" component={DemonDialoguesPage} />
+        <Route
+          path="/meditation-library"
+          component={MeditationLibraryPage}
+        />
+        <Route path="/intimacy-mapping" component={IntimacyMappingPage} />
+        <Route path="/values-vision" component={ValuesVisionPage} />
+        <Route
+          path="/parenting-partners"
+          component={ParentingPartnersPage}
+        />
+        <Route
+          path="/attachment-assessment"
+          component={AttachmentAssessmentPage}
+        />
+        <Route
+          path="/enneagram-assessment"
+          component={EnneagramAssessmentPage}
+        />
+        <Route
+          path="/couple-compatibility"
+          component={CoupleCompatibility}
+        />
+        <Route path="/couple-journal" component={CoupleJournalPage} />
+        <Route path="/financial-toolkit" component={FinancialToolkitPage} />
+        <Route path="/mood-tracker" component={MoodTrackerPage} />
+        <Route path="/daily-tips" component={DailyTipsPage} />
+        <Route path="/daily-suggestion" component={DailySuggestionPage} />
+        <Route path="/therapist-thoughts" component={TherapistThoughtsPage} />
+        <Route path="/profile" component={ClientProfile} />
+        <Route path="/settings" component={ClientSettings} />
+        <Route path="/modules" component={ModulesPage} />
+        <Route path="/conflict-resolution" component={ConflictResolution} />
+        <Route path="/reflection-prompts" component={ReflectionPromptsPage} />
+        <Route path="/shared-todos" component={SharedTodosPage} />
+        <Route path="/progress-timeline" component={ProgressTimelinePage} />
+        <Route path="/growth-plan" component={GrowthPlanPage} />
+        <Route path="/">
+          {profile.couple_id ? (
+            <Redirect to="/dashboard" />
+          ) : (
+            <Redirect to="/couple-setup" />
+          )}
+        </Route>
+        <Route component={NotFound} />
+      </Switch>
+    </ClientTabShell>
   );
 }
 

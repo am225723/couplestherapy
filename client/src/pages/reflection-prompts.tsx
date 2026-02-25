@@ -175,12 +175,12 @@ function ReflectionPromptCard({
       className="overflow-hidden"
       data-testid={`reflection-prompt-${prompt.id}`}
     >
-      <div className="bg-gradient-to-r from-violet-500/10 to-purple-500/10 dark:from-violet-500/20 dark:to-purple-500/20">
+      <div className="bg-gradient-to-r from-orange-500/10 to-amber-500/10 dark:from-orange-500/20 dark:to-amber-500/20">
         <CardHeader className="pb-3">
           <div className="flex items-start justify-between gap-2">
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-1">
-                <MessageSquare className="h-4 w-4 text-violet-600 dark:text-violet-400" />
+                <MessageSquare className="h-4 w-4 text-orange-600 dark:text-orange-400" />
                 <CardTitle className="text-base">{prompt.title}</CardTitle>
               </div>
               {prompt.description && (
@@ -213,7 +213,7 @@ function ReflectionPromptCard({
       </div>
 
       <CardContent className="pt-4 space-y-4">
-        <div className="p-4 rounded-lg bg-muted/50 border-l-4 border-l-violet-500">
+        <div className="p-4 rounded-lg bg-muted/50 border-l-4 border-l-orange-500">
           <p className="text-sm italic text-foreground/80">
             {prompt.suggested_action}
           </p>
@@ -435,8 +435,8 @@ export default function ReflectionPromptsPage() {
     <div className="container max-w-4xl py-8 px-4">
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-2">
-          <div className="p-2 rounded-lg bg-violet-500/10">
-            <Sparkles className="h-6 w-6 text-violet-600 dark:text-violet-400" />
+          <div className="p-2 rounded-lg bg-orange-500/10">
+            <Sparkles className="h-6 w-6 text-orange-600 dark:text-orange-400" />
           </div>
           <div>
             <h1 className="text-2xl font-bold" data-testid="text-page-title">

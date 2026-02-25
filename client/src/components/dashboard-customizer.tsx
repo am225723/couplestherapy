@@ -336,8 +336,8 @@ const WIDGET_CONFIG: Record<
   conversations: {
     label: "Hold Me Tight",
     icon: MessageSquare,
-    color: "text-purple-600 dark:text-purple-400",
-    bgColor: "bg-purple-100 dark:bg-purple-900/30",
+    color: "text-amber-600 dark:text-amber-300",
+    bgColor: "bg-amber-100 dark:bg-amber-900/30",
     description: "EFT conversation tracking",
   },
   "love-map": {
@@ -413,8 +413,8 @@ const WIDGET_CONFIG: Record<
   "therapist-thoughts": {
     label: "Therapist Thoughts",
     icon: MessageSquare,
-    color: "text-violet-600 dark:text-violet-400",
-    bgColor: "bg-violet-100 dark:bg-violet-900/30",
+    color: "text-rose-600 dark:text-rose-300",
+    bgColor: "bg-rose-100 dark:bg-rose-900/30",
     description: "Messages and to-dos from your therapist",
   },
   compatibility: {
@@ -448,8 +448,8 @@ const WIDGET_CONFIG: Record<
   enneagram: {
     label: "Enneagram",
     icon: Compass,
-    color: "text-purple-600 dark:text-purple-400",
-    bgColor: "bg-purple-100 dark:bg-purple-900/30",
+    color: "text-amber-600 dark:text-amber-300",
+    bgColor: "bg-amber-100 dark:bg-amber-900/30",
     description: "Personality type insights",
   },
   messages: {
@@ -497,8 +497,8 @@ const WIDGET_CONFIG: Record<
   ifs: {
     label: "IFS Exercises",
     icon: Brain,
-    color: "text-purple-600 dark:text-purple-400",
-    bgColor: "bg-purple-100 dark:bg-purple-900/30",
+    color: "text-amber-600 dark:text-amber-300",
+    bgColor: "bg-amber-100 dark:bg-amber-900/30",
     description: "Internal Family Systems practice",
   },
   chores: {
@@ -511,8 +511,8 @@ const WIDGET_CONFIG: Record<
   todos: {
     label: "Shared To-Do List",
     icon: ListTodo,
-    color: "text-slate-600 dark:text-slate-400",
-    bgColor: "bg-slate-100 dark:bg-slate-900/30",
+    color: "text-zinc-600 dark:text-zinc-400",
+    bgColor: "bg-zinc-100 dark:bg-zinc-900/30",
     description: "Collaborative task tracking",
   },
   financial: {
@@ -532,8 +532,8 @@ const WIDGET_CONFIG: Record<
   "reflection-prompts": {
     label: "Reflection Prompts",
     icon: HelpCircle,
-    color: "text-violet-600 dark:text-violet-400",
-    bgColor: "bg-violet-100 dark:bg-violet-900/30",
+    color: "text-rose-600 dark:text-rose-300",
+    bgColor: "bg-rose-100 dark:bg-rose-900/30",
     description: "Guided questions from your therapist",
   },
 };
@@ -560,7 +560,7 @@ const WIDGET_GRADIENTS: Record<string, string> = {
   "shared-goals":
     "from-green-500/15 to-emerald-500/10 dark:from-green-500/22 dark:to-emerald-500/15",
   conversations:
-    "from-purple-500/15 to-violet-500/10 dark:from-purple-500/22 dark:to-violet-500/15",
+    "from-amber-500/15 to-orange-500/10 dark:from-amber-500/22 dark:to-orange-500/15",
   "love-map":
     "from-pink-500/15 to-fuchsia-500/10 dark:from-pink-500/22 dark:to-fuchsia-500/15",
   "voice-memos":
@@ -568,7 +568,7 @@ const WIDGET_GRADIENTS: Record<string, string> = {
   calendar:
     "from-teal-500/15 to-cyan-500/10 dark:from-teal-500/22 dark:to-cyan-500/15",
   rituals:
-    "from-indigo-500/15 to-purple-500/10 dark:from-indigo-500/22 dark:to-purple-500/15",
+    "from-cyan-500/15 to-blue-500/10 dark:from-cyan-500/22 dark:to-blue-500/15",
   "four-horsemen":
     "from-red-600/15 to-rose-600/10 dark:from-red-600/22 dark:to-rose-600/15",
   "demon-dialogues":
@@ -582,7 +582,7 @@ const WIDGET_GRADIENTS: Record<string, string> = {
   parenting:
     "from-emerald-500/15 to-green-500/10 dark:from-emerald-500/22 dark:to-green-500/15",
   "therapist-thoughts":
-    "from-violet-500/15 to-purple-500/10 dark:from-violet-500/22 dark:to-purple-500/15",
+    "from-rose-500/15 to-orange-400/10 dark:from-rose-500/22 dark:to-orange-400/15",
   compatibility:
     "from-rose-500/15 to-pink-500/10 dark:from-rose-500/22 dark:to-pink-500/15",
   "progress-timeline":
@@ -592,7 +592,7 @@ const WIDGET_GRADIENTS: Record<string, string> = {
   attachment:
     "from-indigo-500/15 to-blue-500/10 dark:from-indigo-500/22 dark:to-blue-500/15",
   enneagram:
-    "from-purple-500/15 to-violet-500/10 dark:from-purple-500/22 dark:to-violet-500/15",
+    "from-amber-500/15 to-orange-500/10 dark:from-amber-500/22 dark:to-orange-500/15",
   messages:
     "from-blue-500/15 to-cyan-500/10 dark:from-blue-500/22 dark:to-cyan-500/15",
   "echo-empathy":
@@ -604,7 +604,7 @@ const WIDGET_GRADIENTS: Record<string, string> = {
   journal:
     "from-emerald-500/15 to-teal-500/10 dark:from-emerald-500/22 dark:to-teal-500/15",
   mood: "from-yellow-500/15 to-orange-500/10 dark:from-yellow-500/22 dark:to-orange-500/15",
-  ifs: "from-purple-500/15 to-indigo-500/10 dark:from-purple-500/22 dark:to-indigo-500/15",
+  ifs: "from-amber-500/15 to-cyan-500/10 dark:from-amber-500/22 dark:to-cyan-500/15",
   chores:
     "from-green-500/15 to-lime-500/10 dark:from-green-500/22 dark:to-lime-500/15",
   todos:
@@ -614,7 +614,7 @@ const WIDGET_GRADIENTS: Record<string, string> = {
   "daily-tips":
     "from-amber-500/15 to-yellow-500/10 dark:from-amber-500/22 dark:to-yellow-500/15",
   "reflection-prompts":
-    "from-violet-500/15 to-purple-500/10 dark:from-violet-500/22 dark:to-purple-500/15",
+    "from-rose-500/15 to-orange-400/10 dark:from-rose-500/22 dark:to-orange-400/15",
 };
 
 const WIDGET_BORDER_COLORS: Record<string, string> = {
@@ -625,7 +625,7 @@ const WIDGET_BORDER_COLORS: Record<string, string> = {
   "love-languages": "border-l-red-500",
   gratitude: "border-l-yellow-500",
   "shared-goals": "border-l-green-500",
-  conversations: "border-l-purple-500",
+  conversations: "border-l-amber-500",
   "love-map": "border-l-pink-500",
   "voice-memos": "border-l-orange-500",
   calendar: "border-l-teal-500",
@@ -636,24 +636,24 @@ const WIDGET_BORDER_COLORS: Record<string, string> = {
   intimacy: "border-l-pink-500",
   values: "border-l-amber-500",
   parenting: "border-l-emerald-500",
-  "therapist-thoughts": "border-l-violet-500",
+  "therapist-thoughts": "border-l-rose-500",
   compatibility: "border-l-rose-500",
   "progress-timeline": "border-l-blue-500",
   "growth-plan": "border-l-amber-500",
   attachment: "border-l-indigo-500",
-  enneagram: "border-l-purple-500",
+  enneagram: "border-l-amber-500",
   messages: "border-l-blue-500",
   "echo-empathy": "border-l-teal-500",
   conflict: "border-l-orange-500",
   pause: "border-l-red-500",
   journal: "border-l-emerald-500",
   mood: "border-l-yellow-500",
-  ifs: "border-l-purple-500",
+  ifs: "border-l-amber-500",
   chores: "border-l-green-500",
   todos: "border-l-slate-500",
   financial: "border-l-green-500",
   "daily-tips": "border-l-amber-500",
-  "reflection-prompts": "border-l-violet-500",
+  "reflection-prompts": "border-l-rose-500",
 };
 
 function WidgetPreviewCard({
@@ -1633,19 +1633,19 @@ export function DashboardCustomizer({
                   className={cn(
                     "relative transition-all duration-300",
                     previewDevice === "mobile" &&
-                      "rounded-[2.5rem] border-[10px] border-gray-800 dark:border-gray-600 bg-gray-800 dark:bg-gray-600 p-1",
+                      "rounded-[2.5rem] border-[10px] border-zinc-800 dark:border-zinc-600 bg-zinc-800 dark:bg-zinc-600 p-1",
                     previewDevice === "tablet" &&
-                      "rounded-[1.5rem] border-[8px] border-gray-700 dark:border-gray-500 bg-gray-700 dark:bg-gray-500 p-1",
+                      "rounded-[1.5rem] border-[8px] border-zinc-700 dark:border-zinc-500 bg-zinc-700 dark:bg-zinc-500 p-1",
                     previewDevice === "desktop" && "",
                   )}
                 >
                   {/* Device notch for mobile */}
                   {previewDevice === "mobile" && (
-                    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-24 h-6 bg-gray-800 dark:bg-gray-600 rounded-b-xl z-10" />
+                    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-24 h-6 bg-zinc-800 dark:bg-zinc-600 rounded-b-xl z-10" />
                   )}
                   {/* Device camera for tablet */}
                   {previewDevice === "tablet" && (
-                    <div className="absolute top-2 left-1/2 -translate-x-1/2 w-2 h-2 bg-gray-500 dark:bg-gray-400 rounded-full z-10" />
+                    <div className="absolute top-2 left-1/2 -translate-x-1/2 w-2 h-2 bg-zinc-500 dark:bg-zinc-400 rounded-full z-10" />
                   )}
 
                   {/* Screen content */}
